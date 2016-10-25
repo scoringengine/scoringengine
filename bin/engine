@@ -1,1 +1,13 @@
-# Starts main engine that tasks checks and such
+#!/usr/bin/env python
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../scoring_engine'))
+
+from engine import Engine
+from config import Config
+
+config = Config()
+engine = Engine(checks_location=config.checks_location)
+
+engine.run()

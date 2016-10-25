@@ -1,6 +1,7 @@
 import configparser
 import os
 
+
 class Config(object):
 
     def __init__(self):
@@ -8,4 +9,10 @@ class Config(object):
         print("Loading config from " + config_location)
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
+
         self.checks_location = self.parser['GENERAL']['checks_location']
+
+        self.db_host = self.parser['DB']['host']
+        self.db_port = self.parser['DB']['port']
+        self.db_username = self.parser['DB']['username']
+        self.db_password = self.parser['DB']['password']
