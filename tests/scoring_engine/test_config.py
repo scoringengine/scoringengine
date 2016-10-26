@@ -34,5 +34,8 @@ class TestConfig(object):
     def test_redis_password(self):
         assert self.config.redis_password == "testpass"
 
+    def test_redis_namespace(self):
+        assert self.config.redis_namespace == "scoring_engine"
+
     def test_redis_queue_name(self):
-        assert self.config.redis_queue_name == "scoring_engine-checks"
+        assert self.config.redis_queue_name == "checks"
