@@ -2,6 +2,12 @@ import redis
 import json
 
 from config import Config
+from job import Job
+
+
+class MalformedJob(Exception):
+    def __str__(self):
+        return "Job must be of instance of Job class"
 
 
 class WorkerQueue(object):
@@ -23,12 +29,14 @@ class WorkerQueue(object):
         while self.size() > 0:
             self.get_job()
 
-    def add_job(self, message):
-        return self.conn.rpush(self.queue_key, json.dumps(message))
+    def add_job(self, job):
+        if not isinstance(job, Job):
+            raise MalformedJob()
+        return self.conn.rpush(self.queue_key, json.dumps(job.to_dict()))
 
     def get_job(self):
         binary_job = self.conn.lpop(self.queue_key)
         if binary_job is None:
             return None
         encoded_job = binary_job.decode("utf-8")
-        return json.loads(encoded_job)
+        return Job.from_dict(json.loads(encoded_job))
