@@ -9,6 +9,10 @@ from glob import glob
 import signal
 
 from db import DB
+from models.team import Team
+from models.service import Service
+
+import random
 
 
 class Engine(object):
@@ -21,12 +25,15 @@ class Engine(object):
         self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine/' + checks_location)
 
         self.last_round = False
+        self.rounds_run = 0
 
         signal.signal(signal.SIGINT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)
 
         self.db = DB()
         self.db.connect()
+
+        self.load_checks()
 
     def shutdown(self, signum, frame):
         print("Shutting down after this round...")
@@ -56,10 +63,11 @@ class Engine(object):
                 print("\t\t\tCheck Classname: " + check_class_attr.name)
                 self.add_check(check_class_attr)
 
-        return self.checks
-
-    def next_round(self):
-        self.current_round += 1
+    def check_name_to_obj(self, check_name):
+        for check in self.checks:
+            if check.name == check_name:
+                return check
+        return None
 
     def run(self, num_checks=None):
         if num_checks is None:
@@ -67,9 +75,16 @@ class Engine(object):
         else:
             print("Running " + num_checks + " times")
 
-        while not self.last_round:
+        while (not self.last_round) and (self.rounds_run < self.total_rounds):
             print("Running round: " + str(self.current_round))
-            import time
-            time.sleep(1)
-            self.next_round()
+            self.rounds_run += 1
+
+            services = self.db.session.query(Service).all()[:]
+            random.shuffle(services)
+            for service in services:
+                print(service.name)
+                check_obj = self.check_name_to_obj(service.check_name)
+                print("Adding " + str(check_obj) + " to queue")
+
+            self.current_round += 1
 

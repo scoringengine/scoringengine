@@ -31,7 +31,7 @@ class TestProperty(object):
         self.db.save(team)
         server = Server(name="Example Server", team=team)
         self.db.save(server)
-        service = Service(name="Example Service", server=server)
+        service = Service(name="Example Service", server=server, check_name="ICMP IPv4 Check")
         self.db.save(service)
         property_obj = Property(name="testname", value="testvalue", service=service)
         self.db.save(property_obj)

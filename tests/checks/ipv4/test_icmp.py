@@ -13,6 +13,5 @@ class TestICMPCheck(object):
 
     def test_ssh_check(self):
         engine = Engine(checks_location=self.config.checks_location)
-        checks = engine.load_checks()
-        ssh_check_obj = checks[0]('127.0.0.1')
+        ssh_check_obj = engine.checks[0]('127.0.0.1')
         assert ssh_check_obj.command() == 'ping -c 1 127.0.0.1'

@@ -10,9 +10,8 @@ class TestSSHCheck(object):
 
     def setup(self):
       self.config = Config()
-      self.engine = Engine(checks_location=self.config.checks_location)
-      self.checks = self.engine.load_checks()
-      self.check_obj = self.checks[1]('127.0.0.1')
+      engine = Engine(checks_location=self.config.checks_location)
+      self.check_obj = engine.checks[1]('127.0.0.1')
 
     def test_ssh_check(self):
         self.check_obj.set_credentials(username='test', password='testerson')
