@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/pwnbus/scoring_engine.svg?branch=master)](https://travis-ci.org/pwnbus/scoring_engine)
 # scoring_engine
 Scoring Engine for Red/White/Blue Team Competitions
 
