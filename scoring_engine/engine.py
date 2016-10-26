@@ -8,6 +8,7 @@ from glob import glob
 
 import signal
 
+from config import Config
 from db import DB
 from models.service import Service
 
@@ -16,12 +17,14 @@ import random
 
 class Engine(object):
 
-    def __init__(self, checks_location, total_rounds=None, current_round=1):
+    def __init__(self, total_rounds=None, current_round=1):
         self.checks = []
         self.current_round = current_round
         self.total_rounds = total_rounds
 
-        self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine/' + checks_location)
+        self.config = Config()
+
+        self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine/' + self.config.checks_location)
 
         self.last_round = False
         self.rounds_run = 0
