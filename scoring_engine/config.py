@@ -14,6 +14,7 @@ class Config(object):
         self.parser.read(config_location)
 
         self.checks_location = self.parser['GENERAL']['checks_location']
+        self.check_timeout = int(self.parser['GENERAL']['check_timeout'])
 
         self.db_host = self.parser['DB']['host']
         self.db_port = int(self.parser['DB']['port'])

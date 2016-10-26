@@ -13,6 +13,9 @@ class TestConfig(object):
     def test_checks_location(self):
         assert self.config.checks_location == "checks"
 
+    def test_check_timeout(self):
+        assert self.config.check_timeout == 30
+
     def test_db_host(self):
         assert self.config.db_host == "127.0.0.1"
 
