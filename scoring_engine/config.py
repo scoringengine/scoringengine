@@ -13,6 +13,10 @@ class Config(object):
         self.checks_location = self.parser['GENERAL']['checks_location']
 
         self.db_host = self.parser['DB']['host']
-        self.db_port = self.parser['DB']['port']
+        self.db_port = int(self.parser['DB']['port'])
         self.db_username = self.parser['DB']['username']
         self.db_password = self.parser['DB']['password']
+
+        self.redis_host = self.parser['REDIS']['host']
+        self.redis_port = int(self.parser['REDIS']['port'])
+        self.redis_queue_name = self.parser['REDIS']['queue_name']
