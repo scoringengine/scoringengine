@@ -39,8 +39,8 @@ class TestServer(object):
         self.db.save(team)
         server = Server(name="Example Server", team=team)
         self.db.save(server)
-        service_1 = Service(name="Example Service 1", server=server)
+        service_1 = Service(name="Example Service 1", server=server, check_name="ICMP IPv4 Check")
         self.db.save(service_1)
-        service_2 = Service(name="Example Service 2", server=server)
+        service_2 = Service(name="Example Service 2", server=server, check_name="SSH IPv4 Check")
         self.db.save(service_2)
         assert server.services == [service_1, service_2]
