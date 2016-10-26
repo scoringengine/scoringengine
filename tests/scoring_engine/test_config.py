@@ -8,7 +8,7 @@ from config import Config
 class TestConfig(object):
 
     def setup(self):
-        self.config = Config()
+        self.config = Config(location="../tests/scoring_engine/example.conf")
 
     def test_checks_location(self):
         assert self.config.checks_location == "checks"
@@ -30,6 +30,9 @@ class TestConfig(object):
 
     def test_redis_port(self):
         assert self.config.redis_port == 6379
+
+    def test_redis_password(self):
+        assert self.config.redis_password == "testpass"
 
     def test_redis_queue_name(self):
         assert self.config.redis_queue_name == "scoring_engine-checks"

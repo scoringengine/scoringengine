@@ -1,3 +1,4 @@
 pynsive
 configparser
 sqlalchemy
+redis
