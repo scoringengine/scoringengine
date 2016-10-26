@@ -9,7 +9,6 @@ from glob import glob
 import signal
 
 from db import DB
-from models.team import Team
 from models.service import Service
 
 import random
@@ -52,7 +51,7 @@ class Engine(object):
         for protocol in glob(self.checks_location + "/*"):
             protocol_name = protocol.replace(self.checks_location + '/', '')
             print("\tProtocol: " + protocol_name)
-            for filename in glob(protocol + "/*"):
+            for filename in glob(protocol + "/*.py"):
                 check_filename = filename.replace(self.checks_location + '/' + protocol_name + '/', '')
                 print("\t\tCheck Filename: " + check_filename)
 
