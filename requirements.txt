@@ -2,3 +2,5 @@ pynsive
 configparser
 sqlalchemy
 redis
+codeclimate-test-reporter
+pytest-cov
