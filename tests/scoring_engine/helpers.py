@@ -49,7 +49,7 @@ def generate_sample_model_tree(model, db):
         return round_obj
 
     # Checks
-    check = Check(round=round_obj)
+    check = Check(round=round_obj, service=service)
     db.save(check)
     if model == 'Check':
         return check

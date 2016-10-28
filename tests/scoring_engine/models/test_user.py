@@ -3,9 +3,6 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
 
 from models.user import User
-from models.check import Check
-from models.service import Service
-from models.server import Server
 from models.team import Team
 from db import DB
 

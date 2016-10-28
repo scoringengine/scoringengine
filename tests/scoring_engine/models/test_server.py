@@ -2,7 +2,6 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
 
-from models.team import Team
 from models.server import Server
 from models.service import Service
 from db import DB
@@ -28,7 +27,7 @@ class TestServer(object):
         assert server.team_id is None
 
     def test_basic_server(self):
-        team = server = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.db)
         server = Server(name="Example Server", team=team)
         self.db.save(server)
         assert server.id is not None

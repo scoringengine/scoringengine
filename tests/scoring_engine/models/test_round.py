@@ -31,12 +31,13 @@ class TestRound(object):
         assert round_obj.number == 5
 
     def test_checks(self):
+        service = generate_sample_model_tree('Service', self.db)
         round_obj = Round(number=5)
         self.db.save(round_obj)
-        check_1 = Check(round=round_obj)
+        check_1 = Check(round=round_obj, service=service)
         self.db.save(check_1)
-        check_2 = Check(round=round_obj)
+        check_2 = Check(round=round_obj, service=service)
         self.db.save(check_2)
-        check_3 = Check(round=round_obj)
+        check_3 = Check(round=round_obj, service=service)
         self.db.save(check_3)
         assert round_obj.checks == [check_1, check_2, check_3]

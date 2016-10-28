@@ -9,3 +9,5 @@ class Check(Base):
     id = Column(Integer, primary_key=True)
     round_id = Column(Integer, ForeignKey('rounds.id'))
     round = relationship("Round", back_populates="checks")
+    service_id = Column(Integer, ForeignKey('services.id'))
+    service = relationship("Service")

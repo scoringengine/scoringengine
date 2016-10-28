@@ -12,3 +12,4 @@ class Service(Base):
     server_id = Column(Integer, ForeignKey('servers.id'))
     server = relationship("Server", back_populates="services")
     properties = relationship("Property", back_populates="service")
+    checks = relationship("Check", back_populates="service")

@@ -2,10 +2,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
 
-from models.team import Team
-from models.server import Server
-from models.service import Service
 from models.check import Check
+from models.round import Round
 from db import DB
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
@@ -28,9 +26,13 @@ class TestCheck(object):
         assert check.round_id is None
 
     def test_basic_check(self):
-        round = generate_sample_model_tree('Round', self.db)
-        check = Check(round=round)
+        service = generate_sample_model_tree('Service', self.db)
+        round_obj = Round(number=1)
+        self.db.save(round_obj)
+        check = Check(round=round_obj, service=service)
         self.db.save(check)
         assert check.id is not None
-        assert check.round == round
-        assert check.round_id == round.id
+        assert check.round == round_obj
+        assert check.round_id == round_obj.id
+        assert check.service == service
+        assert check.service_id == service.id
