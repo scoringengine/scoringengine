@@ -9,6 +9,8 @@ from models.server import Server
 from models.team import Team
 from db import DB
 
+from helpers import generate_sample_model_tree
+
 
 class TestUser(object):
     def setup(self):
@@ -28,12 +30,11 @@ class TestUser(object):
         assert user.team_id is None
 
     def test_basic_user(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
+        team = generate_sample_model_tree('Team', self.db)
         user = User(username="testuser", password="testpass", team=team)
         self.db.save(user)
         assert user.id is not None
         assert user.username == "testuser"
         assert user.password == "testpass"
         assert user.team is team
-        assert user.team_id is 1
+        assert user.team_id is team.id
