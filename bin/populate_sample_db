@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../scoring_engine'))
+
+from models.team import Team
+from models.user import User
+from models.server import Server
+from models.service import Service
+from models.property import Property
+from models.round import Round
+from models.check import Check
+from db import DB
+
+from random import randint
+
+
+print("Setting up DB")
+db = DB()
+db.connect()
+db.setup()
+
+
+services = []
+
+print("Creating models and writing them to DB")
+num_teams = 6
+num_servers = randint(2, 4)
+num_services = randint(1, 3)
+num_properties = randint(2, 4)
+num_rounds = randint(20, 50)
+print("\tNum Teams: " + str(num_teams))
+print("\tNum Servers: " + str(num_servers))
+print("\tNum Services: " + str(num_services))
+print("\tNum Properties: " + str(num_properties))
+print("\tNum Rounds: " + str(num_rounds))
+print()
+
+for num in range(1, num_teams + 1):
+
+    print("\tCreating Team " + str(num))
+    team = Team(name="Team" + str(num), color="Blue")
+    db.save(team)
+
+    for user_num in range(1, randint(3, 5) + 1):
+        print("\t\tCreating User " + str(user_num))
+        user = User(username="user" + str(user_num), password="testpass", team=team)
+        db.save(user)
+
+    for server_num in range(1, num_servers + 1):
+        print("\t\tCreating Server " + str(server_num))
+        server = Server(name="Example Server " + str(server_num), team=team)
+        db.save(server)
+
+        for service_num in range(1, num_services + 1):
+            print("\t\t\tCreating Service " + str(service_num))
+            service = Service(name="ICMP IPv4", server=server, check_name="ICMP IPv4 Check")
+            db.save(service)
+            services.append(service)
+
+            for property_num in range(1, num_properties + 1):
+                print("\t\t\t\tCreating Property " + str(property_num))
+                property_obj = Property(name="prop" + str(property_num), value="127.0.0." + str(property_num), service=service)
+                db.save(property_obj)
+
+print("Creating " + str(num_rounds) + " rounds")
+for num_round in range(1, num_rounds + 1):
+    print("\tCreating round " + str(num_round))
+    round_obj = Round(number=num_round)
+    for service in services:
+        print("\t\tCreating check for " + str(service.id))
+        check = Check(round=round_obj, service=service)
+        db.save(check)
