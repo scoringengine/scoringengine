@@ -9,6 +9,7 @@ from models.server import Server
 from models.team import Team
 from db import DB
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
 
