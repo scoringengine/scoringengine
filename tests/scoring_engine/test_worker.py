@@ -115,4 +115,3 @@ class TestWorker(object):
         assert isinstance(updated_job_2, Job)
         updated_job_3 = self.finished_queue.get_job()
         assert isinstance(updated_job_3, Job)
-
