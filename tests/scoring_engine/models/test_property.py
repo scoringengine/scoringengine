@@ -2,9 +2,6 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
 
-from models.team import Team
-from models.server import Server
-from models.service import Service
 from models.property import Property
 from db import DB
 

@@ -2,9 +2,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
 
-from models.team import Team
-from models.server import Server
 from models.service import Service
+from models.check import Check
 from models.property import Property
 from db import DB
 
@@ -38,6 +37,17 @@ class TestService(object):
         assert service.server == server
         assert service.server_id == server.id
         assert service.check_name == "ICMP IPv4 Check"
+
+    def test_checks(self):
+        service = generate_sample_model_tree('Service', self.db)
+        round_obj = generate_sample_model_tree('Round', self.db)
+        check_1 = Check(round=round_obj, service=service)
+        self.db.save(check_1)
+        check_2 = Check(round=round_obj, service=service)
+        self.db.save(check_2)
+        check_3 = Check(round=round_obj, service=service)
+        self.db.save(check_3)
+        assert service.checks == [check_1, check_2, check_3]
 
     def test_properties(self):
         service = generate_sample_model_tree('Service', self.db)
