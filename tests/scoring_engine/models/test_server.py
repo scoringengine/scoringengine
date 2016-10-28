@@ -7,6 +7,8 @@ from models.server import Server
 from models.service import Service
 from db import DB
 
+from helpers import generate_sample_model_tree
+
 
 class TestServer(object):
     def setup(self):
@@ -25,20 +27,16 @@ class TestServer(object):
         assert server.team_id is None
 
     def test_basic_server(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
+        team = server = generate_sample_model_tree('Team', self.db)
         server = Server(name="Example Server", team=team)
         self.db.save(server)
         assert server.id is not None
         assert server.name == "Example Server"
         assert server.team == team
-        assert server.team_id == 1
+        assert server.team_id == team.id
 
     def test_services(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
-        server = Server(name="Example Server", team=team)
-        self.db.save(server)
+        server = server = generate_sample_model_tree('Server', self.db)
         service_1 = Service(name="Example Service 1", server=server, check_name="ICMP IPv4 Check")
         self.db.save(service_1)
         service_2 = Service(name="Example Service 2", server=server, check_name="SSH IPv4 Check")

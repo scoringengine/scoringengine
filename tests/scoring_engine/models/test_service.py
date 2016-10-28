@@ -9,6 +9,8 @@ from models.check import Check
 from models.property import Property
 from db import DB
 
+from helpers import generate_sample_model_tree
+
 
 class TestService(object):
     def setup(self):
@@ -28,47 +30,31 @@ class TestService(object):
         assert service.check_name == "ICMP IPv4 Check"
 
     def test_basic_service(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
-        server = Server(name="Example Server", team=team)
-        self.db.save(server)
+        server = generate_sample_model_tree('Server', self.db)
         service = Service(name="Example Service", server=server, check_name="ICMP IPv4 Check")
         self.db.save(service)
         assert service.id is not None
         assert service.name == "Example Service"
         assert service.server == server
-        assert service.server_id == 1
+        assert service.server_id == server.id
         assert service.check_name == "ICMP IPv4 Check"
 
     def test_checks(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
-        server = Server(name="Example Server", team=team)
-        self.db.save(server)
-        service = Service(name="Example Service 2", server=server, check_name="ICMP IPv4 Check")
-        self.db.save(service)
+        service = generate_sample_model_tree('Service', self.db)
         check_1 = Check(round_num=1, service=service)
         self.db.save(check_1)
         check_2 = Check(round_num=2, service=service)
         self.db.save(check_2)
         check_3 = Check(round_num=3, service=service)
         self.db.save(check_3)
-
         assert service.checks == [check_1, check_2, check_3]
 
     def test_properties(self):
-        team = Team(name="Team1", color="Blue")
-        self.db.save(team)
-        server = Server(name="Example Server", team=team)
-        self.db.save(server)
-        service = Service(name="Example Service 2", server=server, check_name="ICMP IPv4 Check")
-        self.db.save(service)
-        property_1 = Property(name="testname", value="testvalue", service=service)
+        service = generate_sample_model_tree('Service', self.db)
+        property_1 = Property(name="ip", value="127.0.0.1", service=service)
         self.db.save(property_1)
-        property_2 = Property(name="testname", value="testvalue", service=service)
+        property_2 = Property(name="username", value="testuser", service=service)
         self.db.save(property_2)
-        property_3 = Property(name="testname", value="testvalue", service=service)
+        property_3 = Property(name="password", value="testpass", service=service)
         self.db.save(property_3)
-
         assert service.properties == [property_1, property_2, property_3]
-
