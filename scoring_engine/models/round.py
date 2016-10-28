@@ -8,3 +8,4 @@ class Round(Base):
     __tablename__ = "rounds"
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
+    checks = relationship("Check", back_populates="round")

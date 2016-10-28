@@ -22,16 +22,15 @@ class TestCheck(object):
         self.db.destroy()
 
     def test_init_check(self):
-        check = Check(round_num=1)
+        check = Check()
         assert check.id is None
-        assert check.round_num == 1
-        assert check.service is None
-        assert check.service_id is None
+        assert check.round is None
+        assert check.round_id is None
 
     def test_basic_check(self):
-        service = generate_sample_model_tree('Service', self.db)
-        check = Check(round_num=1, service=service)
+        round = generate_sample_model_tree('Round', self.db)
+        check = Check(round=round)
         self.db.save(check)
         assert check.id is not None
-        assert check.service == service
-        assert check.service_id == service.id
+        assert check.round == round
+        assert check.round_id == round.id

@@ -7,6 +7,7 @@ from models.user import User
 from models.server import Server
 from models.service import Service
 from models.property import Property
+from models.round import Round
 from models.check import Check
 
 
@@ -42,11 +43,13 @@ def generate_sample_model_tree(model, db):
         return property_obj
 
     # Rounds
-    # round_obj = Round(...)
+    round_obj = Round(number=1)
+    db.save(round_obj)
+    if model == 'Round':
+        return round_obj
 
     # Checks
-    check = Check(round_num=1, service=service, result=True, output="Sample output", reason="Sample reason")
+    check = Check(round=round_obj)
     db.save(check)
     if model == 'Check':
         return check
-
