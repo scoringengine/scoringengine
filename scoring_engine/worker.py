@@ -17,6 +17,6 @@ class Worker(object):
             output = subprocess.run(job.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout).stdout.decode("utf-8")
             job.set_output(output)
         except subprocess.TimeoutExpired:
-            job.set_fail('Job Timed Out')
+            job.set_fail('Command Timed Out')
 
         return job

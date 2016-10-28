@@ -28,7 +28,7 @@ class TestWorker(object):
         job = Job(service_id="12345", command="sleep " + str(sleep_time))
         updated_job = worker.execute_cmd(job, timeout_time)
         assert updated_job.output is None
-        assert updated_job.reason == "Job Timed Out"
+        assert updated_job.reason == "Command Timed Out"
         assert updated_job.passed() is False
         assert updated_job.completed() is True
 
