@@ -18,6 +18,8 @@ class TestWorker(object):
         job = Job(service_id="12345", command="echo 'HELLO'")
         updated_job = worker.execute_cmd(job)
         assert updated_job.output == "HELLO\n"
+        assert updated_job.completed() is True
+        assert updated_job.passed() is False
 
     def test_execute_cmd_trigger_timeout(self):
         worker = Worker()
@@ -25,7 +27,8 @@ class TestWorker(object):
         sleep_time = timeout_time + 1
         job = Job(service_id="12345", command="sleep " + str(sleep_time))
         updated_job = worker.execute_cmd(job, timeout_time)
-        assert updated_job.output == "Job Timed Out"
-        assert updated_job.result == 'Fail'
+        assert updated_job.output is None
+        assert updated_job.reason == "Job Timed Out"
         assert updated_job.passed() is False
+        assert updated_job.completed() is True
 
