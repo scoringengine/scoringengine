@@ -37,6 +37,12 @@ class TestEngine():
         engine = Engine(total_rounds=100)
         assert engine.total_rounds == 100
 
+    def test_shutdown(self):
+        engine = Engine()
+        assert engine.last_round is False
+        engine.shutdown()
+        assert engine.last_round is True
+
     def test_run_one_round(self):
         engine = Engine(current_round=1, total_rounds=1)
         assert engine.rounds_run == 0

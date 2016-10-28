@@ -6,10 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from config import Config
 from models.base import Base
 
-
-class DBNotConnected(Exception):
-    def __str__(self):
-        return "DB is not connected. Must connect first"
+from db_not_connected import DBNotConnected
 
 
 class DB(object):
@@ -41,7 +38,7 @@ class DB(object):
 
     def save(self, obj):
         if not self.connected:
-            raise DBNotConnected
+            raise DBNotConnected()
 
         self.session.add(obj)
         self.session.commit()

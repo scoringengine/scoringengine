@@ -37,7 +37,7 @@ class Engine(object):
 
         self.load_checks()
 
-    def shutdown(self, signum, frame):
+    def shutdown(self):
         print("Shutting down after this round...")
         self.last_round = True
 
@@ -71,12 +71,7 @@ class Engine(object):
                 return check
         return None
 
-    def run(self, num_checks=None):
-        if num_checks is None:
-            print("Running until process is killed")
-        else:
-            print("Running " + num_checks + " times")
-
+    def run(self):
         while (not self.last_round) and (self.rounds_run < self.total_rounds):
             print("Running round: " + str(self.current_round))
             self.rounds_run += 1

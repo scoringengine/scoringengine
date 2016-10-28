@@ -10,7 +10,7 @@ config = {
   'download_url': 'https://github.com/pwnbus/scoring_engine/archive/master.zip',
   'author_email': 'pwnbus@mozilla.com',
   'version': '0.0.1',
-  'install_requires': ['pytest', 'pynsive', 'configparser', 'sqlalchemy', 'redis'], #dependencies
+  'install_requires': ['pytest', 'pynsive', 'configparser', 'sqlalchemy', 'redis', 'codeclimate-test-reporter', 'pytest-cov'], #dependencies
   'packages': ['scoring_engine'],
   'scripts': [],
   'name': 'scoring_engine'
