@@ -5,7 +5,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
 
-from db import DB, DBNotConnected
+from db import DB
+from db_not_connected import DBNotConnected
 from models.team import Team
 
 
@@ -48,4 +49,3 @@ class TestDB(object):
         obj = Team(name="White Team", color="White")
         with pytest.raises(DBNotConnected):
             self.db.save(obj)
-
