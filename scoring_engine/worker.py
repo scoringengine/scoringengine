@@ -25,7 +25,13 @@ class Worker(object):
             timeout = self.config.check_timeout
         print("Executing " + str(job.command) + " for " + str(job.service_id))
         try:
-            cmd_result = subprocess.run(job.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+            cmd_result = subprocess.run(
+                job.command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=timeout
+            )
             output = cmd_result.stdout.decode("utf-8")
             job.set_output(output)
         except subprocess.TimeoutExpired:

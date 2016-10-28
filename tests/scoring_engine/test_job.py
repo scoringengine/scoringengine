@@ -11,7 +11,6 @@ class TestJob(object):
         self.job = Job(service_id="12345", command="ls -l")
 
     def test_init(self):
-        job = Job(service_id="12345", command="ls -l")
         assert self.job.service_id == "12345"
         assert self.job.command == "ls -l"
         assert self.job.output is None
