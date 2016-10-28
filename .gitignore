@@ -35,3 +35,4 @@ venv/*
 test/.cache/*
 
 .cache
+engine.db
