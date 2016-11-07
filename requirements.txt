@@ -1,10 +1,10 @@
 bcrypt
+codeclimate-test-reporter
+configparser
 Flask
 Flask-Login
 Flask-SQLAlchemy
 Flask-WTF
-codeclimate-test-reporter
-configparser
 pynsive
 pytest-cov
 redis
