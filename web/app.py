@@ -116,7 +116,6 @@ def login():
         password = request.form.get('password')
 
         user = db.session.query(User).filter_by(username=username).first()
-        print user.password
         if user:
             if bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password:
                 user.authenticated = True
