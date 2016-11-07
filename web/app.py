@@ -4,7 +4,7 @@ import sys
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, Response, url_for
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from wtforms import TextField, PasswordField
@@ -67,7 +67,7 @@ def get_current_user():
 
 
 # Creating our login form
-class LoginForm(Form):
+class LoginForm(FlaskForm):
     username = TextField('Username', [InputRequired()])
     password = PasswordField('Password', [InputRequired()])
 
@@ -147,8 +147,7 @@ def logout():
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('login'))
 
-if __name__=="__main__":
-    from app import db
+if __name__ == "__main__":
     db.create_all()
     #user = User('test', 'test')
     #db.session.add(user)
