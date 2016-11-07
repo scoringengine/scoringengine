@@ -1,6 +1,12 @@
-pynsive
-configparser
-sqlalchemy
-redis
+bcrypt
 codeclimate-test-reporter
+configparser
+Flask
+Flask-Login
+Flask-SQLAlchemy
+Flask-WTF
+pynsive
 pytest-cov
+redis
+sqlalchemy
+WTForms

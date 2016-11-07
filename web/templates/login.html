@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="uk-vertical-align uk-text-center uk-height-1-1">
+    <div class="uk-vertical-align-middle" style="width: 250px;">
+        <img class="uk-margin-bottom" width="350" height="150" src="http://placehold.it/350x150">
+        <form method="POST" action="{{ url_for('login') }}" role="form" class="uk-panel uk-panel-box uk-form">
+            {{ form.csrf_token }}
+            <div class="uk-form-row">
+                {{ form.username.label }}: {{ form.username() }}
+            </div>
+            <div class="uk-form-row">
+                {{ form.password.label }}: {{ form.password() }}
+            </div>
+            <div class="uk-form-row">
+                <button class="uk-width-1-1 uk-button uk-button-primary uk-button-large" type="submit">Login</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

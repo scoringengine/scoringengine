@@ -5,12 +5,24 @@ except ImportError:
 
 config = {
   'description': 'Scoring Engine for Red/White/Blue Team Competitions',
-  'author': 'Brandon Myers',
+  'author': ['Brandon Myers', 'Rusty Bower'],
   'url': 'https://github.com/pwnbus/scoring_engine',
   'download_url': 'https://github.com/pwnbus/scoring_engine/archive/master.zip',
-  'author_email': 'pwnbus@mozilla.com',
+  'author_email': ['pwnbus@mozilla.com', 'rusty@rustybower.com'],
   'version': '0.0.1',
-  'install_requires': ['pytest', 'pynsive', 'configparser', 'sqlalchemy', 'redis', 'codeclimate-test-reporter', 'pytest-cov'], #dependencies
+  'install_requires': ['bcrypt',
+                       'codeclimate-test-reporter',
+                       'configparser',
+                       'Flask',
+                       'Flask-Login',
+                       'Flask-SQLAlchemy',
+                       'Flask-WTF',
+                       'pynsive',
+                       'pytest',
+                       'pytest-cov',
+                       'redis',
+                       'sqlalchemy'
+                       ], #dependencies
   'packages': ['scoring_engine'],
   'scripts': [],
   'name': 'scoring_engine'
