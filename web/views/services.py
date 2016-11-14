@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template
 
-services_view = Blueprint('services', __name__)
+services_blueprint = Blueprint('services', __name__)
 
 
-@services_view.route('/services')
+@services_blueprint.route('/services')
 def home():
     return render_template('services.html')
 
 
-@services_view.route('/service/<id>')
+@services_blueprint.route('/service/<id>')
 def service(id):
     return render_template('service.html', service=id)

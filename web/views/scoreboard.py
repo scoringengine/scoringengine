@@ -1,8 +1,27 @@
 from flask import Blueprint, render_template
 
-scoreboard_view = Blueprint('scoreboard', __name__)
+scoreboard_blueprint = Blueprint('scoreboard', __name__)
 
 
-@scoreboard_view.route('/scoreboard')
+@scoreboard_blueprint.route('/scoreboard')
 def home():
-    return render_template('scoreboard.html')
+    team1 = [0, 100, 200, 300, 400, 500]
+    team2 = [0, 200, 300, 400, 400, 600]
+    team3 = [0, 300, 300, 300, 300, 400]
+
+    teamData = {
+        "1": {
+            "label": "Team 1",
+            "data": team1
+        },
+        "2": {
+            "label": "Team 2",
+            "data": team2
+        },
+        "3": {
+            "label": "Team 3",
+            "data": team3
+        }
+    }
+
+    return render_template('scoreboard.html', teamData=teamData)

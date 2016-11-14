@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Index{% endblock %}
 {% block head %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.1/css/uikit.almost-flat.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.1/js/uikit.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.min.js"></script>
     {{ super() }}
 {% endblock %}
-{% block container %}
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.1/js/uikit.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.min.js"></script>
+{% block content %}
 <div class="uk-vertical-align uk-text-center uk-height-1-1">
     <div class="uk-vertical-align-middle">
         <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
