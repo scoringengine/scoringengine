@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template
 
-scoreboard_blueprint = Blueprint('scoreboard', __name__)
+mod = Blueprint('scoreboard', __name__)
 
 
-@scoreboard_blueprint.route('/scoreboard')
+@mod.route('/scoreboard')
 def home():
     team1 = [0, 100, 200, 300, 400, 500]
     team2 = [0, 200, 300, 400, 400, 600]

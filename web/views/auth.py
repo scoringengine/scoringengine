@@ -11,7 +11,7 @@ from wtforms.validators import InputRequired
 from . import db
 from . import app
 
-auth_blueprint = Blueprint('welcome', __name__)
+mod = Blueprint('welcome', __name__)
 
 
 class User(db.Model):
@@ -57,7 +57,7 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-@auth_blueprint.before_request
+@mod.before_request
 def get_current_user():
     g.user = current_user
 
@@ -68,7 +68,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', [InputRequired()])
 
 
-@auth_blueprint.route('/login', methods=['GET', 'POST'])
+@mod.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         flash('You are already logged in.')
@@ -106,7 +106,7 @@ def login():
     return render_template('login.html', form=form)
 
 
-@app.route('/logout')
+@mod.route('/logout')
 def logout():
     logout_user()
     flash('You have successfully logged out.', 'success')
