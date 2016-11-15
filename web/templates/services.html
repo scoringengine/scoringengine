@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="top-pad">
+Team Name: Team 11
+Current Place: 1
+    <table class="table table-hover">
+     <thead>
+      <tr>
+        <th>Service</th>
+        <th>Status</th>
+        <th>Score Earned</th>
+        <th>Max Score</th>
+        <th>% Earned</th>
+        <th>Trending</th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+        <td><a href="/service/1">Service 1</a></td>
+        <td><span class="label label-success">UP</span></td>
+        <td>500</td>
+        <td>1000</td>
+        <td>50%</td>
+        <td><img src="{{ url_for('static', filename = 'images/trending.jpg') }}"></td>
+      </tr>
+      <tr>
+        <td><a href="/service/2">Service 2</a></td>
+        <td><span class="label label-success">UP</span></td>
+        <td>100</td>
+        <td>1000</td>
+        <td>10%</td>
+        <td><img src="{{ url_for('static', filename = 'images/trending.jpg') }}"></td>
+      </tr>
+      <tr>
+        <td><a href="/service/3">Service 3</a></td>
+        <td><span class="label label-danger">DOWN</span></td>
+        <td>400</td>
+        <td>1000</td>
+        <td>40%</td>
+        <td><img src="{{ url_for('static', filename = 'images/trending.jpg') }}"></td>
+      </tr>
+      <tr>
+        <td><a href="/service/4">Service 4</a></td>
+        <td><span class="label label-danger">DOWN</span></td>
+        <td>800</td>
+        <td>1000</td>
+        <td>80%</td>
+        <td><img src="{{ url_for('static', filename = 'images/trending.jpg') }}"></td>
+      </tr>
+      <tr>
+        <td><a href="/service/5">Service 5</a></td>
+        <td><span class="label label-success">UP</span></td>
+        <td>1000</td>
+        <td>1000</td>
+        <td>100%</td>
+        <td><img src="{{ url_for('static', filename = 'images/trending.jpg') }}"></td>
+      </tr>
+     </tbody>
+    </table>
+  </div>
+{% endblock %}
