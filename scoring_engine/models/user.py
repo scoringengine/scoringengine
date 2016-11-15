@@ -1,38 +1,36 @@
 import bcrypt
-
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-
-from models.base import Base
+from sqlalchemy import Boolean, Column, Integer, String
+from scoring_engine.database import Model
 
 
-class User(Base):
+class User(Model):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     username = Column(String(20), nullable=False)
     password = Column(String(50), nullable=False)
-    team_id = Column(Integer, ForeignKey('teams.id'))
-    team = relationship("Team", back_populates="users")
     authenticated = Column(Boolean, default=False)
 
-    def check_hash(self, hashed, password):
-        if bcrypt.hashpw(password, hashed) == hashed:
-            return True
-        else:
-            return False
+    def __init__(self, username, password):
+        self.username = username
+        self.password = bcrypt.hashpw(password, bcrypt.gensalt())
 
-    def is_active(self):
-        """True, as all users are active."""
+    @property
+    def is_authenticated(self):
         return True
 
-    def get_id(self):
-        """Return the id to satisfy Flask-Login's requirements."""
-        return self.id
+    @property
+    def is_active(self):
+        return True
 
-    def is_authenticated(self):
-        """Return True if the user is authenticated."""
-        return self.authenticated
-
+    @property
     def is_anonymous(self):
-        """False, as anonymous users aren't supported."""
         return False
+
+    def get_id(self):
+        try:
+            return unicode(self.id)  # python 2
+        except NameError:
+            return str(self.id)  # python 3
+
+    def __repr__(self):
+        return '<User %r>' % self.username

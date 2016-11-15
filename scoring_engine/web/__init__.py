@@ -5,8 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 from flask_login import LoginManager, current_user
 
-from web.views import welcome, scoreboard, overview, services, admin, auth
-from web.models.user import User
+from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth
+
+from scoring_engine.models.user import User
 
 
 app = Flask(__name__)

@@ -1,16 +1,15 @@
 from flask import Blueprint, render_template
 
 import bcrypt
-from flask import flash, g, redirect, request, url_for
+from flask import flash, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user
 from flask_wtf import FlaskForm
 
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
-from web.database import db_session
-from web.models.user import User
-# from . import app
+from scoring_engine.database import db_session
+from scoring_engine.models.user import User
 
 mod = Blueprint('auth', __name__)
 
