@@ -1,6 +1,7 @@
 import bcrypt
 from sqlalchemy import Boolean, Column, Integer, String
-from scoring_engine.database import Model
+
+from scoring_engine.db import Model
 
 
 class User(Model):
@@ -12,6 +13,7 @@ class User(Model):
 
     def __init__(self, username, password):
         self.username = username
+        password = password.encode('utf-8')
         self.password = bcrypt.hashpw(password, bcrypt.gensalt())
 
     @property
