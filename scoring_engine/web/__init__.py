@@ -6,8 +6,6 @@ from flask_login import LoginManager, current_user
 app = Flask(__name__)
 app.config.from_pyfile('settings.cfg')
 
-from scoring_engine.db import db_session
-
 from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth
 
 app.register_blueprint(welcome.mod)

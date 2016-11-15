@@ -1,22 +1,45 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 from scoring_engine.web import app
 
-engine = create_engine(app.config['DATABASE_URI'],
-                       convert_unicode=True,
-                       **app.config['DATABASE_CONNECT_OPTIONS'])
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
+from scoring_engine.db_not_connected import DBNotConnected
 
 
-def init_db():
-    from scoring_engine.models.user import User
-    Model.metadata.create_all(bind=engine)
+class DB(object):
+    def __init__(self):
+        self.connected = False
+        self.sqlite_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../engine.db')
+
+    def connect(self):
+        self.connected = True
+        self.engine = create_engine(app.config['DATABASE_URI'], convert_unicode=True, **app.config['DATABASE_CONNECT_OPTIONS'])
+        self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
+
+    def setup(self):
+        if not self.connected:
+            raise DBNotConnected()
+        self.destroy()
+        Base.metadata.create_all(self.db_engine)
+
+    def destroy(self):
+        if os.path.isfile(self.sqlite_db):
+            print("Deleting sqlite db file")
+            os.remove(self.sqlite_db)
+
+    def save(self, obj):
+        if not self.connected:
+            raise DBNotConnected()
+
+        self.session.add(obj)
+        self.session.commit()
 
 
-Model = declarative_base(name='Model')
-Model.query = db_session.query_property()
-init_db()
+db = DB()
+db.connect()
+
+
+from scoring_engine.models.base import Base
+
