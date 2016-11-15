@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
-from scoring_engine.db import db_session
+from scoring_engine.db import db
 from scoring_engine.models.user import User
 
 mod = Blueprint('auth', __name__)
@@ -23,7 +23,7 @@ class LoginForm(FlaskForm):
 def login():
     if current_user.is_authenticated:
         flash('You are already logged in.')
-        return redirect(url_for('index'))
+        return redirect(url_for('admin.home'))
 
     form = LoginForm(request.form)
 
@@ -31,24 +31,19 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = db_session.query(User).filter_by(username=username).first()
+        user = db.session.query(User).filter_by(username=username).first()
         if user:
             if bcrypt.hashpw(password.encode('utf-8'), user.password) == user.password:
                 user.authenticated = True
-                current_sessions = db_session.object_session(user)
-                db_session.add(user)
-                db_session.commit()
+                db.save(user)
+                current_sessions = db.session.object_session(user)
                 login_user(user, remember=True)
                 return redirect(url_for("admin.home"))
             else:
-                flash(
-                    'Invalid username or password. Please try again.',
-                    'danger')
+                flash('Invalid username or password. Please try again.', 'danger')
                 return render_template('login.html', form=form)
         else:
-            flash(
-                'Invalid username or password. Please try again.',
-                'danger')
+            flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
 
     if form.errors:

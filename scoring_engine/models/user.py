@@ -1,10 +1,10 @@
 import bcrypt
 from sqlalchemy import Boolean, Column, Integer, String
 
-from scoring_engine.db import Model
+from scoring_engine.models.base import Base
 
 
-class User(Model):
+class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     username = Column(String(20), nullable=False)
