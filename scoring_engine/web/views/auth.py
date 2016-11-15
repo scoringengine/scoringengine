@@ -8,14 +8,10 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
-from scoring_engine.database import db_session
+from scoring_engine.db import db_session
 from scoring_engine.models.user import User
 
 mod = Blueprint('auth', __name__)
-
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-# login_manager.login_view = 'login'
 
 # Creating our login form
 class LoginForm(FlaskForm):
@@ -37,13 +33,13 @@ def login():
 
         user = db_session.query(User).filter_by(username=username).first()
         if user:
-            if bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password:
+            if bcrypt.hashpw(password.encode('utf-8'), user.password) == user.password:
                 user.authenticated = True
                 current_sessions = db_session.object_session(user)
                 db_session.add(user)
                 db_session.commit()
                 login_user(user, remember=True)
-                return redirect(url_for("index"))
+                return redirect(url_for("admin.home"))
             else:
                 flash(
                     'Invalid username or password. Please try again.',
