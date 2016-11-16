@@ -13,3 +13,7 @@ class Service(Base):
     team = relationship("Team", back_populates="services")
     properties = relationship("Property", back_populates="service")
     checks = relationship("Check", back_populates="service")
+
+    def last_check_result(self):
+      return self.checks[-1].result
+

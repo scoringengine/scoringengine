@@ -11,3 +11,7 @@ class Team(Base):
     color = Column(String(10), nullable=False)
     services = relationship("Service", back_populates="team")
     users = relationship("User", back_populates="team")
+
+    def current_score(self):
+      # todo make this dynamic based on service result
+      return 2000
