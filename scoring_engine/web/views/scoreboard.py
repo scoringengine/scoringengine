@@ -29,8 +29,9 @@ def home():
 
     return render_template('scoreboard.html', teamData=teamData)
 
+
 def generateRBGA():
     import random
-    rgb = "rgba(%s, %s, %s, 1)" % (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+    rgb = "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
     print(rgb)
-    return "rgba(%s, %s, %s, 1)" % (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+    return "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
