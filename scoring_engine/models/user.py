@@ -19,7 +19,6 @@ class User(Base):
 
     def __init__(self, username, password, team=None):
         self.username = username
-        self.password = password
         self.password = bcrypt.hashpw(password, db_salt)
         self.team = team
 
