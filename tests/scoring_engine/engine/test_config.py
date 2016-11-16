@@ -1,14 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from config import Config
+from scoring_engine.engine.config import Config
 
 
 class TestConfig(object):
 
     def setup(self):
-        self.config = Config(location="../tests/scoring_engine/example.conf")
+        self.config = Config(location="../../tests/scoring_engine/engine/example.conf")
 
     def test_checks_location(self):
         assert self.config.checks_location == "checks"

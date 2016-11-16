@@ -1,9 +1,9 @@
 import subprocess
 import signal
 
-from worker_queue import WorkerQueue
-from finished_queue import FinishedQueue
-from config import Config
+from scoring_engine.engine.worker_queue import WorkerQueue
+from scoring_engine.engine.finished_queue import FinishedQueue
+from scoring_engine.engine.config import Config
 
 
 class Worker(object):

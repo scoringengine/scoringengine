@@ -1,4 +1,4 @@
-from basic_check import BasicCheck
+from scoring_engine.engine.basic_check import BasicCheck
 
 
 class UsernamePasswordCheck(BasicCheck):

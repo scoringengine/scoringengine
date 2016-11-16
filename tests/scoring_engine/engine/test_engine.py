@@ -1,15 +1,15 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from engine import Engine
-from db import DB
+from scoring_engine.engine.engine import Engine
+from scoring_engine.db import DB
 
-from models.team import Team
-from models.server import Server
-from models.service import Service
-from models.property import Property
-from models.check import Check
+from scoring_engine.models.team import Team
+from scoring_engine.models.server import Server
+from scoring_engine.models.service import Service
+from scoring_engine.models.property import Property
+from scoring_engine.models.check import Check
 
 
 class TestEngine():

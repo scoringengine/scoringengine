@@ -3,12 +3,12 @@ import time
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from worker import Worker
-from worker_queue import WorkerQueue
-from finished_queue import FinishedQueue
-from job import Job
+from scoring_engine.engine.worker import Worker
+from scoring_engine.engine.worker_queue import WorkerQueue
+from scoring_engine.engine.finished_queue import FinishedQueue
+from scoring_engine.engine.job import Job
 
 
 class TestWorker(object):

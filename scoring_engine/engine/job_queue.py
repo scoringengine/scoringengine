@@ -1,9 +1,9 @@
 import redis
 import json
 
-from config import Config
-from job import Job
-from malformed_job import MalformedJob
+from scoring_engine.engine.config import Config
+from scoring_engine.engine.job import Job
+from scoring_engine.engine.malformed_job import MalformedJob
 
 
 class JobQueue(object):

@@ -1,13 +1,13 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import scoped_session
 import pytest
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from db import DB
-from db_not_connected import DBNotConnected
-from models.team import Team
+from scoring_engine.db import DB
+from scoring_engine.db_not_connected import DBNotConnected
+from scoring_engine.models.team import Team
 
 
 class TestDB(object):
@@ -27,7 +27,7 @@ class TestDB(object):
         self.db.connect()
         assert self.db.connected is True
         assert os.path.isfile(self.db.sqlite_db) is False
-        assert isinstance(self.db.session, Session) is True
+        assert isinstance(self.db.session, scoped_session) is True
 
     def test_setup_without_connecting(self):
         with pytest.raises(DBNotConnected):

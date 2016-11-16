@@ -1,4 +1,4 @@
-from username_password_check import UsernamePasswordCheck
+from scoring_engine.engine.username_password_check import UsernamePasswordCheck
 
 
 class SSHCheck(UsernamePasswordCheck):
