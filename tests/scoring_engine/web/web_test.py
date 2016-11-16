@@ -14,8 +14,10 @@ class WebTest(UnitTest):
         self.app = app
         self.client = self.app.test_client()
 
-    def authenticate(self, username, password):
-        return self.client.post('/login', data={'username': username, 'password': password})
+    def verify_auth_required(self, path):
+        resp = self.client.get(path)
+        assert resp.status_code == 302
+        assert '/login?' in resp.location
 
     def test_debug(self):
         assert self.app.debug is True
