@@ -31,6 +31,4 @@ def home():
 
 def generateRBGA():
     import random
-    rgb = "rgba(%s, %s, %s, 1)" % (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-    print(rgb)
     return "rgba(%s, %s, %s, 1)" % (random.randint(0,255), random.randint(0,255), random.randint(0,255))
