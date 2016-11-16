@@ -1,14 +1,11 @@
+import bcrypt
+
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.db import db, db_salt
-# from models.user import User
 from scoring_engine.models.user import User
-# from models.team import Team
-# from db import DB
-
-import bcrypt
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
