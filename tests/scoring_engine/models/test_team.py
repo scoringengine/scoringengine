@@ -2,7 +2,6 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from scoring_engine.db import db
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.server import Server
@@ -10,15 +9,10 @@ from scoring_engine.models.server import Server
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestTeam(object):
-    def setup(self):
-        self.db = db
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestTeam(ModelTest):
 
     def test_init_whiteteam(self):
         team = Team(name="White Team", color="White")

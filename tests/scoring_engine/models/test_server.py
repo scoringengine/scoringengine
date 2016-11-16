@@ -2,22 +2,16 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from scoring_engine.db import db
 from scoring_engine.models.server import Server
 from scoring_engine.models.service import Service
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestServer(object):
-    def setup(self):
-        self.db = db
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestServer(ModelTest):
 
     def test_init_server(self):
         server = Server(name="Example Server")
