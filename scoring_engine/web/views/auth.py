@@ -18,6 +18,7 @@ mod = Blueprint('auth', __name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
 
 
 @login_manager.user_loader
@@ -40,7 +41,7 @@ class LoginForm(FlaskForm):
 def login():
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
-        return redirect(url_for('admin.home'))
+        return redirect(url_for('admin.status'))
 
     form = LoginForm(request.form)
 
@@ -63,7 +64,7 @@ def login():
                 db.save(user)
                 current_sessions = db.session.object_session(user)
                 login_user(user, remember=True)
-                return redirect(url_for("admin.home"))
+                return redirect(url_for("admin.status"))
             else:
                 flash('Invalid username or password. Please try again.', 'danger')
                 return render_template('login.html', form=form)
