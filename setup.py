@@ -21,7 +21,8 @@ config = {
                          'pytest',
                          'pytest-cov',
                          'redis',
-                         'sqlalchemy'
+                         'sqlalchemy',
+                         'pycodestyle',
                          ],  # dependencies
     'packages': ['scoring_engine'],
     'scripts': [],
