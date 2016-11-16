@@ -12,16 +12,26 @@ def home():
     teamData = {
         "1": {
             "label": "Team 1",
-            "data": team1
+            "data": team1,
+            "color": generateRBGA()
         },
         "2": {
             "label": "Team 2",
-            "data": team2
+            "data": team2,
+            "color": generateRBGA()
         },
         "3": {
             "label": "Team 3",
-            "data": team3
+            "data": team3,
+            "color": generateRBGA()
         }
     }
 
     return render_template('scoreboard.html', teamData=teamData)
+
+
+def generateRBGA():
+    import random
+    rgb = "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    print(rgb)
+    return "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
