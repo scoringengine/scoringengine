@@ -14,4 +14,3 @@ class UsernamePasswordCheck(BasicCheck):
     @property
     def password(self):
         return self.password_value
-

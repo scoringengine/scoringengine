@@ -15,5 +15,4 @@ class Service(Base):
     checks = relationship("Check", back_populates="service")
 
     def last_check_result(self):
-      return self.checks[-1].result
-
+        return self.checks[-1].result
