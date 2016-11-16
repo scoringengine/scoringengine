@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 
 import bcrypt
 from flask import flash, redirect, request, url_for, g
-from flask_login import current_user, login_user, logout_user, LoginManager, current_user
+from flask_login import current_user, login_user, logout_user, LoginManager
 from flask_wtf import FlaskForm
 
 from wtforms import TextField, PasswordField
@@ -17,7 +17,7 @@ mod = Blueprint('auth', __name__)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
 
 
 @login_manager.user_loader

@@ -9,11 +9,10 @@ from scoring_engine.models.user import User
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
+from unit_test import UnitTest
 
-from .model_test import ModelTest
 
-
-class TestUser(ModelTest):
+class TestUser(UnitTest):
 
     def test_init_service(self):
         user = User(username="testuser", password="testpass")
@@ -22,13 +21,20 @@ class TestUser(ModelTest):
         assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
         assert user.team is None
         assert user.team_id is None
+        assert user.is_authenticated is True
+        assert user.is_active is True
+        assert user.is_anonymous is False
+        assert user.get_username == 'testuser'
+        assert str(user) == "<User 'testuser'>"
+        assert user.get_id() == 'None'
 
     def test_basic_user(self):
         team = generate_sample_model_tree('Team', self.db)
         user = User(username="testuser", password="testpass", team=team)
         self.db.save(user)
-        assert user.id is not None
+        assert user.id is 1
         assert user.username == "testuser"
         assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
         assert user.team is team
         assert user.team_id is team.id
+        assert user.get_id() == '1'

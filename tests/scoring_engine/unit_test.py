@@ -1,8 +1,7 @@
 from scoring_engine.db import db
 
 
-class ModelTest(object):
-
+class UnitTest(object):
     def setup(self):
         self.db = db
         self.db.connect()

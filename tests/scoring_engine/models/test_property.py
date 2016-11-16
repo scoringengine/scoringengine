@@ -6,11 +6,10 @@ from scoring_engine.models.property import Property
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
+from unit_test import UnitTest
 
-from .model_test import ModelTest
 
-
-class TestProperty(ModelTest):
+class TestProperty(UnitTest):
 
     def test_init_property(self):
         property_obj = Property(name="testname", value="testvalue")

@@ -4,6 +4,8 @@ import os
 
 import pynsive
 
+import random
+
 from glob import glob
 
 import signal
@@ -11,8 +13,9 @@ import signal
 from scoring_engine.engine.config import Config
 from scoring_engine.db import DB
 from scoring_engine.models.service import Service
-
-import random
+from scoring_engine.engine.job import Job
+from scoring_engine.engine.worker_queue import WorkerQueue
+from scoring_engine.engine.finished_queue import FinishedQueue
 
 
 class Engine(object):
@@ -23,6 +26,8 @@ class Engine(object):
         self.total_rounds = total_rounds
 
         self.config = Config()
+        self.worker_queue = WorkerQueue()
+        self.finished_queue = FinishedQueue()
 
         self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine/' + self.config.checks_location)
 
@@ -80,7 +85,11 @@ class Engine(object):
             random.shuffle(services)
             for service in services:
                 print(service.name)
-                check_obj = self.check_name_to_obj(service.check_name)
-                print("Adding " + str(check_obj) + " to queue")
+                check_class = self.check_name_to_obj(service.check_name)
+                print("Adding " + str(check_class) + " to queue")
+                check_obj = check_class(service)
+                command_str = check_obj.command()
+                job = Job(service_id=service.id, command=command_str)
+                self.worker_queue.add_job(job)
 
             self.current_round += 1
