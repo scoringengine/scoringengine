@@ -8,92 +8,94 @@
     {{ super() }}
 {% endblock %}
 {% block content %}
-<div class="uk-vertical-align uk-text-center uk-height-1-1">
-    <div class="uk-vertical-align-middle">
-        <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
+<div class="container">
+    <div class="uk-vertical-align uk-text-center uk-height-1-1">
+        <div class="uk-vertical-align-middle">
+            <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
+        </div>
     </div>
-</div>
-<hr>
-<div class="uk-vertical-align uk-text-center uk-height-1-1">
-    <div class="uk-vertical-align-middle">
-        <canvas id="teamLine" width="1000px" height="400px"></canvas>
+    <hr>
+    <div class="uk-vertical-align uk-text-center uk-height-1-1">
+        <div class="uk-vertical-align-middle">
+            <canvas id="teamLine" width="1000px" height="400px"></canvas>
+        </div>
     </div>
-</div>
-<script>
-var ctx = document.getElementById("pointsByTeamBar");
-var myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"],
-        datasets: [{
-            label: 'Points',
-            data: [12, 19, 3, 5, 2, 3],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255,99,132,1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero:true
-                }
+    <script>
+    var ctx = document.getElementById("pointsByTeamBar");
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"],
+            datasets: [{
+                label: 'Points',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 2
             }]
-        }
-    }
-});
-</script>
-<script>
-var teamLineData = {
-    labels: ["Round 0", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"],
-    datasets: [
-        {% for key, value in teamData.items() %}
-        {
-            label: '{{ value['label'] }}',
-            fill: false,
-            lineTension: 0.1,
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            borderColor: "{{ value['color'] }}",
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: "{{ value['color'] }}",
-            pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            pointHitRadius: 10,
-            data: {{ value['data'] }},
-            spanGaps: false,
         },
-        {% endfor %}
-    ]
-};
-</script>
-<script>
-var ctxTeamLine = document.getElementById("teamLine");
-var myLineChart = new Chart(ctxTeamLine, {
-    type: 'line',
-    data: teamLineData
-});
-</script>
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+    </script>
+    <script>
+    var teamLineData = {
+        labels: ["Round 0", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"],
+        datasets: [
+            {% for key, value in teamData.items() %}
+            {
+                label: '{{ value['label'] }}',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: "rgba(0, 0, 0, 0)",
+                borderColor: "{{ value['color'] }}",
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: "{{ value['color'] }}",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 1,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                pointHoverBorderColor: "rgba(220,220,220,1)",
+                pointHoverBorderWidth: 2,
+                pointRadius: 1,
+                pointHitRadius: 10,
+                data: {{ value['data'] }},
+                spanGaps: false,
+            },
+            {% endfor %}
+        ]
+    };
+    </script>
+    <script>
+    var ctxTeamLine = document.getElementById("teamLine");
+    var myLineChart = new Chart(ctxTeamLine, {
+        type: 'line',
+        data: teamLineData
+    });
+    </script>
+</div>
 {% endblock %}

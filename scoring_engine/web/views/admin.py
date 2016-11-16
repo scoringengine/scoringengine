@@ -6,6 +6,19 @@ mod = Blueprint('admin', __name__)
 
 
 @mod.route('/admin')
+@mod.route('/admin/status')
 @login_required
-def home():
-    return render_template('admin.html')
+def status():
+    return render_template('admin/status.html')
+
+
+@mod.route('/admin/manage')
+@login_required
+def manage():
+    return render_template('admin/manage.html')
+
+
+@mod.route('/admin/stats')
+@login_required
+def stats():
+    return render_template('admin/stats.html')
