@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 {% block title %}Admin{% endblock %}
 {% block content %}
-  <div class="top-pad">
+<nav class="navbar navbar-collapse navbar-inverse navbar-static-top">
+  <div class="navbar-inner">
+    <ul class="nav navbar-nav">
+      <li class="navbar-item"><a class="nav-link"  href="#">Round Status</a></li>
+      <li class="navbar-item"><a class="nav-link" href="#">Manage Teams</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+  <div class="row">
     Engine Stats:
     <table>
       <tbody>
@@ -32,4 +41,5 @@
       </tbody>
     </table>
   </div>
+</div>
 {% endblock %}

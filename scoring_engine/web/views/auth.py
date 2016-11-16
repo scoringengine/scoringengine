@@ -32,8 +32,8 @@ def get_current_user():
 
 # Creating our login form
 class LoginForm(FlaskForm):
-    username = TextField('Username', [InputRequired()])
-    password = PasswordField('Password', [InputRequired()])
+    username = TextField('inputUsername', [InputRequired()], render_kw={"class": "form-control", "placeholder": "Username", "required": "true", "autofocus": "true"})
+    password = PasswordField('inputUsername', [InputRequired()], render_kw={"class": "form-control", "placeholder": "Password", "required": "true"})
 
 
 @mod.route('/login', methods=['GET', 'POST'])
@@ -50,14 +50,14 @@ def login():
 
         user = db.session.query(User).filter_by(username=username).first()
 
-        # Monkey Patch
-        # FIxing the error where bmyers was getting a bytes type returned from user.password and rbower was getting str
-        if isinstance(user.password, str):
-            hashed_pw = user.password.encode('utf-8')
-        else:
-            hashed_pw = user.password
-
         if user:
+            # Monkey Patch
+            # Fixing the error where bmyers was getting a bytes type returned from user.password and rbower was getting str
+            if isinstance(user.password, str):
+                hashed_pw = user.password.encode('utf-8')
+            else:
+                hashed_pw = user.password
+
             if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
                 db.save(user)
