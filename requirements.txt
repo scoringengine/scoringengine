@@ -10,3 +10,4 @@ pytest-cov
 redis
 sqlalchemy
 WTForms
+pycodestyle
