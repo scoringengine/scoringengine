@@ -49,8 +49,12 @@ def login():
         password = request.form.get('password')
 
         user = db.session.query(User).filter_by(username=username).first()
+        if type(user.password) is 'str':
+            hashed_pw = user.password.encode('utf-8')
+        else:
+            hashed_pw = user.password
         if user:
-            if bcrypt.hashpw(password.encode('utf-8'), user.password.encode('utf-8')) == user.password.encode('utf-8'):
+            if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
                 db.save(user)
                 current_sessions = db.session.object_session(user)
