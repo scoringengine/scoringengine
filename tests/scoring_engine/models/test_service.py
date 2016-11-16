@@ -18,18 +18,18 @@ class TestService(ModelTest):
         service = Service(name="Example Service", check_name="ICMP IPv4 Check")
         assert service.id is None
         assert service.name == "Example Service"
-        assert service.server is None
-        assert service.server_id is None
+        assert service.team is None
+        assert service.team is None
         assert service.check_name == "ICMP IPv4 Check"
 
     def test_basic_service(self):
-        server = generate_sample_model_tree('Server', self.db)
-        service = Service(name="Example Service", server=server, check_name="ICMP IPv4 Check")
+        team = generate_sample_model_tree('Team', self.db)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check")
         self.db.save(service)
         assert service.id is not None
         assert service.name == "Example Service"
-        assert service.server == server
-        assert service.server_id == server.id
+        assert service.team == team
+        assert service.team_id == team.id
         assert service.check_name == "ICMP IPv4 Check"
 
     def test_checks(self):
