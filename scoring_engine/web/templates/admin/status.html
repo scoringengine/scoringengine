@@ -5,9 +5,10 @@
   <div class="row">
     <span>Round Progress</span>
     <div class="progress">
-        <div class="progress-bar" role="progressbar" aria-valuenow="70"
+        <div id="totalPercent" class="progress-bar" role="progressbar" aria-valuenow="70"
         aria-valuemin="0" aria-valuemax="100" style="width:70%">
-            70%<span class="sr-only">70% Complete</span>
+            <span id="totalProgress">70%</span>
+            <span class="sr-only">70% Complete</span>
         </div>
     </div>
   </div>
@@ -38,4 +39,14 @@
     </div>
   </div>
 </div>
+<script>
+function getProgress(){
+    $.getJSON('/admin/api/get_progress/total', function(data) {
+        $("#totalPercent").css('width', data.total + "%").attr('aria-valuenow', data.total);
+        $("#totalProgress ").text(data.total + "%");
+    });
+}
+
+var getTotalProgress = setInterval(getProgress, 5000);
+</script>
 {% endblock %}

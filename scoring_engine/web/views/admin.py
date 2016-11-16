@@ -22,3 +22,11 @@ def manage():
 @login_required
 def stats():
     return render_template('admin/stats.html')
+
+
+@mod.route('/admin/api/get_progress/total')
+@login_required
+def get_progress_total():
+    import json
+    import random
+    return json.dumps({'total': random.randint(1, 100)})
