@@ -71,5 +71,5 @@ for num_round in range(1, num_rounds + 1):
     round_obj = Round(number=num_round)
     for service in services:
         print("\t\tCreating check for " + str(service.id))
-        check = Check(round=round_obj, service=service)
+        check = Check(round=round_obj, service=service, result=True, output='example output')
         db.save(check)
