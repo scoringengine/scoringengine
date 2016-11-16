@@ -49,10 +49,14 @@ def login():
         password = request.form.get('password')
 
         user = db.session.query(User).filter_by(username=username).first()
+
+        # Monkey Patch
+        # FIxing the error where bmyers was getting a bytes type returned from user.password and rbower was getting str
         if isinstance(user.password, str):
             hashed_pw = user.password.encode('utf-8')
         else:
             hashed_pw = user.password
+
         if user:
             if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
