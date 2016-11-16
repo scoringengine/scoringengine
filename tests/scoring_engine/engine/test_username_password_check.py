@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from username_password_check import UsernamePasswordCheck
+from scoring_engine.engine.username_password_check import UsernamePasswordCheck
 
 
 class TestBasicCheck(object):

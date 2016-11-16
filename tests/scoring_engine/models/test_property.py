@@ -1,22 +1,16 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from models.property import Property
-from db import DB
+from scoring_engine.models.property import Property
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestProperty(object):
-    def setup(self):
-        self.db = DB()
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestProperty(ModelTest):
 
     def test_init_property(self):
         property_obj = Property(name="testname", value="testvalue")

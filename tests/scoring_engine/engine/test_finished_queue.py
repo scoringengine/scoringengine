@@ -1,9 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from finished_queue import FinishedQueue
-from job_queue import JobQueue
+from scoring_engine.engine.finished_queue import FinishedQueue
+from scoring_engine.engine.job_queue import JobQueue
 
 
 class TestFinishedQueue(object):

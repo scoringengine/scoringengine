@@ -1,4 +1,4 @@
-from job_queue import JobQueue
+from scoring_engine.engine.job_queue import JobQueue
 
 
 class FinishedQueue(JobQueue):

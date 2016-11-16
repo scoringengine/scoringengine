@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from models.base import Base
+from scoring_engine.models.base import Base
 
 
 class Team(Base):

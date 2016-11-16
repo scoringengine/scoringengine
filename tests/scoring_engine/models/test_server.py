@@ -1,23 +1,17 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from models.server import Server
-from models.service import Service
-from db import DB
+from scoring_engine.models.server import Server
+from scoring_engine.models.service import Service
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestServer(object):
-    def setup(self):
-        self.db = DB()
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestServer(ModelTest):
 
     def test_init_server(self):
         server = Server(name="Example Server")
@@ -36,7 +30,7 @@ class TestServer(object):
         assert server.team_id == team.id
 
     def test_services(self):
-        server = server = generate_sample_model_tree('Server', self.db)
+        server = generate_sample_model_tree('Server', self.db)
         service_1 = Service(name="Example Service 1", server=server, check_name="ICMP IPv4 Check")
         self.db.save(service_1)
         service_2 = Service(name="Example Service 2", server=server, check_name="SSH IPv4 Check")

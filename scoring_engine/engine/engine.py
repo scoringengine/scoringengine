@@ -8,9 +8,9 @@ from glob import glob
 
 import signal
 
-from config import Config
-from db import DB
-from models.service import Service
+from scoring_engine.engine.config import Config
+from scoring_engine.db import DB
+from scoring_engine.models.service import Service
 
 import random
 
@@ -24,7 +24,7 @@ class Engine(object):
 
         self.config = Config()
 
-        self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine/' + self.config.checks_location)
+        self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine/' + self.config.checks_location)
 
         self.last_round = False
         self.rounds_run = 0
@@ -84,4 +84,3 @@ class Engine(object):
                 print("Adding " + str(check_obj) + " to queue")
 
             self.current_round += 1
-

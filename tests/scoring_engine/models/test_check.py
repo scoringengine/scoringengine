@@ -1,23 +1,17 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from models.check import Check
-from models.round import Round
-from db import DB
+from scoring_engine.models.check import Check
+from scoring_engine.models.round import Round
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestCheck(object):
-    def setup(self):
-        self.db = DB()
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestCheck(ModelTest):
 
     def test_init_check(self):
         check = Check()

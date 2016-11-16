@@ -1,24 +1,18 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from models.service import Service
-from models.check import Check
-from models.property import Property
-from db import DB
+from scoring_engine.models.service import Service
+from scoring_engine.models.check import Check
+from scoring_engine.models.property import Property
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 
+from .model_test import ModelTest
 
-class TestService(object):
-    def setup(self):
-        self.db = DB()
-        self.db.connect()
-        self.db.setup()
 
-    def teardown(self):
-        self.db.destroy()
+class TestService(ModelTest):
 
     def test_init_service(self):
         service = Service(name="Example Service", check_name="ICMP IPv4 Check")
