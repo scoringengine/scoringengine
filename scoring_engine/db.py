@@ -9,6 +9,7 @@ from scoring_engine.db_not_connected import DBNotConnected
 
 db_salt = bcrypt.gensalt()
 
+
 class DB(object):
     def __init__(self):
         self.connected = False
