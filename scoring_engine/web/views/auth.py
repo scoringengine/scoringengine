@@ -49,7 +49,7 @@ def login():
         password = request.form.get('password')
 
         user = db.session.query(User).filter_by(username=username).first()
-        if type(user.password) is 'str':
+        if isinstance(user.password, str):
             hashed_pw = user.password.encode('utf-8')
         else:
             hashed_pw = user.password
