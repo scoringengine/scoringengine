@@ -3,10 +3,11 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from scoring_engine.web import app
+import bcrypt
 
 from scoring_engine.db_not_connected import DBNotConnected
 
+db_salt = bcrypt.gensalt()
 
 class DB(object):
     def __init__(self):
@@ -15,14 +16,18 @@ class DB(object):
 
     def connect(self):
         self.connected = True
-        self.engine = create_engine(app.config['DATABASE_URI'], convert_unicode=True, **app.config['DATABASE_CONNECT_OPTIONS'])
+        self.engine = create_engine('sqlite:///' + self.sqlite_db, convert_unicode=True)
         self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
 
     def setup(self):
         if not self.connected:
             raise DBNotConnected()
         self.destroy()
-        Base.metadata.create_all(self.db_engine)
+        from scoring_engine.models.user import User
+        from scoring_engine.models.team import Team
+        from scoring_engine.models.server import Server
+        from scoring_engine.models.base import Base
+        Base.metadata.create_all(self.engine)
 
     def destroy(self):
         if os.path.isfile(self.sqlite_db):
@@ -39,7 +44,3 @@ class DB(object):
 
 db = DB()
 db.connect()
-
-
-from scoring_engine.models.base import Base
-
