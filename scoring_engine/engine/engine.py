@@ -27,7 +27,9 @@ class Engine(object):
 
         self.config = Config()
         self.worker_queue = WorkerQueue()
+        self.worker_queue.clear()
         self.finished_queue = FinishedQueue()
+        self.finished_queue.clear()
 
         self.checks_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine/' + self.config.checks_location)
 
