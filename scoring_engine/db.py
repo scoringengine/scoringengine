@@ -26,6 +26,7 @@ class DB(object):
         from scoring_engine.models.user import User
         from scoring_engine.models.team import Team
         from scoring_engine.models.server import Server
+        from scoring_engine.models.service import Service
         from scoring_engine.models.base import Base
         Base.metadata.create_all(self.engine)
 
