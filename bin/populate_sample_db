@@ -26,7 +26,7 @@ services = []
 
 print("Creating models and writing them to DB")
 num_teams = 6
-num_services = randint(1, 3)
+num_services = randint(5, 8)
 num_properties = randint(2, 4)
 num_rounds = randint(20, 50)
 print("\tNum Teams: " + str(num_teams))
@@ -48,7 +48,7 @@ for num in range(1, num_teams + 1):
 
     for service_num in range(1, num_services + 1):
         print("\t\t\tCreating Service " + str(service_num))
-        service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check")
+        service = Service(name="ICMP IPv4 " + str(service_num), team=team, check_name="ICMP IPv4 Check")
         db.save(service)
         services.append(service)
 
