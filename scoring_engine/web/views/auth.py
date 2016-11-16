@@ -39,7 +39,7 @@ class LoginForm(FlaskForm):
 @mod.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        flash('You are already logged in.')
+        flash('You are already logged in.', 'info')
         return redirect(url_for('admin.home'))
 
     form = LoginForm(request.form)
@@ -49,8 +49,16 @@ def login():
         password = request.form.get('password')
 
         user = db.session.query(User).filter_by(username=username).first()
+
+        # Monkey Patch
+        # FIxing the error where bmyers was getting a bytes type returned from user.password and rbower was getting str
+        if isinstance(user.password, str):
+            hashed_pw = user.password.encode('utf-8')
+        else:
+            hashed_pw = user.password
+
         if user:
-            if bcrypt.hashpw(password.encode('utf-8'), user.password) == user.password:
+            if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
                 db.save(user)
                 current_sessions = db.session.object_session(user)
@@ -73,4 +81,4 @@ def login():
 def logout():
     logout_user()
     flash('You have successfully logged out.', 'success')
-    return redirect(url_for('login'))
+    return redirect(url_for('auth.login'))

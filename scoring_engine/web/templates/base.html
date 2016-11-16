@@ -5,25 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
-      <title>Scoring Engine - {% block title %}{% endblock %}</title>
+    <title>Scoring Engine - {% block title %}{% endblock %}</title>
     {% endblock %}
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   </head>
   <body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="{{ url_for('welcome.home') }}">Home</a>
-          <a class="navbar-brand" href="{{ url_for('scoreboard.home') }}">Scoreboard</a>
-          <a class="navbar-brand" href="{{ url_for('overview.home') }}">Overview</a>
-          <a class="navbar-brand" href="{{ url_for('services.home') }}">Services</a>
-          <a class="navbar-brand" href="{{ url_for('admin.home') }}">Admin</a>
-          <a class="navbar-brand" href="{{ url_for('auth.login') }}">Login</a>
-        </div>
-      </div>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{category}} alert-dismissable alert-fixed" role="alert" style="margin-bottom: 0px">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <strong>{{ message }}</strong>
     </div>
+    {% endfor %}
+
+    <nav class="navbar navbar-collapse navbar-inverse navbar-static-top">
+      <div class="container">
+        <a class="navbar-brand" href="/">Scoring Engine</a>
+        <ul class="nav navbar-nav">
+          <li class="navbar-item"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
+          <li class="navbar-item"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
+          {% if current_user.is_authenticated %}
+          <li class="navbar-item"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
+          <li class="navbar-item"><a class="nav-link"  href="{{ url_for('admin.home') }}">Admin</a></li>
+          {% endif %}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          {% if not current_user.is_authenticated %}
+          <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('auth.login') }}">Login</a></li>
+          {% else %}
+          <li class="navbar-item"><p class="navbar-text">{{ current_user.get_username }}</p></li>
+          <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('auth.logout') }}">Logout</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
 
     <div class="container">
       {% block content %}{% endblock %}
