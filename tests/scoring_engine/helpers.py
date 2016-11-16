@@ -1,14 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
 
-from models.team import Team
-from models.user import User
-from models.server import Server
-from models.service import Service
-from models.property import Property
-from models.round import Round
-from models.check import Check
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+from scoring_engine.models.server import Server
+from scoring_engine.models.service import Service
+from scoring_engine.models.property import Property
+from scoring_engine.models.check import Check
+from scoring_engine.models.round import Round
 
 
 def generate_sample_model_tree(model, db):

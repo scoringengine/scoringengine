@@ -1,11 +1,11 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../scoring_engine'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from models.service import Service
-from models.check import Check
-from models.property import Property
-from db import DB
+from scoring_engine.db import db
+from scoring_engine.models.service import Service
+from scoring_engine.models.check import Check
+from scoring_engine.models.property import Property
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
@@ -13,7 +13,7 @@ from helpers import generate_sample_model_tree
 
 class TestService(object):
     def setup(self):
-        self.db = DB()
+        self.db = db
         self.db.connect()
         self.db.setup()
 
