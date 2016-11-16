@@ -19,7 +19,7 @@ class User(Base):
 
     def __init__(self, username, password, team=None):
         self.username = username
-        password = password.encode('utf-8')
+        self.password = password
         self.password = bcrypt.hashpw(password, db_salt)
         self.team = team
 
@@ -34,6 +34,10 @@ class User(Base):
     @property
     def is_anonymous(self):
         return False
+
+    @property
+    def get_username(self):
+        return self.username
 
     def get_id(self):
         try:
