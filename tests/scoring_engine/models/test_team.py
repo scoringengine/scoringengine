@@ -4,7 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../
 
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from scoring_engine.models.server import Server
+from scoring_engine.models.service import Service
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
@@ -45,13 +45,13 @@ class TestTeam(ModelTest):
         self.db.save(blue_team)
         assert len(self.db.session.query(Team).all()) == 2
 
-    def test_servers(self):
+    def test_services(self):
         team = generate_sample_model_tree('Team', self.db)
-        server_1 = Server(name="Test Service 1", team=team)
-        server_2 = Server(name="Test Service 2", team=team)
-        self.db.save(server_1)
-        self.db.save(server_2)
-        assert team.servers == [server_1, server_2]
+        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check")
+        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check")
+        self.db.save(service_1)
+        self.db.save(service_2)
+        assert team.services == [service_1, service_2]
 
     def test_users(self):
         team = generate_sample_model_tree('Team', self.db)

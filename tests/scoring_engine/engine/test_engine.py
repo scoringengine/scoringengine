@@ -6,7 +6,6 @@ from scoring_engine.engine.engine import Engine
 from scoring_engine.db import DB
 
 from scoring_engine.models.team import Team
-from scoring_engine.models.server import Server
 from scoring_engine.models.service import Service
 from scoring_engine.models.property import Property
 from scoring_engine.models.check import Check
@@ -81,9 +80,7 @@ class TestEngine():
     def test_with_one_team(self):
         team = Team(name="Team1", color="Blue")
         self.db.save(team)
-        server = Server(name="Example Server", team=team)
-        self.db.save(server)
-        service = Service(name="Example Service 2", server=server, check_name="ICMP IPv4 Check")
+        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check")
         self.db.save(service)
 
         engine = Engine(current_round=50, total_rounds=100)

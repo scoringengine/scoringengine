@@ -23,10 +23,12 @@ class TestCheck(ModelTest):
         service = generate_sample_model_tree('Service', self.db)
         round_obj = Round(number=1)
         self.db.save(round_obj)
-        check = Check(round=round_obj, service=service)
+        check = Check(round=round_obj, service=service, result=True, output="example_output")
         self.db.save(check)
         assert check.id is not None
         assert check.round == round_obj
         assert check.round_id == round_obj.id
         assert check.service == service
         assert check.service_id == service.id
+        assert check.result is True
+        assert check.output == 'example_output'

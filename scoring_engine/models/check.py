@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, String
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -11,3 +11,5 @@ class Check(Base):
     round = relationship("Round", back_populates="checks")
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship("Service")
+    result = Column(Boolean)
+    output = Column(String)

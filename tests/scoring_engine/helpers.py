@@ -18,14 +18,8 @@ def generate_sample_model_tree(model, db):
     if model == 'User':
         return user
 
-    # Servers
-    server = Server(name="Example Server", team=team)
-    db.save(server)
-    if model == 'Server':
-        return server
-
     # Services
-    service = Service(name="ICMP IPv4", server=server, check_name="ICMP IPv4 Check")
+    service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check")
     db.save(service)
     if model == 'Service':
         return service
