@@ -14,6 +14,7 @@ class TestDB(object):
 
     def setup(self):
         self.db = DB()
+        self.db.destroy()
 
     def teardown(self):
         self.db.destroy()

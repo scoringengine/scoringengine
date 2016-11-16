@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 
 import bcrypt
 from flask import flash, redirect, request, url_for, g
-from flask_login import current_user, login_user, logout_user, LoginManager, current_user
+from flask_login import current_user, login_user, logout_user, LoginManager
 from flask_wtf import FlaskForm
 
 from wtforms import TextField, PasswordField

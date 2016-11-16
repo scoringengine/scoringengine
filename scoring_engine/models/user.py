@@ -1,6 +1,5 @@
 import bcrypt
-from sqlalchemy import Boolean, Column, Integer, String
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base

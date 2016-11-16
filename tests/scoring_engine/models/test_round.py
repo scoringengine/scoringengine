@@ -7,11 +7,10 @@ from scoring_engine.models.round import Round
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
+from unit_test import UnitTest
 
-from .model_test import ModelTest
 
-
-class TestRound(ModelTest):
+class TestRound(UnitTest):
 
     def test_init_round(self):
         round_obj = Round(number=5)

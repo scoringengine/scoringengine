@@ -3,23 +3,17 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.engine.engine import Engine
-from scoring_engine.db import DB
 
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.property import Property
 from scoring_engine.models.check import Check
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
+from unit_test import UnitTest
 
-class TestEngine():
 
-    def setup(self):
-        self.db = DB()
-        self.db.connect()
-        self.db.setup()
-
-    def teardown(self):
-        self.db.destroy()
+class TestEngine(UnitTest):
 
     def test_init(self):
         engine = Engine()
@@ -81,7 +75,65 @@ class TestEngine():
         team = Team(name="Team1", color="Blue")
         self.db.save(team)
         service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check")
+        property1 = Property(name="IP Address", value="127.0.0.1", service=service)
         self.db.save(service)
+        self.db.save(property1)
 
         engine = Engine(current_round=50, total_rounds=100)
         engine.run()
+
+    def test_engine_populates_worker_queue_one_service(self):
+        team = Team(name="Team1", color="Blue")
+        self.db.save(team)
+        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check")
+        property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+        self.db.save(service)
+        self.db.save(property1)
+
+        engine = Engine(total_rounds=1)
+        assert engine.worker_queue.size() == 0
+        engine.run()
+        assert engine.worker_queue.size() == 1
+
+    def test_engine_populates_worker_queue_one_team_five_services(self):
+        team = Team(name="Team1", color="Blue")
+        self.db.save(team)
+        for num in range(1, 6):
+            service = Service(name="Example Service " + str(num), team=team, check_name="ICMP IPv4 Check")
+            property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+            self.db.save(service)
+            self.db.save(property1)
+
+        engine = Engine(total_rounds=1)
+        assert engine.worker_queue.size() == 0
+        engine.run()
+        assert engine.worker_queue.size() == 5
+
+    def test_engine_populates_worker_queue_five_teams_one_service(self):
+        for num in range(1, 6):
+            team = Team(name="Team" + str(num), color="Blue")
+            self.db.save(team)
+            service = Service(name="Example Service " + str(num), team=team, check_name="ICMP IPv4 Check")
+            property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+            self.db.save(service)
+            self.db.save(property1)
+
+        engine = Engine(total_rounds=1)
+        assert engine.worker_queue.size() == 0
+        engine.run()
+        assert engine.worker_queue.size() == 5
+
+    def test_engine_populates_worker_queue_five_teams_five_services(self):
+        for num in range(1, 6):
+            team = Team(name="Team" + str(num), color="Blue")
+            self.db.save(team)
+            for service_num in range(1, 6):
+                service = Service(name="Example Service " + str(service_num), team=team, check_name="ICMP IPv4 Check")
+                property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+                self.db.save(service)
+                self.db.save(property1)
+
+        engine = Engine(total_rounds=1)
+        assert engine.worker_queue.size() == 0
+        engine.run()
+        assert engine.worker_queue.size() == 25

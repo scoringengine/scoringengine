@@ -7,4 +7,4 @@ class ICMPCheck(BasicCheck):
     version = 'ipv4'
 
     def command(self):
-        return 'ping -c 1 ' + self.host_address
+        return 'ping -c 1 ' + self.get_ip_address()
