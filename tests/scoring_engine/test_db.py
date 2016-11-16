@@ -16,8 +16,7 @@ class TestDB(object):
         self.db = DB()
 
     def teardown(self):
-        if os.path.isfile(self.db.sqlite_db):
-            os.remove(self.db.sqlite_db)
+        self.db.destroy()
 
     def test_init(self):
         assert self.db.connected is False
