@@ -30,10 +30,10 @@
           <li class="navbar-item"><a class="nav-link"  href="{{ url_for('admin.home') }}">Admin</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li class="navbar-item"><a>{{ current_user.get_username }}</a></li>
           {% if not current_user.is_authenticated %}
           <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('auth.login') }}">Login</a></li>
           {% else %}
+          <li class="navbar-item"><p class="navbar-text">{{ current_user.get_username }}</p></li>
           <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('auth.logout') }}">Logout</a></li>
           {% endif %}
         </ul>
