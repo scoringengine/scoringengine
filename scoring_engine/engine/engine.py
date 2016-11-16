@@ -50,6 +50,7 @@ class Engine(object):
 
     def add_check(self, check_obj):
         self.checks.append(check_obj)
+        self.checks = sorted(self.checks, key=lambda check: check.name)
 
     def load_checks(self):
         sys.path.append(self.checks_location)
