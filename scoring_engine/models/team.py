@@ -13,5 +13,5 @@ class Team(Base):
     users = relationship("User", back_populates="team")
 
     def current_score(self):
-      # todo make this dynamic based on service result
-      return 2000
+        # todo make this dynamic based on service result
+        return 2000
