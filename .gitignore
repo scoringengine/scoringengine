@@ -37,3 +37,4 @@ test/.cache/*
 .cache
 engine.db
 .coverage
+htmlcov
