@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}{{current_user.username}}{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+  PROFILE DETAILS
+  </div>
+</div>
+{% endblock %}
