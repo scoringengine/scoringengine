@@ -62,12 +62,10 @@ def get_test_table_total():
         all_teams = Team.query.all()
         data = []
         for team in all_teams:
-            # there has to be a better way to do this :(
-            # I couldn't figure out how to pass an array to javascript in the json data.
-            user_tbl_str = ''
+            users = {}
             for user in team.users:
-                user_tbl_str += '<tr><td>' + str(user.username) + '</td><td>' + str(user.password) + '</td></tr>'
-            data.append({'name': team.name, 'color': team.color, 'user_tbl_str': user_tbl_str})
+                users[user.username] = user.password
+            data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
         return {'status': 'Unauthorized'}, 403

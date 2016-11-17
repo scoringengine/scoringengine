@@ -77,14 +77,16 @@
   <script>
     /* Formatting function for row details - modify as you need */
     function format ( d ) {
-        // `d` is the original data object for the row
-        return '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
+        var table = '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
             '<tr>'+
               '<th>Username</th>'+
               '<th>Password</th>'+
-            '</tr><tbody>'+
-            d.user_tbl_str +
-        '</tbody></table>';
+            '</tr><tbody>'
+        for (var key in d.users) {
+          table += '<tr><td>' + key + '</td><td>' + d.users[key] + '</td></tr>'
+        }
+        table += '</tbody></table>'
+        return table;
     }
 
     $(document).ready(function() {
