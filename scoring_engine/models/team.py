@@ -12,6 +12,10 @@ class Team(Base):
     services = relationship("Service", back_populates="team")
     users = relationship("User", back_populates="team")
 
+    def __init__(self, name, color):
+        self.name = name
+        self.color = color
+
     def current_score(self):
         # todo make this dynamic based on service result
         return 2000
