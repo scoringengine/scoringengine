@@ -25,13 +25,11 @@ class Service(Base):
 
     @property
     def max_score(self):
-        # todo make this dynamic
-        return 1000
+        return len(self.checks) * self.points
 
     @property
     def percent_earned(self):
-        # todo make this dynamic
-        return 40
+        return int((self.score_earned / self.max_score) * 100)
 
     @property
     def last_ten_checks(self):
