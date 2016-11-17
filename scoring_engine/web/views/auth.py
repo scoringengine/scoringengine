@@ -64,7 +64,12 @@ def login():
                 db.save(user)
                 current_sessions = db.session.object_session(user)
                 login_user(user, remember=True)
-                return redirect(url_for("admin.status"))
+                if user.is_white_team:
+                    return redirect(url_for("admin.status"))
+                elif user.is_blue_team:
+                    return redirect(url_for("services.home"))
+                else:
+                    return redirect(url_for("overview.home"))
             else:
                 flash('Invalid username or password. Please try again.', 'danger')
                 return render_template('login.html', form=form)
