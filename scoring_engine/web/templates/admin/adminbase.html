@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<nav class="navbar navbar-collapse navbar-inverse navbar-static-top">
+<nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
   <div class="navbar-inner">
     <ul class="nav navbar-nav">
       <li class="navbar-item {% if request.path == '/admin/status' %}active{% elif request.path == '/admin' %}active{% endif %}"><a class="nav-link"  href="/admin/status">Round Status</a></li>
