@@ -19,6 +19,9 @@ class TestTeam(UnitTest):
         assert team.color == "White"
         assert team.id is None
         assert team.current_score() == 2000
+        assert team.is_red_team is False
+        assert team.is_white_team is True
+        assert team.is_blue_team is False
 
     def test_init_blueteam(self):
         team = Team(name="Blue Team", color="Blue")
@@ -26,6 +29,9 @@ class TestTeam(UnitTest):
         assert team.color == "Blue"
         assert team.id is None
         assert team.current_score() == 2000
+        assert team.is_red_team is False
+        assert team.is_white_team is False
+        assert team.is_blue_team is True
 
     def test_init_redteam(self):
         team = Team(name="Red Team", color="Red")
@@ -33,6 +39,9 @@ class TestTeam(UnitTest):
         assert team.color == "Red"
         assert team.id is None
         assert team.current_score() == 2000
+        assert team.is_red_team is True
+        assert team.is_white_team is False
+        assert team.is_blue_team is False
 
     def test_simple_save(self):
         white_team = Team(name="White Team", color="White")

@@ -15,3 +15,15 @@ class Team(Base):
     def current_score(self):
         # todo make this dynamic based on service result
         return 2000
+
+    @property
+    def is_red_team(self):
+        return self.color == 'Red'
+
+    @property
+    def is_white_team(self):
+        return self.color == 'White'
+
+    @property
+    def is_blue_team(self):
+        return self.color == 'Blue'
