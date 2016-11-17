@@ -78,3 +78,11 @@ class TestUser(UnitTest):
         user.is_red_team is False
         user.is_white_team is False
         user.is_blue_team is True
+
+    def test_rusty_vs_brandon(self):
+        team = Team(name="Blue Team", color="Blue")
+        self.db.save(team)
+        user = User(username='testuser', password='testpass', team=team)
+        self.db.save(user)
+        # If this passes, brandon wins
+        assert type(user.password) is bytes
