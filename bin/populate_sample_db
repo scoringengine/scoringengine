@@ -70,7 +70,8 @@ for num in range(1, num_teams + 1):
             print("\t\t\t\tCreating Property " + str(property_num))
             property_obj = Property(name="prop" + str(property_num), value="randval" + str(property_num), service=service)
             db.save(property_obj)
-        property_obj = Property(name="IP Address", value="127.0.0.1", service=service)
+        ip = '129.21.%s.%s' % (randint(0,255), randint(0,255))
+        property_obj = Property(name="IP Address", value=ip, service=service)
         db.save(property_obj)
 
 print("Creating " + str(num_rounds) + " rounds")

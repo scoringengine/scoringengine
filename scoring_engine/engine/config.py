@@ -15,6 +15,7 @@ class Config(object):
 
         self.checks_location = self.parser['GENERAL']['checks_location']
         self.check_timeout = int(self.parser['GENERAL']['check_timeout'])
+        self.checks_class_list = self.parser['GENERAL']['checks'].split(',')
 
         self.db_host = self.parser['DB']['host']
         self.db_port = int(self.parser['DB']['port'])

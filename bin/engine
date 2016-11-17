@@ -3,8 +3,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../scoring_engine'))
-
-from engine import Engine
+from scoring_engine.engine.engine import Engine
 
 engine = Engine()
 engine.run()

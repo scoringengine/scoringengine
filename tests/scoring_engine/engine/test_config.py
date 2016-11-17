@@ -11,7 +11,7 @@ class TestConfig(object):
         self.config = Config(location="../../tests/scoring_engine/engine/example.conf")
 
     def test_checks_location(self):
-        assert self.config.checks_location == "checks"
+        assert self.config.checks_location == "scoring_engine.engine.checks"
 
     def test_check_timeout(self):
         assert self.config.check_timeout == 30
