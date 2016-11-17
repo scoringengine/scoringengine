@@ -107,11 +107,32 @@ class TestService(UnitTest):
 
     def test_max_score(self):
         service = generate_sample_model_tree('Service', self.db)
-        assert service.max_score == 1000
+        check_1 = Check(service=service, result=True, output='Good output')
+        check_2 = Check(service=service, result=True, output='Good output')
+        check_3 = Check(service=service, result=True, output='Good output')
+        check_4 = Check(service=service, result=True, output='Good output')
+        check_5 = Check(service=service, result=False, output='bad output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        self.db.save(check_3)
+        self.db.save(check_4)
+        self.db.save(check_5)
+        assert service.max_score == 500
 
     def test_percent_earned(self):
         service = generate_sample_model_tree('Service', self.db)
-        assert service.percent_earned == 40
+        service = generate_sample_model_tree('Service', self.db)
+        check_1 = Check(service=service, result=True, output='Good output')
+        check_2 = Check(service=service, result=True, output='Good output')
+        check_3 = Check(service=service, result=True, output='Good output')
+        check_4 = Check(service=service, result=True, output='Good output')
+        check_5 = Check(service=service, result=False, output='bad output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        self.db.save(check_3)
+        self.db.save(check_4)
+        self.db.save(check_5)
+        assert service.percent_earned == 80
 
     def test_last_ten_checks_4_checks(self):
         service = generate_sample_model_tree('Service', self.db)
@@ -124,7 +145,6 @@ class TestService(UnitTest):
         self.db.save(check_3)
         self.db.save(check_4)
         assert service.last_ten_checks == [check_4, check_3, check_2, check_1]
-        assert service.percent_earned == 40
 
     def test_last_ten_checks_15_checks(self):
         service = generate_sample_model_tree('Service', self.db)
