@@ -19,14 +19,17 @@ class Service(Base):
 
     @property
     def score_earned(self):
+        # todo make this dynamic
         return 400
 
     @property
     def max_score(self):
+        # todo make this dynamic
         return 1000
 
     @property
     def percent_earned(self):
+        # todo make this dynamic
         return 40
 
     @property
