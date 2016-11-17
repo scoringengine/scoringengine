@@ -65,71 +65,68 @@
       </form>
     </div>
   </div>
+  <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Team Name</th>
+            <th>Color</th>
+        </tr>
+    </thead>
+  </table>
+  <script>
+    /* Formatting function for row details - modify as you need */
+    function format ( d ) {
+        // `d` is the original data object for the row
+        return '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
+            '<tr>'+
+              '<th>Username</th>'+
+              '<th>Password</th>'+
+            '</tr><tbody>'+
+            d.user_tbl_str +
+        '</tbody></table>';
+    }
 
+    $(document).ready(function() {
+        var table = $('#users').DataTable( {
+            "ajax": {
+              "url": "/admin/api/get_teams/all",
+              "type": 'GET'
+            },
+            "columns": [
+                {
+                    "className":      'details-control',
+                    "orderable":      false,
+                    "data":           null,
+                    "defaultContent": ''
+                },
+                { "data": "name" },
+                { "data": "color" }
+            ],
+            'order': [[2, 'asc']],
+            'paging': false,
+            'bFilter': false,
+            'bInfo': false
+        } );
 
+        // Add event listener for opening and closing details
+        $('#users tbody').on('click', 'td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
 
-      <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Team Name</th>
-                <th>Color</th>
-            </tr>
-        </thead>
-    </table>
+            if ( row.child.isShown() ) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                row.child( format(row.data()) ).show();
+                tr.addClass('shown');
+            }
+        } );
 
-    <script>
-      /* Formatting function for row details - modify as you need */
-      function format ( d ) {
-          // `d` is the original data object for the row
-          return '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
-              '<tr>'+
-                '<th>Username</th>'+
-                '<th>Password</th>'+
-              '</tr><tbody>'+
-              d.user_tbl_str +
-          '</tbody></table>';
-      }
-
-      $(document).ready(function() {
-          var table = $('#users').DataTable( {
-              "ajax": {
-                "url": "/admin/api/get_teams/all",
-                "type": 'GET'
-              },
-              "columns": [
-                  {
-                      "className":      'details-control',
-                      "orderable":      false,
-                      "data":           null,
-                      "defaultContent": ''
-                  },
-                  { "data": "name" },
-                  { "data": "color" }
-              ],
-              "order": [[2, 'asc']],
-              "paging": false
-          } );
-
-          // Add event listener for opening and closing details
-          $('#users tbody').on('click', 'td.details-control', function () {
-              var tr = $(this).closest('tr');
-              var row = table.row( tr );
-
-              if ( row.child.isShown() ) {
-                  // This row is already open - close it
-                  row.child.hide();
-                  tr.removeClass('shown');
-              }
-              else {
-                  // Open this row
-                  row.child( format(row.data()) ).show();
-                  tr.addClass('shown');
-              }
-          } );
-
-      } );
-    </script>
-
+    } );
+  </script>
 </div>
 {% endblock %}
