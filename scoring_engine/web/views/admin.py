@@ -29,4 +29,9 @@ def stats():
 def get_progress_total():
     import json
     import random
-    return json.dumps({'total': random.randint(1, 100)})
+    return json.dumps({'Total': random.randint(1, 100),
+                       'Team1': random.randint(1, 100),
+                       'Team2': random.randint(1, 100),
+                       'Team3': random.randint(1, 100),
+                       'Team4': random.randint(1, 100),
+                       'Team5': random.randint(1, 100)})
