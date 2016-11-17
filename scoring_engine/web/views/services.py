@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template
-from flask_login import login_required
+from flask import Blueprint, render_template, flash
+from flask_login import login_required, current_user
 
 mod = Blueprint('services', __name__)
 
@@ -7,7 +7,11 @@ mod = Blueprint('services', __name__)
 @mod.route('/services')
 @login_required
 def home():
-    return render_template('services.html')
+    current_team = current_user.team
+    if not current_user.is_blue_team:
+        flash('Only blue teams can access services', 'error')
+        return render_template('overview.html')
+    return render_template('services.html', team=current_team)
 
 
 @mod.route('/service/<id>')

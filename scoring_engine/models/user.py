@@ -10,7 +10,7 @@ from scoring_engine.db import db_salt
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    username = Column(String(20), nullable=False)
+    username = Column(String(20), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     authenticated = Column(Boolean, default=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
@@ -20,6 +20,18 @@ class User(Base):
         self.username = username
         self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
         self.team = team
+
+    @property
+    def is_red_team(self):
+        return self.team.is_red_team
+
+    @property
+    def is_white_team(self):
+        return self.team.is_white_team
+
+    @property
+    def is_blue_team(self):
+        return self.team.is_blue_team
 
     @property
     def is_authenticated(self):

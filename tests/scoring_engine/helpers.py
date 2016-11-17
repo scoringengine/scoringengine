@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../'))
@@ -13,7 +14,7 @@ def generate_sample_model_tree(model, db):
         return team
 
     # Users
-    user = User(username="testuser", password="catdog", team=team)
+    user = User(username="testuser" + str(random.randrange(10000)), password="catdog", team=team)
     db.save(user)
     if model == 'User':
         return user

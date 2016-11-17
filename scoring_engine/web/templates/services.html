@@ -123,7 +123,9 @@ Current Place: 1
         </table>
         <script>
             $(document).ready(function() {
-                $('#services').DataTable();
+                $('#services').DataTable({
+                    "paging": false
+                });
             } );
         </script>
     </div>
