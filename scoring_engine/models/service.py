@@ -13,14 +13,15 @@ class Service(Base):
     team = relationship("Team", back_populates="services")
     properties = relationship("Property", back_populates="service")
     checks = relationship("Check", back_populates="service")
+    points = Column(Integer, default=100)
 
     def last_check_result(self):
         return self.checks[-1].result
 
     @property
     def score_earned(self):
-        # todo make this dynamic
-        return 400
+        passed_checks = [check for check in self.checks if check.result is True]
+        return len(passed_checks) * self.points
 
     @property
     def max_score(self):

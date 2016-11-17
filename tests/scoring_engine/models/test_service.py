@@ -20,6 +20,7 @@ class TestService(UnitTest):
         assert service.team is None
         assert service.team is None
         assert service.check_name == "ICMP IPv4 Check"
+        assert service.points == None
 
     def test_basic_service(self):
         team = generate_sample_model_tree('Team', self.db)
@@ -30,6 +31,7 @@ class TestService(UnitTest):
         assert service.team == team
         assert service.team_id == team.id
         assert service.check_name == "ICMP IPv4 Check"
+        assert service.points == 100
 
     def test_false_service_result(self):
         team = generate_sample_model_tree('Team', self.db)
@@ -80,6 +82,16 @@ class TestService(UnitTest):
 
     def test_score_earned(self):
         service = generate_sample_model_tree('Service', self.db)
+        check_1 = Check(service=service, result=True, output='Good output')
+        check_2 = Check(service=service, result=True, output='Good output')
+        check_3 = Check(service=service, result=True, output='Good output')
+        check_4 = Check(service=service, result=True, output='Good output')
+        check_5 = Check(service=service, result=False, output='bad output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        self.db.save(check_3)
+        self.db.save(check_4)
+        self.db.save(check_5)
         assert service.score_earned == 400
 
     def test_max_score(self):
