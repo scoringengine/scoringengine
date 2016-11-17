@@ -27,9 +27,9 @@
     {% endfor %}
 
     {% if "admin" in request.path %}
-    <nav class="collapse navbar-collapse navbar-inverse navbar-static-top">
+    <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">
     {% else %}
-    <nav class="navbar navbar-collapse navbar-inverse navbar-static-top">
+    <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
     {% endif %}
       <div class="navbar-inner">
         <a class="navbar-brand" href="/">Scoring Engine</a>
