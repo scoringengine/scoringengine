@@ -22,6 +22,18 @@ class User(Base):
         self.team = team
 
     @property
+    def is_red_team(self):
+        return self.team.is_red_team
+
+    @property
+    def is_white_team(self):
+        return self.team.is_white_team
+
+    @property
+    def is_blue_team(self):
+        return self.team.is_blue_team
+
+    @property
     def is_authenticated(self):
         return True
 
