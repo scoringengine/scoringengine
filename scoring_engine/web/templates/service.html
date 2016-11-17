@@ -3,18 +3,17 @@
 {% block content %}
 <div class="container">
   <div class="row">
-  Service #{{service}}
+  Name: {{service.name}}
   <br>
-  Properties:<br>
-    Users:<br>
-      root  pass<br>
-      test  password<br>
-  History of Checks:
-  Check 10 - Pass
-  Check 9 - Pass
-  Check 8 - Fail
-  Check 7 - Pass
-  Check 6 - Pass
+  <br>Properties:
+  {% for properties in service.properties %}
+    <br>{{properties.name}} - {{properties.value}}
+  {% endfor %}
+  <br>
+  <br>Checks
+  {% for check in service.checks_reversed %}
+    <br>{{check.round.number}} - {{check.result}}
+  {% endfor %}
   </div>
 </div>
 {% endblock %}
