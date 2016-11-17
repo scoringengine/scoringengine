@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, flash
+from flask import Blueprint, render_template, url_for, redirect
 from flask_login import login_required, current_user
+from scoring_engine.models.service import Service
 
 mod = Blueprint('services', __name__)
 
@@ -9,12 +10,14 @@ mod = Blueprint('services', __name__)
 def home():
     current_team = current_user.team
     if not current_user.is_blue_team:
-        flash('Only blue teams can access services', 'error')
-        return render_template('overview.html')
+        return redirect(url_for('auth.unauthorized'))
     return render_template('services.html', team=current_team)
 
 
 @mod.route('/service/<id>')
 @login_required
 def service(id):
-    return render_template('service.html', service=id)
+    service = Service.query.get(id)
+    if service is None or not current_user.team == service.team:
+        return redirect(url_for('auth.unauthorized'))
+    return render_template('service.html', service=service)
