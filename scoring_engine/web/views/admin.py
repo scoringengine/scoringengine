@@ -61,7 +61,6 @@ def update_password():
 @mod.route('/admin/api/add_user', methods=['POST'])
 @login_required
 def add_user():
-    print(request.form)
     if 'username' in request.form and 'password' in request.form and 'team_id' in request.form:
         team_obj = Team.query.filter(Team.id == request.form['team_id']).one()
         user_obj = User(username=request.form['username'],
