@@ -5,10 +5,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css">
     <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
+    <link href="{{ url_for('static', filename='css/album.css') }}" rel="stylesheet">
 {% endblock %}
 {% block admincontent %}
 <div class="container">
-  <div class="row">
+  <div class="card">
     <h2 class="text-center">Update Password</h2>
     <form method="POST" action="/admin/api/update_password" role="form" class="form-signin">
       <div class="form-group">
@@ -24,7 +25,7 @@
       <button type="submit" class="btn btn-primary center-block">Update Password</button>
     </form>
   </div>
-  <div class="row">
+  <div class="card">
     <h2 class="text-center">Add User</h2>
     <form method="POST" action="/admin/api/add_user" role="form" class="form-signin">
       <div class="form-group">
@@ -43,7 +44,7 @@
       <button type="submit" class="btn btn-primary center-block">Add User</button>
     </form>
   </div>
-  <div class="row">
+  <div class="card">
     <h2 class="text-center">Add Team</h2>
     <form method="POST" action="/admin/api/add_team" role="form" class="form-signin">
       <div class="form-group">
