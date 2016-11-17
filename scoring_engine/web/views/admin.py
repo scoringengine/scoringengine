@@ -62,8 +62,6 @@ def get_test_table_total():
         all_teams = Team.query.all()
         data = []
         for team in all_teams:
-            # there has to be a better way to do this :(
-            # I couldn't figure out how to pass an array to javascript in the json data.
             users = {}
             for user in team.users:
                 users[user.username] = user.password
