@@ -20,9 +20,7 @@ class Service(Base):
 
     @property
     def checks_reversed(self):
-        reversed_checks = copy(self.checks)
-        reversed_checks.reverse()
-        return reversed_checks
+        return sorted(self.checks, key=lambda check: check.round.number, reverse=True)
 
     @property
     def score_earned(self):
