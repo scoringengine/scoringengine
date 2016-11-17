@@ -17,6 +17,11 @@ class Team(Base):
         return 2000
 
     @property
+    def place(self):
+        # todo make this dynamic
+        return 2
+
+    @property
     def is_red_team(self):
         return self.color == 'Red'
 
