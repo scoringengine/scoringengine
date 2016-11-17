@@ -34,10 +34,10 @@
         <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
       </div>
       <div class="form-group">
-        <select class="selectpicker" name="team" data-width="100%" id="teamSelect">
-          <option value="">Red</option>
-          <option value="">White</option>
-          <option value="">Blue</option>
+        <select class="selectpicker" name="team_id" data-width="100%" id="team_id">
+          {% for team in teams %}
+          <option value="{{ team[0] }}">{{ team[1] }}</option>
+          {% endfor %}
         </select>
       </div>
       <button type="submit" class="btn btn-primary center-block">Add User</button>
@@ -47,13 +47,13 @@
     <h2 class="text-center">Add Team</h2>
     <form method="POST" action="/admin/api/add_team" role="form" class="form-signin">
       <div class="form-group">
-        <input type="text" class="form-control" name="team" id="team" placeholder="Team Name" required>
+        <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
       </div>
       <div class="form-group">
-        <select class="selectpicker" name="team" data-width="100%" id="teamSelect">
-          <option value="">Red</option>
-          <option value="">White</option>
-          <option value="">Blue</option>
+        <select class="selectpicker" name="color" data-width="100%" id="teamSelect">
+          <option value="Red">Red</option>
+          <option value="White">White</option>
+          <option value="Blue">Blue</option>
         </select>
       </div>
       <button type="submit" class="btn btn-primary center-block">Add Team</button>
