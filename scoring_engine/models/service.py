@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-
+from copy import copy
 from scoring_engine.models.base import Base
 
 
@@ -20,7 +20,9 @@ class Service(Base):
 
     @property
     def checks_reversed(self):
-        return self.checks[::-1]
+        reversed_checks = copy(self.checks)
+        reversed_checks.reverse()
+        return reversed_checks
 
     @property
     def score_earned(self):
@@ -39,6 +41,6 @@ class Service(Base):
 
     @property
     def last_ten_checks(self):
-        reverse_checks = self.checks
+        reverse_checks = copy(self.checks)
         reverse_checks.reverse()
         return reverse_checks[:10]
