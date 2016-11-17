@@ -49,7 +49,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = db.session.query(User).filter_by(username=username).first()
+        user = User.query.filter(User.username == username).one()
 
         if user:
             # Monkey Patch
@@ -62,7 +62,6 @@ def login():
             if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
                 db.save(user)
-                current_sessions = db.session.object_session(user)
                 login_user(user, remember=True)
                 if user.is_white_team:
                     return redirect(url_for("admin.status"))

@@ -18,7 +18,7 @@ class User(Base):
 
     def __init__(self, username, password, team=None):
         self.username = username
-        self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
+        self.update_password(password)
         self.team = team
 
     @property
@@ -49,11 +49,12 @@ class User(Base):
     def get_username(self):
         return self.username
 
+    def update_password(self, password):
+        self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
+        return True
+
     def get_id(self):
-        try:
-            return unicode(self.id)  # python 2
-        except NameError:
-            return str(self.id)  # python 3
+        return str(self.id)  # python 3
 
     def __repr__(self):
         return '<User %r>' % self.username

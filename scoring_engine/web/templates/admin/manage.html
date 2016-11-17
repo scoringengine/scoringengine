@@ -1,9 +1,28 @@
 {% extends 'admin/adminbase.html' %}
 {% block title %}Admin - Manage Teams{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
+{% endblock %}
 {% block admincontent %}
 <div class="container">
   <div class="row">
-    PLACEHOLDER
+    <h2 class="text-center">Update Password</h2>
+    <form method="POST" action="/admin/api/update_password" role="form">
+      <div class="form-group">
+        <select class="selectpicker" name="user_id" data-width="fit" id="userSelect">
+          {% for user in users %}
+          <option value="{{ user[0] }}">{{ user[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Password</button>
+    </form>
+
   </div>
 </div>
 {% endblock %}
