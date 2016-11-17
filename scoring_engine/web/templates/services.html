@@ -36,7 +36,7 @@ Current Place: {{team.place}}
                 <td>{{service.max_score}}</td>
                 <td>{{service.percent_earned}}</td>
                 <td>
-                {% for check in service.last_ten_checks %}
+                {% for check in service.last_ten_checks[::-1] %}
                     {% if check.result %}
                         <span class="glyphicon glyphicon-ok" style="color:green"></span>
                     {% else %}
