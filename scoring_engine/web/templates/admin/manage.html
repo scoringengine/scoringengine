@@ -9,16 +9,16 @@
 <div class="container">
   <div class="row">
     <h2 class="text-center">Update Password</h2>
-    <form>
+    <form method="POST" action="/admin/api/update_password" role="form">
       <div class="form-group">
-        <select class="selectpicker" data-width="fit" id="userSelect">
+        <select class="selectpicker" name="user_id" data-width="fit" id="userSelect">
           {% for user in users %}
-          <option value="{{ user.id }}">{{ user.name }}</option>
+          <option value="{{ user[0] }}">{{ user[1] }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group">
-        <input type="password" class="form-control" id="inputPassword" placeholder="Password">
+        <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
       </div>
       <button type="submit" class="btn btn-primary">Update Password</button>
     </form>

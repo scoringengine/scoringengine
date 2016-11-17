@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required
-from scoring_engine.models import User
+from operator import itemgetter
 from scoring_engine.db import db
+from scoring_engine.models.user import User
 import json
 
 
@@ -18,9 +19,8 @@ def status():
 @mod.route('/admin/manage')
 @login_required
 def manage():
-    res = User.query(User.id, User.username)
-    for row in res: print(res.__dict__)
-    return render_template('admin/manage.html')
+    res = User.query.with_entities(User.id, User.username).all()
+    return render_template('admin/manage.html', users=sorted(res,key=itemgetter(0)))
 
 
 @mod.route('/admin/stats')
@@ -42,13 +42,16 @@ def get_progress_total():
                        'Team5': random.randint(1, 100)})
 
 
-@mod.route('/admin/api/update_password/<int:user_id>', methods=['GET', 'POST'])
+@mod.route('/admin/api/update_password', methods=['POST'])
 @login_required
-def update_password(user_id):
-    #password = request.form
-    #print(password)
-    password = "password"
-    user_obj = User.query.filter(User.id == user_id).one()
-    user_obj.update_password(password)
-    db.session.commit()
-    return json.dumps({'success': True}), 200, {'Content-Type': 'application/json'}
+def update_password():
+    print(request.form)
+    if 'user_id' in request.form and 'password' in request.form:
+        user_obj = User.query.filter(User.id == request.form['user_id']).one()
+        user_obj.update_password(request.form['password'])
+        db.session.commit()
+        flash('Password Successfully Updated.', 'success')
+        return redirect(url_for('admin.manage'))
+    else:
+        flash('Error: user_id or password not specified.', 'danger')
+        return redirect(url_for('admin.manage'))
