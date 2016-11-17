@@ -29,12 +29,25 @@ num_teams = 6
 num_services = randint(5, 8)
 num_properties = randint(2, 4)
 num_rounds = randint(20, 50)
-print("\tNum Teams: " + str(num_teams))
+print("\tNum Blue Teams: " + str(num_teams))
 print("\tNum Services: " + str(num_services))
 print("\tNum Properties: " + str(num_properties))
 print("\tNum Rounds: " + str(num_rounds))
 print()
 
+print("Creating White Team")
+white_team = Team(name="White Team", color="White")
+db.save(white_team)
+user = User(username="whiteteamuser", password="testpass", team=white_team)
+db.save(user)
+
+print("Creating Red Team")
+red_team = Team(name="Red Team", color="Red")
+db.save(red_team)
+user = User(username="redteamuser", password="testpass", team=red_team)
+db.save(user)
+
+print("Creating Blue Teams and Services")
 for num in range(1, num_teams + 1):
 
     print("\tCreating Team " + str(num))
