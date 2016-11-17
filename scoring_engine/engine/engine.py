@@ -31,7 +31,7 @@ class Engine(object):
         self.finished_queue = FinishedQueue()
         self.finished_queue.clear()
         self.checks_location = self.config.checks_location
-        self.checks_class_list = self.config.checks_class_list 
+        self.checks_class_list = self.config.checks_class_list
 
         self.last_round = False
         self.rounds_run = 0
