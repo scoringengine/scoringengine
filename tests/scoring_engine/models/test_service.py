@@ -84,6 +84,17 @@ class TestService(UnitTest):
         self.db.save(check_3)
         assert service.checks == [check_1, check_2, check_3]
 
+    def test_checks_reversed(self):
+        service = generate_sample_model_tree('Service', self.db)
+        round_obj = generate_sample_model_tree('Round', self.db)
+        check_1 = Check(round=round_obj, service=service)
+        self.db.save(check_1)
+        check_2 = Check(round=round_obj, service=service)
+        self.db.save(check_2)
+        check_3 = Check(round=round_obj, service=service)
+        self.db.save(check_3)
+        assert service.checks_reversed == [check_3, check_2, check_1]
+
     def test_properties(self):
         service = generate_sample_model_tree('Service', self.db)
         property_1 = Property(name="ip", value="127.0.0.1", service=service)

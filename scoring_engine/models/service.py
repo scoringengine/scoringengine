@@ -19,6 +19,10 @@ class Service(Base):
         return self.checks[-1].result
 
     @property
+    def checks_reversed(self):
+        return self.checks[::-1]
+
+    @property
     def score_earned(self):
         passed_checks = [check for check in self.checks if check.result is True]
         return len(passed_checks) * self.points
