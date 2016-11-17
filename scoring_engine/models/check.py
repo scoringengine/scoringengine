@@ -17,6 +17,6 @@ class Check(Base):
 
     @property
     def completed_timestamp(self):
-      # todo make this dynamic and saved when check finishes
-      from datetime import datetime
-      return str(datetime.now())
+        # todo make this dynamic and saved when check finishes
+        from datetime import datetime
+        return str(datetime.now())
