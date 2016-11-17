@@ -33,6 +33,17 @@ class TestService(UnitTest):
         assert service.check_name == "ICMP IPv4 Check"
         assert service.points == 100
 
+    def test_basic_service_with_points(self):
+        team = generate_sample_model_tree('Team', self.db)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500)
+        self.db.save(service)
+        assert service.id is not None
+        assert service.name == "Example Service"
+        assert service.team == team
+        assert service.team_id == team.id
+        assert service.check_name == "ICMP IPv4 Check"
+        assert service.points == 500
+
     def test_false_service_result(self):
         team = generate_sample_model_tree('Team', self.db)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check")
