@@ -52,13 +52,6 @@ body {
   max-width: 40rem;
 }
 
-.album {
-  min-height: 50rem; /* Can be removed; just added for demo purposes */
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-  background-color: #f7f7f7;
-}
-
 .card {
   float: left;
   width: 33.333%;
@@ -82,4 +75,12 @@ footer {
 
 footer p {
   margin-bottom: .25rem;
+}
+
+td.details-control {
+    background: url('../images/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+tr.shown td.details-control {
+    background: url('../images/details_close.png') no-repeat center center;
 }

@@ -1,10 +1,11 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, jsonify
 from flask_login import current_user, login_required
 from operator import itemgetter
 from scoring_engine.db import db
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 import json
+import random
 
 
 mod = Blueprint('admin', __name__)
@@ -44,14 +45,30 @@ def stats():
 @login_required
 def get_progress_total():
     if current_user.is_white_team:
-        import json
-        import random
         return json.dumps({'Total': random.randint(1, 100),
                            'Team1': random.randint(1, 100),
                            'Team2': random.randint(1, 100),
                            'Team3': random.randint(1, 100),
                            'Team4': random.randint(1, 100),
                            'Team5': random.randint(1, 100)})
+    else:
+        return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/admin/api/get_teams/all')
+@login_required
+def get_test_table_total():
+    if current_user.is_white_team:
+        all_teams = Team.query.all()
+        data = []
+        for team in all_teams:
+            # there has to be a better way to do this :(
+            # I couldn't figure out how to pass an array to javascript in the json data.
+            user_tbl_str = ''
+            for user in team.users:
+                user_tbl_str += '<tr><td>' + str(user.username) + '</td><td>' + str(user.password) + '</td></tr>'
+            data.append({'name': team.name, 'color': team.color, 'user_tbl_str': user_tbl_str})
+        return jsonify(data=data)
     else:
         return {'status': 'Unauthorized'}, 403
 
