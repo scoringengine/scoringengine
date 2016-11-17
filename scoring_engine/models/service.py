@@ -29,6 +29,8 @@ class Service(Base):
 
     @property
     def percent_earned(self):
+        if self.max_score == 0:
+            return 0
         return int((self.score_earned / self.max_score) * 100)
 
     @property

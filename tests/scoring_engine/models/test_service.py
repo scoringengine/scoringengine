@@ -43,6 +43,9 @@ class TestService(UnitTest):
         assert service.team_id == team.id
         assert service.check_name == "ICMP IPv4 Check"
         assert service.points == 500
+        assert service.score_earned == 0
+        assert service.max_score == 0
+        assert service.percent_earned == 0
 
     def test_false_service_result(self):
         team = generate_sample_model_tree('Team', self.db)
