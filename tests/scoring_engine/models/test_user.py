@@ -1,3 +1,4 @@
+import pytest
 import bcrypt
 
 import sys
@@ -10,6 +11,9 @@ from scoring_engine.models.user import User
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
 from unit_test import UnitTest
+
+from sqlalchemy.exc import IntegrityError
+
 
 
 class TestUser(UnitTest):
@@ -38,3 +42,11 @@ class TestUser(UnitTest):
         assert user.team is team
         assert user.team_id is team.id
         assert user.get_id() == '1'
+
+    def test_username_unique(self):
+        team = generate_sample_model_tree('Team', self.db)
+        user1 = User(username="testuser", password="testpass", team=team)
+        self.db.save(user1)
+        with pytest.raises(IntegrityError):
+            user2 = User(username="testuser", password="testpass", team=team)
+            self.db.save(user2)

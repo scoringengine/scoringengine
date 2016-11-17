@@ -55,8 +55,9 @@ for num in range(1, num_teams + 1):
     db.save(team)
 
     for user_num in range(1, randint(3, 5) + 1):
-        print("\t\tCreating User " + str(user_num))
-        user = User(username="user" + str(user_num), password="testpass", team=team)
+        username = "team" + str(num) + "user" + str(user_num)
+        print("\t\tCreating User " + username)
+        user = User(username=username, password="testpass", team=team)
         db.save(user)
 
     for service_num in range(1, num_services + 1):
@@ -67,8 +68,10 @@ for num in range(1, num_teams + 1):
 
         for property_num in range(1, num_properties + 1):
             print("\t\t\t\tCreating Property " + str(property_num))
-            property_obj = Property(name="prop" + str(property_num), value="127.0.0." + str(property_num), service=service)
+            property_obj = Property(name="prop" + str(property_num), value="randval" + str(property_num), service=service)
             db.save(property_obj)
+        property_obj = Property(name="IP Address", value="127.0.0.1", service=service)
+        db.save(property_obj)
 
 print("Creating " + str(num_rounds) + " rounds")
 for num_round in range(1, num_rounds + 1):

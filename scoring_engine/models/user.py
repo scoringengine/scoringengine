@@ -10,7 +10,7 @@ from scoring_engine.db import db_salt
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    username = Column(String(20), nullable=False)
+    username = Column(String(20), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     authenticated = Column(Boolean, default=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
