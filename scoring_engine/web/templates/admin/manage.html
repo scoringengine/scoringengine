@@ -68,7 +68,7 @@
 
 
 
-      <table id="example" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
         <thead>
             <tr>
                 <th></th>
@@ -82,7 +82,7 @@
       /* Formatting function for row details - modify as you need */
       function format ( d ) {
           // `d` is the original data object for the row
-          return '<table id="example" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
+          return '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
               '<tr>'+
                 '<th>Username</th>'+
                 '<th>Password</th>'+
@@ -92,7 +92,7 @@
       }
 
       $(document).ready(function() {
-          var table = $('#example').DataTable( {
+          var table = $('#users').DataTable( {
               "ajax": {
                 "url": "/admin/api/get_teams/all",
                 "type": 'GET'
@@ -112,7 +112,7 @@
           } );
 
           // Add event listener for opening and closing details
-          $('#example tbody').on('click', 'td.details-control', function () {
+          $('#users tbody').on('click', 'td.details-control', function () {
               var tr = $(this).closest('tr');
               var row = table.row( tr );
 
@@ -127,6 +127,7 @@
                   tr.addClass('shown');
               }
           } );
+
       } );
     </script>
 
