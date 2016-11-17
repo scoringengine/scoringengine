@@ -23,7 +23,41 @@
       </div>
       <button type="submit" class="btn btn-primary center-block">Update Password</button>
     </form>
-
+  </div>
+  <div class="row">
+    <h2 class="text-center">Add User</h2>
+    <form method="POST" action="/admin/api/add_user" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="team" data-width="100%" id="teamSelect">
+          <option value="">Red</option>
+          <option value="">White</option>
+          <option value="">Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add User</button>
+    </form>
+  </div>
+  <div class="row">
+    <h2 class="text-center">Add Team</h2>
+    <form method="POST" action="/admin/api/add_team" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="team" id="team" placeholder="Team Name" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="team" data-width="100%" id="teamSelect">
+          <option value="">Red</option>
+          <option value="">White</option>
+          <option value="">Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add Team</button>
+    </form>
   </div>
 </div>
 {% endblock %}
