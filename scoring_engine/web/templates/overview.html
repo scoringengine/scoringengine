@@ -23,7 +23,7 @@
       {% for team in blue_teams %}
         <tr>
           <td>{{team.name}}</td>
-          <td>{{team.current_score()}}</td>
+          <td>{{team.current_score}}</td>
           {% for service in team.services %}
             {% if service.last_check_result() %}
               <td class="label-success">Pass</td>

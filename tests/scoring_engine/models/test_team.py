@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
+from scoring_engine.models.check import Check
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
@@ -18,7 +19,7 @@ class TestTeam(UnitTest):
         assert team.name == "White Team"
         assert team.color == "White"
         assert team.id is None
-        assert team.current_score() == 2000
+        assert team.current_score == 0
         assert team.is_red_team is False
         assert team.is_white_team is True
         assert team.is_blue_team is False
@@ -28,7 +29,7 @@ class TestTeam(UnitTest):
         assert team.name == "Blue Team"
         assert team.color == "Blue"
         assert team.id is None
-        assert team.current_score() == 2000
+        assert team.current_score == 0
         assert team.is_red_team is False
         assert team.is_white_team is False
         assert team.is_blue_team is True
@@ -38,7 +39,7 @@ class TestTeam(UnitTest):
         assert team.name == "Red Team"
         assert team.color == "Red"
         assert team.id is None
-        assert team.current_score() == 2000
+        assert team.current_score == 0
         assert team.is_red_team is True
         assert team.is_white_team is False
         assert team.is_blue_team is False
@@ -71,3 +72,21 @@ class TestTeam(UnitTest):
         self.db.save(user_1)
         self.db.save(user_2)
         assert team.users == [user_1, user_2]
+
+    def test_current_score(self):
+        team = generate_sample_model_tree('Team', self.db)
+        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check")
+        self.db.save(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        self.db.save(check_1)
+        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check")
+        self.db.save(service_2)
+        check_2 = Check(service=service_2, result=True, output='Good output')
+        self.db.save(check_2)
+        check_3 = Check(service=service_2, result=True, output='Good output')
+        self.db.save(check_3)
+        service_3 = Service(name="Example Service 3", team=team, check_name="SSH IPv4 Check")
+        self.db.save(service_3)
+        check_3 = Check(service=service_3, result=False, output='bad output')
+        self.db.save(check_3)
+        assert team.current_score == 300
