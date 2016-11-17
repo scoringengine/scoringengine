@@ -18,7 +18,7 @@ class User(Base):
 
     def __init__(self, username, password, team=None):
         self.username = username
-        self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
+        self.password = self.update_password(password)
         self.team = team
 
     @property
@@ -36,6 +36,10 @@ class User(Base):
     @property
     def get_username(self):
         return self.username
+
+    def update_password(self, password):
+        self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
+        return True
 
     def get_id(self):
         return str(self.id)  # python 3

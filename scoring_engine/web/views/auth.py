@@ -49,7 +49,8 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = db.session.query(User).filter_by(username=username).first()
+        user = User.query.filter(User.username == username).one()
+        print(user)
 
         if user:
             # Monkey Patch
