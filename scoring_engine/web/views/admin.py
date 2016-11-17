@@ -20,7 +20,7 @@ def status():
 @login_required
 def manage():
     res = User.query.with_entities(User.id, User.username).all()
-    return render_template('admin/manage.html', users=sorted(res,key=itemgetter(0)))
+    return render_template('admin/manage.html', users=sorted(res, key=itemgetter(0)))
 
 
 @mod.route('/admin/stats')
