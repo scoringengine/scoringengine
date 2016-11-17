@@ -16,9 +16,12 @@ class Team(Base):
         self.name = name
         self.color = color
 
+    @property
     def current_score(self):
-        # todo make this dynamic based on service result
-        return 2000
+        total_score = 0
+        for service in self.services:
+            total_score += service.score_earned
+        return total_score
 
     @property
     def place(self):
