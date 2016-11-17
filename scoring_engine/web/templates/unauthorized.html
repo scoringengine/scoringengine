@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Unauthorized{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+      <img class="center-block" style="border-style: solid; border-width: 5px;" src="{{ url_for('static', filename='images/unauthorized.gif') }}">
+  </div>
+</div>
+{% endblock %}

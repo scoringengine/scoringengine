@@ -82,6 +82,11 @@ def login():
     return render_template('login.html', form=form)
 
 
+@mod.route('/unauthorized')
+def unauthorized():
+    return render_template('unauthorized.html')
+
+
 @mod.route('/logout')
 @login_required
 def logout():
