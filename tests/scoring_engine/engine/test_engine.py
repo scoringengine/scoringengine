@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.engine.engine import Engine
 
@@ -9,16 +8,15 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.property import Property
 from scoring_engine.models.check import Check
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
-from unit_test import UnitTest
+from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestEngine(UnitTest):
 
     def test_init(self):
         engine = Engine()
-        from ipv4.ssh import SSHCheck
-        from ipv4.icmp import ICMPCheck
+        from scoring_engine.engine.checks.icmp import ICMPCheck
+        from scoring_engine.engine.checks.ssh import SSHCheck 
         expected_checks = [ICMPCheck, SSHCheck]
         assert engine.checks == expected_checks
 
@@ -63,7 +61,7 @@ class TestEngine(UnitTest):
     def test_check_name_to_obj_positive(self):
         engine = Engine()
         check_obj = engine.check_name_to_obj("ICMP IPv4 Check")
-        from ipv4.icmp import ICMPCheck
+        from scoring_engine.engine.checks.icmp import ICMPCheck
         check_obj == ICMPCheck
 
     def test_check_name_to_obj_negative(self):
