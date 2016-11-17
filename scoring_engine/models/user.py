@@ -18,7 +18,7 @@ class User(Base):
 
     def __init__(self, username, password, team=None):
         self.username = username
-        self.password = self.update_password(password)
+        self.update_password(password)
         self.team = team
 
     @property
