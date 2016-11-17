@@ -25,8 +25,13 @@ class Team(Base):
 
     @property
     def place(self):
-        # todo make this dynamic
-        return 2
+        blue_teams = Team.query.filter(Team.color == 'Blue').all()
+        sorted_blue_teams = sorted(blue_teams, key=lambda team: team.current_score, reverse=True)
+        place = 0
+        for index, team in enumerate(sorted_blue_teams):
+            if self.id == team.id:
+                place = index + 1
+        return place
 
     @property
     def is_red_team(self):

@@ -90,3 +90,34 @@ class TestTeam(UnitTest):
         check_3 = Check(service=service_3, result=False, output='bad output')
         self.db.save(check_3)
         assert team.current_score == 300
+
+    def test_place(self):
+        team_1 = Team(name="Blue Team 1", color="Blue")
+        self.db.save(team_1)
+        service_1 = Service(name="Example Service 1", team=team_1, check_name="ICMP IPv4 Check")
+        self.db.save(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+
+        team_2 = Team(name="Blue Team 2", color="Blue")
+        self.db.save(team_2)
+        service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check")
+        self.db.save(service_1)
+        check_1 = Check(service=service_1, result=False, output='Good output')
+        check_2 = Check(service=service_1, result=False, output='Good output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+
+        team_3 = Team(name="Blue Team 3", color="Blue")
+        self.db.save(team_3)
+        service_1 = Service(name="Example Service 1", team=team_3, check_name="ICMP IPv4 Check")
+        self.db.save(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=False, output='Good output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        assert team_1.place == 1
+        assert team_2.place == 3
+        assert team_3.place == 2
