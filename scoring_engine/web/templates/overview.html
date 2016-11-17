@@ -37,7 +37,9 @@
     </table>
     <script>
       $(document).ready(function() {
-        $('#overview').DataTable();
+        $('#overview').DataTable( {
+          "paging": false
+        });
       } );
     </script>
   </div>
