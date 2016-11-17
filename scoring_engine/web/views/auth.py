@@ -53,7 +53,7 @@ def login():
 
         if user:
             # Monkey Patch
-            # Fixing the error where bmyers was getting a bytes type returned from user.password and rbower was getting str
+            # Fixing the error where bmyers was getting a bytes returned from user.password and rbower was getting str
             if isinstance(user.password, str):
                 hashed_pw = user.password.encode('utf-8')
             else:
@@ -85,6 +85,9 @@ def login():
 @mod.route('/logout')
 @login_required
 def logout():
+    user = User.query.filter(User.username == current_user.username).one()
+    user.authenticated = False
+    db.save(user)
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))

@@ -3,15 +3,16 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css">
+    <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
 {% endblock %}
 {% block admincontent %}
 <div class="container">
   <div class="row">
     <h2 class="text-center">Update Password</h2>
-    <form method="POST" action="/admin/api/update_password" role="form">
+    <form method="POST" action="/admin/api/update_password" role="form" class="form-signin">
       <div class="form-group">
-        <select class="selectpicker" name="user_id" data-width="fit" id="userSelect">
+        <select class="selectpicker" name="user_id" data-width="100%" id="userSelect">
           {% for user in users %}
           <option value="{{ user[0] }}">{{ user[1] }}</option>
           {% endfor %}
@@ -20,9 +21,43 @@
       <div class="form-group">
         <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
       </div>
-      <button type="submit" class="btn btn-primary">Update Password</button>
+      <button type="submit" class="btn btn-primary center-block">Update Password</button>
     </form>
-
+  </div>
+  <div class="row">
+    <h2 class="text-center">Add User</h2>
+    <form method="POST" action="/admin/api/add_user" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="team_id" data-width="100%" id="team_id">
+          {% for team in teams %}
+          <option value="{{ team[0] }}">{{ team[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add User</button>
+    </form>
+  </div>
+  <div class="row">
+    <h2 class="text-center">Add Team</h2>
+    <form method="POST" action="/admin/api/add_team" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="color" data-width="100%" id="teamSelect">
+          <option value="Red">Red</option>
+          <option value="White">White</option>
+          <option value="Blue">Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add Team</button>
+    </form>
   </div>
 </div>
 {% endblock %}
