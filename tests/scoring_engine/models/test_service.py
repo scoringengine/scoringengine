@@ -77,3 +77,73 @@ class TestService(UnitTest):
         property_3 = Property(name="password", value="testpass", service=service)
         self.db.save(property_3)
         assert service.properties == [property_1, property_2, property_3]
+
+    def test_score_earned(self):
+        service = generate_sample_model_tree('Service', self.db)
+        assert service.score_earned == 400
+
+    def test_max_score(self):
+        service = generate_sample_model_tree('Service', self.db)
+        assert service.max_score == 1000
+
+    def test_percent_earned(self):
+        service = generate_sample_model_tree('Service', self.db)
+        assert service.percent_earned == 40
+
+    def test_last_ten_checks_4_checks(self):
+        service = generate_sample_model_tree('Service', self.db)
+        check_1 = Check(service=service, result=True, output='Good output')
+        check_2 = Check(service=service, result=True, output='Good output')
+        check_3 = Check(service=service, result=True, output='Good output')
+        check_4 = Check(service=service, result=True, output='Good output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        self.db.save(check_3)
+        self.db.save(check_4)
+        assert service.last_ten_checks == [check_4, check_3, check_2, check_1]
+        assert service.percent_earned == 40
+
+    def test_last_ten_checks_15_checks(self):
+        service = generate_sample_model_tree('Service', self.db)
+        check_1 = Check(service=service, result=True, output='Good output')
+        check_2 = Check(service=service, result=True, output='Good output')
+        check_3 = Check(service=service, result=True, output='Good output')
+        check_4 = Check(service=service, result=True, output='Good output')
+        check_5 = Check(service=service, result=True, output='Good output')
+        check_6 = Check(service=service, result=True, output='Good output')
+        check_7 = Check(service=service, result=True, output='Good output')
+        check_8 = Check(service=service, result=True, output='Good output')
+        check_9 = Check(service=service, result=True, output='Good output')
+        check_10 = Check(service=service, result=True, output='Good output')
+        check_11 = Check(service=service, result=True, output='Good output')
+        check_12 = Check(service=service, result=True, output='Good output')
+        check_13 = Check(service=service, result=True, output='Good output')
+        check_14 = Check(service=service, result=True, output='Good output')
+        check_15 = Check(service=service, result=True, output='Good output')
+        self.db.save(check_1)
+        self.db.save(check_2)
+        self.db.save(check_3)
+        self.db.save(check_4)
+        self.db.save(check_5)
+        self.db.save(check_6)
+        self.db.save(check_7)
+        self.db.save(check_8)
+        self.db.save(check_9)
+        self.db.save(check_10)
+        self.db.save(check_11)
+        self.db.save(check_12)
+        self.db.save(check_13)
+        self.db.save(check_14)
+        self.db.save(check_15)
+        assert service.last_ten_checks == [
+            check_15,
+            check_14,
+            check_13,
+            check_12,
+            check_11,
+            check_10,
+            check_9,
+            check_8,
+            check_7,
+            check_6
+        ]

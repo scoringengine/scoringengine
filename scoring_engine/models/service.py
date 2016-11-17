@@ -16,3 +16,21 @@ class Service(Base):
 
     def last_check_result(self):
         return self.checks[-1].result
+
+    @property
+    def score_earned(self):
+        return 400
+
+    @property
+    def max_score(self):
+        return 1000
+
+    @property
+    def percent_earned(self):
+        return 40
+
+    @property
+    def last_ten_checks(self):
+        reverse_checks = self.checks
+        reverse_checks.reverse()
+        return reverse_checks[:10]
