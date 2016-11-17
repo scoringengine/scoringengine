@@ -7,12 +7,11 @@
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
 {% endblock %}
 {% block content %}
-Team Name: {{team.name}}
-Current Place: {{team.place}}
-Current Score: {{team.current_score}}
-
 <div class="container">
     <div class="row">
+    <h3>{{team.name}}</h3>
+    <h5>Place: {{team.place}}</h5>
+    <h5>Score: {{team.current_score}} points</h5>
     <table id="services" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
         <thead>
             <tr>
