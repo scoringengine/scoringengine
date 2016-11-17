@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.property import Property
+from scoring_engine.models.round import Round
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from helpers import generate_sample_model_tree
@@ -86,12 +87,17 @@ class TestService(UnitTest):
 
     def test_checks_reversed(self):
         service = generate_sample_model_tree('Service', self.db)
-        round_obj = generate_sample_model_tree('Round', self.db)
-        check_1 = Check(round=round_obj, service=service)
+        round_obj_1 = Round(number=1)
+        round_obj_2 = Round(number=2)
+        round_obj_3 = Round(number=3)
+        self.db.save(round_obj_1)
+        self.db.save(round_obj_2)
+        self.db.save(round_obj_3)
+        check_1 = Check(round=round_obj_1, service=service)
         self.db.save(check_1)
-        check_2 = Check(round=round_obj, service=service)
+        check_2 = Check(round=round_obj_2, service=service)
         self.db.save(check_2)
-        check_3 = Check(round=round_obj, service=service)
+        check_3 = Check(round=round_obj_3, service=service)
         self.db.save(check_3)
         assert service.checks_reversed == [check_3, check_2, check_1]
 

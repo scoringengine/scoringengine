@@ -1,19 +1,67 @@
 {% extends 'base.html' %}
 {% block title %}Service{% endblock %}
+{% block head %}
+    {{ super() }}
+    <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
+{% endblock %}
 {% block content %}
 <div class="container">
   <div class="row">
   Name: {{service.name}}
-  <br>
-  <br>Properties:
-  {% for properties in service.properties %}
-    <br>{{properties.name}} - {{properties.value}}
-  {% endfor %}
-  <br>
-  <br>Checks
-  {% for check in service.checks_reversed %}
-    <br>{{check.round.number}} - {{check.result}}
-  {% endfor %}
+    <h3>Properties</h3>
+    <table id="properties" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for property_obj in service.properties %}
+          <tr>
+            <td>{{property_obj.name}}</td>
+            <td>{{property_obj.value}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br><h3>Checks</h3>
+    <table id="checks" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th>Round #</th>
+          <th>Result</th>
+          <th>Completed On</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for check in service.checks_reversed %}
+          <tr>
+            <td>{{check.round.number}}</td>
+            <td>
+              {% if check.result %}
+                  <span class="label label-success">UP</span>
+                {% else %}
+                  <span class="label label-danger">DOWN</span>
+              {% endif %}
+            </td>
+            <td>{{check.completed_timestamp}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+        <script>
+            $(document).ready(function() {
+                $('#properties').DataTable({
+                    "paging": false
+                });
+                $('#checks').DataTable({
+                  "order": [[ 0, "desc" ]]
+                });
+            } );
+        </script>
   </div>
 </div>
 {% endblock %}

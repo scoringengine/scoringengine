@@ -13,3 +13,10 @@ class Check(Base):
     service = relationship("Service")
     result = Column(Boolean)
     output = Column(String)
+    completed_timestamp = Column(String)
+
+    @property
+    def completed_timestamp(self):
+      # todo make this dynamic and saved when check finishes
+      from datetime import datetime
+      return str(datetime.now())
