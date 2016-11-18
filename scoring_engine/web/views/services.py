@@ -21,18 +21,3 @@ def service(id):
     if service is None or not current_user.team == service.team:
         return redirect(url_for('auth.unauthorized'))
     return render_template('service.html', id=id, service=service)
-
-
-@mod.route('/api/service/get_checks/<id>')
-@login_required
-def get_checks(id):
-    service = Service.query.get(id)
-    if service is None or not current_user.team == service.team:
-        return jsonify({'status': 'Unauthorized'}), 403
-    data = []
-    for check in service.checks_reversed:
-        data.append({'round': check.round.number,
-                     'result': check.result,
-                     'timestamp': check.completed_timestamp,
-                     'output': check.output})
-    return jsonify(data=data)
