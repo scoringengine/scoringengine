@@ -1,8 +1,9 @@
 from flask import Blueprint, flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 from scoring_engine.db import db
-from scoring_engine.models.user import User
+from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
@@ -111,3 +112,18 @@ def profile_update_password():
             return {'status': 'Unauthorized'}, 403
     else:
         return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/service/get_checks/<id>')
+@login_required
+def get_checks(id):
+    service = Service.query.get(id)
+    if service is None or not current_user.team == service.team:
+        return jsonify({'status': 'Unauthorized'}), 403
+    data = []
+    for check in service.checks_reversed:
+        data.append({'round': check.round.number,
+                     'result': check.result,
+                     'timestamp': check.completed_timestamp,
+                     'output': check.output})
+    return jsonify(data=data)

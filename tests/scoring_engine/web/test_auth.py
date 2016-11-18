@@ -7,5 +7,9 @@ class TestAuth(WebTest):
         resp = self.client.get('/login')
         assert resp.status_code == 200
 
+    def test_unauthorized(self):
+        resp = self.client.get('/unauthorized')
+        assert resp.status_code == 200
+
     def test_auth_required_logout(self):
         self.verify_auth_required('/logout')
