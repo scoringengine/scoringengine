@@ -26,9 +26,6 @@ login_manager.login_message_category = 'info'
 @login_manager.user_loader
 def load_user(session_token):
     return User.query.filter_by(session_token=session_token).first()
-#def load_user(id):
-#     return User.query.get(int(id))
-
 
 
 @app.before_request
