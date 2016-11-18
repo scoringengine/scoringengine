@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, ForeignKey, Boolean, String
 from sqlalchemy.orm import relationship
 
+from datetime import datetime
+
 from scoring_engine.models.base import Base
 
 
@@ -15,8 +17,7 @@ class Check(Base):
     output = Column(String)
     completed_timestamp = Column(String)
 
-    @property
-    def completed_timestamp(self):
-        # todo make this dynamic and saved when check finishes
-        from datetime import datetime
-        return str(datetime.now())
+    def finished(self, result, output):
+        self.result = result
+        self.output = output
+        self.completed_timestamp = str(datetime.now())

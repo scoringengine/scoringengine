@@ -86,5 +86,6 @@ for num_round in range(1, num_rounds + 1):
         else:
             result = False
 
-        check = Check(round=round_obj, service=service, result=result, output='example output')
+        check = Check(round=round_obj, service=service)
+        check.finished(result, 'example output')
         db.save(check)
