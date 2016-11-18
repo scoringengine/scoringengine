@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 import bcrypt
+import uuid
 from flask import flash, redirect, request, url_for, g
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
@@ -14,18 +15,20 @@ from scoring_engine.db import db
 from scoring_engine.models.user import User
 
 from scoring_engine.web import app
-mod = Blueprint('auth', __name__)
 
+mod = Blueprint('auth', __name__)
+mod.secret_key = str(uuid.uuid4())
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
+login_manager.session_protection = "strong"
 
 
 @login_manager.user_loader
-def load_user(session_token):
-    return User.query.filter_by(session_token=session_token).first()
+def load_user(id):
+    return User.query.get(int(id))
 
 
 @app.before_request
@@ -67,7 +70,6 @@ def login():
 
             if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
-                user.session_token = user.generate_session_token()
                 db.save(user)
                 login_user(user, remember=True)
                 if user.is_white_team:
