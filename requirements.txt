@@ -6,6 +6,7 @@ Flask-Login
 Flask-SQLAlchemy
 Flask-WTF
 pynsive
+pyOpenSSL
 pytest-cov
 redis
 sqlalchemy

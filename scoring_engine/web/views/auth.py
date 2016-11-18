@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 import bcrypt
+import uuid
 from flask import flash, redirect, request, url_for, g
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
@@ -8,17 +9,22 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm.exc import NoResultFound
+
 from scoring_engine.db import db
 from scoring_engine.models.user import User
 
 from scoring_engine.web import app
-mod = Blueprint('auth', __name__)
 
+mod = Blueprint('auth', __name__)
+mod.secret_key = str(uuid.uuid4())
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
+login_manager.session_protection = 'strong'
 
 
 @login_manager.user_loader
@@ -49,7 +55,14 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = User.query.filter(User.username == username).one()
+        try:
+            user = User.query.filter(User.username == username).one()
+        except NoResultFound:
+            flash('Invalid username or password. Please try again.', 'danger')
+            return render_template('login.html', form=form)
+        except OperationalError:
+            flash('Database is fucked, yo.', 'danger')
+            return render_template('login.html', form=form)
 
         if user:
             # Monkey Patch
@@ -90,9 +103,6 @@ def unauthorized():
 @mod.route('/logout')
 @login_required
 def logout():
-    user = User.query.filter(User.username == current_user.username).one()
-    user.authenticated = False
-    db.save(user)
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))

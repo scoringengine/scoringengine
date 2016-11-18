@@ -26,12 +26,11 @@ class TestUser(UnitTest):
         assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
         assert user.team is None
         assert user.team_id is None
-        assert user.is_authenticated is True
+        assert user.is_authenticated is None
         assert user.is_active is True
         assert user.is_anonymous is False
         assert user.get_username == 'testuser'
-        assert str(user) == "<User 'testuser'>"
-        assert user.get_id() == 'None'
+        assert user.get_id() is None
 
     def test_basic_user(self):
         team = generate_sample_model_tree('Team', self.db)
@@ -42,7 +41,7 @@ class TestUser(UnitTest):
         assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
         assert user.team is team
         assert user.team_id is team.id
-        assert user.get_id() == '1'
+        assert user.get_id() == 1
 
     def test_username_unique(self):
         team = generate_sample_model_tree('Team', self.db)
