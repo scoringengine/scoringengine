@@ -69,7 +69,7 @@ def get_test_table_total():
             data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
-        return {'status': 'Unauthorized'}, 403
+        return json.dumps({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/update_password', methods=['POST'])
@@ -90,7 +90,7 @@ def update_password():
             flash('Error: user_id or password not specified.', 'danger')
             return redirect(url_for('admin.manage'))
     else:
-        return {'status': 'Unauthorized'}, 403
+        return json.dumps({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/add_user', methods=['POST'])
@@ -109,7 +109,7 @@ def add_user():
             flash('Error: Username, Password, or Team ID not specified.', 'danger')
             return redirect(url_for('admin.manage'))
     else:
-        return {'status': 'Unauthorized'}, 403
+        return json.dumps({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/add_team', methods=['POST'])
@@ -125,4 +125,4 @@ def add_team():
             flash('Error: Team name or color not defined.', 'danger')
             return redirect(url_for('admin.manage'))
     else:
-        return {'status': 'Unauthorized'}, 403
+        return json.dump({'status': 'Unauthorized'}), 403
