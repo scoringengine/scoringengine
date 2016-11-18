@@ -2,6 +2,8 @@ import bcrypt
 import OpenSSL
 import uuid
 
+from flask_login import UserMixin
+
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -10,15 +12,14 @@ from scoring_engine.models.base import Base
 from scoring_engine.db import db_salt
 
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     username = Column(String(20), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     authenticated = Column(Boolean, default=False)
-    session_token = Column(String(40))
     team_id = Column(Integer, ForeignKey('teams.id'))
-    team = relationship("Team", back_populates="users")
+    team = relationship('Team', back_populates='users')
 
     def __init__(self, username, password, team=None):
         self.username = username
@@ -39,7 +40,7 @@ class User(Base):
 
     @property
     def is_authenticated(self):
-        return True
+        return self.authenticated
 
     @property
     def is_active(self):
@@ -58,11 +59,7 @@ class User(Base):
         return True
 
     def get_id(self):
-        return str(self.session_token)
-
-    @staticmethod
-    def generate_session_token():
-        return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
+        return self.id
 
     def __repr__(self):
         return '<User %r>' % self.username
