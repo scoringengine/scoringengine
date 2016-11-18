@@ -19,5 +19,10 @@ class WebTest(UnitTest):
         assert resp.status_code == 302
         assert '/login?' in resp.location
 
+    def verify_auth_required_post(self, path):
+        resp = self.client.post(path)
+        assert resp.status_code == 302
+        assert '/login?' in resp.location
+
     def test_debug(self):
         assert self.app.debug is True
