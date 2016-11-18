@@ -55,8 +55,21 @@ class User(Base, UserMixin):
         return self.username
 
     def update_password(self, password):
-        self.password = bcrypt.hashpw(password.encode('utf-8'), db_salt)
+        self.password = User.generate_hash(password)
         return True
+
+    @staticmethod
+    def generate_hash(password, salt=None):
+        if salt is None:
+            salt = db_salt
+        elif isinstance(salt, str):
+            salt = salt.encode('utf-8')
+
+        # this is due to some weird bug between rusty and I
+        # where his env was returning a str, and mine were bytes
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        return bcrypt.hashpw(password, salt).decode('utf-8')
 
     def get_id(self):
         return self.id
