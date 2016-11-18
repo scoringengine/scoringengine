@@ -11,7 +11,7 @@
     <h4>Team Color: {{current_user.team.color}}</h4>
     <div class="card">
       <h2 class="text-center">Update Password</h2>
-      <form method="POST" action="{{url_for('profile.update_password')}}" role="form" class="form-signin">
+      <form method="POST" action="{{url_for('api.profile_update_password')}}" role="form" class="form-signin">
         <div class="form-group">
           <input type="hidden" name="user_id" value="{{current_user.id}}">
           <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
