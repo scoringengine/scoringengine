@@ -52,14 +52,7 @@ def login():
         user = User.query.filter(User.username == username).one()
 
         if user:
-            # Monkey Patch
-            # Fixing the error where bmyers was getting a bytes returned from user.password and rbower was getting str
-            if isinstance(user.password, str):
-                hashed_pw = user.password.encode('utf-8')
-            else:
-                hashed_pw = user.password
-
-            if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
+            if User.generate_hash(password, user.password) == user.password:
                 user.authenticated = True
                 db.save(user)
                 login_user(user, remember=True)

@@ -64,7 +64,7 @@ def get_test_table_total():
         for team in all_teams:
             users = {}
             for user in team.users:
-                users[user.username] = str(user.password)
+                users[user.username] = user.password
             data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
