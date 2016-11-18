@@ -14,7 +14,6 @@ from unit_test import UnitTest
 from sqlalchemy.exc import IntegrityError
 
 
-
 class TestUser(UnitTest):
 
     def test_init_service(self):
