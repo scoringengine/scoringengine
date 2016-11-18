@@ -11,9 +11,12 @@ db_salt = bcrypt.gensalt()
 
 
 class DB(object):
-    def __init__(self):
+    def __init__(self, db_location=None):
         self.connected = False
-        self.sqlite_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../engine.db')
+        if db_location is None:
+            self.sqlite_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../engine.db')
+        else:
+            self.sqlite_db = db_location
 
     def connect(self):
         self.connected = True

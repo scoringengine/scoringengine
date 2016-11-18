@@ -13,7 +13,7 @@ from scoring_engine.models.team import Team
 class TestDB(object):
 
     def setup(self):
-        self.db = DB()
+        self.db = DB(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_engine.db'))
         self.db.destroy()
 
     def teardown(self):
