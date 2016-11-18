@@ -18,7 +18,6 @@ config = {
         'Flask-Login',
         'Flask-SQLAlchemy',
         'Flask-WTF',
-        'pyOpenSSL',
         'redis',
         'sqlalchemy',
         # Develpment Dependencies
