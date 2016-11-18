@@ -6,7 +6,7 @@ from flask import flash, redirect, request, url_for, g
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
 
-from wtforms import TextField, PasswordField
+from wtforms import PasswordField, StringField
 from wtforms.validators import InputRequired
 
 from sqlalchemy.exc import OperationalError
@@ -39,7 +39,7 @@ def get_current_user():
 
 # Creating our login form
 class LoginForm(FlaskForm):
-    username = TextField('inputUsername', [InputRequired()], render_kw={"class": "form-control", "placeholder": "Username", "required": "true", "autofocus": "true"})
+    username = StringField('inputUsername', [InputRequired()], render_kw={"class": "form-control", "placeholder": "Username", "required": "true", "autofocus": "true"})
     password = PasswordField('inputUsername', [InputRequired()], render_kw={"class": "form-control", "placeholder": "Password", "required": "true"})
 
 
@@ -47,11 +47,15 @@ class LoginForm(FlaskForm):
 def login():
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
-        return redirect(url_for('admin.status'))
+        return redirect(url_for("welcome.home"))
 
-    form = LoginForm(request.form)
+    form = LoginForm()
 
-    if request.method == 'POST' and form.validate():
+    if form.errors:
+        flash(form.errors, 'danger')
+        return render_template('login.html', form=form)
+
+    if form.validate_on_submit():
         username = request.form.get('username')
         password = request.form.get('password')
 
@@ -69,6 +73,7 @@ def login():
                 user.authenticated = True
                 db.save(user)
                 login_user(user, remember=True)
+
                 if user.is_white_team:
                     return redirect(url_for("admin.status"))
                 elif user.is_blue_team:
@@ -81,9 +86,6 @@ def login():
         else:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
-
-    if form.errors:
-        flash(form.errors, 'danger')
 
     return render_template('login.html', form=form)
 
