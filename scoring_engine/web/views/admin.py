@@ -46,12 +46,12 @@ def stats():
 @login_required
 def get_progress_total():
     if current_user.is_white_team:
-        return json.dumps({'Total': random.randint(1, 100),
-                           'Team1': random.randint(1, 100),
-                           'Team2': random.randint(1, 100),
-                           'Team3': random.randint(1, 100),
-                           'Team4': random.randint(1, 100),
-                           'Team5': random.randint(1, 100)})
+        return jsonify({'Total': random.randint(1, 100),
+                        'Team1': random.randint(1, 100),
+                        'Team2': random.randint(1, 100),
+                        'Team3': random.randint(1, 100),
+                        'Team4': random.randint(1, 100),
+                        'Team5': random.randint(1, 100)})
     else:
         return {'status': 'Unauthorized'}, 403
 
@@ -69,7 +69,7 @@ def get_test_table_total():
             data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
-        return json.dumps({'status': 'Unauthorized'}), 403
+        return jsonify({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/update_password', methods=['POST'])
@@ -90,7 +90,7 @@ def update_password():
             flash('Error: user_id or password not specified.', 'danger')
             return redirect(url_for('admin.manage'))
     else:
-        return json.dumps({'status': 'Unauthorized'}), 403
+        return jsonify({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/add_user', methods=['POST'])
@@ -109,7 +109,7 @@ def add_user():
             flash('Error: Username, Password, or Team ID not specified.', 'danger')
             return redirect(url_for('admin.manage'))
     else:
-        return json.dumps({'status': 'Unauthorized'}), 403
+        return jsonify({'status': 'Unauthorized'}), 403
 
 
 @mod.route('/admin/api/add_team', methods=['POST'])
