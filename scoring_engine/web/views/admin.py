@@ -4,6 +4,7 @@ from operator import itemgetter
 from scoring_engine.db import db
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
+from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
 
@@ -76,8 +77,12 @@ def get_test_table_total():
 def update_password():
     if current_user.is_white_team:
         if 'user_id' in request.form and 'password' in request.form:
-            user_obj = User.query.filter(User.id == request.form['user_id']).one()
+            try:
+                user_obj = User.query.filter(User.id == request.form['user_id']).one()
+            except NoResultFound:
+                return redirect(url_for('auth.login'))
             user_obj.update_password(request.form['password'])
+            user_obj.authenticated = False
             db.save(user_obj)
             flash('Password Successfully Updated.', 'success')
             return redirect(url_for('admin.manage'))
