@@ -9,6 +9,7 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 
 from scoring_engine.db import db
@@ -59,6 +60,9 @@ def login():
         except NoResultFound:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
+        except OperationalError:
+            flash('Database is fucked, yo.', 'danger')
+            return render_template('login.html', form=form)
 
         if user:
             # Monkey Patch
@@ -99,12 +103,6 @@ def unauthorized():
 @mod.route('/logout')
 @login_required
 def logout():
-    try:
-        user = User.query.filter(User.username == current_user.username).one()
-    except NoResultFound:
-        return redirect(url_for('auth.login'))
-    user.authenticated = False
-    db.save(user)
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))
