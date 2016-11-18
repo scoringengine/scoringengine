@@ -21,7 +21,7 @@ class TestService(UnitTest):
         assert service.team is None
         assert service.team is None
         assert service.check_name == "ICMP IPv4 Check"
-        assert service.points == None
+        assert service.points is None
 
     def test_basic_service(self):
         team = generate_sample_model_tree('Team', self.db)

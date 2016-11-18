@@ -7,4 +7,4 @@ services:
 script:
   - py.test --cov=scoring_engine tests
   - codeclimate-test-reporter
-  - pycodestyle --show-source --ignore=E501,E402  scoring_engine/
+  - pycodestyle --show-source --ignore=E501,E402  ./
