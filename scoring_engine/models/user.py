@@ -1,6 +1,4 @@
 import bcrypt
-import OpenSSL
-import uuid
 
 from flask_login import UserMixin
 
