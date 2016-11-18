@@ -46,7 +46,7 @@
 </div>
 <script>
 function getProgress(){
-    $.getJSON('/api/admin/get_progress', function(data) {
+    $.getJSON('/api/admin/get_round_progress', function(data) {
         $.each(data, function(key, val) {
             $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
             $("#" + key + "Percent span").text(val + "%");

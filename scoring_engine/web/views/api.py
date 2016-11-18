@@ -11,7 +11,7 @@ import random
 mod = Blueprint('api', __name__)
 
 
-@mod.route('/api/admin/get_check_progress')
+@mod.route('/api/admin/get_round_progress')
 @login_required
 def get_check_progress_total():
     if current_user.is_white_team:
