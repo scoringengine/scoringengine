@@ -1,8 +1,5 @@
-from flask import Blueprint, render_template
-
-import bcrypt
 import uuid
-from flask import flash, redirect, request, url_for, g
+from flask import flash, redirect, request, url_for, g, Blueprint, render_template
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
 
@@ -69,14 +66,7 @@ def login():
             return render_template('login.html', form=form)
 
         if user:
-            # Monkey Patch
-            # Fixing the error where bmyers was getting a bytes returned from user.password and rbower was getting str
-            if isinstance(user.password, str):
-                hashed_pw = user.password.encode('utf-8')
-            else:
-                hashed_pw = user.password
-
-            if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
+            if User.generate_hash(password, user.password) == user.password:
                 user.authenticated = True
                 db.save(user)
                 login_user(user, remember=True)

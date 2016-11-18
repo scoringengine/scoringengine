@@ -1,12 +1,8 @@
-import sys
-import os
-
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.property import Property
-from scoring_engine.models.check import Check
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -16,7 +12,7 @@ class TestEngine(UnitTest):
     def test_init(self):
         engine = Engine()
         from scoring_engine.engine.checks.icmp import ICMPCheck
-        from scoring_engine.engine.checks.ssh import SSHCheck 
+        from scoring_engine.engine.checks.ssh import SSHCheck
         expected_checks = [ICMPCheck, SSHCheck]
         assert engine.checks == expected_checks
 

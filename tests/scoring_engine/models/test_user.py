@@ -1,11 +1,9 @@
 import pytest
-import bcrypt
 
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
-from scoring_engine.db import db_salt
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 
@@ -16,14 +14,14 @@ from unit_test import UnitTest
 from sqlalchemy.exc import IntegrityError
 
 
-
 class TestUser(UnitTest):
 
     def test_init_service(self):
         user = User(username="testuser", password="testpass")
         assert user.id is None
         assert user.username == "testuser"
-        assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
+        assert user.password == User.generate_hash('testpass')
+        assert type(user.password) is str
         assert user.team is None
         assert user.team_id is None
         assert user.is_authenticated is None
@@ -38,7 +36,7 @@ class TestUser(UnitTest):
         self.db.save(user)
         assert user.id is 1
         assert user.username == "testuser"
-        assert user.password == bcrypt.hashpw("testpass".encode('utf-8'), db_salt)
+        assert user.password == User.generate_hash('testpass')
         assert user.team is team
         assert user.team_id is team.id
         assert user.get_id() == 1

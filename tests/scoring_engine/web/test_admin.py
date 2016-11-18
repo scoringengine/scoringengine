@@ -14,6 +14,3 @@ class TestAdmin(WebTest):
 
     def test_auth_required_admin_stats(self):
         self.verify_auth_required('/admin/stats')
-
-    def test_auth_required_admin_api_get_progress_total(self):
-        self.verify_auth_required('/admin/api/get_progress/total')

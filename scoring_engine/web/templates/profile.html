@@ -7,7 +7,18 @@
 {% block content %}
 <div class="container">
   <div class="row">
-  PROFILE DETAILS
+    <h3>Name: {{current_user.username}}</h3>
+    <h4>Team Color: {{current_user.team.color}}</h4>
+    <div class="card">
+      <h2 class="text-center">Update Password</h2>
+      <form method="POST" action="{{url_for('api.profile_update_password')}}" role="form" class="form-signin">
+        <div class="form-group">
+          <input type="hidden" name="user_id" value="{{current_user.id}}">
+          <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary center-block">Update Password</button>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
