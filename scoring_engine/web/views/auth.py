@@ -8,6 +8,8 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
 from wtforms.validators import InputRequired
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from scoring_engine.db import db
 from scoring_engine.models.user import User
 
@@ -22,8 +24,11 @@ login_manager.login_message_category = 'info'
 
 
 @login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+def load_user(session_token):
+    return User.query.filter_by(session_token=session_token).first()
+#def load_user(id):
+#     return User.query.get(int(id))
+
 
 
 @app.before_request
@@ -49,7 +54,11 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user = User.query.filter(User.username == username).one()
+        try:
+            user = User.query.filter(User.username == username).one()
+        except NoResultFound:
+            flash('Invalid username or password. Please try again.', 'danger')
+            return render_template('login.html', form=form)
 
         if user:
             # Monkey Patch
@@ -61,6 +70,7 @@ def login():
 
             if bcrypt.hashpw(password.encode('utf-8'), hashed_pw) == hashed_pw:
                 user.authenticated = True
+                user.session_token = user.generate_session_token()
                 db.save(user)
                 login_user(user, remember=True)
                 if user.is_white_team:
@@ -90,7 +100,10 @@ def unauthorized():
 @mod.route('/logout')
 @login_required
 def logout():
-    user = User.query.filter(User.username == current_user.username).one()
+    try:
+        user = User.query.filter(User.username == current_user.username).one()
+    except NoResultFound:
+        return redirect(url_for('auth.login'))
     user.authenticated = False
     db.save(user)
     logout_user()

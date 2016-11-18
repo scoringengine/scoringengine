@@ -18,6 +18,7 @@ config = {
                          'Flask-SQLAlchemy',
                          'Flask-WTF',
                          'pynsive',
+                         'pyOpenSSL',
                          'pytest',
                          'pytest-cov',
                          'redis',

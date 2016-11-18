@@ -1,4 +1,7 @@
 import bcrypt
+import OpenSSL
+import uuid
+
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -13,6 +16,7 @@ class User(Base):
     username = Column(String(20), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     authenticated = Column(Boolean, default=False)
+    session_token = Column(String(40))
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship("Team", back_populates="users")
 
@@ -54,7 +58,11 @@ class User(Base):
         return True
 
     def get_id(self):
-        return str(self.id)  # python 3
+        return str(self.session_token)
+
+    @staticmethod
+    def generate_session_token():
+        return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
 
     def __repr__(self):
         return '<User %r>' % self.username
