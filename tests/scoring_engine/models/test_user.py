@@ -30,7 +30,7 @@ class TestUser(UnitTest):
         assert user.is_active is True
         assert user.is_anonymous is False
         assert user.get_username == 'testuser'
-        assert user.get_id() == None
+        assert user.get_id() is None
 
     def test_basic_user(self):
         team = generate_sample_model_tree('Team', self.db)
