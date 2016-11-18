@@ -28,6 +28,7 @@ print("Creating models and writing them to DB")
 num_teams = 6
 num_services = randint(5, 8)
 num_properties = randint(2, 4)
+# num_rounds = randint(20, 50)
 num_rounds = randint(20, 50)
 print("\tNum Blue Teams: " + str(num_teams))
 print("\tNum Services: " + str(num_services))

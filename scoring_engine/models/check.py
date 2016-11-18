@@ -16,8 +16,10 @@ class Check(Base):
     result = Column(Boolean)
     output = Column(String)
     completed_timestamp = Column(String)
+    completed = Column(Boolean, default=False)
 
     def finished(self, result, output):
         self.result = result
         self.output = output
+        self.completed = True
         self.completed_timestamp = str(datetime.now())

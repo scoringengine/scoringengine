@@ -31,3 +31,19 @@ class TestCheck(UnitTest):
         assert check.service_id == service.id
         assert check.result is True
         assert check.output == 'example_output'
+        assert check.completed is False
+
+    def test_finished(self):
+        service = generate_sample_model_tree('Service', self.db)
+        round_obj = Round(number=1)
+        self.db.save(round_obj)
+        check = Check(round=round_obj, service=service)
+        self.db.save(check)
+        assert check.result is None
+        assert check.output is None
+        assert check.completed is False
+        check.finished(True, 'good output')
+        self.db.save(check)
+        assert check.result is True
+        assert check.output == 'good output'
+        assert check.completed is True
