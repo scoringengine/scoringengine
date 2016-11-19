@@ -35,7 +35,7 @@ def admin_get_teams():
         for team in all_teams:
             users = {}
             for user in team.users:
-                users[user.username] = user.password
+                users[user.username] = [user.password, str(user.authenticated).title()]
             data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
