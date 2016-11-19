@@ -81,9 +81,10 @@
             '<tr>'+
               '<th>Username</th>'+
               '<th>Password</th>'+
+              '<th>Logged In</th>'+
             '</tr><tbody>'
         for (var key in d.users) {
-          table += '<tr><td>' + key + '</td><td>' + d.users[key] + '</td></tr>'
+          table += '<tr><td>' + key + '</td><td>' + d.users[key][0] + '</td><td>' + d.users[key][1] + '</td></tr>'
         }
         table += '</tbody></table>'
         return table;
