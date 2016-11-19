@@ -25,8 +25,7 @@ class Team(Base):
 
     @property
     def place(self):
-        blue_teams = Team.query.filter(Team.color == 'Blue').all()
-        sorted_blue_teams = sorted(blue_teams, key=lambda team: team.current_score, reverse=True)
+        sorted_blue_teams = sorted(self.blue_teams, key=lambda team: team.current_score, reverse=True)
         place = 0
         for index, team in enumerate(sorted_blue_teams):
             if self.id == team.id:
@@ -44,3 +43,7 @@ class Team(Base):
     @property
     def is_blue_team(self):
         return self.color == 'Blue'
+
+    @property
+    def blue_teams(self):
+        return Team.query.filter(Team.color == 'Blue').all()

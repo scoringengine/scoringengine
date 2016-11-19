@@ -38,11 +38,14 @@ def stats():
         return redirect(url_for('auth.unauthorized'))
 
 
-@mod.route('/admin/services')
+@mod.route('/admin/team/<id>')
 @login_required
-def services():
+def team(id):
     if current_user.is_white_team:
-        blue_teams = Team.query.filter(Team.color == 'Blue').all()
-        return render_template('admin/services.html', blue_teams=blue_teams)
+        team = Team.query.get(id)
+        if team is None:
+            return redirect(url_for('auth.unauthorized'))
+
+        return render_template('admin/team.html', team=team)
     else:
         return redirect(url_for('auth.unauthorized'))

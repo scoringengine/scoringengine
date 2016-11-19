@@ -3,10 +3,19 @@
 <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
   <div class="navbar-inner">
     <ul class="nav navbar-nav">
-      <li class="navbar-item {% if request.path == '/admin/status' %}active{% elif request.path == '/admin' %}active{% endif %}"><a class="nav-link"  href="/admin/status">Round Status</a></li>
+      <ul class="nav navbar-nav">
+        <li class="dropdown navbar-item {% if '/admin/team/' in request.path %}active{% endif %}">
+        <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle navbar-item" style="margin-right: 20px;">Manage Teams<b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            {% for team in current_user.team.blue_teams %}
+              <li><a href="/admin/team/{{team.id}}">{{team.name}}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
       <li class="navbar-item {% if request.path == '/admin/manage' %}active{% endif %}"><a class="nav-link" href="/admin/manage">Manage Users</a></li>
+      <li class="navbar-item {% if request.path == '/admin/status' %}active{% elif request.path == '/admin' %}active{% endif %}"><a class="nav-link"  href="/admin/status">Round Status</a></li>
       <li class="navbar-item {% if request.path == '/admin/stats' %}active{% endif %}"><a class="nav-link" href="/admin/stats">Stats</a></li>
-      <li class="navbar-item {% if request.path == '/admin/services' %}active{% endif %}"><a class="nav-link" href="/admin/services">Manage Services</a></li>
     </ul>
   </div>
 </nav>
