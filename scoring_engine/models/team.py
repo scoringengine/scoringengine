@@ -53,10 +53,9 @@ class Team(Base):
         return Team.get_all_blue_teams()
 
     def get_array_of_scores(self, max_round):
-        total_score = 0
         scores = [0]
         overall_score = 0
-        for round_num in range(1, max_round+1):
+        for round_num in range(1, max_round + 1):
             current_round_score = 0
             for service in self.services:
                 if service.check_result_for_round(round_num) is True:
