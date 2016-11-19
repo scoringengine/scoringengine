@@ -45,4 +45,4 @@ class Service(Base):
 
     @property
     def blue_team_visible_properties(self):
-        return [property_obj for property_obj in self.properties if property_obj.hidden is not True]
+        return [property_obj for property_obj in self.properties if property_obj.visible is True]

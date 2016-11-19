@@ -11,4 +11,4 @@ class Property(Base):
     value = Column(String(50), nullable=False)
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship("Service")
-    hidden = Column(Boolean, default=True)
+    visible = Column(Boolean, default=False)
