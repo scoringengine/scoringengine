@@ -42,3 +42,7 @@ class Service(Base):
         reverse_checks = copy(self.checks)
         reverse_checks.reverse()
         return reverse_checks[:10]
+
+    @property
+    def blue_team_visible_properties(self):
+        return [property_obj for property_obj in self.properties if property_obj.hidden is not True]
