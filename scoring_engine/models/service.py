@@ -15,6 +15,12 @@ class Service(Base):
     checks = relationship("Check", back_populates="service")
     points = Column(Integer, default=100)
 
+    def check_result_for_round(self, round_num):
+        for check in self.checks:
+            if check.round.number == round_num:
+                return check.result
+        return False
+
     def last_check_result(self):
         return self.checks[-1].result
 

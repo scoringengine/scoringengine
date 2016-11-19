@@ -25,26 +25,11 @@
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"],
+            labels: {{team_labels|safe}},
             datasets: [{
                 label: 'Points',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255,99,132,1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
+                data: {{team_scores|safe}},
+                backgroundColor: {{scores_colors|safe}},
                 borderWidth: 2
             }]
         },
@@ -61,9 +46,9 @@
     </script>
     <script>
     var teamLineData = {
-        labels: ["Round 0", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"],
+        labels: {{round_labels|safe}},
         datasets: [
-            {% for key, value in teamData.items() %}
+            {% for key, value in team_data.items() %}
             {
                 label: '{{ value['label'] }}',
                 fill: false,
