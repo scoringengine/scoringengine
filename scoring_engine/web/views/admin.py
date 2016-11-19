@@ -36,3 +36,13 @@ def stats():
         return render_template('admin/stats.html')
     else:
         return redirect(url_for('auth.unauthorized'))
+
+
+@mod.route('/admin/services')
+@login_required
+def services():
+    if current_user.is_white_team:
+        blue_teams = Team.query.filter(Team.color == 'Blue').all()
+        return render_template('admin/services.html', blue_teams=blue_teams)
+    else:
+        return redirect(url_for('auth.unauthorized'))
