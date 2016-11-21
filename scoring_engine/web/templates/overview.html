@@ -38,10 +38,11 @@
     <script>
       $(document).ready(function() {
         $('#overview').DataTable( {
-          'paging': false,
           'bFilter': false,
           'bInfo': false,
-          'order': [[ 1, 'desc' ]]
+          'order': [[ 1, 'desc' ]],
+          'paging': false,
+          'scrollX': true
         });
       } );
     </script>
