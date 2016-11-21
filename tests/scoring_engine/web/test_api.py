@@ -20,3 +20,13 @@ class TestAdmin(WebTest):
 
     def test_auth_required_api_service_get_checks_id(self):
         self.verify_auth_required('/api/service/get_checks/1')
+
+    '''
+    def test_api_scoreboard_get_bar_data(self):
+        resp = self.client.get('api/scoreboard/get_bar_data')
+        assert resp.status_code == 200
+
+    def test_api_scoreboard_get_line_data(self):
+        resp = self.client.get('/api/scoreboard/get_line_data')
+        assert resp.status_code == 200
+    '''
