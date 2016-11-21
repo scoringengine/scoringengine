@@ -117,7 +117,7 @@ def overview_get_data():
             elif columns[x] == "Current Score":
                 team_dict[columns[x]] = team.current_score
             else:
-                team_dict[columns[x]] = team.services[x-2].last_check_result()
+                team_dict[columns[x]] = team.services[x - 2].last_check_result()
         data.append(team_dict)
     return jsonify(columns=columns, data=data)
 
