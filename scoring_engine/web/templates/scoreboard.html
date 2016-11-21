@@ -19,7 +19,7 @@
     </div>
     <script>
         var ctx = document.getElementById("pointsByTeamBar");
-        var myChart = new Chart(ctx, {
+        var myBarChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: {{team_labels|safe}},
@@ -99,6 +99,24 @@
                 }
             }).then(function() {
                 setTimeout(updateLineGraph, 5000);
+            });
+        })();
+    </script>
+    <script>
+        (function updateBarGraph() {
+            $.ajax({
+                url: '/api/scoreboard/get_bar_data',
+                dataType: 'json',
+                success: function(data) {
+                    myBarChart.data.datasets[0].data = data['scores'];
+                    myBarChart.data.labels = data['labels'];
+                    myBarChart.update();
+                },
+                error: function(data) {
+                    console.log("Error: " + data);
+                }
+            }).then(function() {
+                setTimeout(updateBarGraph, 5000);
             });
         })();
     </script>
