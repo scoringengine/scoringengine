@@ -15,6 +15,7 @@ config = {
         'bcrypt',
         'configparser',
         'Flask',
+        'Flask-Cache',
         'Flask-Login',
         'Flask-SQLAlchemy',
         'Flask-WTF',
