@@ -10,40 +10,58 @@
 <div class="container">
   <div class="row">
     <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-     <thead>
-      <tr>
-        <th>Team #</th>
-        <th>Score</th>
-        {% for service in header_services %}
-          <th>{{service.name}}</th>
-        {% endfor %}
-      </tr>
-     </thead>
-     <tbody>
-      {% for team in blue_teams %}
-        <tr>
-          <td>{{team.name}}</td>
-          <td>{{team.current_score}}</td>
-          {% for service in team.services %}
-            {% if service.last_check_result() %}
-              <td class="label-success">Pass</td>
-            {% else %}
-              <td class="label-danger">Fail</td>
-            {% endif %}
-          {% endfor %}
-        </tr>
-      {% endfor %}
-     </tbody>
     </table>
     <script>
-      $(document).ready(function() {
-        $('#overview').DataTable( {
-          'paging': false,
-          'bFilter': false,
-          'bInfo': false,
-          'order': [[ 1, 'desc' ]]
-        });
-      } );
+    function generateTable(columnDef) {
+      var table = $('#overview').DataTable( {
+        'createdRow': function ( row, data, index ) {
+          count = 1;
+          $.each(data, function(key, value) {
+              if ( value == true ) {
+                  $('td', row).eq(count).addClass('label-success');
+                  $('td', row).eq(count).html('Pass');
+              }
+              else if ( value == false ) {
+                  $('td', row).eq(count).addClass('label-danger');
+                  $('td', row).eq(count).html('Fail');
+              }
+              count++;
+          });
+        },
+        'ajax': '/api/overview/get_data',
+        'columns': columnDef,
+        // 'bDestroy': true,
+        'bFilter': false,
+        'bInfo': false,
+        'order': [[ 1, 'desc' ]],
+        'paging': false,
+        'scrollX': true
+      });
+      table.draw();
+    }
+    </script>
+    <script>
+        (function drawOverview() {
+            $.ajax({
+                url: '/api/overview/get_data',
+                dataType: 'json',
+                success: function(data) {
+                    // Generate our columns list to be passed to the generator
+                    var columnsDef = []
+                    $.each(data.columns, function(key, value) {
+                        // columnsDef.push({"sTitle": value, "mData": value, "targets": [key]})
+                        columnsDef.push({"title": value, "data": value})
+                    });
+                    //console.log(columnsDef);
+                    generateTable(columnsDef);
+                },
+                error: function(data) {
+                    console.log("Error: " + JSON.stringify(data));
+                }
+            }).then(function() {
+                    setTimeout(drawOverview, 30000);
+            });
+        })();
     </script>
   </div>
 </div>
