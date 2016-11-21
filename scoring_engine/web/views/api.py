@@ -127,3 +127,24 @@ def get_checks(id):
                      'timestamp': check.completed_timestamp,
                      'output': check.output})
     return jsonify(data=data)
+
+
+@mod.route('/api/scoreboard/get_line_data')
+def scoreboard_get_line_data():
+    results = Team.get_all_rounds_results()
+    team_data = {}
+    team_data['team'] = {}
+    team_data['round'] = results['rounds']
+    # We start at one because that's how javascript expects the team_data
+    current_index = 1
+    for name in sorted(results['scores'].keys()):
+        scores = results['scores'][name]
+        rgb_color = results['rgb_colors'][name]
+        team_data['team'][current_index] = {
+            "label": name,
+            "data": scores,
+            "color": rgb_color
+        }
+        current_index += 1
+
+    return jsonify(team_data)
