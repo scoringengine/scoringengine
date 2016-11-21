@@ -99,6 +99,29 @@ def admin_add_team():
         return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/overview/get_data')
+def overview_get_data():
+    blue_teams = Team.query.filter(Team.color == 'Blue').all()
+    columns = []
+    columns.append('Team Name')
+    columns.append('Current Score')
+    for service in blue_teams[0].services:
+        columns.append(service.name)
+    count = 0
+    data = []
+    for team in blue_teams:
+        team_dict = {}
+        for x in range(0, len(columns)):
+            if columns[x] == "Team Name":
+                team_dict[columns[x]] = team.name
+            elif columns[x] == "Current Score":
+                team_dict[columns[x]] = team.current_score
+            else:
+                team_dict[columns[x]] = team.services[x-2].last_check_result()
+        data.append(team_dict)
+    return jsonify(columns=columns, data=data)
+
+
 @mod.route('/api/profile/update_password', methods=['POST'])
 @login_required
 def profile_update_password():
@@ -117,7 +140,7 @@ def profile_update_password():
 
 @mod.route('/api/service/get_checks/<id>')
 @login_required
-def get_checks(id):
+def service_get_checks(id):
     service = Service.query.get(id)
     if service is None or not current_user.team == service.team:
         return jsonify({'status': 'Unauthorized'}), 403
