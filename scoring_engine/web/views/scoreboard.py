@@ -29,8 +29,3 @@ def home():
         scores_colors.append(blue_team.rgb_color)
 
     return render_template('scoreboard.html', round_labels=results['rounds'], team_data=team_data, team_labels=team_labels, team_scores=team_scores, scores_colors=scores_colors)
-
-
-def generateRBGA():
-    import random
-    return "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
