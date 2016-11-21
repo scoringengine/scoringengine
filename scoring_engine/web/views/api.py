@@ -114,10 +114,12 @@ def overview_get_data():
         for x in range(0, len(columns)):
             if columns[x] == "Team Name":
                 team_dict[columns[x]] = team.name
+                count += 1
             elif columns[x] == "Current Score":
                 team_dict[columns[x]] = team.current_score
+                count += 1
             else:
-                team_dict[columns[x]] = team.services[x - 2].last_check_result()
+                team_dict[columns[x]] = team.services[x - count].last_check_result()
         data.append(team_dict)
     return jsonify(columns=columns, data=data)
 
