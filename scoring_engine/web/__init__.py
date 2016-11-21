@@ -1,8 +1,10 @@
 import os
 
 from flask import Flask
+from scoring_engine.web.cache import cache
 
 app = Flask(__name__)
+cache.init_app(app)
 app.config.from_pyfile('settings.cfg')
 app.secret_key = os.urandom(128)
 

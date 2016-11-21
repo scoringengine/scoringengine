@@ -4,6 +4,7 @@ from scoring_engine.db import db
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.web.cache import cache
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
@@ -129,6 +130,7 @@ def get_checks(id):
     return jsonify(data=data)
 
 
+@cache.cached(timeout=30)
 @mod.route('/api/scoreboard/get_bar_data')
 def scoreboard_get_bar_data():
     results = Team.get_all_rounds_results()
@@ -149,6 +151,7 @@ def scoreboard_get_bar_data():
     return jsonify(team_data)
 
 
+@cache.cached(timeout=30)
 @mod.route('/api/scoreboard/get_line_data')
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
