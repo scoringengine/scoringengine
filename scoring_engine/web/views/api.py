@@ -151,8 +151,8 @@ def scoreboard_get_bar_data():
     return jsonify(team_data)
 
 
-@cache.cached(timeout=30)
 @mod.route('/api/scoreboard/get_line_data')
+@cache.cached(timeout=30)
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
     team_data = {}
