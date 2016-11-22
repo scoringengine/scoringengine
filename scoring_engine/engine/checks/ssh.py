@@ -1,7 +1,7 @@
-from scoring_engine.engine.username_password_check import UsernamePasswordCheck
+from scoring_engine.engine.basic_check import BasicCheck
 
 
-class SSHCheck(UsernamePasswordCheck):
+class SSHCheck(BasicCheck):
     name = "SSH IPv4 Check"
     protocol = 'ssh'
     version = 'ipv4'

@@ -20,13 +20,19 @@ def generate_sample_model_tree(model, db):
         return user
 
     # Services
-    service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check")
+    service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
     db.save(service)
     if model == 'Service':
         return service
 
+    # Environments
+    environment = Environment(service=service, matching_regex='*')
+    db.save(environment)
+    if model == 'Environment':
+        return environment
+
     # Properties
-    property_obj = Property(name="ip", value="127.0.0.1", service=service)
+    property_obj = Property(name="testproperty", value="testvalue", environment=environment)
     db.save(property_obj)
     if model == 'Property':
         return property_obj
