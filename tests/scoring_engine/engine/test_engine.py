@@ -68,10 +68,8 @@ class TestEngine(UnitTest):
     def test_with_one_team(self):
         team = Team(name="Team1", color="Blue")
         self.db.save(team)
-        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check")
-        property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         self.db.save(service)
-        self.db.save(property1)
 
         engine = Engine(current_round=50, total_rounds=100)
         engine.run()
@@ -79,10 +77,8 @@ class TestEngine(UnitTest):
     def test_engine_populates_worker_queue_one_service(self):
         team = Team(name="Team1", color="Blue")
         self.db.save(team)
-        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check")
-        property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+        service = Service(name="Example Service 2", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         self.db.save(service)
-        self.db.save(property1)
 
         engine = Engine(total_rounds=1)
         assert engine.worker_queue.size() == 0
@@ -93,10 +89,8 @@ class TestEngine(UnitTest):
         team = Team(name="Team1", color="Blue")
         self.db.save(team)
         for num in range(1, 6):
-            service = Service(name="Example Service " + str(num), team=team, check_name="ICMP IPv4 Check")
-            property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+            service = Service(name="Example Service" + str(num), team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
             self.db.save(service)
-            self.db.save(property1)
 
         engine = Engine(total_rounds=1)
         assert engine.worker_queue.size() == 0
@@ -107,10 +101,8 @@ class TestEngine(UnitTest):
         for num in range(1, 6):
             team = Team(name="Team" + str(num), color="Blue")
             self.db.save(team)
-            service = Service(name="Example Service " + str(num), team=team, check_name="ICMP IPv4 Check")
-            property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+            service = Service(name="Example Service" + str(num), team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
             self.db.save(service)
-            self.db.save(property1)
 
         engine = Engine(total_rounds=1)
         assert engine.worker_queue.size() == 0
@@ -122,10 +114,8 @@ class TestEngine(UnitTest):
             team = Team(name="Team" + str(num), color="Blue")
             self.db.save(team)
             for service_num in range(1, 6):
-                service = Service(name="Example Service " + str(service_num), team=team, check_name="ICMP IPv4 Check")
-                property1 = Property(name="IP Address", value="127.0.0.1", service=service)
+                service = Service(name="Example Service" + str(service_num), team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
                 self.db.save(service)
-                self.db.save(property1)
 
         engine = Engine(total_rounds=1)
         assert engine.worker_queue.size() == 0
