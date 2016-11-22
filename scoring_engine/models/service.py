@@ -12,6 +12,7 @@ class Service(Base):
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship("Team", back_populates="services")
     checks = relationship("Check", back_populates="service")
+    accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
     environments = relationship('Environment', back_populates="service")
     ip_address = Column(String, nullable=False)

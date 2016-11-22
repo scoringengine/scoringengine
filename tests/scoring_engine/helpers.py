@@ -26,7 +26,7 @@ def generate_sample_model_tree(model, db):
         return service
 
     # Environments
-    environment = Environment(service=service)
+    environment = Environment(service=service, matching_regex='*')
     db.save(environment)
     if model == 'Environment':
         return environment

@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.models.service import Service
+from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.round import Round
@@ -103,13 +104,23 @@ class TestService(UnitTest):
 
     def test_environments(self):
         service = generate_sample_model_tree('Service', self.db)
-        environment_1 = Environment(service=service)
+        environment_1 = Environment(service=service, matching_regex='*')
         self.db.save(environment_1)
-        environment_2 = Environment(service=service)
+        environment_2 = Environment(service=service, matching_regex='*')
         self.db.save(environment_2)
-        environment_3 = Environment(service=service)
+        environment_3 = Environment(service=service, matching_regex='*')
         self.db.save(environment_3)
         assert service.environments == [environment_1, environment_2, environment_3]
+
+    def test_accounts(self):
+        service = generate_sample_model_tree('Service', self.db)
+        account_1 = Account(username="testname", password="testpass", service=service)
+        self.db.save(account_1)
+        account_2 = Account(username="testname123", password="testpass", service=service)
+        self.db.save(account_2)
+        account_3 = Account(username="testusername", password="testpass", service=service)
+        self.db.save(account_3)
+        assert service.accounts == [account_1, account_2, account_3]
 
     def test_score_earned(self):
         service = generate_sample_model_tree('Service', self.db)

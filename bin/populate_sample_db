@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
+from scoring_engine.models.account import Account
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
@@ -28,11 +29,13 @@ services = []
 print("Creating models and writing them to DB")
 num_teams = 6
 num_services = randint(5, 8)
+num_accounts = randint(2, 4)
 num_environments = randint(2, 4)
 num_properties = randint(2, 4)
 num_rounds = randint(20, 50)
 print("\tNum Blue Teams: " + str(num_teams))
 print("\tNum Services: " + str(num_services))
+print("\tNum Accounts: " + str(num_accounts))
 print("\tNum Environments: " + str(num_environments))
 print("\tNum Properties: " + str(num_properties))
 print("\tNum Rounds: " + str(num_rounds))
@@ -69,6 +72,11 @@ for num in range(1, num_teams + 1):
         service = Service(name="ICMP IPv4 " + str(service_num), team=team, check_name="ICMP IPv4 Check", ip_address=ip)
         db.save(service)
         services.append(service)
+
+        for account_num in range(1, num_accounts + 1):
+            print("\t\t\t\tCreating Account " + str(account_num))
+            account = Account(username='testuser' + str(account_num), password='catdog', service=service)
+            db.save(account)
 
         for environment_num in range(1, num_environments + 1):
             print("\t\t\t\tCreating Environment " + str(environment_num))
