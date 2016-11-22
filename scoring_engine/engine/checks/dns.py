@@ -14,10 +14,10 @@ class DNSCheck(BasicCheck):
         ip = self.get_ip_address()
         dns_environments = self.environments()
         if len(dns_environments) == 0:
-            raise LookupError('DNS Environments are length 0')  
+            raise LookupError('DNS Environments are length 0')
         dns_environment = random.choice(dns_environments)
-        dig_args = self.get_property_tuple(dns_environment) 
-        cmd = self.CMD.format(*dig_args) 
+        dig_args = self.get_property_tuple(dns_environment)
+        cmd = self.CMD.format(*dig_args)
         return cmd
 
     def get_property_tuple(self, dns_environment):
