@@ -27,7 +27,7 @@ config = {
         'pytest',
         'codeclimate-test-reporter',
     ],
-    'packages': ['scoring_engine', 'tests'],
+    'packages': ['scoring_engine', 'tests', 'bin'],
     'scripts': [],
     'name': 'scoring_engine'
 }

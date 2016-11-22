@@ -1,15 +1,13 @@
 import redis
 import json
 
-from scoring_engine.engine.config import Config
+from scoring_engine.engine.config import config
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.malformed_job import MalformedJob
 
 
 class JobQueue(object):
     def __init__(self):
-        config = Config()
-        self.queue_name = config.redis_queue_name
         self.conn = redis.Redis(host=config.redis_host, port=config.redis_port, password=config.redis_password)
         self.namespace = config.redis_namespace
         # This is meant to get overwritten by children
