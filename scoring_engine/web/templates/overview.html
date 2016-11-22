@@ -30,7 +30,7 @@
         },
         'ajax': '/api/overview/get_data',
         'columns': columnDef,
-        // 'bDestroy': true,
+        'bDestroy': true,
         'bFilter': false,
         'bInfo': false,
         'order': [[ 1, 'desc' ]],
@@ -59,7 +59,7 @@
                     console.log("Error: " + JSON.stringify(data));
                 }
             }).then(function() {
-                    setTimeout(drawOverview, 30000);
+                    setTimeout(drawOverview, 5000);
             });
         })();
     </script>
