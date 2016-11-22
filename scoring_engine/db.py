@@ -1,5 +1,3 @@
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -8,12 +6,11 @@ import bcrypt
 from scoring_engine.db_not_connected import DBNotConnected
 
 db_salt = bcrypt.gensalt()
-from scoring_engine.engine.config import Config
+from scoring_engine.engine.config import config
 
 
 class DB(object):
     def __init__(self):
-        config = Config()
         self.connected = False
         self.db_uri = config.db_uri
 

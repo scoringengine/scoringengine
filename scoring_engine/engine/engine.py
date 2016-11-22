@@ -1,7 +1,7 @@
 import importlib
 import random
 import signal
-from scoring_engine.engine.config import Config
+from scoring_engine.engine.config import config
 from scoring_engine.db import DB
 from scoring_engine.models.service import Service
 from scoring_engine.engine.job import Job
@@ -16,7 +16,7 @@ class Engine(object):
         self.current_round = current_round
         self.total_rounds = total_rounds
 
-        self.config = Config()
+        self.config = config
         self.worker_queue = WorkerQueue()
         self.worker_queue.clear()
         self.finished_queue = FinishedQueue()
