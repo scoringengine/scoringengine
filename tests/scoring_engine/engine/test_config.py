@@ -16,17 +16,8 @@ class TestConfig(object):
     def test_check_timeout(self):
         assert self.config.check_timeout == 30
 
-    def test_db_host(self):
-        assert self.config.db_host == "127.0.0.1"
-
-    def test_db_port(self):
-        assert self.config.db_port == 3306
-
-    def test_db_username(self):
-        assert self.config.db_username == "testuser"
-
-    def test_db_password(self):
-        assert self.config.db_password == "testpass"
+    def test_db_uri(self):
+        assert self.config.db_uri == "sqlite:////tmp/test_engine.db"
 
     def test_redis_host(self):
         assert self.config.redis_host == "127.0.0.1"
@@ -39,6 +30,3 @@ class TestConfig(object):
 
     def test_redis_namespace(self):
         assert self.config.redis_namespace == "scoring_engine"
-
-    def test_redis_queue_name(self):
-        assert self.config.redis_queue_name == "checks"

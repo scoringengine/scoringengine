@@ -8,22 +8,23 @@ import bcrypt
 from scoring_engine.db_not_connected import DBNotConnected
 
 db_salt = bcrypt.gensalt()
+from scoring_engine.engine.config import Config
 
 
 class DB(object):
     def __init__(self):
+        config = Config()
         self.connected = False
-        self.sqlite_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../engine.db')
+        self.db_uri = config.db_uri
 
     def connect(self):
         self.connected = True
-        self.engine = create_engine('sqlite:///' + self.sqlite_db, convert_unicode=True)
+        self.engine = create_engine(self.db_uri, convert_unicode=True)
         self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
 
     def setup(self):
         if not self.connected:
             raise DBNotConnected()
-        self.destroy()
         from scoring_engine.models.user import User
         from scoring_engine.models.team import Team
         from scoring_engine.models.service import Service
@@ -34,9 +35,16 @@ class DB(object):
         Base.metadata.create_all(self.engine)
 
     def destroy(self):
-        if os.path.isfile(self.sqlite_db):
-            print("Deleting sqlite db file")
-            os.remove(self.sqlite_db)
+        if not self.connected:
+            raise DBNotConnected()
+        from scoring_engine.models.user import User
+        from scoring_engine.models.team import Team
+        from scoring_engine.models.service import Service
+        from scoring_engine.models.check import Check
+        from scoring_engine.models.property import Property
+        from scoring_engine.models.round import Round
+        from scoring_engine.models.base import Base
+        Base.metadata.drop_all(self.engine)
 
     def save(self, obj):
         if not self.connected:
