@@ -7,7 +7,6 @@ from scoring_engine.models.property import Property
 from tests.scoring_engine.unit_test import UnitTest
 
 class TestDNSCheck(UnitTest):
-
     def test_dns_check(self):
         engine = Engine()
         service = Service(name='Example Service', check_name='DNS IPv4 Check', ip_address='127.0.0.1')
