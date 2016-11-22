@@ -80,7 +80,7 @@ for num in range(1, num_teams + 1):
 
         for environment_num in range(1, num_environments + 1):
             print("\t\t\t\tCreating Environment " + str(environment_num))
-            environment = Environment(service=service)
+            environment = Environment(matching_regex='*', service=service)
             db.save(environment)
 
             for property_num in range(1, num_properties + 1):
