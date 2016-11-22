@@ -1,15 +1,10 @@
 import re
 import sys
 import os
-
 import importlib
-
 import random
-
-from glob import glob
-
 import signal
-
+from glob import glob
 from scoring_engine.engine.config import Config
 from scoring_engine.db import DB
 from scoring_engine.models.service import Service
@@ -81,5 +76,4 @@ class Engine(object):
                 command_str = check_obj.command()
                 job = Job(service_id=service.id, command=command_str)
                 self.worker_queue.add_job(job)
-
             self.current_round += 1
