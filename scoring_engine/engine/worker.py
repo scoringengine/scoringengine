@@ -8,8 +8,9 @@ from scoring_engine.engine.finished_queue import FinishedQueue
 from scoring_engine.engine.config import Config
 
 
-def worker_sigint_handler(signum, frame, worker_obj):
-    worker_obj.shutdown()
+def worker_sigint_handler(signum, frame, worker_obj=None):
+    if worker_obj is not None:
+        worker_obj.shutdown()
 
 
 class Worker(object):
@@ -52,7 +53,11 @@ class Worker(object):
             num_times += 1
             retrieved_job = self.worker_queue.get_job()
             if retrieved_job is None:
-                time.sleep(2)
+                try:
+                    time.sleep(5)
+                except Exception:
+                    self.shutdown()
+                    pass
                 continue
             updated_job = self.execute_cmd(retrieved_job)
             self.finished_queue.add_job(updated_job)
