@@ -5,7 +5,7 @@ import time
 
 from scoring_engine.engine.worker_queue import WorkerQueue
 from scoring_engine.engine.finished_queue import FinishedQueue
-from scoring_engine.engine.config import Config
+from scoring_engine.engine.config import config
 
 
 def worker_sigint_handler(signum, frame, worker_obj=None):
@@ -18,7 +18,7 @@ class Worker(object):
     def __init__(self):
         self.worker_queue = WorkerQueue()
         self.finished_queue = FinishedQueue()
-        self.config = Config()
+        self.config = config
         self.short_circuit = False
         signal.signal(signal.SIGINT, partial(worker_sigint_handler, obj=self))
         signal.signal(signal.SIGTERM, partial(worker_sigint_handler, obj=self))

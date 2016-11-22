@@ -1,10 +1,6 @@
-import re
-import sys
-import os
 import importlib
 import random
 import signal
-from glob import glob
 from scoring_engine.engine.config import Config
 from scoring_engine.db import DB
 from scoring_engine.models.service import Service

@@ -23,3 +23,6 @@ class Config(object):
         self.redis_port = int(self.parser['REDIS']['port'])
         self.redis_password = self.parser['REDIS']['password']
         self.redis_namespace = self.parser['REDIS']['namespace']
+
+
+config = Config()
