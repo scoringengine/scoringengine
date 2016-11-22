@@ -9,6 +9,6 @@ class Property(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     value = Column(String(50), nullable=False)
-    service_id = Column(Integer, ForeignKey('services.id'))
-    service = relationship("Service")
+    environment_id = Column(Integer, ForeignKey('environments.id'))
+    environment = relationship("Environment")
     visible = Column(Boolean, default=False)
