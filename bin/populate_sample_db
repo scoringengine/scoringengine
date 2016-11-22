@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
+from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
@@ -27,11 +28,12 @@ services = []
 print("Creating models and writing them to DB")
 num_teams = 6
 num_services = randint(5, 8)
+num_environments = randint(2, 4)
 num_properties = randint(2, 4)
-# num_rounds = randint(20, 50)
 num_rounds = randint(20, 50)
 print("\tNum Blue Teams: " + str(num_teams))
 print("\tNum Services: " + str(num_services))
+print("\tNum Environments: " + str(num_environments))
 print("\tNum Properties: " + str(num_properties))
 print("\tNum Rounds: " + str(num_rounds))
 print()
@@ -63,20 +65,21 @@ for num in range(1, num_teams + 1):
 
     for service_num in range(1, num_services + 1):
         print("\t\t\tCreating Service " + str(service_num))
-        service = Service(name="ICMP IPv4 " + str(service_num), team=team, check_name="ICMP IPv4 Check")
+        ip = '129.21.%s.%s' % (randint(0, 255), randint(0, 255))
+        service = Service(name="ICMP IPv4 " + str(service_num), team=team, check_name="ICMP IPv4 Check", ip_address=ip)
         db.save(service)
         services.append(service)
 
-        for property_num in range(1, num_properties + 1):
-            print("\t\t\t\tCreating Property " + str(property_num))
-            property_obj = Property(name="prop" + str(property_num), value="randval" + str(property_num), service=service, visible=True)
-            db.save(property_obj)
+        for environment_num in range(1, num_environments + 1):
+            print("\t\t\t\tCreating Environment " + str(environment_num))
+            environment = Environment(service=service)
+            db.save(environment)
 
-        hidden_property = Property(name="Hidden property", value="randomvalue", service=service)
-        db.save(hidden_property)
-        ip = '129.21.%s.%s' % (randint(0,255), randint(0,255))
-        property_obj = Property(name="IP Address", value=ip, service=service, visible=True)
-        db.save(property_obj)
+            for property_num in range(1, num_properties + 1):
+                print("\t\t\t\t\tCreating Property " + str(property_num))
+                property_obj = Property(name="prop" + str(property_num), value="randval" + str(property_num), environment=environment, visible=True)
+                db.save(property_obj)
+
 
 print("Creating " + str(num_rounds) + " rounds")
 for num_round in range(1, num_rounds + 1):
