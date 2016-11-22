@@ -13,8 +13,9 @@ class TestEngine(UnitTest):
         engine = Engine()
         from scoring_engine.engine.checks.icmp import ICMPCheck
         from scoring_engine.engine.checks.ssh import SSHCheck
-        expected_checks = [ICMPCheck, SSHCheck]
-        assert engine.checks == expected_checks
+        from scoring_engine.engine.checks.dns import DNSCheck
+        expected_checks = [ICMPCheck, SSHCheck, DNSCheck]
+        assert set(engine.checks) == set(expected_checks)
 
     def test_current_round_init(self):
         engine = Engine(current_round=100)
