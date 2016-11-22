@@ -107,9 +107,9 @@ def overview_get_data():
     columns.append('Current Score')
     for service in blue_teams[0].services:
         columns.append(service.name)
-    count = 0
     data = []
     for team in blue_teams:
+        count = 0
         team_dict = {}
         for x in range(0, len(columns)):
             if columns[x] == "Team Name":
