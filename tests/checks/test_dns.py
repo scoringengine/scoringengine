@@ -6,6 +6,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from tests.scoring_engine.unit_test import UnitTest
 
+
 class TestDNSCheck(UnitTest):
     def test_dns_check(self):
         engine = Engine()
