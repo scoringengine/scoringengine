@@ -1,5 +1,4 @@
 from scoring_engine.engine.basic_check import BasicCheck
-import random
 
 
 class DNSCheck(BasicCheck):
@@ -11,11 +10,7 @@ class DNSCheck(BasicCheck):
     CMD = 'dig @{0} -t {1} -q {2}'
 
     def command(self):
-        ip = self.get_ip_address()
-        dns_environments = self.environments()
-        if len(dns_environments) == 0:
-            raise LookupError('DNS Environments are length 0')
-        dns_environment = random.choice(dns_environments)
+        dns_environment = self.environment
         dig_args = self.get_property_tuple(dns_environment)
         cmd = self.CMD.format(*dig_args)
         return cmd
