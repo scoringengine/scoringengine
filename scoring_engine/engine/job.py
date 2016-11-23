@@ -1,6 +1,6 @@
 class Job(object):
-    def __init__(self, service_id, command):
-        self.service_id = service_id
+    def __init__(self, environment_id, command):
+        self.environment_id = environment_id
         self.command = command
         self.output = None
         self.result = None
@@ -9,7 +9,7 @@ class Job(object):
 
     def to_dict(self):
         initial_dict = {
-            "service_id": self.service_id,
+            "environment_id": self.environment_id,
             "command": self.command,
             "finished": self.finished,
         }
@@ -42,7 +42,7 @@ class Job(object):
         return self.result == 'Pass'
 
     def from_dict(in_dict):
-        job = Job(service_id=in_dict['service_id'], command=in_dict['command'])
+        job = Job(environment_id=in_dict['environment_id'], command=in_dict['command'])
         if 'output' in in_dict:
             job.output = in_dict['output']
         if 'result' in in_dict:

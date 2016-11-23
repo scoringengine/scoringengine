@@ -8,9 +8,8 @@ from scoring_engine.engine.finished_queue import FinishedQueue
 from scoring_engine.engine.config import config
 
 
-def worker_sigint_handler(signum, frame, worker_obj=None):
-    if worker_obj is not None:
-        worker_obj.shutdown()
+def worker_sigint_handler(signum, frame, worker):
+    worker.shutdown()
 
 
 class Worker(object):
@@ -20,8 +19,8 @@ class Worker(object):
         self.finished_queue = FinishedQueue()
         self.config = config
         self.short_circuit = False
-        signal.signal(signal.SIGINT, partial(worker_sigint_handler, obj=self))
-        signal.signal(signal.SIGTERM, partial(worker_sigint_handler, obj=self))
+        signal.signal(signal.SIGINT, partial(worker_sigint_handler, worker=self))
+        signal.signal(signal.SIGTERM, partial(worker_sigint_handler, worker=self))
 
     def shutdown(self):
         print("Shutting down worker...")
@@ -30,7 +29,7 @@ class Worker(object):
     def execute_cmd(self, job, timeout=None):
         if timeout is None:
             timeout = self.config.check_timeout
-        print("Executing " + str(job.command) + " for " + str(job.service_id))
+        print("Executing " + str(job.command) + " for " + str(job.environment_id))
         try:
             cmd_result = subprocess.run(
                 job.command,
@@ -54,7 +53,7 @@ class Worker(object):
             retrieved_job = self.worker_queue.get_job()
             if retrieved_job is None:
                 try:
-                    time.sleep(5)
+                    time.sleep(20)
                 except Exception:
                     self.shutdown()
                     pass

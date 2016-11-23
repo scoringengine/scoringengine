@@ -1,5 +1,3 @@
-import sys
-import os
 from scoring_engine.engine.engine import Engine
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
@@ -18,5 +16,5 @@ class TestDNSCheck(UnitTest):
         self.db.save(environment)
         self.db.save(prop1)
         self.db.save(prop2)
-        dns_check_obj = engine.check_name_to_obj('DNS IPv4 Check')(service)
+        dns_check_obj = engine.check_name_to_obj('DNS IPv4 Check')(environment)
         assert dns_check_obj.command() == 'dig @127.0.0.1 -t A -q www.google.com'
