@@ -9,3 +9,11 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     checks = relationship("Check", back_populates="round")
+
+    @staticmethod
+    def get_last_round_num():
+        round_obj = Round.query.order_by(Round.number.desc()).first()
+        if round_obj is None:
+            return 0
+        else:
+            return round_obj.number

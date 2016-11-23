@@ -13,22 +13,14 @@ from unit_test import UnitTest
 class TestBasicCheck(UnitTest):
 
     def test_init(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        check = BasicCheck(service)
-        assert check.service == service
-
-    def test_properties(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        environment_1 = Environment(matching_regex='*', service=service)
-        environment_2 = Environment(matching_regex='*', service=service)
-        self.db.save(service)
-        self.db.save(environment_1)
-        self.db.save(environment_2)
-        check = BasicCheck(service)
-        assert check.environments() == [environment_1, environment_2]
+        environment = Environment(matching_regex='*')
+        check = BasicCheck(environment)
+        assert check.environment == environment
 
     def test_get_ip_address_good(self):
         service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.4')
         self.db.save(service)
-        check = BasicCheck(service)
+        environment = Environment(matching_regex='*', service=service)
+        self.db.save(environment)
+        check = BasicCheck(environment)
         assert check.get_ip_address() == '127.0.0.4'
