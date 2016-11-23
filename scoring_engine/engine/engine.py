@@ -21,10 +21,11 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0):
+    def __init__(self, total_rounds=0, round_time_sleep=60, worker_wait_time=20):
         self.checks = []
         self.total_rounds = total_rounds
-
+        self.round_time_sleep = round_time_sleep
+        self.worker_wait_time = worker_wait_time
         self.config = config
         self.worker_queue = WorkerQueue()
         self.worker_queue.clear()
@@ -42,7 +43,7 @@ class Engine(object):
         self.db = DB()
         self.db.connect()
 
-        self.current_round = Round.get_last_round_num() + 1
+        self.current_round = Round.get_last_round_num()
 
         self.load_checks()
 
@@ -75,10 +76,14 @@ class Engine(object):
             self.shutdown()
             pass
 
+    def is_last_round(self):
+        return (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0)
+
     def run(self):
         self.worker_queue.clear()
         self.finished_queue.clear()
         while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
+            self.current_round += 1
             print("Running round: " + str(self.current_round))
             self.rounds_run += 1
 
@@ -96,7 +101,7 @@ class Engine(object):
                 num_jobs_queued += 1
             while self.finished_queue.size() != num_jobs_queued:
                 print("Waiting for all jobs to finish")
-                self.sleep(20)
+                self.sleep(self.worker_wait_time)
 
             round_obj = Round(number=self.current_round)
             self.db.save(round_obj)
@@ -112,5 +117,4 @@ class Engine(object):
                 self.db.save(check)
             if not self.last_round:
                 print("Sleeping in between rounds")
-                self.sleep(60)
-                self.current_round += 1
+                self.sleep(self.round_time_sleep)
