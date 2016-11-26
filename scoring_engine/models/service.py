@@ -24,6 +24,8 @@ class Service(Base):
         return False
 
     def last_check_result(self):
+        if not self.checks:
+            return None
         return self.checks[-1].result
 
     @property

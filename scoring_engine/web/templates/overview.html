@@ -21,9 +21,17 @@
                   $('td', row).eq(count).addClass('label-success');
                   $('td', row).eq(count).html('Pass');
               }
+              else if (value == 0){
+                  $('td', row).eq(count).addClass('label-default');
+                  $('td', row).eq(count).html('0');
+              }
               else if ( value == false ) {
                   $('td', row).eq(count).addClass('label-danger');
                   $('td', row).eq(count).html('Fail');
+              }
+              else{
+                  $('td', row).eq(count).addClass('label-default');
+                  $('td', row).eq(count).html('Undetermined');
               }
               count++;
           });
