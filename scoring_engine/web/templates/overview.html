@@ -21,9 +21,13 @@
                   $('td', row).eq(count).addClass('label-success');
                   $('td', row).eq(count).html('Pass');
               }
-              else if ( value == false ) {
+              else if ( value == false & key != 'Current Score') {
                   $('td', row).eq(count).addClass('label-danger');
                   $('td', row).eq(count).html('Fail');
+              }
+              else if (key != 'Current Score'){
+                  $('td', row).eq(count).addClass('label-default');
+                  $('td', row).eq(count).html('Undetermined');
               }
               count++;
           });

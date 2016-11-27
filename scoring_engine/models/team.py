@@ -89,17 +89,19 @@ class Team(Base):
         rounds = []
         scores = {}
         blue_teams = Team.query.filter(Team.color == 'Blue').all()
-        last_round = Round.query.order_by(Round.number.desc()).first().number
-        for round_num in range(0, last_round + 1):
-            rounds.append("Round " + str(round_num))
+        last_round_obj = Round.query.order_by(Round.number.desc()).first()
+        if last_round_obj:
+            last_round = last_round_obj.number
+            for round_num in range(0, last_round + 1):
+                rounds.append("Round " + str(round_num))
 
-        rgb_colors = {}
-        for team in blue_teams:
-            scores[team.name] = team.get_array_of_scores(last_round)
-            rgb_colors[team.name] = team.rgb_color
+            rgb_colors = {}
+            for team in blue_teams:
+                scores[team.name] = team.get_array_of_scores(last_round)
+                rgb_colors[team.name] = team.rgb_color
+                results['rgb_colors'] = rgb_colors
 
         results['rounds'] = rounds
         results['scores'] = scores
-        results['rgb_colors'] = rgb_colors
 
         return results

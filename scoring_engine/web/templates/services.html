@@ -27,10 +27,14 @@
             {% for service in team.services %}
             <tr>
                 <td><a href="/service/{{service.id}}">{{service.name}}</a></td>
-                {% if service.last_check_result() %}
-                  <td><span class="label label-success">UP</span></td>
+                {% if not service.checks %}
+                  <td><span class="label label-default">Undetermined</span></td>
                 {% else %}
-                  <td><span class="label label-danger">DOWN</span></td>
+                    {% if service.last_check_result() %}
+                      <td><span class="label label-success">UP</span></td>
+                    {% else %}
+                      <td><span class="label label-danger">DOWN</span></td>
+                    {% endif %}
                 {% endif %}
                 <td>{{service.score_earned}}</td>
                 <td>{{service.max_score}}</td>
