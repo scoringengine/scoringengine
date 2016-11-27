@@ -27,7 +27,6 @@ class TestAdmin(WebTest):
         stats_resp = self.auth_and_get_path('/admin/manage')
         assert stats_resp.status_code == 200
 
-
     def test_auth_required_admin_stats(self):
         self.verify_auth_required('/admin/stats')
         stats_resp = self.auth_and_get_path('/admin/stats')
