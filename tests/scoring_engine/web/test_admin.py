@@ -2,6 +2,7 @@ from web_test import WebTest
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 
+
 class TestAdmin(WebTest):
     def setup(self):
         super(TestAdmin, self).setup()
