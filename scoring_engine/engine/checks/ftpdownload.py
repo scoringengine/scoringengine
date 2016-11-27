@@ -6,7 +6,7 @@ class FTPDownloadCheck(BasicCheck):
     name = 'FTPDownloadCheck'
     protocol = 'ftp'
     version = 'ipv4'
-    PROP_FILENAME = 'filename' 
+    PROP_FILENAME = 'filename'
     CMD = 'curl -s -S -4 -v --ftp-pasv ftp://{0}:{1}@{2}/{3}'
 
     def command(self):
