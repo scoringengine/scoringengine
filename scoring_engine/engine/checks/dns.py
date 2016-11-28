@@ -2,7 +2,7 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class DNSCheck(BasicCheck):
-    name = 'DNS IPv4 Check'
+    name = 'DNSCheck'
     protocol = 'dns'
     version = 'ipv4'
     PROP_QTYPE = 'qtype'

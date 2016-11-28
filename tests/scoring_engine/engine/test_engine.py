@@ -14,7 +14,9 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.icmp import ICMPCheck
         from scoring_engine.engine.checks.ssh import SSHCheck
         from scoring_engine.engine.checks.dns import DNSCheck
-        expected_checks = [ICMPCheck, SSHCheck, DNSCheck]
+        from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
+        from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
+        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck]
         assert set(engine.checks) == set(expected_checks)
 
     def test_total_rounds_init(self):
