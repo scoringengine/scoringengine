@@ -10,7 +10,7 @@ from mock import MagicMock, call
 
 from flask import render_template as render_template_orig
 
-from flask import session, current_app
+from flask import session
 from flask.testing import FlaskClient as BaseFlaskClient
 from flask_wtf.csrf import generate_csrf
 
@@ -56,6 +56,7 @@ class RequestShim(object):
     """
     A fake request that proxies cookie-related methods to a Flask test client.
     """
+
     def __init__(self, client):
         self.client = client
 
