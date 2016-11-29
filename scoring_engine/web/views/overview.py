@@ -7,8 +7,4 @@ from scoring_engine.models import *
 
 @mod.route('/overview')
 def home():
-    blue_teams = Team.query.filter(Team.color == 'Blue').all()
-    services = []
-    if len(blue_teams) > 0:
-        services = blue_teams[0].services
-    return render_template('overview.html', header_services=services, blue_teams=blue_teams)
+    return render_template('overview.html')
