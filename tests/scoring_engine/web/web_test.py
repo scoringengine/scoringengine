@@ -1,9 +1,12 @@
 import importlib
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 from scoring_engine.web import app
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from unit_test import UnitTest
 from mock import MagicMock, call
@@ -44,6 +47,13 @@ class WebTest(UnitTest):
     def auth_and_get_path(self, path):
         self.client.login('testuser', 'testpass')
         return self.client.get(path)
+
+    def create_default_user(self):
+        team1 = Team(name="Team 1", color="White")
+        self.db.save(team1)
+        user1 = User(username='testuser', password='testpass', team=team1)
+        self.db.save(user1)
+        return user1
 
     def test_debug(self):
         assert self.app.debug is True

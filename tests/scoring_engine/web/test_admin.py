@@ -1,15 +1,10 @@
 from web_test import WebTest
-from scoring_engine.models.team import Team
-from scoring_engine.models.user import User
 
 
 class TestAdmin(WebTest):
     def setup(self):
         super(TestAdmin, self).setup()
-        team1 = Team(name="Team 1", color="White")
-        self.db.save(team1)
-        user1 = User(username='testuser', password='testpass', team=team1)
-        self.db.save(user1)
+        self.create_default_user()
 
     def test_auth_required_admin(self):
         self.verify_auth_required('/admin')
