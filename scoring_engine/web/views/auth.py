@@ -95,6 +95,9 @@ def unauthorized():
 @mod.route('/logout')
 @login_required
 def logout():
+    user = current_user
+    user.authenticated = False
+    db.save(user)
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))
