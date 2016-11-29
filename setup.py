@@ -5,10 +5,10 @@ except ImportError:
 
 config = {
     'description': 'Scoring Engine for Red/White/Blue Team Competitions',
-    'author': 'Brandon Myers, Rusty Bower',
+    'author': 'Brandon Myers, Rusty Bower, Zack Allen',
     'url': 'https://github.com/pwnbus/scoring_engine',
     'download_url': 'https://github.com/pwnbus/scoring_engine/archive/master.zip',
-    'author_email': 'pwnbus@mozilla.com, rusty@rustybower.com',
+    'author_email': 'pwnbus@mozilla.com, rusty@rustybower.com, zallen@fastly.com',
     'version': '0.0.1',
     'install_requires': [
         # Required Dependencies

@@ -26,7 +26,7 @@ login_manager.session_protection = 'strong'
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return db.session.query(User).get(int(id))
 
 
 @app.before_request
@@ -57,7 +57,7 @@ def login():
         password = request.form.get('password')
 
         try:
-            user = User.query.filter(User.username == username).one()
+            user = db.session.query(User).filter(User.username == username).one()
         except NoResultFound:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)

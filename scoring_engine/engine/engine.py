@@ -58,8 +58,8 @@ class Engine(object):
     def load_checks(self):
         for check in self.checks_class_list:
             check_file_module = __import__(self.checks_location, fromlist=[check])
-            check_file_module = importlib.import_module(self.checks_location + '.' + check)
-            check_class_attr = getattr(check_file_module, check.upper() + 'Check')
+            check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
+            check_class_attr = getattr(check_file_module, check + 'Check')
             print("\t\t\tCheck Classname: " + check_class_attr.name)
             self.add_check(check_class_attr)
 

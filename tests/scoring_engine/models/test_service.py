@@ -75,6 +75,12 @@ class TestService(UnitTest):
         self.db.save(check_3)
         assert service.last_check_result() is True
 
+    def test_last_check_result_not_found(self):
+        team = generate_sample_model_tree('Team', self.db)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        self.db.save(service)
+        assert service.last_check_result() is None
+
     def test_checks(self):
         service = generate_sample_model_tree('Service', self.db)
         round_obj = generate_sample_model_tree('Round', self.db)
@@ -221,3 +227,28 @@ class TestService(UnitTest):
             check_7,
             check_6
         ]
+
+    def test_check_result_for_round_no_rounds(self):
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        assert service.check_result_for_round(1) is False
+
+    def test_check_result_for_round_3_rounds(self):
+        service = generate_sample_model_tree('Service', self.db)
+
+        round_1 = Round(number=1)
+        self.db.save(round_1)
+        check_1 = Check(round=round_1, result=True, service=service)
+        self.db.save(check_1)
+
+        round_2 = Round(number=2)
+        self.db.save(round_2)
+        check_2 = Check(round=round_2, result=True, service=service)
+        self.db.save(check_2)
+
+        round_3 = Round(number=3)
+        self.db.save(round_3)
+        check_3 = Check(round=round_3, result=False, service=service)
+        self.db.save(check_3)
+        assert service.check_result_for_round(1) is True
+        assert service.check_result_for_round(2) is True
+        assert service.check_result_for_round(3) is False
