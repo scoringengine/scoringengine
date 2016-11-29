@@ -1,3 +1,4 @@
+import importlib
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
@@ -5,8 +6,11 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../
 from scoring_engine.web import app
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from unit_test import UnitTest
+from mock import MagicMock, call
 
-from flask import session, current_app
+from flask import render_template as render_template_orig
+
+from flask import session
 from flask.testing import FlaskClient as BaseFlaskClient
 from flask_wtf.csrf import generate_csrf
 
@@ -18,6 +22,14 @@ class WebTest(UnitTest):
         self.app = app
         self.app.test_client_class = FlaskClient
         self.client = self.app.test_client()
+        view_name = self.__class__.__name__[4:]
+        self.view_module = importlib.import_module('scoring_engine.web.views.' + view_name.lower(), '*')
+        self.view_module.render_template = MagicMock()
+        self.mock_obj = self.view_module.render_template
+        self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
+
+    def build_args(self, *args, **kwargs):
+        return call(*args, **kwargs)
 
     def verify_auth_required(self, path):
         resp = self.client.get(path)
@@ -28,6 +40,10 @@ class WebTest(UnitTest):
         resp = self.client.post(path)
         assert resp.status_code == 302
         assert '/login?' in resp.location
+
+    def auth_and_get_path(self, path):
+        self.client.login('testuser', 'testpass')
+        return self.client.get(path)
 
     def test_debug(self):
         assert self.app.debug is True
@@ -44,6 +60,7 @@ class RequestShim(object):
     """
     A fake request that proxies cookie-related methods to a Flask test client.
     """
+
     def __init__(self, client):
         self.client = client
 
