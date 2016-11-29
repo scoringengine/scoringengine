@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 from unit_test import UnitTest
 from mock import MagicMock, call
 
-from flask import render_template as render_template_backup
+from flask import render_template as render_template_orig
 
 
 class WebTest(UnitTest):
@@ -17,10 +17,11 @@ class WebTest(UnitTest):
         super(WebTest, self).setup()
         self.app = app
         self.client = self.app.test_client()
-        self.view_module = importlib.import_module('scoring_engine.web.views.' + self.view_name, '*')
+        view_name = self.__class__.__name__[4:]
+        self.view_module = importlib.import_module('scoring_engine.web.views.' + view_name.lower(), '*')
         self.view_module.render_template = MagicMock()
         self.mock_obj = self.view_module.render_template
-        self.mock_obj.side_effect = lambda *args, **kwargs: render_template_backup(*args, **kwargs)
+        self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)
