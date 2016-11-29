@@ -41,6 +41,10 @@ class WebTest(UnitTest):
         assert resp.status_code == 302
         assert '/login?' in resp.location
 
+    def auth_and_get_path(self, path):
+        self.client.login('testuser', 'testpass')
+        return self.client.get(path)
+
     def test_debug(self):
         assert self.app.debug is True
 

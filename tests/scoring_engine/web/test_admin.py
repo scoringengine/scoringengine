@@ -11,12 +11,10 @@ class TestAdmin(WebTest):
         user1 = User(username='testuser', password='testpass', team=team1)
         self.db.save(user1)
 
-    def auth_and_get_path(self, path):
-        self.client.login('testuser', 'testpass')
-        return self.client.get(path)
-
     def test_auth_required_admin(self):
         self.verify_auth_required('/admin')
+        stats_resp = self.auth_and_get_path('/admin')
+        assert stats_resp.status_code == 200
 
     def test_auth_required_admin_status(self):
         self.verify_auth_required('/admin/status')
