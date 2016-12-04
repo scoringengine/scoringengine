@@ -4,6 +4,7 @@ from scoring_engine.db import db
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.web.cache import cache
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
@@ -35,7 +36,7 @@ def admin_get_teams():
         for team in all_teams:
             users = {}
             for user in team.users:
-                users[user.username] = user.password
+                users[user.username] = [user.password, str(user.authenticated).title()]
             data.append({'name': team.name, 'color': team.color, 'users': users})
         return jsonify(data=data)
     else:
@@ -98,6 +99,31 @@ def admin_add_team():
         return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/overview/get_data')
+def overview_get_data():
+    blue_teams = Team.query.filter(Team.color == 'Blue').all()
+    columns = []
+    columns.append('Team Name')
+    columns.append('Current Score')
+    for service in blue_teams[0].services:
+        columns.append(service.name)
+    data = []
+    for team in blue_teams:
+        count = 0
+        team_dict = {}
+        for x in range(0, len(columns)):
+            if columns[x] == "Team Name":
+                team_dict[columns[x]] = team.name
+                count += 1
+            elif columns[x] == "Current Score":
+                team_dict[columns[x]] = team.current_score
+                count += 1
+            else:
+                team_dict[columns[x]] = team.services[x - count].last_check_result()
+        data.append(team_dict)
+    return jsonify(columns=columns, data=data)
+
+
 @mod.route('/api/profile/update_password', methods=['POST'])
 @login_required
 def profile_update_password():
@@ -116,7 +142,7 @@ def profile_update_password():
 
 @mod.route('/api/service/get_checks/<id>')
 @login_required
-def get_checks(id):
+def service_get_checks(id):
     service = Service.query.get(id)
     if service is None or not current_user.team == service.team:
         return jsonify({'status': 'Unauthorized'}), 403
@@ -127,3 +153,46 @@ def get_checks(id):
                      'timestamp': check.completed_timestamp,
                      'output': check.output})
     return jsonify(data=data)
+
+
+@cache.cached(timeout=30)
+@mod.route('/api/scoreboard/get_bar_data')
+def scoreboard_get_bar_data():
+    results = Team.get_all_rounds_results()
+    team_data = {}
+
+    team_labels = []
+    team_scores = []
+    scores_colors = []
+    for blue_team in Team.get_all_blue_teams():
+        team_labels.append(blue_team.name)
+        team_scores.append(blue_team.current_score)
+        scores_colors.append(blue_team.rgb_color)
+
+    team_data['labels'] = team_labels
+    team_data['scores'] = team_scores
+    team_data['colors'] = scores_colors
+
+    return jsonify(team_data)
+
+
+@mod.route('/api/scoreboard/get_line_data')
+@cache.cached(timeout=30)
+def scoreboard_get_line_data():
+    results = Team.get_all_rounds_results()
+    team_data = {}
+    team_data['team'] = {}
+    team_data['round'] = results['rounds']
+    # We start at one because that's how javascript expects the team_data
+    current_index = 1
+    for name in sorted(results['scores'].keys()):
+        scores = results['scores'][name]
+        rgb_color = results['rgb_colors'][name]
+        team_data['team'][current_index] = {
+            "label": name,
+            "data": scores,
+            "color": rgb_color
+        }
+        current_index += 1
+
+    return jsonify(team_data)

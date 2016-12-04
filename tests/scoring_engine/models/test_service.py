@@ -3,8 +3,9 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.models.service import Service
+from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
-from scoring_engine.models.property import Property
+from scoring_engine.models.environment import Environment
 from scoring_engine.models.round import Round
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
@@ -15,7 +16,7 @@ from unit_test import UnitTest
 class TestService(UnitTest):
 
     def test_init_service(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check")
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         assert service.id is None
         assert service.name == "Example Service"
         assert service.team is None
@@ -25,7 +26,7 @@ class TestService(UnitTest):
 
     def test_basic_service(self):
         team = generate_sample_model_tree('Team', self.db)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check")
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         self.db.save(service)
         assert service.id is not None
         assert service.name == "Example Service"
@@ -36,7 +37,7 @@ class TestService(UnitTest):
 
     def test_basic_service_with_points(self):
         team = generate_sample_model_tree('Team', self.db)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, ip_address='127.0.0.1')
         self.db.save(service)
         assert service.id is not None
         assert service.name == "Example Service"
@@ -48,9 +49,9 @@ class TestService(UnitTest):
         assert service.max_score == 0
         assert service.percent_earned == 0
 
-    def test_false_service_result(self):
+    def test_last_check_result_false(self):
         team = generate_sample_model_tree('Team', self.db)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check")
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         self.db.save(service)
         round_obj = generate_sample_model_tree('Round', self.db)
         check_1 = Check(round=round_obj, service=service, result=True, output='Good output')
@@ -61,9 +62,9 @@ class TestService(UnitTest):
         self.db.save(check_3)
         assert service.last_check_result() is False
 
-    def test_false_service_result(self):
+    def test_last_check_result_true(self):
         team = generate_sample_model_tree('Team', self.db)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check")
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
         self.db.save(service)
         round_obj = generate_sample_model_tree('Round', self.db)
         check_1 = Check(round=round_obj, service=service, result=False, output='Check exceeded time')
@@ -73,6 +74,12 @@ class TestService(UnitTest):
         check_3 = Check(round=round_obj, service=service, result=True, output='Good output')
         self.db.save(check_3)
         assert service.last_check_result() is True
+
+    def test_last_check_result_not_found(self):
+        team = generate_sample_model_tree('Team', self.db)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        self.db.save(service)
+        assert service.last_check_result() is None
 
     def test_checks(self):
         service = generate_sample_model_tree('Service', self.db)
@@ -101,15 +108,25 @@ class TestService(UnitTest):
         self.db.save(check_3)
         assert service.checks_reversed == [check_3, check_2, check_1]
 
-    def test_properties(self):
+    def test_environments(self):
         service = generate_sample_model_tree('Service', self.db)
-        property_1 = Property(name="ip", value="127.0.0.1", service=service)
-        self.db.save(property_1)
-        property_2 = Property(name="username", value="testuser", service=service)
-        self.db.save(property_2)
-        property_3 = Property(name="password", value="testpass", service=service)
-        self.db.save(property_3)
-        assert service.properties == [property_1, property_2, property_3]
+        environment_1 = Environment(service=service, matching_regex='*')
+        self.db.save(environment_1)
+        environment_2 = Environment(service=service, matching_regex='*')
+        self.db.save(environment_2)
+        environment_3 = Environment(service=service, matching_regex='*')
+        self.db.save(environment_3)
+        assert service.environments == [environment_1, environment_2, environment_3]
+
+    def test_accounts(self):
+        service = generate_sample_model_tree('Service', self.db)
+        account_1 = Account(username="testname", password="testpass", service=service)
+        self.db.save(account_1)
+        account_2 = Account(username="testname123", password="testpass", service=service)
+        self.db.save(account_2)
+        account_3 = Account(username="testusername", password="testpass", service=service)
+        self.db.save(account_3)
+        assert service.accounts == [account_1, account_2, account_3]
 
     def test_score_earned(self):
         service = generate_sample_model_tree('Service', self.db)
@@ -210,3 +227,28 @@ class TestService(UnitTest):
             check_7,
             check_6
         ]
+
+    def test_check_result_for_round_no_rounds(self):
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        assert service.check_result_for_round(1) is False
+
+    def test_check_result_for_round_3_rounds(self):
+        service = generate_sample_model_tree('Service', self.db)
+
+        round_1 = Round(number=1)
+        self.db.save(round_1)
+        check_1 = Check(round=round_1, result=True, service=service)
+        self.db.save(check_1)
+
+        round_2 = Round(number=2)
+        self.db.save(round_2)
+        check_2 = Check(round=round_2, result=True, service=service)
+        self.db.save(check_2)
+
+        round_3 = Round(number=3)
+        self.db.save(round_3)
+        check_3 = Check(round=round_3, result=False, service=service)
+        self.db.save(check_3)
+        assert service.check_result_for_round(1) is True
+        assert service.check_result_for_round(2) is True
+        assert service.check_result_for_round(3) is False

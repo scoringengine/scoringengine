@@ -1,11 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Scoreboard{% endblock %}
 {% block head %}
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.1/css/uikit.almost-flat.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.1/js/uikit.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.min.js"></script>
     {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.min.js"></script>
 {% endblock %}
 {% block content %}
 <div class="container">
@@ -21,81 +18,107 @@
         </div>
     </div>
     <script>
-    var ctx = document.getElementById("pointsByTeamBar");
-    var myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"],
-            datasets: [{
-                label: 'Points',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255,99,132,1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
-                borderWidth: 2
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero:true
-                    }
+        var ctx = document.getElementById("pointsByTeamBar");
+        var myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{team_labels|safe}},
+                datasets: [{
+                    label: 'Points',
+                    data: {{team_scores|safe}},
+                    backgroundColor: {{scores_colors|safe}},
+                    borderWidth: 2
                 }]
-            }
-        }
-    });
-    </script>
-    <script>
-    var teamLineData = {
-        labels: ["Round 0", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"],
-        datasets: [
-            {% for key, value in teamData.items() %}
-            {
-                label: '{{ value['label'] }}',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: "rgba(0, 0, 0, 0)",
-                borderColor: "{{ value['color'] }}",
-                borderCapStyle: 'butt',
-                borderDash: [],
-                borderDashOffset: 0.0,
-                borderJoinStyle: 'miter',
-                pointBorderColor: "{{ value['color'] }}",
-                pointBackgroundColor: "#fff",
-                pointBorderWidth: 1,
-                pointHoverRadius: 5,
-                pointHoverBackgroundColor: "rgba(75,192,192,1)",
-                pointHoverBorderColor: "rgba(220,220,220,1)",
-                pointHoverBorderWidth: 2,
-                pointRadius: 1,
-                pointHitRadius: 10,
-                data: {{ value['data'] }},
-                spanGaps: false,
             },
-            {% endfor %}
-        ]
-    };
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        });
     </script>
     <script>
-    var ctxTeamLine = document.getElementById("teamLine");
-    var myLineChart = new Chart(ctxTeamLine, {
-        type: 'line',
-        data: teamLineData
-    });
+        var teamLineData = {
+            labels: {{round_labels|safe}},
+            datasets: [
+                {% for key, value in team_data.items() %}
+                {
+                    label: '{{ value['label'] }}',
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: "rgba(0, 0, 0, 0)",
+                    borderColor: "{{ value['color'] }}",
+                    borderCapStyle: 'butt',
+                    borderDash: [],
+                    borderDashOffset: 0.0,
+                    borderJoinStyle: 'miter',
+                    pointBorderColor: "{{ value['color'] }}",
+                    pointBackgroundColor: "#fff",
+                    pointBorderWidth: 1,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                    pointHoverBorderColor: "rgba(220,220,220,1)",
+                    pointHoverBorderWidth: 2,
+                    pointRadius: 1,
+                    pointHitRadius: 10,
+                    data: {{ value['data'] }},
+                    // data: [0, 100, 200],
+                    spanGaps: false,
+                },
+                {% endfor %}
+            ]
+        };
+    </script>
+    <script>
+        var ctxTeamLine = document.getElementById("teamLine");
+        var myLineChart = new Chart(ctxTeamLine, {
+            type: 'line',
+            data: teamLineData
+        });
+    </script>
+    <script>
+        (function updateLineGraph() {
+            $.ajax({
+                url: '/api/scoreboard/get_line_data',
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data['team'], function(key, value) {
+                        myLineChart.data.datasets[key-1].data = value.data;
+
+                    });
+                    myLineChart.data.labels = data['round'];
+                    myLineChart.update();
+
+                },
+                error: function(data) {
+                    console.log("Error: " + JSON.stringify(data));
+                }
+            }).then(function() {
+                setTimeout(updateLineGraph, 5000);
+            });
+        })();
+    </script>
+    <script>
+        (function updateBarGraph() {
+            $.ajax({
+                url: '/api/scoreboard/get_bar_data',
+                dataType: 'json',
+                success: function(data) {
+                    myBarChart.data.datasets[0].data = data['scores'];
+                    myBarChart.data.labels = data['labels'];
+                    myBarChart.update();
+                },
+                error: function(data) {
+                    console.log("Error: " + JSON.stringify(data));
+                }
+            }).then(function() {
+                setTimeout(updateBarGraph, 5000);
+            });
+        })();
     </script>
 </div>
 {% endblock %}

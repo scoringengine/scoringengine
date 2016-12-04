@@ -1,4 +1,5 @@
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.exc import OperationalError
 import pytest
 
 import sys
@@ -14,38 +15,40 @@ class TestDB(object):
 
     def setup(self):
         self.db = DB()
-        self.db.destroy()
+        try:
+            self.db.destroy()
+        except DBNotConnected:
+            pass
 
     def teardown(self):
-        self.db.destroy()
+        try:
+            self.db.destroy()
+        except DBNotConnected:
+            pass
 
     def test_init(self):
         assert self.db.connected is False
-        assert os.path.isfile(self.db.sqlite_db) is False
 
     def test_connect_without_setup(self):
         self.db.connect()
         assert self.db.connected is True
-        assert os.path.isfile(self.db.sqlite_db) is False
         assert isinstance(self.db.session, scoped_session) is True
 
     def test_setup_without_connecting(self):
         with pytest.raises(DBNotConnected):
             self.db.setup()
 
-    def test_connect_setup(self):
-        self.db.connect()
-        self.db.setup()
-        assert os.path.isfile(self.db.sqlite_db) is True
-
-    def test_destroy(self):
-        self.db.connect()
-        self.db.setup()
-        assert os.path.isfile(self.db.sqlite_db) is True
-        self.db.destroy()
-        assert os.path.isfile(self.db.sqlite_db) is False
-
     def test_save_without_connecting(self):
         obj = Team(name="White Team", color="White")
         with pytest.raises(DBNotConnected):
             self.db.save(obj)
+
+    def test_save_and_destroy(self):
+        self.db.connect()
+        self.db.setup()
+        obj = Team(name="White Team", color="White")
+        self.db.save(obj)
+        assert len(Team.query.all()) == 1
+        self.db.destroy()
+        with pytest.raises(OperationalError):
+            Team.query.all()

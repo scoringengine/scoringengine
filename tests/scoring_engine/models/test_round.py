@@ -34,3 +34,14 @@ class TestRound(UnitTest):
         check_3 = Check(round=round_obj, service=service)
         self.db.save(check_3)
         assert round_obj.checks == [check_1, check_2, check_3]
+
+    def test_get_last_round_num_rounds_exist(self):
+        service = generate_sample_model_tree('Service', self.db)
+        round_5 = Round(number=5)
+        self.db.save(round_5)
+        round_6 = Round(number=6)
+        self.db.save(round_6)
+        assert Round.get_last_round_num() == 6
+
+    def test_get_last_round_num_non_exist(self):
+        assert Round.get_last_round_num() == 0

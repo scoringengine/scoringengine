@@ -8,10 +8,10 @@ from scoring_engine.engine.job import Job
 class TestJob(object):
 
     def setup(self):
-        self.job = Job(service_id="12345", command="ls -l")
+        self.job = Job(environment_id="12345", command="ls -l")
 
     def test_init(self):
-        assert self.job.service_id == "12345"
+        assert self.job.environment_id == "12345"
         assert self.job.command == "ls -l"
         assert self.job.output is None
         assert self.job.result is None
@@ -21,7 +21,7 @@ class TestJob(object):
 
     def test_add_output(self):
         cmd_output = "-rw-r--r--  1 root  root  0 Oct 26 15:56 abc"
-        assert self.job.service_id == "12345"
+        assert self.job.environment_id == "12345"
         assert self.job.command == "ls -l"
         assert self.job.output is None
         assert self.job.result is None
@@ -32,7 +32,7 @@ class TestJob(object):
 
     def test_to_dict_without_output_result(self):
         expected_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             "finished": False,
         }
@@ -41,7 +41,7 @@ class TestJob(object):
     def test_to_dict_with_output_without_result(self):
         self.job.set_output("example output")
         expected_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             "finished": True,
             "output": "example output"
@@ -52,7 +52,7 @@ class TestJob(object):
         self.job.set_output("example output")
         self.job.set_pass()
         expected_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             "finished": True,
             "output": "example output",
@@ -64,7 +64,7 @@ class TestJob(object):
         self.job.set_output("example output")
         self.job.set_fail('No Match')
         expected_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             "finished": True,
             "output": "example output",
@@ -102,19 +102,19 @@ class TestJob(object):
 
     def test_from_dict_with_unfinished_job(self):
         input_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
         }
         returned_job = Job.from_dict(input_dict)
         assert isinstance(returned_job, Job)
-        assert returned_job.service_id == "12345"
+        assert returned_job.environment_id == "12345"
         assert returned_job.command == "ls -l"
         assert returned_job.passed() is False
         assert returned_job.completed() is False
 
     def test_from_dict_with_passed_job(self):
         input_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             'output': 'example output',
             'result': 'Pass',
@@ -122,7 +122,7 @@ class TestJob(object):
         }
         returned_job = Job.from_dict(input_dict)
         assert isinstance(returned_job, Job)
-        assert returned_job.service_id == "12345"
+        assert returned_job.environment_id == "12345"
         assert returned_job.command == "ls -l"
         assert returned_job.output == 'example output'
         assert returned_job.passed() is True
@@ -130,7 +130,7 @@ class TestJob(object):
 
     def test_from_dict_with_failed_job(self):
         input_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             'output': 'example output',
             'result': 'Fail',
@@ -139,7 +139,7 @@ class TestJob(object):
         }
         returned_job = Job.from_dict(input_dict)
         assert isinstance(returned_job, Job)
-        assert returned_job.service_id == "12345"
+        assert returned_job.environment_id == "12345"
         assert returned_job.command == "ls -l"
         assert returned_job.output == 'example output'
         assert returned_job.reason == 'No Match'
@@ -148,7 +148,7 @@ class TestJob(object):
 
     def test_from_dict_with_timed_out_job(self):
         input_dict = {
-            'service_id': '12345',
+            'environment_id': '12345',
             'command': 'ls -l',
             'result': 'Fail',
             'finished': True,
@@ -156,7 +156,7 @@ class TestJob(object):
         }
         returned_job = Job.from_dict(input_dict)
         assert isinstance(returned_job, Job)
-        assert returned_job.service_id == "12345"
+        assert returned_job.environment_id == "12345"
         assert returned_job.command == "ls -l"
         assert returned_job.reason == 'Timed Out'
         assert returned_job.passed() is False

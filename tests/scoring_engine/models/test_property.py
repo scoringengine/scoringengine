@@ -16,20 +16,20 @@ class TestProperty(UnitTest):
         assert property_obj.id is None
         assert property_obj.name == "testname"
         assert property_obj.value == "testvalue"
-        assert property_obj.service is None
-        assert property_obj.service_id is None
+        assert property_obj.environment is None
+        assert property_obj.environment_id is None
 
     def test_basic_property(self):
-        service = generate_sample_model_tree('Service', self.db)
-        property_obj = Property(name="ip", value="127.0.0.1", service=service)
+        environment = generate_sample_model_tree('Environment', self.db)
+        property_obj = Property(name="ip", value="127.0.0.1", environment=environment)
         self.db.save(property_obj)
         assert property_obj.id is not None
-        assert property_obj.service == service
-        assert property_obj.service_id == service.id
+        assert property_obj.environment == environment
+        assert property_obj.environment_id == environment.id
         assert property_obj.visible is False
 
     def test_nonhidden_property(self):
-        service = generate_sample_model_tree('Service', self.db)
-        property_obj = Property(name="ip", value="127.0.0.1", service=service, visible=True)
+        environment = generate_sample_model_tree('Environment', self.db)
+        property_obj = Property(name="ip", value="127.0.0.1", environment=environment, visible=True)
         self.db.save(property_obj)
         assert property_obj.visible is True
