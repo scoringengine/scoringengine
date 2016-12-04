@@ -16,6 +16,8 @@ Scoring Engine for Red/White/Blue Team Competitions
 
 5. `vagrant up` then `vagrant ssh`
 
-6. `cd /vagrant; pip install -e .`
+6. `cd /vagrant; pip3 install -e .`
 
-7. `py.test tests`
+7. `systemctl start redis-server`
+
+8. `py.test tests`
