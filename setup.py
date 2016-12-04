@@ -26,6 +26,7 @@ config = {
         'pytest-cov',
         'pytest',
         'codeclimate-test-reporter',
+	'mock'
     ],
     'packages': ['scoring_engine', 'tests', 'bin'],
     'scripts': [],
