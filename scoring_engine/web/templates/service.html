@@ -31,7 +31,20 @@
 <div class="container">
   <div class="row">
     <h3>{{service.name}}</h3>
-    <h4>IP Address: {{service.ip_address}}</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td style="padding-right:10px"><h4>IP Address</h4></td>
+          <td>
+              <form method="POST" action="{{url_for('api.modify_service_ip_address')}}" role="form" class="form-signin">
+                  <input type="hidden" id='service_id' name="service_id" value="{{service.id}}">
+                  <input class="form-control" value="{{service.ip_address}}" placeholder="IP Address" name="ip_address">
+                  <input type="submit" hidden='true'>
+              </form>
+            </td>
+        </tr>
+      </tbody>
+    </table>
     {% if service.accounts %}
       <h4>Accounts</h4>
       <table id="accounts" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
@@ -69,7 +82,7 @@
         </tr>
       </thead>
     </table>
-
+    <br>
     <script>
             var table = $('#checks').DataTable( {
                 "ajax": {
