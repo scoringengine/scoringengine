@@ -2,6 +2,7 @@
 {% block title %}Service{% endblock %}
 {% block head %}
     {{ super() }}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-show-password/1.0.3/bootstrap-show-password.min.js"</script>
     <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
@@ -12,24 +13,30 @@
   <div class="row">
     <h3>{{service.name}}</h3>
     <h4>IP Address: {{service.ip_address}}</h4>
-    <h4>Accounts</h4>
-    <table id="accounts" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Password</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for account in service.accounts %}
+    {% if service.accounts %}
+      <h4>Accounts</h4>
+      <table id="accounts" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <thead>
           <tr>
-            <td>{{account.username}}</td>
-            <td>{{account.password}}</td>
+            <th>Username</th>
+            <th>Password</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <br>
+        </thead>
+        <tbody>
+          {% for account in service.accounts %}
+            <tr>
+              <td>{{account.username}}</td>
+              <td>
+                  <form>
+                      <input class="form-control" type="password" data-toggle="password" value="{{account.password}}">
+                  </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <br>
+    {% endif %}
     <h4>Checks</h4>
     <table id="checks" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
       <thead>

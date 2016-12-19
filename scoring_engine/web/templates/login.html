@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-    <form form method="POST" action="{{ url_for('auth.login') }}" role="form" class="form-signin">
+    <form method="POST" role="form" class="form-signin">
         {{ form.csrf_token }}
         <h2 class="form-signin-heading">Please sign in</h2>
         <label for="inputUsername" class="sr-only">Username</label>
