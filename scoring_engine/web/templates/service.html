@@ -2,6 +2,7 @@
 {% block title %}Service{% endblock %}
 {% block head %}
     {{ super() }}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-show-password/1.0.3/bootstrap-show-password.min.js"</script>
     <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
@@ -25,7 +26,11 @@
           {% for account in service.accounts %}
             <tr>
               <td>{{account.username}}</td>
-              <td>{{account.password}}</td>
+              <td>
+                  <form>
+                      <input class="form-control" type="password" data-toggle="password" value="{{account.password}}">
+                  </form>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
