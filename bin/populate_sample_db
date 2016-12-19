@@ -109,9 +109,11 @@ for num_round in range(1, num_rounds + 1):
         rand_result = randint(0, 1)
         if rand_result == 1:
             result = True
+            reason = 'Successful Match'
         else:
             result = False
+            reason = 'Job Timed Out'
 
         check = Check(round=round_obj, service=service)
-        check.finished(result, 'example output')
+        check.finished(result, reason)
         db.save(check)
