@@ -28,7 +28,7 @@
                   $('td', row).eq(count).addClass('label-danger');
                   $('td', row).eq(count).html(value.replace(' - False', ''));
               }
-              else if (key != 'Current Score'){
+              else {
                   $('td', row).eq(count).addClass('label-default');
                   $('td', row).eq(count).html('Undetermined');
               }
