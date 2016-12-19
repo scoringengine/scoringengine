@@ -171,7 +171,7 @@ def service_get_checks(id):
         data.append({'round': check.round.number,
                      'result': check.result,
                      'timestamp': check.completed_timestamp,
-                     'output': check.output})
+                     'reason': check.output})
     return jsonify(data=data)
 
 
