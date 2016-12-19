@@ -14,12 +14,29 @@ import random
 mod = Blueprint('api', __name__)
 
 
+@mod.route('/api/modify_service_ip_address', methods=['POST'])
+@login_required
+def modify_service_ip_address():
+    if current_user.is_blue_team:
+        if 'service_id' in request.form and 'ip_address' in request.form:
+            service = Service.query.get(int(request.form['service_id']))
+            if service:
+                if service.team == current_user.team:
+                    service.ip_address = request.form['ip_address']
+                    db.save(service)
+                    flash('Successfully updated ip address', 'success')
+                    return redirect('/service/' + str(service.id))
+            flash('Incorrect permissions', 'error')
+            return jsonify({'error': 'Incorrect permissions'})
+    flash('Incorrect permissions', 'error')
+    return jsonify({'error': 'Incorrect permissions'})
+
+
 @mod.route('/api/modify_service_account', methods=['POST'])
 @login_required
 def modify_service_account():
     if current_user.is_blue_team:
         if 'account_id' in request.form and 'password' in request.form:
-            print(request.form)
             account = Account.query.get(int(request.form['account_id']))
             if account:
                 if account.service.team == current_user.team:
