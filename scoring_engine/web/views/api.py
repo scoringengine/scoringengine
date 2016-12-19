@@ -196,3 +196,21 @@ def scoreboard_get_line_data():
         current_index += 1
 
     return jsonify(team_data)
+
+
+@mod.route('/api/overview/data')
+@cache.cached(timeout=15)
+def overview_data():
+    team_data = {}
+    teams = Team.query.filter(Team.color == 'Blue').order_by(Team.id).all()
+    random.shuffle(teams)
+    for team in teams:
+        service_data = {}
+        for service in team.services:
+            service_data[service.name] = {
+                'passing': service.last_check_result(),
+                'ip_address': service.ip_address,
+            }
+        team_data[team.name] = service_data
+
+    return jsonify(team_data)

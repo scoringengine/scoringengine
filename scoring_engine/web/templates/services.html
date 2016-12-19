@@ -16,6 +16,7 @@
         <thead>
             <tr>
                 <th>Service</th>
+                <th>IP Address</th>
                 <th>Status</th>
                 <th>Score Earned</th>
                 <th>Max Score</th>
@@ -27,6 +28,7 @@
             {% for service in team.services %}
             <tr>
                 <td><a href="/service/{{service.id}}">{{service.name}}</a></td>
+                <td>{{service.ip_address}}</td>
                 {% if not service.checks %}
                   <td><span class="label label-default">Undetermined</span></td>
                 {% else %}

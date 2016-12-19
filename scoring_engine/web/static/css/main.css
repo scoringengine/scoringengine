@@ -84,3 +84,8 @@ td.details-control {
 tr.shown td.details-control {
     background: url('../images/details_close.png') no-repeat center center;
 }
+
+#overview_api_reference {
+  padding-top: 10px;
+  text-align:center;
+}
