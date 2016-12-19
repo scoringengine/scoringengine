@@ -72,11 +72,11 @@ def login():
                 login_user(user, remember=True)
 
                 if user.is_white_team:
-                    return redirect(url_for("admin.status"))
+                    return redirect(request.values.get('next') or url_for("admin.status"))
                 elif user.is_blue_team:
-                    return redirect(url_for("services.home"))
+                    return redirect(request.values.get('next') or url_for("services.home"))
                 else:
-                    return redirect(url_for("overview.home"))
+                    return redirect(request.values.get('next') or url_for("overview.home"))
             else:
                 flash('Invalid username or password. Please try again.', 'danger')
                 return render_template('login.html', form=form)
