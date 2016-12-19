@@ -68,6 +68,11 @@ body {
   font-size: 85%;
 }
 
+.overview_api_reference div {
+  padding-top: 10px;
+  text-align:center;
+}
+
 footer {
   padding-top: 3rem;
   padding-bottom: 3rem;
