@@ -68,11 +68,6 @@ body {
   font-size: 85%;
 }
 
-.overview_api_reference div {
-  padding-top: 10px;
-  text-align:center;
-}
-
 footer {
   padding-top: 3rem;
   padding-bottom: 3rem;
@@ -88,4 +83,9 @@ td.details-control {
 }
 tr.shown td.details-control {
     background: url('../images/details_close.png') no-repeat center center;
+}
+
+#overview_api_reference {
+  padding-top: 10px;
+  text-align:center;
 }
