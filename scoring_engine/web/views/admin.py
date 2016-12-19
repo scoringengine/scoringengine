@@ -59,8 +59,8 @@ def status():
             engine_stats['num_finished_queue'] = 'Connection Error'
 
         engine_stats['round_number'] = Round.get_last_round_num() + 1
-        engine_stats['num_passed_checks'] = Check.query.filter(Check.result is True).count()
-        engine_stats['num_failed_checks'] = Check.query.filter(Check.result is False).count()
+        engine_stats['num_passed_checks'] = Check.query.filter_by(result=True).count()
+        engine_stats['num_failed_checks'] = Check.query.filter_by(result=False).count()
         engine_stats['total_checks'] = Check.query.count()
 
         return render_template('admin/status.html', engine_stats=engine_stats, blue_teams=blue_teams)
