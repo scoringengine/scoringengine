@@ -119,7 +119,7 @@ def overview_get_data():
                 team_dict[columns[x]] = team.current_score
                 count += 1
             else:
-                team_dict[columns[x]] = team.services[x - count].last_check_result()
+                team_dict[columns[x]] = team.services[x - count].ip_address + " - " + str(team.services[x - count].last_check_result())
         data.append(team_dict)
     return jsonify(columns=columns, data=data)
 

@@ -19,13 +19,14 @@
         'createdRow': function ( row, data, index ) {
           count = 1;
           $.each(data, function(key, value) {
-              if ( value == true ) {
+              if (key == 'Team Name' || key == 'Current Score'){}
+              else if (value.search('- True') > 0) {
                   $('td', row).eq(count).addClass('label-success');
-                  $('td', row).eq(count).html('Pass');
+                  $('td', row).eq(count).html(value.replace(' - True', ''));
               }
-              else if ( value == false & key != 'Current Score') {
+              else if ( (value.search('- False') > 0) & key != 'Current Score') {
                   $('td', row).eq(count).addClass('label-danger');
-                  $('td', row).eq(count).html('Fail');
+                  $('td', row).eq(count).html(value.replace(' - False', ''));
               }
               else if (key != 'Current Score'){
                   $('td', row).eq(count).addClass('label-default');
@@ -55,10 +56,8 @@
                     // Generate our columns list to be passed to the generator
                     var columnsDef = []
                     $.each(data.columns, function(key, value) {
-                        // columnsDef.push({"sTitle": value, "mData": value, "targets": [key]})
                         columnsDef.push({"title": value, "data": value})
                     });
-                    //console.log(columnsDef);
                     generateTable(columnsDef);
                 },
                 error: function(data) {
