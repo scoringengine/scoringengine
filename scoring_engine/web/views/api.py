@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 from scoring_engine.db import db
+from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
@@ -11,6 +12,25 @@ import random
 
 
 mod = Blueprint('api', __name__)
+
+
+@mod.route('/api/modify_service_account', methods=['POST'])
+@login_required
+def modify_service_account():
+    if current_user.is_blue_team:
+        if 'account_id' in request.form and 'password' in request.form:
+            print(request.form)
+            account = Account.query.get(int(request.form['account_id']))
+            if account:
+                if account.service.team == current_user.team:
+                    account.password = request.form['password']
+                    db.save(account)
+                    flash('Successfully updated password for ' + account.username, 'success')
+                    return redirect('/service/' + str(account.service.id))
+            flash('Incorrect permissions', 'error')
+            return jsonify({'error': 'Incorrect permissions'})
+    flash('Incorrect permissions', 'error')
+    return jsonify({'error': 'Incorrect permissions'})
 
 
 @mod.route('/api/admin/get_round_progress')

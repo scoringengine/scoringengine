@@ -2,13 +2,32 @@
 {% block title %}Service{% endblock %}
 {% block head %}
     {{ super() }}
-    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-show-password/1.0.3/bootstrap-show-password.min.js"</script>
     <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 {% endblock %}
 {% block content %}
+
+ <script>
+    $(function() {
+      $('.password').each(function() {
+          var default_value = this.value;
+          this.value = '********';
+          $(this).blur(function() {
+              if(this.value == default_value) {
+                  this.value = '********';
+              }
+          });
+          $(this).focus(function() {
+              if(this.value == '********') {
+                  this.value = default_value;
+              }
+          });
+      });
+    });
+</script>
+
 <div class="container">
   <div class="row">
     <h3>{{service.name}}</h3>
@@ -27,9 +46,13 @@
             <tr>
               <td>{{account.username}}</td>
               <td>
-                  <form>
-                      <input class="form-control" type="password" data-toggle="password" value="{{account.password}}">
-                  </form>
+                <form method="POST" action="{{url_for('api.modify_service_account')}}" role="form" class="form-signin" id="password_form">
+                  <div class="form-group">
+                    <input type="hidden" id='account_id' name="account_id" value="{{account.id}}">
+                    <input class="form-control password" value="{{account.password}}" placeholder="password" name="password">
+                    <input type="submit" hidden='true'>
+                  </div>
+                </form>
               </td>
             </tr>
           {% endfor %}
