@@ -79,8 +79,8 @@
                         <tbody>
                             {% for account in service.accounts %}
                                     <tr>
-                                        <td width="65%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url='/api/admin/update_account_info'>{{account.username}}</a></td>
-                                        <td width="65%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url='/api/admin/update_account_info'>{{account.password}}</a></td>
+                                        <td width="30%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url='/api/admin/update_account_info'>{{account.username}}</a></td>
+                                        <td width="70%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url='/api/admin/update_account_info'>{{account.password}}</a></td>
                                     </tr>
                               {% endfor %}
                         </tbody>
@@ -98,7 +98,7 @@
                         <tbody>
                             {% for environment in service.environments %}
                                     <tr>
-                                        <td width="65%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}" data-title="Enter Matching Regex" data-url='/api/admin/update_environment_info' data-name='matching_regex'>{{environment.matching_regex}}</a></td>
+                                        <td width="40%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}" data-title="Enter Matching Regex" data-url='/api/admin/update_environment_info' data-name='matching_regex'>{{environment.matching_regex}}</a></td>
                                         <td>
                                             <table class="table table-striped table-bordered table-compact" style="clear: both">
                                                 <thead>
@@ -110,8 +110,8 @@
                                                 <tbody>
                                                 {% for property_obj in environment.properties %}
                                                     <tr>
-                                                        <td width="65%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Name" data-url='/api/admin/update_property' data-name='property_name'>{{property_obj.name}}</a></td>
-                                                        <td width="65%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Value" data-url='/api/admin/update_property' data-name='property_value'>{{property_obj.value}}</a></td>
+                                                        <td width="50%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Name" data-url='/api/admin/update_property' data-name='property_name'>{{property_obj.name}}</a></td>
+                                                        <td width="50%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Value" data-url='/api/admin/update_property' data-name='property_value'>{{property_obj.value}}</a></td>
                                                     </tr>
                                                 {% endfor %}
                                                 </tbody>
@@ -129,6 +129,7 @@
                     <tr>
                       <th>Round Number</th>
                       <th>Result</th>
+                      <th>Timestamp</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -141,8 +142,9 @@
                             {% set data_value = '2' %}
                             {% set check_value = 'Fail' %}
                         {% endif %}
-                        <td>{{check.round.number}}</td>
-                        <td><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{{data_value}}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url='/api/admin/update_check' data-name='check_value'>{{check_value}}</a></td>
+                        <td width="20%">{{check.round.number}}</td>
+                        <td width="50%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{{data_value}}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url='/api/admin/update_check' data-name='check_value'>{{check_value}}</a></td>
+                        <td width="30%">{{check.completed_timestamp}}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
