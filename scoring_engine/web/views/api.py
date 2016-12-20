@@ -3,6 +3,9 @@ from flask_login import current_user, login_required
 from scoring_engine.db import db
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
+from scoring_engine.models.check import Check
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.property import Property
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.web.cache import cache
@@ -12,6 +15,88 @@ import random
 
 
 mod = Blueprint('api', __name__)
+
+
+@mod.route('/api/admin/update_account_info', methods=['POST'])
+@login_required
+def admin_update_account():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            account = Account.query.get(int(request.form['pk']))
+            if account:
+                if request.form['name'] == 'username':
+                    account.username = request.form['value']
+                elif request.form['name'] == 'password':
+                    account.password = request.form['value']
+                db.save(account)
+                return jsonify({'status': 'Updated Account Information'})
+            return jsonify({'error': 'Incorrect permissions'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/admin/update_environment_info', methods=['POST'])
+@login_required
+def admin_update_environment():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            environment = Environment.query.get(int(request.form['pk']))
+            if environment:
+                if request.form['name'] == 'matching_regex':
+                    environment.matching_regex = request.form['value']
+                db.save(environment)
+                return jsonify({'status': 'Updated Environment Information'})
+            return jsonify({'error': 'Incorrect permissions'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/admin/update_property', methods=['POST'])
+@login_required
+def admin_update_properties():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            property_obj = Property.query.get(int(request.form['pk']))
+            if property_obj:
+                if request.form['name'] == 'property_name':
+                    property_obj.name = request.form['value']
+                elif request.form['name'] == 'property_value':
+                    property_obj.value = request.form['value']
+                db.save(property_obj)
+                return jsonify({'status': 'Updated Property Information'})
+            return jsonify({'error': 'Incorrect permissions'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/admin/update_check', methods=['POST'])
+@login_required
+def admin_update_check():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            check = Check.query.get(int(request.form['pk']))
+            if check:
+                if request.form['name'] == 'check_value':
+                    if request.form['value'] == '1':
+                        check.result = True
+                    elif request.form['value'] == '2':
+                        check.result = False
+                    db.save(check)
+                    return jsonify({'status': 'Updated Property Information'})
+            return jsonify({'error': 'Incorrect permissions'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/admin/update_ip_address', methods=['POST'])
+@login_required
+def admin_update_ip_address():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            service = Service.query.get(int(request.form['pk']))
+            if service:
+                if request.form['name'] == 'ip_address':
+                    service.ip_address = request.form['value']
+                    db.save(service)
+                    return jsonify({'status': 'Updated Service Information'})
+            return jsonify({'error': 'Incorrect permissions'})
+    return jsonify({'error': 'Incorrect permissions'})
 
 
 @mod.route('/api/modify_service_ip_address', methods=['POST'])
