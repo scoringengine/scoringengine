@@ -334,5 +334,4 @@ def overview_data():
                 'ip_address': service.ip_address,
             }
         team_data[team.name] = service_data
-
-    return jsonify(team_data)
+    return json.dumps(team_data)
