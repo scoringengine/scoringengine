@@ -129,6 +129,7 @@
                     <tr>
                       <th>Round Number</th>
                       <th>Result</th>
+                      <th>Reason</th>
                       <th>Timestamp</th>
                     </tr>
                   </thead>
@@ -143,7 +144,8 @@
                             {% set check_value = 'Fail' %}
                         {% endif %}
                         <td width="20%">{{check.round.number}}</td>
-                        <td width="50%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{{data_value}}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url='/api/admin/update_check' data-name='check_value'>{{check_value}}</a></td>
+                        <td width="20%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{{data_value}}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url='/api/admin/update_check' data-name='check_value'>{{check_value}}</a></td>
+                        <td width="30%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{check.id}}" data-title="Enter Reason" data-url='/api/admin/update_check' data-name='check_reason'>{{check.reason}}</a></td>
                         <td width="30%">{{check.completed_timestamp}}</td>
                       </tr>
                     {% endfor %}

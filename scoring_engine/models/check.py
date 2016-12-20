@@ -14,12 +14,14 @@ class Check(Base):
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship('Service')
     result = Column(Boolean)
-    output = Column(String)
+    output = Column(String, default="")
+    reason = Column(String, default="")
     completed_timestamp = Column(String)
     completed = Column(Boolean, default=False)
 
-    def finished(self, result, output):
+    def finished(self, result, reason, output):
         self.result = result
+        self.reason = reason
         self.output = output
         self.completed = True
         self.completed_timestamp = str(datetime.now())

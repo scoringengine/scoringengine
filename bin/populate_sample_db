@@ -63,40 +63,43 @@ for num in range(1, num_teams + 1):
 
     print("\t\tCreating ICMP Service")
     service = Service(name="ICMP", team=team, check_name="ICMP IPv4 Check", ip_address="127.0.0.1")
+    db.save(Environment(service=service, matching_regex='0.0% packet loss'))
     db.save(service)
     services.append(service)
 
     print("\t\tCreating DNS Service")
     service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="8.8.8.8")
-    db.save(service)
     environment = Environment(service=service, matching_regex='IN   A')
     db.save(environment)
-    dns_qtype_prop = Property(environment=environment, name='qtype', value='A')
-    db.save(dns_qtype_prop)
-    dns_domain_prop = Property(environment=environment, name='domain', value='www.google.com')
-    db.save(dns_domain_prop)
+    db.save(Property(environment=environment, name='qtype', value='A'))
+    db.save(Property(environment=environment, name='domain', value='www.google.com'))
+    environment_quad = Environment(service=service, matching_regex='IN   AAAA')
+    db.save(environment_quad)
+    db.save(Property(environment=environment_quad, name='qtype', value='AAAA'))
+    db.save(Property(environment=environment_quad, name='domain', value='www.google.com'))
+    db.save(service)
     services.append(service)
 
     print("\t\tCreating FTP Download Service")
     service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', ip_address='127.0.0.1')
-    account = Account(username='techy', password='techy', service=service)
-    environment = Environment(service=service, matching_regex='> USER techy')
-    filename_prop = Property(environment=environment, name='filename', value='foo.txt')
+    db.save(Account(username='techy', password='techy', service=service))
+    db.save(Account(username='pwnbus', password='redfred', service=service))
+    db.save(Account(username='rusty', password='catdog', service=service))
+    environment = Environment(service=service, matching_regex='> USER')
+    db.save(Property(environment=environment, name='filename', value='foo.txt'))
     db.save(service)
-    db.save(account)
     db.save(environment)
-    db.save(filename_prop)
     services.append(service)
 
     print("\t\tCreating FTP Upload Service")
     service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', ip_address='127.0.0.1')
-    account = Account(username='techy', password='techy', service=service)
+    db.save(Account(username='techy', password='techy', service=service))
+    db.save(Account(username='pwnbus', password='redfred', service=service))
+    db.save(Account(username='rusty', password='catdog', service=service))
     environment = Environment(service=service, matching_regex='> STOR foo.txt')
-    filename_prop = Property(environment=environment, name='filename', value='foo.txt')
+    db.save(Property(environment=environment, name='filename', value='foo.txt'))
     db.save(service)
-    db.save(account)
     db.save(environment)
-    db.save(filename_prop)
     services.append(service)
 
 
@@ -106,14 +109,19 @@ for num_round in range(1, num_rounds + 1):
     round_obj = Round(number=num_round)
     for service in services:
         print("\t\tCreating check for " + str(service.id))
-        rand_result = randint(0, 1)
-        if rand_result == 1:
+        output = ""
+        if randint(0, 1) == 1:
             result = True
-            reason = 'Successful Match'
+            reason = 'Successful Content Match'
+            output = "Some random output of a command"
         else:
             result = False
-            reason = 'Job Timed Out'
+            output = "Errored output"
+            if randint(0, 1) == 1:
+                reason = 'Job Timed Out'
+            else:
+                reason = 'Unsuccessful Content Match'
 
         check = Check(round=round_obj, service=service)
-        check.finished(result, reason)
+        check.finished(result, reason, output)
         db.save(check)

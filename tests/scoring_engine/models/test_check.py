@@ -40,10 +40,12 @@ class TestCheck(UnitTest):
         check = Check(round=round_obj, service=service)
         self.db.save(check)
         assert check.result is None
-        assert check.output is None
+        assert check.output == ''
         assert check.completed is False
-        check.finished(True, 'good output')
+        assert check.reason == ''
+        check.finished(True, 'Successful Match', 'good output')
         self.db.save(check)
         assert check.result is True
         assert check.output == 'good output'
+        assert check.reason == 'Successful Match'
         assert check.completed is True
