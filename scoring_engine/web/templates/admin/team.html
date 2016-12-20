@@ -6,11 +6,57 @@
     <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" />
+
+    <script src="http://vitalets.github.io/x-editable/assets/jquery/jquery-1.9.1.min.js"></script>
+    <script src="http://vitalets.github.io/x-editable/assets/mockjax/jquery.mockjax.js"></script>
+
+    <!-- bootstrap -->
+    <!-- <link href="http://vitalets.github.io/x-editable/assets/bootstrap/css/bootstrap.css" rel="stylesheet"> -->
+    <link href="http://vitalets.github.io/x-editable/assets/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <script src="http://vitalets.github.io/x-editable/assets/bootstrap/js/bootstrap.js"></script>
+    <!-- x-editable (bootstrap) -->
+    <link href="http://vitalets.github.io/x-editable/assets/x-editable/bootstrap-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <script src="http://vitalets.github.io/x-editable/assets/x-editable/bootstrap-editable/js/bootstrap-editable.js"></script>
+    <script src="http://vitalets.github.io/x-editable/assets/demo-mock.js"></script>
+    <script src="http://vitalets.github.io/x-editable/assets/demo.js"></script>
+
+    <script>
+        $.fn.editable.defaults.mode = 'inline';
+
+        $(function(){
+            $('#f').val('bootstrap3');
+            $('#c').val('inline');
+
+            $('#frm').submit(function(){
+                var f = $('#f').val();
+                $(this).attr('action', 'demo-bs3.html');
+            });
+        });
+    </script>
+
 {% endblock %}
 
 {% block admincontent %}
 <div class="container">
   <div class="row">
+    <div style="width: 80%; margin: auto;">
+      <table id="user" class="table table-bordered table-striped" style="clear: both">
+        <thead>
+          <th>Description</th>
+          <th>Value</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td width="35%">Text Field</td>
+            <td width="65%"><a href="#" id="username" data-type="text" data-pk="1" data-title="Enter username">superuser</a></td>
+          </tr>
+          <tr>
+            <td>Drop Down</td>
+            <td><a href="#" id="group" data-type="select" data-pk="1" data-value="5" data-source="/groups" data-title="Select group">Admin</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <h2>{{team.name}}</h2>
     <div class="panel-body">
       {% for service in team.services %}
