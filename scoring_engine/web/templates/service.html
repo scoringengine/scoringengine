@@ -36,10 +36,13 @@
         <tr>
           <td style="padding-right:10px"><h4>IP Address</h4></td>
           <td>
-              <form method="POST" action="{{url_for('api.modify_service_ip_address')}}" role="form" class="form-signin">
-                  <input type="hidden" id='service_id' name="service_id" value="{{service.id}}">
-                  <input class="form-control" value="{{service.ip_address}}" placeholder="IP Address" name="ip_address">
-                  <input type="submit" hidden='true'>
+              <form method="POST" action="{{url_for('api.modify_service_ip_address')}}" role="form" class="form-inline">
+                  <div class="input-group">
+                      <input type="hidden" id='service_id' name="service_id" value="{{service.id}}">
+                      <input class="form-control" value="{{service.ip_address}}" placeholder="IP Address" name="ip_address">
+                      <input type="submit" hidden='true'>
+                  </div>
+                  <button class="btn btn-default" type="submit">Update</button>
               </form>
             </td>
         </tr>
@@ -59,10 +62,12 @@
             <tr>
               <td>{{account.username}}</td>
               <td>
-                <form method="POST" action="{{url_for('api.modify_service_account')}}" role="form" class="form-signin" id="password_form">
-                    <input type="hidden" id='account_id' name="account_id" value="{{account.id}}">
-                    <input class="form-control password" value="{{account.password}}" placeholder="password" name="password">
-                    <input type="submit" hidden='true'>
+                <form method="POST" action="{{url_for('api.modify_service_account')}}" role="form" class="form-inline" id="password_form">
+                    <div class="input-group">
+                        <input type="hidden" id='account_id' name="account_id" value="{{account.id}}">
+                        <input class="form-control password" value="{{account.password}}" placeholder="password" name="password">
+                    </div>
+                    <button class="btn btn-default" type="submit">Update</button>
                 </form>
               </td>
             </tr>
