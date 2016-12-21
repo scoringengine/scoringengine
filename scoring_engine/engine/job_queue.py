@@ -8,7 +8,7 @@ from scoring_engine.engine.malformed_job import MalformedJob
 
 class JobQueue(object):
     def __init__(self):
-        self.conn = redis.Redis(host=config.redis_host, port=config.redis_port, password=config.redis_password)
+        self.conn = redis.Redis(host=config.redis_host, port=config.redis_port, password=config.redis_password, socket_timeout=0.5)
         self.namespace = config.redis_namespace
         # This is meant to get overwritten by children
         self.queue_name = "jobs"
