@@ -3,7 +3,6 @@ from flask_login import current_user, login_required
 from operator import itemgetter
 
 from redis.exceptions import ConnectionError
-import multiprocessing
 
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
@@ -37,24 +36,14 @@ def status():
         engine_stats['num_finished_queue'] = 0
 
         try:
-            p = multiprocessing.Process(target=num_worker_queue)
-            p.start()
-            p.join(2)
-            if p.is_alive():
-                engine_stats['num_worker_queue'] = 'Connection Timed Out'
-                p.terminate()
-                p.join()
+            queue = WorkerQueue()
+            engine_stats['num_worker_queue'] = queue.size()
         except ConnectionError:
             engine_stats['num_worker_queue'] = 'Connection Error'
 
         try:
-            p = multiprocessing.Process(target=num_finished_queue)
-            p.start()
-            p.join(2)
-            if p.is_alive():
-                engine_stats['num_finished_queue'] = 'Connection Timed Out'
-                p.terminate()
-                p.join()
+            queue = FinishedQueue()
+            engine_stats['num_finished_queue'] = queue.size()
         except ConnectionError:
             engine_stats['num_finished_queue'] = 'Connection Error'
 
