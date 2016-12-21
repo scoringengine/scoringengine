@@ -22,6 +22,10 @@
                     var table = $('#overview').DataTable( {
                         ajax: "/api/overview/get_data",
                         columns: data.columns,
+                        paging: false,
+                        ordering: false,
+                        info: false,
+                        searching: false,
                         'createdRow': function ( row, data, index ) {
                             count = 0;
                             $('td', row).each(function() {
