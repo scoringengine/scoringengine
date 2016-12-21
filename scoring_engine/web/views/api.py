@@ -18,19 +18,21 @@ import random
 mod = Blueprint('api', __name__)
 
 
-@mod.route('/api/admin/update_account_info', methods=['POST'])
+@mod.route('/api/update_account_info', methods=['POST'])
 @login_required
-def admin_update_account():
-    if current_user.is_white_team:
+def update_service_account_info():
+    if current_user.is_white_team or current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             account = Account.query.get(int(request.form['pk']))
-            if account:
-                if request.form['name'] == 'username':
-                    account.username = request.form['value']
-                elif request.form['name'] == 'password':
-                    account.password = request.form['value']
-                db.save(account)
-                return jsonify({'status': 'Updated Account Information'})
+            if current_user.team == account.service.team:
+                if account:
+                    if request.form['name'] == 'username':
+                        account.username = request.form['value']
+                    elif request.form['name'] == 'password':
+                        account.password = request.form['value']
+                    db.save(account)
+                    return jsonify({'status': 'Updated Account Information'})
+                return jsonify({'error': 'Incorrect permissions'})
             return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -52,7 +54,7 @@ def admin_update_environment():
 
 @mod.route('/api/admin/update_property', methods=['POST'])
 @login_required
-def admin_update_properties():
+def admin_update_property():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             property_obj = Property.query.get(int(request.form['pk']))
@@ -100,14 +102,14 @@ def admin_update_ip_address():
     return jsonify({'error': 'Incorrect permissions'})
 
 
-@mod.route('/api/modify_service_ip_address', methods=['POST'])
+@mod.route('/api/update_ip_address', methods=['POST'])
 @login_required
-def modify_service_ip_address():
+def update_ip_address():
     if current_user.is_blue_team:
-        if 'service_id' in request.form and 'ip_address' in request.form:
-            service = Service.query.get(int(request.form['service_id']))
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            service = Service.query.get(int(request.form['pk']))
             if service:
-                if service.team == current_user.team:
+                if service.team == current_user.team and request.form['name'] == 'ip_address':
                     service.ip_address = request.form['ip_address']
                     db.save(service)
                     flash('Successfully updated ip address', 'success')
