@@ -89,26 +89,35 @@
     </table>
     <br>
     <script>
-            var table = $('#checks').DataTable( {
-                "ajax": {
-                  "url": "/api/service/get_checks/{{ id }}",
-                  "type": 'GET'
-                },
-                "columns": [
-                    { "data": "round" },
-                    {
-                      "data": "result",
-                      "render": function( data ) {
-                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
-                      }
-                    },
-                    { "data": "reason"},
-                    { "data": "timestamp" }
-                ],
-                'order': [[0, 'desc']],
-            } );
-      table.draw();
-
+        $(document).ready(function() {
+            $.ajax({
+                url: '/api/overview/get_data',
+                dataType: 'json',
+                success: function(data) {
+                    var table = $('#checks').DataTable( {
+                        "ajax": {
+                          "url": "/api/service/get_checks/{{ id }}",
+                          "type": 'GET'
+                        },
+                        "columns": [
+                            { "data": "round" },
+                            {
+                              "data": "result",
+                              "render": function( data ) {
+                                return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                              }
+                            },
+                            { "data": "reason"},
+                            { "data": "timestamp" }
+                        ],
+                        'order': [[0, 'desc']],
+                    });
+                    setInterval( function () {
+                        table.ajax.reload();
+                    }, 5000 );
+                }
+            });
+        });
     </script>
   </div>
 </div>
