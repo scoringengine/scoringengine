@@ -243,7 +243,10 @@ def overview_get_data():
             else:
                 team_dict[columns[x]] = team.services[x - count].ip_address + " - " + str(team.services[x - count].last_check_result())
         data.append(team_dict)
-    return jsonify(columns=columns, data=data)
+    columnlist = []
+    for column in columns:
+        columnlist.append({'title': column, 'data': column})
+    return jsonify(columns=columnlist, data=data)
 
 
 @mod.route('/api/profile/update_password', methods=['POST'])
@@ -334,5 +337,4 @@ def overview_data():
                 'ip_address': service.ip_address,
             }
         team_data[team.name] = service_data
-
-    return jsonify(team_data)
+    return json.dumps(team_data)
