@@ -14,59 +14,46 @@
     </table>
     <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a href="{{ url_for('api.overview_data') }}">Here</a></div>
     <script>
-    function generateTable(columnDef) {
-      var table = $('#overview').DataTable( {
-        'createdRow': function ( row, data, index ) {
-          count = 1;
-          $.each(data, function(key, value) {
-              if (key == 'Team Name' || key == 'Current Score'){}
-              else if (value.search('- True') > 0) {
-                  $('td', row).eq(count).addClass('label-success');
-                  $('td', row).eq(count).html(value.replace(' - True', ''));
-              }
-              else if ( (value.search('- False') > 0) & key != 'Current Score') {
-                  $('td', row).eq(count).addClass('label-danger');
-                  $('td', row).eq(count).html(value.replace(' - False', ''));
-              }
-              else {
-                  $('td', row).eq(count).addClass('label-default');
-                  $('td', row).eq(count).html('Undetermined');
-              }
-              count++;
-          });
-        },
-        'ajax': '/api/overview/get_data',
-        'columns': columnDef,
-        'bDestroy': true,
-        'bFilter': false,
-        'bInfo': false,
-        'order': [[ 1, 'desc' ]],
-        'paging': false,
-        'scrollX': true
-      });
-      table.draw();
-    }
-    </script>
-    <script>
-        (function drawOverview() {
+        $(document).ready(function() {
             $.ajax({
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {
-                    // Generate our columns list to be passed to the generator
-                    var columnsDef = []
-                    $.each(data.columns, function(key, value) {
-                        columnsDef.push({"title": value, "data": value})
+                    $('#overview').DataTable( {
+                        ajax: "/api/overview/get_data",
+                        columns: data.columns,
+                        'createdRow': function ( row, data, index ) {
+                            console.log($('td', row));
+                            count = 0;
+                            $('td', row).each(function() {
+                                var value = $(this).html()
+                                console.log(value);
+                                // Doing nothing if it's the current score
+                                if (value.match(/^\d+$/)) {
+                                }
+                                else if (value.search('Team') == 0) {
+                                }
+                                else if (value.search('- True') > 0) {
+                                    $('td', row).eq(count).addClass('label-success');
+                                    $('td', row).eq(count).html(value.replace(' - True', ''));
+                                }
+                                else if (value.search('- False') > 0) {
+                                    console.log("BOATSBOATSBOATS");
+                                    $('td', row).eq(count).addClass('label-danger');
+                                    $('td', row).eq(count).html(value.replace(' - False', ''));
+                                }
+                                else {
+                                    console.log(value);
+                                    $('td', row).eq(count).addClass('label-default');
+                                    $('td', row).eq(count).html('Undetermined');
+                                }
+                                count++;
+                            })
+                        }
                     });
-                    generateTable(columnsDef);
-                },
-                error: function(data) {
-                    console.log("Error: " + JSON.stringify(data));
                 }
-            }).then(function() {
-                    setTimeout(drawOverview, 5000);
             });
-        })();
+        });
     </script>
   </div>
 </div>
