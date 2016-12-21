@@ -6,6 +6,7 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
+from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.web.cache import cache
@@ -247,6 +248,14 @@ def overview_get_data():
     for column in columns:
         columnlist.append({'title': column, 'data': column})
     return jsonify(columns=columnlist, data=data)
+
+
+@mod.route('/api/overview/get_round_data')
+@cache.cached(timeout=15)
+def overview_get_round_data():
+    round = Round.query.order_by(Round.number.desc()).first()
+    data = {'round_start': round.round_start, 'number': round.number}
+    return jsonify(data)
 
 
 @mod.route('/api/profile/update_password', methods=['POST'])
