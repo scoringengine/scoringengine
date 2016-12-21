@@ -10,11 +10,34 @@
 {% block content %}
 <div class="container">
   <div class="row">
+      <h2 id="round_number" class="text-center"></h2>
+      <h4 id="round_start" class="text-center"></h4>
+  </div>
+  <div class="row">
     <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
     </table>
     <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a href="{{ url_for('api.overview_data') }}">Here</a></div>
     <script>
+        function refreshheader() {
+            $.ajax({
+                url: '/api/overview/get_round_data',
+                dataType: 'json',
+                success: function(data) {
+                    $('#round_number').text("Round " + data.number);
+                    $('#round_start').text(data.round_start);
+                }
+            });
+        }
+    </script>
+    <script>
         $(document).ready(function() {
+            // Populate our header
+            refreshheader();
+            setInterval(function(){
+                refreshheader()
+            }, 5000);
+
+            // Populate our table
             $.ajax({
                 url: '/api/overview/get_data',
                 dataType: 'json',
