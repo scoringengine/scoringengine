@@ -9,6 +9,7 @@ from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+from scoring_engine.models.service import Service
 from scoring_engine.engine.worker_queue import WorkerQueue
 from scoring_engine.engine.finished_queue import FinishedQueue
 
@@ -88,5 +89,29 @@ def team(id):
             return redirect(url_for('auth.unauthorized'))
 
         return render_template('admin/team.html', team=team)
+    else:
+        return redirect(url_for('auth.unauthorized'))
+
+
+@mod.route('/admin/service/<id>')
+@login_required
+def service(id):
+    if current_user.is_white_team:
+        service = Service.query.get(id)
+        teams = Team.get_all_blue_teams()
+        if service is None:
+            return redirect(url_for('auth.unauthorized'))
+
+        return render_template('admin/service.html', teams=teams, service=service)
+    else:
+        return redirect(url_for('auth.unauthorized'))
+
+
+@mod.route('/admin/teams')
+@login_required
+def teams():
+    if current_user.is_white_team:
+        teams = Team.get_all_blue_teams()
+        return render_template('admin/teams.html', teams=teams)
     else:
         return redirect(url_for('auth.unauthorized'))
