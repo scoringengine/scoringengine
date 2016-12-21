@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer
+import datetime
+from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -9,6 +10,8 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     checks = relationship("Check", back_populates="round")
+    round_start = Column(DateTime, default=datetime.datetime.utcnow)
+    round_end = Column(DateTime)
 
     @staticmethod
     def get_last_round_num():
