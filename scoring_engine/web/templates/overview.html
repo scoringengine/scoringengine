@@ -19,15 +19,17 @@
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {
-                    $('#overview').DataTable( {
+                    var table = $('#overview').DataTable( {
                         ajax: "/api/overview/get_data",
                         columns: data.columns,
+                        paging: false,
+                        ordering: false,
+                        info: false,
+                        searching: false,
                         'createdRow': function ( row, data, index ) {
-                            console.log($('td', row));
                             count = 0;
                             $('td', row).each(function() {
                                 var value = $(this).html()
-                                console.log(value);
                                 // Doing nothing if it's the current score
                                 if (value.match(/^\d+$/)) {
                                 }
@@ -38,12 +40,10 @@
                                     $('td', row).eq(count).html(value.replace(' - True', ''));
                                 }
                                 else if (value.search('- False') > 0) {
-                                    console.log("BOATSBOATSBOATS");
                                     $('td', row).eq(count).addClass('label-danger');
                                     $('td', row).eq(count).html(value.replace(' - False', ''));
                                 }
                                 else {
-                                    console.log(value);
                                     $('td', row).eq(count).addClass('label-default');
                                     $('td', row).eq(count).html('Undetermined');
                                 }
@@ -51,6 +51,9 @@
                             })
                         }
                     });
+                    setInterval( function () {
+                        table.ajax.reload();
+                    }, 5000 );
                 }
             });
         });
