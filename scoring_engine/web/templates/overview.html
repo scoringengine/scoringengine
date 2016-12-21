@@ -23,7 +23,7 @@
                         ajax: "/api/overview/get_data",
                         columns: data.columns,
                         paging: false,
-                        ordering: false,
+                        order: [[ 1, 'desc' ]],
                         info: false,
                         searching: false,
                         'createdRow': function ( row, data, index ) {
