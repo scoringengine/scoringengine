@@ -54,18 +54,20 @@
 {% block admincontent %}
 <div class="container">
   <div class="row">
-    <h2>{{team.name}}</h2>
+    <h1>{{team.name}}</h1>
     <div class="panel-body">
       {% for service in team.services %}
         <div class="panel-group">
           <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">
-                <a data-toggle="collapse" href="#collapse-{{service.id}}">{{service.name}}</a>
-              </h4>
+            <a data-toggle="collapse" href="#collapse-{{service.id}}">
+            <div class="panel-heading" style="background-color:#f9f9f9">
+              <h2 class="panel-title">
+                {{service.name}}
+              </h2>
             </div>
-            <div id="collapse-{{service.id}}" class="panel-collapse collapse">
-              <div class="panel-body">
+            </a>
+            <div id="collapse-{{service.id}}" class="panel-collapse collapse" style="border-top: 0.5px solid gray;">
+              <div class="panel-body" style="padding-top: 0px;">
                 <h4>IP Address: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter IP Address" data-name="ip_address" data-url='/api/admin/update_ip_address'>{{service.ip_address}}</a></h4>
                 <h4>Accounts</h4>
                 {% if service.accounts %}
@@ -86,7 +88,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    No Accounts Found
+                    No Accounts Found.
                 {% endif %}
                 <h4>Environments</h4>
                 {% if service.environments %}
@@ -128,7 +130,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    No Environments Found
+                    No Environments Found.
                 {% endif %}
 
                 <h4>Checks</h4>
@@ -171,7 +173,7 @@
                         } );
                     </script>
                 {% else %}
-                    No Checks Found
+                    No Checks Found.
                 {% endif %}
               </div>
             </div>
