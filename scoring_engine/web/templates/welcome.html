@@ -7,12 +7,12 @@
 {% block content %}
 <div class="container">
   {% if sponsorship_images %}
-    {% for class_level, image_details in sponsorship_images.items() %}
+    {% for sponsorship_level in sponsorship_images.keys() %}
       <div class="row">
-        <h1 class="text-center">{{image_details['sponsorship_level'].title()}}</h1>
+        <h1 class="text-center">{{sponsorship_level.title()}}</h1>
       </div>
       <div class="row">
-      {% for image in image_details['images'] %}
+      {% for image in sponsorship_images[sponsorship_level] %}
         <div class="card">
           <img class='center-block' src="{{image}}" alt="{{image}}">
         </div>
@@ -24,3 +24,4 @@
   {% endif %}
 </div>
 {% endblock %}
+
