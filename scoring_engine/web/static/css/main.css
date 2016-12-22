@@ -98,3 +98,7 @@ tr.shown td.details-control {
     max-width: 95%;
     margin-bottom: 15px;
 }
+
+a.editable-click {
+    border-bottom: none;
+}
