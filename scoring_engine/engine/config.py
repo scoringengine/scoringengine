@@ -24,5 +24,13 @@ class Config(object):
         self.redis_password = self.parser['REDIS']['password']
         self.redis_namespace = self.parser['REDIS']['namespace']
 
+        self.sponsorship_images = []
+        for sponsorship_level in self.parser['sponsorships']['levels'].split(','):
+            images = []
+            for company in self.parser['sponsorships'][sponsorship_level].split(','):
+                images.append("/static/" + str(company))
+            self.sponsorship_images.append({"sponsorship_level": sponsorship_level, "images": images})
+
+
 
 config = Config()

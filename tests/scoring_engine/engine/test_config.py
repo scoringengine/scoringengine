@@ -30,3 +30,10 @@ class TestConfig(object):
 
     def test_redis_namespace(self):
         assert self.config.redis_namespace == "scoring_engine"
+
+    def test_sponsorship_images(self):
+        assert len(self.config.sponsorship_images) == 4
+        assert self.config.sponsorship_images[0] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'diamond'}
+        assert self.config.sponsorship_images[1] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'platinum'}
+        assert self.config.sponsorship_images[2] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'somecustomlevel'}
+        assert self.config.sponsorship_images[3] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'gold'}

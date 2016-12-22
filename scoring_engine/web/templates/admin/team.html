@@ -152,16 +152,9 @@
                         <tbody>
                         {% for check in service.checks_reversed %}
                             <tr>
-                                {% if check.result %}
-                                    {% set data_value = '1' %}
-                                    {% set check_value = 'Pass' %}
-                                {% else %}
-                                    {% set data_value = '2' %}
-                                    {% set check_value = 'Fail' %}
-                                {% endif %}
-                                <td width="20%">{{check.round.number}}</td>
-                                <td width="20%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{{data_value}}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url="{{url_for('api.admin_update_check')}}" data-name='check_value'>{{check_value}}</a></td>
-                                <td width="30%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{check.id}}" data-title="Enter Reason" data-url="{{url_for('api.admin_update_check')}}" data-name='check_reason'>{{check.reason}}</a></td>
+                                <td width="15%">{{check.round.number}}</td>
+                                <td width="15%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{% if check.result %}1{% else %}2{% endif %}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url="{{url_for('api.admin_update_check')}}" data-name='check_value'>{% if check.result %}Pass {% else %} Fail {% endif %}</a></td>
+                                <td width="40%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{check.id}}" data-title="Enter Reason" data-url="{{url_for('api.admin_update_check')}}" data-name='check_reason'>{{check.reason}}</a></td>
                                 <td width="30%">{{check.completed_timestamp}}</td>
                             </tr>
                         {% endfor %}
