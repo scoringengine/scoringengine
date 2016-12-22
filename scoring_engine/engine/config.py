@@ -1,5 +1,6 @@
 import configparser
 import os
+from collections import OrderedDict
 
 
 class Config(object):
@@ -24,13 +25,11 @@ class Config(object):
         self.redis_password = self.parser['REDIS']['password']
         self.redis_namespace = self.parser['REDIS']['namespace']
 
-        self.sponsorship_images = []
+        self.sponsorship_images = OrderedDict()
         for sponsorship_level in self.parser['sponsorships']['levels'].split(','):
-            images = []
+            self.sponsorship_images[sponsorship_level] = []
             for company in self.parser['sponsorships'][sponsorship_level].split(','):
-                images.append("/static/" + str(company))
-            self.sponsorship_images.append({"sponsorship_level": sponsorship_level, "images": images})
-
+                self.sponsorship_images[sponsorship_level].append("/static/" + str(company))
 
 
 config = Config()
