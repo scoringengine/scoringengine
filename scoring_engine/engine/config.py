@@ -10,7 +10,6 @@ class Config(object):
             location = "../../engine.conf"
         config_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), location)
 
-        print("Loading config from " + config_location)
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
 
