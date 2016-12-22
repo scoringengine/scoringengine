@@ -33,7 +33,7 @@ class TestConfig(object):
 
     def test_sponsorship_images(self):
         assert len(self.config.sponsorship_images) == 4
-        assert self.config.sponsorship_images[0] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'diamond'}
-        assert self.config.sponsorship_images[1] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'platinum'}
-        assert self.config.sponsorship_images[2] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'somecustomlevel'}
-        assert self.config.sponsorship_images[3] == {'images': ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg'], 'sponsorship_level': 'gold'}
+        assert self.config.sponsorship_images['diamond'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
+        assert self.config.sponsorship_images['platinum'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
+        assert self.config.sponsorship_images['somecustomlevel'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
+        assert self.config.sponsorship_images['gold'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
