@@ -11,11 +11,12 @@
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap-glyphicons.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
   </head>
   {% if 'unauthorized' in request.path %}
   <body style="background-color: red">
   {% else %}
-  <body>
+  <body style="background-color: #f9f9f9;">
   {% endif %}
     {% for category, message in get_flashed_messages(with_categories=true) %}
     <div class="alert alert-{{category}} alert-dismissable alert-fixed" role="alert" style="margin-bottom: 0px">

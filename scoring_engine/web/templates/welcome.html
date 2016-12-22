@@ -5,7 +5,7 @@
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<div class="container">
+<div class="container md-page">
   {% if sponsorship_images %}
     {% for sponsorship_level in sponsorship_images %}
       <div class="row">
