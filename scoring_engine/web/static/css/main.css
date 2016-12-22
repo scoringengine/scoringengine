@@ -93,7 +93,8 @@ tr.shown td.details-control {
 .md-page {
     background: #fff;
     padding: 25px;
-    margin-top: 33px;
+    margin-top: 10px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.1);
-    max-width: 900px;
+    max-width: 95%;
+    margin-bottom: 15px;
 }
