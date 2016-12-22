@@ -6,73 +6,22 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-  <div class="row">
-    <h1 class="text-center">Diamond Sponsors</h1>
-  </div>
-  <div class="row">
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-  </div>
-  <div class="row">
-    <h1 class="text-center">Platinum Sponsors</h1>
-  </div>
-  <div class="row">
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-  </div>
-  <div class="row">
-    <h1 class="text-center">Gold Sponsors</h1>
-  </div>
-  <div class="row">
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-  </div>
-  <div class="row">
-    <h1 class="text-center">Bronze Sponsors</h1>
-  </div>
-  <div class="row">
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card">
-      <img class="center-block" src="{{ url_for('static', filename='images/logo_placeholder.jpg') }}" alt="Card image cap">
-      <p class="card-text text-center">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-  </div>
+  {% if sponsorship_images %}
+    {% for sponsorship_level in sponsorship_images %}
+      <div class="row">
+        <h1 class="text-center">{{sponsorship_level.title()}}</h1>
+      </div>
+      <div class="row">
+      {% for image in sponsorship_images[sponsorship_level] %}
+        <div class="card">
+          <img class='center-block' src="{{image}}" alt="{{image}}">
+        </div>
+      {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    No sponsorship images defined in the environment.conf file
+  {% endif %}
 </div>
 {% endblock %}
+

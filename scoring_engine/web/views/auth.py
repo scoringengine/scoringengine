@@ -62,7 +62,7 @@ def login():
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
         except OperationalError:
-            flash('Database is fucked, yo.', 'danger')
+            flash("Error 'OperationError' received!. Try restarting the db service.", 'danger')
             return render_template('login.html', form=form)
 
         if user:
