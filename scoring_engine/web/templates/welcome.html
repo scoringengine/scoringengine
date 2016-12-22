@@ -6,17 +6,21 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-  {% for class_level, image_details in sponsorship_images.items() %}
-    <div class="row">
-      <h1 class="text-center">{{image_details['sponsorship_level'].title()}}</h1>
-    </div>
-    <div class="row">
-    {% for image in image_details['images'] %}
-      <div class="card">
-        <img class='center-block' src="{{image}}" alt="{{image}}">
+  {% if sponsorship_images %}
+    {% for class_level, image_details in sponsorship_images.items() %}
+      <div class="row">
+        <h1 class="text-center">{{image_details['sponsorship_level'].title()}}</h1>
+      </div>
+      <div class="row">
+      {% for image in image_details['images'] %}
+        <div class="card">
+          <img class='center-block' src="{{image}}" alt="{{image}}">
+        </div>
+      {% endfor %}
       </div>
     {% endfor %}
-    </div>
-  {% endfor %}
+  {% else %}
+    No sponsorship images defined in the environment.conf file
+  {% endif %}
 </div>
 {% endblock %}
