@@ -23,6 +23,7 @@ config = {
         'Flask-WTF',
         'redis',
         'sqlalchemy',
+        'celery',
         # Develpment Dependencies
         'pycodestyle',
         'pytest-cov',
