@@ -250,8 +250,14 @@ def overview_get_data():
 @mod.route('/api/overview/get_round_data')
 @cache.cached(timeout=15)
 def overview_get_round_data():
-    round = Round.query.order_by(Round.number.desc()).first()
-    data = {'round_start': round.round_start, 'number': round.number}
+    round_obj = Round.query.order_by(Round.number.desc()).first()
+    if round_obj:
+        round_start = round_obj.round_start
+        number = round_obj.number
+    else:
+        round_start = "No rounds data"
+        number = 0
+    data = {'round_start': round_start, 'number': number}
     return jsonify(data)
 
 
