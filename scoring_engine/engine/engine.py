@@ -11,8 +11,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.engine.job import Job
-from scoring_engine.engine.worker_queue import WorkerQueue
-from scoring_engine.engine.finished_queue import FinishedQueue
+from scoring_engine.engine.execute_command import execute_command
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -27,10 +26,6 @@ class Engine(object):
         self.round_time_sleep = round_time_sleep
         self.worker_wait_time = worker_wait_time
         self.config = config
-        self.worker_queue = WorkerQueue()
-        self.worker_queue.clear()
-        self.finished_queue = FinishedQueue()
-        self.finished_queue.clear()
         self.checks_location = self.config.checks_location
         self.checks_class_list = self.config.checks_class_list
 
@@ -79,9 +74,15 @@ class Engine(object):
     def is_last_round(self):
         return (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0)
 
+    def is_all_tasks_finished(self, tasks):
+        all_tasks_finished = True
+        for task_id in tasks:
+            task = execute_command.AsyncResult(task_id)
+            if task.state == 'PENDING':
+                all_tasks_finished = False
+        return all_tasks_finished
+
     def run(self):
-        self.worker_queue.clear()
-        self.finished_queue.clear()
         while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
             self.current_round += 1
             print("Running round: " + str(self.current_round))
@@ -89,7 +90,7 @@ class Engine(object):
 
             services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
-            num_jobs_queued = 0
+            task_ids = []
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 print("Adding " + service.team.name + ' - ' + service.name + " to queue")
@@ -97,24 +98,33 @@ class Engine(object):
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
-                self.worker_queue.add_job(job)
-                num_jobs_queued += 1
-            while self.finished_queue.size() != num_jobs_queued:
+                task = execute_command.delay(job)
+                task_ids.append(task.id)
+
+            while not self.is_all_tasks_finished(task_ids):
                 print("Waiting for all jobs to finish")
                 self.sleep(self.worker_wait_time)
 
+            print("All tasks finished, now saving all to db")
             round_obj = Round(number=self.current_round)
             self.db.save(round_obj)
-            while self.finished_queue.size() != 0:
-                print("Saving finished job...")
-                finished_job = self.finished_queue.get_job()
-                environment = self.db.session.query(Environment).get(finished_job.environment_id)
-                if re.search(environment.matching_regex, finished_job.output):
-                    result = True
-                else:
+            for task_id in task_ids:
+                task = execute_command.AsyncResult(task_id)
+                environment = self.db.session.query(Environment).get(task.result['environment_id'])
+                if task.result['errored_out']:
                     result = False
-                check = Check(service=environment.service, round=round_obj, result=result, output=finished_job.output)
+                    reason = 'Task Timed Out'
+                else:
+                    if re.search(environment.matching_regex, task.result['output']):
+                        result = True
+                        reason = "Successful Content Match"
+                    else:
+                        result = False
+                        reason = 'Unsuccessful Content Match'
+                check = Check(service=environment.service, round=round_obj)
+                check.finished(result=result, reason=reason, output=task.result['output'])
                 self.db.save(check)
+
             if not self.last_round:
                 print("Sleeping in between rounds")
                 self.sleep(self.round_time_sleep)

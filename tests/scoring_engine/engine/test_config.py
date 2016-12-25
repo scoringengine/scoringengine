@@ -28,9 +28,6 @@ class TestConfig(object):
     def test_redis_password(self):
         assert self.config.redis_password == "testpass"
 
-    def test_redis_namespace(self):
-        assert self.config.redis_namespace == "scoring_engine"
-
     def test_sponsorship_images(self):
         assert len(self.config.sponsorship_images) == 4
         assert self.config.sponsorship_images['diamond'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']

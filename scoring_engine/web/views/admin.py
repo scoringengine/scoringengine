@@ -2,27 +2,13 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from operator import itemgetter
 
-from redis.exceptions import ConnectionError
-
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
-from scoring_engine.engine.worker_queue import WorkerQueue
-from scoring_engine.engine.finished_queue import FinishedQueue
 
 
 mod = Blueprint('admin', __name__)
-
-
-def num_worker_queue():
-    queue = WorkerQueue()
-    return queue.size()
-
-
-def num_finished_queue():
-    queue = FinishedQueue()
-    return queue.size()
 
 
 @mod.route('/admin')
@@ -32,21 +18,6 @@ def status():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
         engine_stats = {}
-        engine_stats['num_worker_queue'] = 0
-        engine_stats['num_finished_queue'] = 0
-
-        try:
-            queue = WorkerQueue()
-            engine_stats['num_worker_queue'] = queue.size()
-        except ConnectionError:
-            engine_stats['num_worker_queue'] = 'Connection Error'
-
-        try:
-            queue = FinishedQueue()
-            engine_stats['num_finished_queue'] = queue.size()
-        except ConnectionError:
-            engine_stats['num_finished_queue'] = 'Connection Error'
-
         engine_stats['round_number'] = Round.get_last_round_num() + 1
         engine_stats['num_passed_checks'] = Check.query.filter_by(result=True).count()
         engine_stats['num_failed_checks'] = Check.query.filter_by(result=False).count()
