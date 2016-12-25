@@ -98,7 +98,6 @@ def admin_update_ip_address():
                     service.ip_address = request.form['value']
                     db.save(service)
                     return jsonify({'status': 'Updated Service Information'})
-            return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
 
 
@@ -110,13 +109,9 @@ def update_ip_address():
             service = Service.query.get(int(request.form['pk']))
             if service:
                 if service.team == current_user.team and request.form['name'] == 'ip_address':
-                    service.ip_address = request.form['ip_address']
+                    service.ip_address = request.form['value']
                     db.save(service)
-                    flash('Successfully updated ip address', 'success')
-                    return redirect('/service/' + str(service.id))
-            flash('Incorrect permissions', 'error')
-            return jsonify({'error': 'Incorrect permissions'})
-    flash('Incorrect permissions', 'error')
+                    return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
 
