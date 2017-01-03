@@ -62,7 +62,7 @@ for num in range(1, num_teams + 1):
         db.save(user)
 
     print("\t\tCreating ICMP Service")
-    service = Service(name="ICMP", team=team, check_name="ICMP IPv4 Check", ip_address="127.0.0.1")
+    service = Service(name="ICMP", team=team, check_name="ICMPCheck", ip_address="127.0.0.1")
     db.save(Environment(service=service, matching_regex='1 packets received'))
     db.save(service)
     services.append(service)
