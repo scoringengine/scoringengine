@@ -7,12 +7,11 @@ class FTPUploadCheck(BasicCheck):
     CMD = 'echo "cyberengine check" | curl -s -S -4 -v --ftp-pasv --ftp-create-dirs -T - ftp://{0}:{1}@{2}/{3}'
 
     def command(self):
-        ftp_environment = self.environment
-        dig_args = self.get_property_tuple(ftp_environment)
+        dig_args = self.get_property_tuple()
         cmd = self.CMD.format(*dig_args)
         return cmd
 
-    def get_property_tuple(self, ftp_environment):
+    def get_property_tuple(self):
         account = random.choice(self.environment.service.accounts)
         username = account.username
         password = account.password
