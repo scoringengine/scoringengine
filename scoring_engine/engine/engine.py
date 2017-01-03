@@ -20,7 +20,7 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, round_time_sleep=60, worker_wait_time=20):
+    def __init__(self, total_rounds=0, round_time_sleep=60, worker_wait_time=5):
         self.checks = []
         self.total_rounds = total_rounds
         self.round_time_sleep = round_time_sleep
@@ -48,19 +48,19 @@ class Engine(object):
 
     def add_check(self, check_obj):
         self.checks.append(check_obj)
-        self.checks = sorted(self.checks, key=lambda check: check.name)
+        self.checks = sorted(self.checks, key=lambda check: check.__name__)
 
     def load_checks(self):
         for check in self.checks_class_list:
             check_file_module = __import__(self.checks_location, fromlist=[check])
             check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
             check_class_attr = getattr(check_file_module, check + 'Check')
-            print("\t\t\tCheck Classname: " + check_class_attr.name)
+            print("\t\t\tCheck Classname: " + check_class_attr.__name__)
             self.add_check(check_class_attr)
 
     def check_name_to_obj(self, check_name):
         for check in self.checks:
-            if check.name == check_name:
+            if check.__name__ == check_name:
                 return check
         return None
 

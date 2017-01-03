@@ -2,9 +2,6 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class DNSCheck(BasicCheck):
-    name = 'DNSCheck'
-    protocol = 'dns'
-    version = 'ipv4'
     PROP_QTYPE = 'qtype'
     PROP_DOMAIN = 'domain'
     CMD = 'dig @{0} -t {1} -q {2}'
