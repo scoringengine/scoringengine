@@ -1,9 +1,9 @@
-from scoring_engine.celery_app import app
+from scoring_engine.celery_app import celery_app
 from billiard.exceptions import SoftTimeLimitExceeded
 import subprocess
 
 
-@app.task(name='execute_command', soft_time_limit=30)
+@celery_app.task(name='execute_command', soft_time_limit=30)
 def execute_command(job):
     output = ""
     try:

@@ -16,12 +16,14 @@ class Check(Base):
     result = Column(Boolean)
     output = Column(String, default="")
     reason = Column(String, default="")
+    command = Column(String, default="")
     completed_timestamp = Column(String)
     completed = Column(Boolean, default=False)
 
-    def finished(self, result, reason, output):
+    def finished(self, result, reason, output, command):
         self.result = result
         self.reason = reason
         self.output = output
         self.completed = True
         self.completed_timestamp = str(datetime.now())
+        self.command = command
