@@ -43,9 +43,10 @@ class TestCheck(UnitTest):
         assert check.output == ''
         assert check.completed is False
         assert check.reason == ''
-        check.finished(True, 'Successful Match', 'good output')
+        check.finished(True, 'Successful Match', 'good output', 'example command')
         self.db.save(check)
         assert check.result is True
         assert check.output == 'good output'
         assert check.reason == 'Successful Match'
+        assert check.command == 'example command'
         assert check.completed is True
