@@ -122,7 +122,7 @@ class Engine(object):
                         result = False
                         reason = 'Unsuccessful Content Match'
                 check = Check(service=environment.service, round=round_obj)
-                check.finished(result=result, reason=reason, output=task.result['output'])
+                check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
                 self.db.save(check)
 
             if not self.last_round:
