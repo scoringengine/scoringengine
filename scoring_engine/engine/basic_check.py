@@ -6,4 +6,4 @@ class BasicCheck(object):
         return self.environment.service.ip_address
 
     def get_property_by_name(self, property_name):
-      return [prop.value for prop in self.environment.properties if prop.name == property_name][0]
+        return [prop.value for prop in self.environment.properties if prop.name == property_name][0]
