@@ -1,0 +1,18 @@
+[Unit]
+Description=Scoring-Engine Engine Service
+After=syslog.target
+
+[Service]
+Type=simple
+User=engine
+Group=engine
+WorkingDirectory=/home/engine/scoring_engine/
+ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; /home/engine/scoring_engine/src/bin/engine'
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+
+[Journal]
+Storage=persistent
