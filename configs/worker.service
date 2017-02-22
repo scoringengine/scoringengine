@@ -1,0 +1,18 @@
+[Unit]
+Description=Scoring Engine Worker Service
+After=syslog.target
+
+[Service]
+Type=simple
+User=worker
+Group=worker
+WorkingDirectory=/home/worker/scoring_engine/
+ExecStart=/bin/bash -c 'cd /home/worker/scoring_engine/src/; source /home/worker/scoring_engine/env/bin/activate; /home/worker/scoring_engine/src/bin/worker'
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+
+[Journal]
+Storage=persistent
