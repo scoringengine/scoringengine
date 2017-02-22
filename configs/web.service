@@ -1,5 +1,5 @@
 [Unit]
-Description=Scoring-Engine Worker Service
+Description=Scoring-Engine Web Service
 After=syslog.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 User=engine
 Group=engine
 WorkingDirectory=/home/engine/scoring_engine/
-ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; /home/engine/scoring_engine/src/bin/engine'
+ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; python /home/engine/scoring_engine/src/run.py'
 StandardOutput=syslog
 StandardError=syslog
 
