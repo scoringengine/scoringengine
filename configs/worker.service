@@ -1,5 +1,5 @@
 [Unit]
-Description=Scoring Engine Worker Service
+Description=Scoring-Engine Worker Service
 After=syslog.target
 
 [Service]
