@@ -4,10 +4,10 @@ After=syslog.target
 
 [Service]
 Type=simple
-User=worker
-Group=worker
-WorkingDirectory=/home/worker/scoring_engine/
-ExecStart=/bin/bash -c 'cd /home/worker/scoring_engine/src/; source /home/worker/scoring_engine/env/bin/activate; /home/worker/scoring_engine/src/bin/worker'
+User=engine
+Group=engine
+WorkingDirectory=/home/engine/scoring_engine/
+ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; /home/engine/scoring_engine/src/bin/engine'
 StandardOutput=syslog
 StandardError=syslog
 
