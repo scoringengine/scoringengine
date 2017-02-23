@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 BASEDIR=$(dirname "$0")
-celery --workdir=$BASEDIR/../scoring_engine/engine -A execute_command worker -l info
+celery --workdir=$BASEDIR/../scoring_engine/engine -A execute_command worker -l warn

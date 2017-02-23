@@ -12,6 +12,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.logger import logger
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -20,7 +21,7 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, round_time_sleep=60, worker_wait_time=5):
+    def __init__(self, total_rounds=0, round_time_sleep=180, worker_wait_time=30):
         self.checks = []
         self.total_rounds = total_rounds
         self.round_time_sleep = round_time_sleep
@@ -41,9 +42,13 @@ class Engine(object):
         self.current_round = Round.get_last_round_num()
 
         self.load_checks()
+        self.round_running = False
 
     def shutdown(self):
-        print("Shutting down after this round...")
+        if self.round_running:
+            logger.warn("Shutting down after this round...")
+        else:
+            logger.warn("Shutting down now.")
         self.last_round = True
 
     def add_check(self, check_obj):
@@ -51,11 +56,12 @@ class Engine(object):
         self.checks = sorted(self.checks, key=lambda check: check.__name__)
 
     def load_checks(self):
+        logger.info("Loading checks source from " + str(self.checks_location))
         for check in self.checks_class_list:
             check_file_module = __import__(self.checks_location, fromlist=[check])
             check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
             check_class_attr = getattr(check_file_module, check + 'Check')
-            print("\t\t\tCheck Classname: " + check_class_attr.__name__)
+            logger.info("\tFound " + check_class_attr.__name__)
             self.add_check(check_class_attr)
 
     def check_name_to_obj(self, check_name):
@@ -85,7 +91,8 @@ class Engine(object):
     def run(self):
         while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
             self.current_round += 1
-            print("Running round: " + str(self.current_round))
+            logger.info("Running round: " + str(self.current_round))
+            self.round_running = True
             self.rounds_run += 1
 
             services = self.db.session.query(Service).all()[:]
@@ -93,7 +100,7 @@ class Engine(object):
             task_ids = []
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
-                print("Adding " + service.team.name + ' - ' + service.name + " to queue")
+                logger.info("Adding " + service.team.name + ' - ' + service.name + " to queue")
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
@@ -102,12 +109,17 @@ class Engine(object):
                 task_ids.append(task.id)
 
             while not self.is_all_tasks_finished(task_ids):
-                print("Waiting for all jobs to finish")
+                logger.info("Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)")
                 self.sleep(self.worker_wait_time)
+            logger.info("All jobs have finished for this round")
 
-            print("All tasks finished, now saving all to db")
+            logger.info("Determining check results and saving to db")
             round_obj = Round(number=self.current_round)
             self.db.save(round_obj)
+
+            # We keep track of the number of passed and failed checks per round
+            # so we can report a little bit at the end of each round
+            teams = {}
             for task_id in task_ids:
                 task = execute_command.AsyncResult(task_id)
                 environment = self.db.session.query(Environment).get(task.result['environment_id'])
@@ -121,10 +133,28 @@ class Engine(object):
                     else:
                         result = False
                         reason = 'Unsuccessful Content Match'
+
+                if environment.service.team.name not in teams:
+                    teams[environment.service.team.name] = {
+                        "Success": 0,
+                        "Failed": 0,
+                    }
+                if result:
+                    teams[environment.service.team.name]['Success'] += 1
+                else:
+                    teams[environment.service.team.name]['Failed'] += 1
+
                 check = Check(service=environment.service, round=round_obj)
                 check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
                 self.db.save(check)
 
+            logger.info("Finished Round " + str(self.current_round))
+            logger.info("Round Stats:")
+            for team_name in sorted(teams):
+                logger.info("\t" + team_name + "\tSuccess: " + str(teams[team_name]['Success']) + ", Failed: " + str(teams[team_name]['Failed']))
+
+            self.round_running = False
+
             if not self.last_round:
-                print("Sleeping in between rounds")
+                logger.info("Sleeping in between rounds (" + str(self.round_time_sleep) + " seconds)")
                 self.sleep(self.round_time_sleep)
