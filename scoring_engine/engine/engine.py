@@ -15,7 +15,6 @@ from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
 
 
-
 def engine_sigint_handler(signum, frame, engine):
     engine.shutdown()
 
