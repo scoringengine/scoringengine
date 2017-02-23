@@ -69,11 +69,11 @@ for num in range(1, num_teams + 1):
 
     print("\t\tCreating DNS Service")
     service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="8.8.8.8")
-    environment = Environment(service=service, matching_regex='IN   A')
+    environment = Environment(service=service, matching_regex='status: NOERROR')
     db.save(environment)
     db.save(Property(environment=environment, name='qtype', value='A'))
     db.save(Property(environment=environment, name='domain', value='www.google.com'))
-    environment_quad = Environment(service=service, matching_regex='IN   AAAA')
+    environment_quad = Environment(service=service, matching_regex='status: NOERROR')
     db.save(environment_quad)
     db.save(Property(environment=environment_quad, name='qtype', value='AAAA'))
     db.save(Property(environment=environment_quad, name='domain', value='www.google.com'))
