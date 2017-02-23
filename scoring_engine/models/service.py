@@ -7,15 +7,15 @@ from scoring_engine.models.base import Base
 class Service(Base):
     __tablename__ = "services"
     id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
-    check_name = Column(String(50), nullable=False)
+    name = Column(String(100), nullable=False)
+    check_name = Column(String(100), nullable=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship("Team", back_populates="services")
     checks = relationship("Check", back_populates="service")
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
     environments = relationship('Environment', back_populates="service")
-    ip_address = Column(String, nullable=False)
+    ip_address = Column(String(50), nullable=False)
 
     def check_result_for_round(self, round_num):
         for check in self.checks:

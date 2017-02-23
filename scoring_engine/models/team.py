@@ -1,5 +1,5 @@
 import random
-from sqlalchemy import Column, Integer, String, desc
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -9,11 +9,11 @@ from scoring_engine.models.round import Round
 class Team(Base):
     __tablename__ = 'teams'
     id = Column(Integer, primary_key=True)
-    name = Column(String(20), nullable=False)
+    name = Column(String(50), nullable=False)
     color = Column(String(10), nullable=False)
     services = relationship("Service", back_populates="team")
     users = relationship("User", back_populates="team")
-    rgb_color = Column(String())
+    rgb_color = Column(String(30))
 
     def __init__(self, name, color):
         self.name = name

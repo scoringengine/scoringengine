@@ -24,6 +24,7 @@ config = {
         'redis',
         'sqlalchemy',
         'celery',
+        'uwsgi',
         # Develpment Dependencies
         'pycodestyle',
         'pytest-cov',

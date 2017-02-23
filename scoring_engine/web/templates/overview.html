@@ -34,7 +34,7 @@
             refreshheader();
             setInterval(function(){
                 refreshheader()
-            }, 5000);
+            }, 30000);
 
             // Populate our table
             $.ajax({
@@ -75,7 +75,7 @@
                     });
                     setInterval( function () {
                         table.ajax.reload();
-                    }, 5000 );
+                    }, 30000 );
                 }
             });
         });
