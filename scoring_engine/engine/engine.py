@@ -134,7 +134,7 @@ class Engine(object):
                         result = False
                         reason = 'Unsuccessful Content Match'
 
-                if not environment.service.team.name in teams:
+                if environment.service.team.name not in teams:
                     teams[environment.service.team.name] = {
                         "Success": 0,
                         "Failed": 0,
