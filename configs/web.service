@@ -7,7 +7,7 @@ Type=simple
 User=engine
 Group=engine
 WorkingDirectory=/home/engine/scoring_engine/
-ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; python /home/engine/scoring_engine/src/run.py'
+ExecStart=/bin/bash -c 'uwsgi -H /home/engine/scoring_engine/env/ --http :5000 --wsgi-file /home/engine/scoring_engine/src/run.py'
 StandardOutput=syslog
 StandardError=syslog
 

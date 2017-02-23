@@ -1,4 +1,4 @@
-from scoring_engine.web import app
+from scoring_engine.web import app as application
 
 if __name__ == '__main__':
-    app.run()
+    application.run()

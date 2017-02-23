@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -10,4 +10,4 @@ class Environment(Base):
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship("Service")
     properties = relationship('Property', back_populates="environment")
-    matching_regex = Column(String, nullable=False)
+    matching_regex = Column(Text, nullable=False)

@@ -2,7 +2,7 @@ import bcrypt
 
 from flask_login import UserMixin
 
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -13,8 +13,8 @@ from scoring_engine.db import db_salt
 class User(Base, UserMixin):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    username = Column(String(20), nullable=False, unique=True)
-    password = Column(String(50), nullable=False)
+    username = Column(String(50), nullable=False, unique=True)
+    password = Column(Text, nullable=False)
     authenticated = Column(Boolean, default=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship('Team', back_populates='users')
