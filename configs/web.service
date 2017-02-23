@@ -6,8 +6,8 @@ After=syslog.target
 Type=simple
 User=engine
 Group=engine
-WorkingDirectory=/home/engine/scoring_engine/
-ExecStart=/bin/bash -c 'source /home/engine/scoring_engine/env/bin/activate; uwsgi -H /home/engine/scoring_engine/env/ --socket 127.0.0.1:5000 --wsgi-file /home/engine/scoring_engine/src/run.py'
+Environment=ENGINE_ROOT='/home/engine/scoring_engine'
+ExecStart=/bin/bash -c 'source ${ENGINE_ROOT}/env/bin/activate; uwsgi -H ${ENGINE_ROOT}/env/ --socket 127.0.0.1:5000 --wsgi-file ${ENGINE_ROOT}/src/run.py'
 StandardOutput=syslog
 StandardError=syslog
 
