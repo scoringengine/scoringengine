@@ -9,7 +9,6 @@ from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from scoring_engine.web.cache import cache
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
@@ -248,7 +247,6 @@ def overview_get_data():
 
 
 @mod.route('/api/overview/get_round_data')
-@cache.cached(timeout=15)
 def overview_get_round_data():
     round_obj = Round.query.order_by(Round.number.desc()).first()
     if round_obj:
@@ -292,7 +290,6 @@ def service_get_checks(id):
     return jsonify(data=data)
 
 
-@cache.cached(timeout=30)
 @mod.route('/api/scoreboard/get_bar_data')
 def scoreboard_get_bar_data():
     results = Team.get_all_rounds_results()
@@ -314,7 +311,6 @@ def scoreboard_get_bar_data():
 
 
 @mod.route('/api/scoreboard/get_line_data')
-@cache.cached(timeout=30)
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
     team_data = {}
@@ -336,7 +332,6 @@ def scoreboard_get_line_data():
 
 
 @mod.route('/api/overview/data')
-@cache.cached(timeout=15)
 def overview_data():
     team_data = {}
     teams = Team.query.filter(Team.color == 'Blue').order_by(Team.id).all()
