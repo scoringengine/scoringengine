@@ -61,7 +61,7 @@ class Engine(object):
             check_file_module = __import__(self.checks_location, fromlist=[check])
             check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
             check_class_attr = getattr(check_file_module, check + 'Check')
-            logger.info("\tFound " + check_class_attr.__name__)
+            logger.info(" Found " + check_class_attr.__name__)
             self.add_check(check_class_attr)
 
     def check_name_to_obj(self, check_name):
@@ -151,7 +151,7 @@ class Engine(object):
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Stats:")
             for team_name in sorted(teams):
-                logger.info("\t" + team_name + "\tSuccess: " + str(teams[team_name]['Success']) + ", Failed: " + str(teams[team_name]['Failed']))
+                logger.info(" " + team_name + " Success: " + str(teams[team_name]['Success']) + ", Failed: " + str(teams[team_name]['Failed']))
 
             self.round_running = False
 
