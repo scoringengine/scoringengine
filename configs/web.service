@@ -7,12 +7,10 @@ Type=simple
 User=engine
 Group=engine
 Environment=ENGINE_ROOT='/home/engine/scoring_engine'
-ExecStart=/bin/bash -c 'source ${ENGINE_ROOT}/env/bin/activate; uwsgi -H ${ENGINE_ROOT}/env/ --socket 127.0.0.1:5000 --wsgi-file ${ENGINE_ROOT}/src/run.py'
+ExecStart=/bin/bash -c 'source ${ENGINE_ROOT}/env/bin/activate; uwsgi -H ${ENGINE_ROOT}/env/ --enable-threads -p 4 --socket 127.0.0.1:5000 --wsgi-file ${ENGINE_ROOT}/src/run.py'
 StandardOutput=syslog
 StandardError=syslog
+SyslogIdentifier=scoring_engine-web
 
 [Install]
 WantedBy=multi-user.target
-
-[Journal]
-Storage=persistent
