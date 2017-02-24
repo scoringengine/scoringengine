@@ -4,7 +4,6 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 from scoring_engine.web import app
-from scoring_engine.web import cache
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 
@@ -31,8 +30,6 @@ class WebTest(UnitTest):
         self.view_module.render_template = MagicMock()
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
-        with app.app_context():
-            cache.clear()
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)
