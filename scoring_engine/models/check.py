@@ -4,9 +4,12 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from scoring_engine.models.base import Base
+import html
 
 
 class Check(Base):
+    OUTPUT_MAX_LENGTH = 10000
+
     __tablename__ = 'checks'
     id = Column(Integer, primary_key=True)
     round_id = Column(Integer, ForeignKey('rounds.id'))
@@ -23,7 +26,7 @@ class Check(Base):
     def finished(self, result, reason, output, command):
         self.result = result
         self.reason = reason
-        self.output = output
+        self.output = html.escape(output[:self.OUTPUT_MAX_LENGTH])
         self.completed = True
         self.completed_timestamp = str(datetime.now())
         self.command = command
