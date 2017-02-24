@@ -6,13 +6,11 @@ After=syslog.target
 Type=simple
 User=engine
 Group=engine
-WorkingDirectory=/home/engine/scoring_engine/
-ExecStart=/bin/bash -c 'cd /home/engine/scoring_engine/src/; source /home/engine/scoring_engine/env/bin/activate; /home/engine/scoring_engine/src/bin/worker'
+Environment=ENGINE_ROOT='/home/engine/scoring_engine'
+ExecStart=/bin/bash -c 'source ${ENGINE_ROOT}/env/bin/activate; ${ENGINE_ROOT}/src/bin/worker'
 StandardOutput=syslog
 StandardError=syslog
+SyslogIdentifier=scoring_engine-worker
 
 [Install]
 WantedBy=multi-user.target
-
-[Journal]
-Storage=persistent
