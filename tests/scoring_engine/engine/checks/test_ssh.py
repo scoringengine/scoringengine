@@ -9,4 +9,4 @@ class TestSSHCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = 'expect -c "spawn ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pwnbus@127.0.0.1 \'ls -l\'; expect \'assword\'; send \'pwnbuspass\r\'; interact\''
+    cmd = 'expect -c "spawn ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pwnbus@127.0.0.1 "ls -l"; expect "assword"; send "pwnbuspass\r"; interact"'
