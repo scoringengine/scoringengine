@@ -100,6 +100,8 @@ class Engine(object):
             task_ids = []
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
+                if check_class is None:
+                    raise LookupError("Unable to map service to check code for " + str(service.check_name))
                 logger.info("Adding " + service.team.name + ' - ' + service.name + " check to queue")
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
