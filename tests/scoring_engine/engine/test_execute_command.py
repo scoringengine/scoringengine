@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.job import Job
 

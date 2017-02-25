@@ -1,4 +1,4 @@
-from web_test import WebTest
+from tests.scoring_engine.web.web_test import WebTest
 
 
 class TestAdmin(WebTest):

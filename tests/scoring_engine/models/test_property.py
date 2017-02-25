@@ -1,12 +1,7 @@
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-
 from scoring_engine.models.property import Property
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
-from helpers import generate_sample_model_tree
-from unit_test import UnitTest
+from tests.scoring_engine.helpers import generate_sample_model_tree
+from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestProperty(UnitTest):

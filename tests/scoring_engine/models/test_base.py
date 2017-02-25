@@ -1,10 +1,5 @@
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-
-from scoring_engine.models.base import Base
-
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from scoring_engine.models.base import Base
 
 
 class TestBase(object):

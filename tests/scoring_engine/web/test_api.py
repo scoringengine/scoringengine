@@ -1,10 +1,11 @@
 import json
-from web_test import WebTest
 
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+
+from tests.scoring_engine.web.web_test import WebTest
 
 
 class TestAPI(WebTest):

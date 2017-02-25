@@ -1,14 +1,11 @@
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.exc import OperationalError
-import pytest
-
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
 
 from scoring_engine.db import DB
 from scoring_engine.db_not_connected import DBNotConnected
 from scoring_engine.models.team import Team
+
+import pytest
 
 
 class TestDB(object):
