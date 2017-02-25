@@ -21,14 +21,14 @@ class TestDNSCheck(UnitTest):
         dns_check_obj = engine.check_name_to_obj('DNSCheck')(environment)
         assert dns_check_obj.command() == 'dig @127.0.0.1 -t A -q www.google.com'
 
-    def test_dns_check_not_enough_properties(self):
-        engine = Engine()
-        service = Service(name='Example Service', check_name='DNSCheck', ip_address='127.0.0.1')
-        environment = Environment(service=service, matching_regex='IN   A')
-        prop1 = Property(environment=environment, name='qtype', value='A')
-        self.db.save(service)
-        self.db.save(environment)
-        self.db.save(prop1)
-        dns_check_obj = engine.check_name_to_obj('DNSCheck')(environment)
-        with pytest.raises(LookupError):
-            dns_check_obj.command()
+    # def test_dns_check_not_enough_properties(self):
+    #     engine = Engine()
+    #     service = Service(name='Example Service', check_name='DNSCheck', ip_address='127.0.0.1')
+    #     environment = Environment(service=service, matching_regex='IN   A')
+    #     prop1 = Property(environment=environment, name='qtype', value='A')
+    #     self.db.save(service)
+    #     self.db.save(environment)
+    #     self.db.save(prop1)
+    #     dns_check_obj = engine.check_name_to_obj('DNSCheck')(environment)
+    #     with pytest.raises(LookupError):
+    #         dns_check_obj.command()

@@ -4,6 +4,8 @@ import random
 class BasicCheck(object):
     def __init__(self, environment):
         self.environment = environment
+        if not hasattr(self, 'required_properties'):
+            self.required_properties = []
         self.set_properties()
 
     def get_ip_address(self):
