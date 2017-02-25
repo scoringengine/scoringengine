@@ -1,9 +1,5 @@
 from scoring_engine.engine.engine import Engine
 
-from scoring_engine.models.team import Team
-from scoring_engine.models.service import Service
-from scoring_engine.models.environment import Environment
-
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -16,7 +12,9 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.dns import DNSCheck
         from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
         from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
-        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck]
+        from scoring_engine.engine.checks.mysql import MYSQLCheck
+        from scoring_engine.engine.checks.ssh import SSHCheck
+        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck, MYSQLCheck, SSHCheck]
         assert set(engine.checks) == set(expected_checks)
 
     def test_total_rounds_init(self):
