@@ -1,5 +1,6 @@
-from web_test import WebTest
 from collections import OrderedDict
+
+from tests.scoring_engine.web.web_test import WebTest
 
 
 class TestWelcome(WebTest):

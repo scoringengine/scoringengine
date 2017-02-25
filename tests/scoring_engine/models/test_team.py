@@ -1,15 +1,10 @@
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
-from helpers import generate_sample_model_tree
-from unit_test import UnitTest
+from tests.scoring_engine.helpers import generate_sample_model_tree
+from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestTeam(UnitTest):

@@ -1,21 +1,16 @@
 import importlib
-import sys
-import os
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../'))
-from scoring_engine.web import app
-from scoring_engine.models.team import Team
-from scoring_engine.models.user import User
-
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
-from unit_test import UnitTest
-from mock import MagicMock, call
-
 from flask import render_template as render_template_orig
 
 from flask import session
 from flask.testing import FlaskClient as BaseFlaskClient
 from flask_wtf.csrf import generate_csrf
+
+from scoring_engine.web import app
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+
+from tests.scoring_engine.unit_test import UnitTest
+from mock import MagicMock, call
 
 
 class WebTest(UnitTest):
