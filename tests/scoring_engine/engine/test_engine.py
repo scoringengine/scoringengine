@@ -13,7 +13,8 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
         from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
         from scoring_engine.engine.checks.mysql import MYSQLCheck
-        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck, MYSQLCheck]
+        from scoring_engine.engine.checks.ssh import SSHCheck
+        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck, MYSQLCheck, SSHCheck]
         assert set(engine.checks) == set(expected_checks)
 
     def test_total_rounds_init(self):
