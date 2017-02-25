@@ -2,6 +2,8 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class ICMPCheck(BasicCheck):
+    required_properties = []
+    CMD = 'ping -c 1 {}'
 
-    def command(self):
-        return 'ping -c 1 ' + self.get_ip_address()
+    def command_format(self, properties):
+        return (self.get_ip_address())

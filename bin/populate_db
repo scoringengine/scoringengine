@@ -18,6 +18,18 @@ db.connect()
 db.destroy()
 db.setup()
 
+useragents = [
+    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+    'Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)',
+    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1094) AppleWebKit/537.77.4 (KHTML like Gecko) Version/7.0.5 Safari/537.77.4',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1094) AppleWebKit/537.78.2 (KHTML like Gecko) Version/7.0.6 Safari/537.78.2',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1010) AppleWebKit/600.1.8 (KHTML like Gecko) Version/8.0 Safari/600.1.8',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1068) AppleWebKit/534.59.10 (KHTML like Gecko) Version/5.1.9 Safari/534.59.10',
+]
 
 services = []
 
@@ -68,15 +80,15 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating DNS Service")
-    service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="8.8.8.8")
+    service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="127.0.0.1")
     environment = Environment(service=service, matching_regex='status: NOERROR')
     db.save(environment)
     db.save(Property(environment=environment, name='qtype', value='A'))
-    db.save(Property(environment=environment, name='domain', value='www.google.com'))
+    db.save(Property(environment=environment, name='domain', value='www.domain.com'))
     environment_quad = Environment(service=service, matching_regex='status: NOERROR')
     db.save(environment_quad)
     db.save(Property(environment=environment_quad, name='qtype', value='AAAA'))
-    db.save(Property(environment=environment_quad, name='domain', value='www.google.com'))
+    db.save(Property(environment=environment_quad, name='domain', value='www.domain.com'))
     db.save(service)
     services.append(service)
 
@@ -100,6 +112,26 @@ for num in range(1, num_teams + 1):
     db.save(Property(environment=environment, name='filename', value='foo.txt'))
     db.save(service)
     db.save(environment)
+    services.append(service)
+
+    print("\t\tCreating HTTP Service")
+    service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='127.0.0.1')
+    for useragent in useragents:
+        environment = Environment(service=service, matching_regex='some random string')
+        db.save(Property(environment=environment, name='useragent', value=useragent))
+        db.save(Property(environment=environment, name='uri', value='/'))
+        db.save(environment)
+        db.save(service)
+    services.append(service)
+
+    print("\t\tCreating HTTPS Service")
+    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', ip_address='127.0.0.1')
+    for useragent in useragents:
+        environment = Environment(service=service, matching_regex='some random string')
+        db.save(Property(environment=environment, name='useragent', value=useragent))
+        db.save(Property(environment=environment, name='uri', value='/'))
+        db.save(environment)
+        db.save(service)
     services.append(service)
 
 

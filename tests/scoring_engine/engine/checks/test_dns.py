@@ -29,6 +29,5 @@ class TestDNSCheck(UnitTest):
         self.db.save(service)
         self.db.save(environment)
         self.db.save(prop1)
-        dns_check_obj = engine.check_name_to_obj('DNSCheck')(environment)
         with pytest.raises(LookupError):
-            dns_check_obj.command()
+            dns_check_obj = engine.check_name_to_obj('DNSCheck')(environment)
