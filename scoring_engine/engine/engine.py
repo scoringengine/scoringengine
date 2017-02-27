@@ -157,7 +157,7 @@ class Engine(object):
                 stat_string += " Success: " + str(len(teams[team_name]['Success']))
                 stat_string += ", Failed: " + str(len(teams[team_name]['Failed']))
                 if len(teams[team_name]['Failed']) > 0:
-                     stat_string += ' ' + str(teams[team_name]['Failed'])
+                    stat_string += ' ' + str(teams[team_name]['Failed'])
                 logger.info(stat_string)
 
             self.round_running = False
