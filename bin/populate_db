@@ -196,6 +196,15 @@ for num in range(1, num_teams + 1):
     db.save(environment)
     services.append(service)
 
+    print("\t\tCreating VNC Service")
+    service = Service(name='VNC', team=team, check_name='VNCCheck', ip_address='127.0.0.1')
+    # BLANK for no username required
+    db.save(Account(username='BLANK', password='testpass', service=service))
+    environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+    db.save(service)
+    db.save(environment)
+    services.append(service)
+
 print("Creating " + str(num_rounds) + " rounds")
 for num_round in range(1, num_rounds + 1):
     print("\tCreating round " + str(num_round))
