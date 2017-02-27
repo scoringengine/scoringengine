@@ -17,6 +17,7 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.mysql import MYSQLCheck
         from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
         from scoring_engine.engine.checks.pop3 import POP3Check
+        from scoring_engine.engine.checks.imap import IMAPCheck
         expected_checks = [
             ICMPCheck,
             SSHCheck,
@@ -28,6 +29,7 @@ class TestEngine(UnitTest):
             MYSQLCheck,
             POSTGRESQLCheck,
             POP3Check,
+            IMAPCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 
