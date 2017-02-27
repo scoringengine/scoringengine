@@ -38,3 +38,4 @@ test/.cache/*
 engine.db
 .coverage
 htmlcov
+engine.conf
