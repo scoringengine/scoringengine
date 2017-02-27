@@ -138,13 +138,13 @@ class Engine(object):
 
                 if environment.service.team.name not in teams:
                     teams[environment.service.team.name] = {
-                        "Success": 0,
-                        "Failed": 0,
+                        "Success": [],
+                        "Failed": [],
                     }
                 if result:
-                    teams[environment.service.team.name]['Success'] += 1
+                    teams[environment.service.team.name]['Success'].append(environment.service.name)
                 else:
-                    teams[environment.service.team.name]['Failed'] += 1
+                    teams[environment.service.team.name]['Failed'].append(environment.service.name)
 
                 check = Check(service=environment.service, round=round_obj)
                 check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
@@ -153,7 +153,12 @@ class Engine(object):
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Stats:")
             for team_name in sorted(teams):
-                logger.info(" " + team_name + " Success: " + str(teams[team_name]['Success']) + ", Failed: " + str(teams[team_name]['Failed']))
+                stat_string = " " + team_name
+                stat_string += " Success: " + str(len(teams[team_name]['Success']))
+                stat_string += ", Failed: " + str(len(teams[team_name]['Failed']))
+                if len(teams[team_name]['Failed']) > 0:
+                    stat_string += ' ' + str(teams[team_name]['Failed'])
+                logger.info(stat_string)
 
             self.round_running = False
 

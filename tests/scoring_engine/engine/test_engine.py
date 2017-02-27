@@ -15,8 +15,8 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.http import HTTPCheck
         from scoring_engine.engine.checks.https import HTTPSCheck
         from scoring_engine.engine.checks.mysql import MYSQLCheck
-        from scoring_engine.engine.checks.ssh import SSHCheck
-        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck, HTTPCheck, HTTPSCheck, MYSQLCheck, SSHCheck]
+        from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
+        expected_checks = [ICMPCheck, SSHCheck, DNSCheck, FTPDownloadCheck, FTPUploadCheck, HTTPCheck, HTTPSCheck, MYSQLCheck, POSTGRESQLCheck]
         assert set(engine.checks) == set(expected_checks)
 
     def test_total_rounds_init(self):
