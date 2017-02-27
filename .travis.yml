@@ -5,6 +5,7 @@ install: "pip install -e ."
 services:
   - redis-server
 script:
+  - mv engine.conf.inc engine.conf
   - py.test --cov=scoring_engine tests
   - codeclimate-test-reporter
   - pycodestyle --show-source --ignore=E501,E402  ./
