@@ -38,4 +38,7 @@ test/.cache/*
 engine.db
 .coverage
 htmlcov
+
+# Custom
 engine.conf
+bin/custom_env
