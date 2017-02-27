@@ -24,10 +24,7 @@ class BasicCheck(object):
 
     def command(self):
         args = self.command_format(self.properties)
-        if not self.properties:
-            cmd = self.CMD.format(args)
-        else:
-            cmd = self.CMD.format(*args)
+        cmd = self.CMD.format(*args)
         return cmd
 
     def get_random_account(self):

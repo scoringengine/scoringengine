@@ -19,6 +19,7 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.pop3 import POP3Check
         from scoring_engine.engine.checks.imap import IMAPCheck
         from scoring_engine.engine.checks.smtp import SMTPCheck
+        from scoring_engine.engine.checks.vnc import VNCCheck
         expected_checks = [
             ICMPCheck,
             SSHCheck,
@@ -32,6 +33,7 @@ class TestEngine(UnitTest):
             POP3Check,
             IMAPCheck,
             SMTPCheck,
+            VNCCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 
