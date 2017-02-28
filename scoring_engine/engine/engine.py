@@ -118,12 +118,13 @@ class Engine(object):
                 task = execute_command.delay(job)
                 task_ids.append(task.id)
 
-            while not self.is_all_tasks_finished(task_ids):
-                pending_tasks = self.all_pending_tasks(task_ids)
+            pending_tasks = self.all_pending_tasks(task_ids)
+            while pending_tasks:
                 waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)"
                 waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                 logger.info(waiting_info)
                 self.sleep(self.worker_wait_time)
+                pending_tasks = self.all_pending_tasks(task_ids)
             logger.info("All jobs have finished for this round")
 
             logger.info("Determining check results and saving to db")
