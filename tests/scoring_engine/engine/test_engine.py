@@ -17,8 +17,11 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.mysql import MYSQLCheck
         from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
         from scoring_engine.engine.checks.pop3 import POP3Check
+        from scoring_engine.engine.checks.pop3s import POP3SCheck
         from scoring_engine.engine.checks.imap import IMAPCheck
+        from scoring_engine.engine.checks.imaps import IMAPSCheck
         from scoring_engine.engine.checks.smtp import SMTPCheck
+        from scoring_engine.engine.checks.smtps import SMTPSCheck
         from scoring_engine.engine.checks.vnc import VNCCheck
         expected_checks = [
             ICMPCheck,
@@ -31,8 +34,11 @@ class TestEngine(UnitTest):
             MYSQLCheck,
             POSTGRESQLCheck,
             POP3Check,
+            POP3SCheck,
             IMAPCheck,
+            IMAPSCheck,
             SMTPCheck,
+            SMTPSCheck,
             VNCCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
