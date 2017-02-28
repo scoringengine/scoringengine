@@ -56,12 +56,12 @@ class Engine(object):
         self.checks = sorted(self.checks, key=lambda check: check.__name__)
 
     def load_checks(self):
-        logger.info("Loading checks source from " + str(self.checks_location))
+        logger.debug("Loading checks source from " + str(self.checks_location))
         for check in self.checks_class_list:
             check_file_module = __import__(self.checks_location, fromlist=[check])
             check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
             check_class_attr = getattr(check_file_module, check + 'Check')
-            logger.info(" Found " + check_class_attr.__name__)
+            logger.debug(" Found " + check_class_attr.__name__)
             self.add_check(check_class_attr)
 
     def check_name_to_obj(self, check_name):
@@ -80,13 +80,13 @@ class Engine(object):
     def is_last_round(self):
         return (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0)
 
-    def is_all_tasks_finished(self, tasks):
-        all_tasks_finished = True
+    def all_pending_tasks(self, tasks):
+        pending_tasks = []
         for task_id in tasks:
             task = execute_command.AsyncResult(task_id)
             if task.state == 'PENDING':
-                all_tasks_finished = False
-        return all_tasks_finished
+                pending_tasks.append(task_id)
+        return pending_tasks
 
     def run(self):
         while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
@@ -110,9 +110,13 @@ class Engine(object):
                 task = execute_command.delay(job)
                 task_ids.append(task.id)
 
-            while not self.is_all_tasks_finished(task_ids):
-                logger.info("Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)")
+            pending_tasks = self.all_pending_tasks(task_ids)
+            while pending_tasks:
+                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)"
+                waiting_info += " " + str(len(pending_tasks)) + " left in queue."
+                logger.info(waiting_info)
                 self.sleep(self.worker_wait_time)
+                pending_tasks = self.all_pending_tasks(task_ids)
             logger.info("All jobs have finished for this round")
 
             logger.info("Determining check results and saving to db")
