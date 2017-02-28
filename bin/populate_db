@@ -80,7 +80,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating SSH Service")
-    service = Service(name='SSH', team=team, check_name='SSHCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='SSH', team=team, check_name='SSHCheck', ip_address='127.0.0.1', port=22, points=100)
     db.save(Account(username='techy', password='techy', service=service))
     db.save(Account(username='pwnbus', password='redfred', service=service))
     db.save(Account(username='rusty', password='catdog', service=service))
@@ -91,7 +91,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating DNS Service")
-    service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="127.0.0.1", points=100)
+    service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="127.0.0.1", port=53, points=100)
     environment = Environment(service=service, matching_regex='status: NOERROR')
     db.save(environment)
     db.save(Property(environment=environment, name='qtype', value='A'))
@@ -104,7 +104,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating FTP Download Service")
-    service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', ip_address='127.0.0.1', points=50)
+    service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', ip_address='127.0.0.1', port=21, points=50)
     db.save(Account(username='techy', password='techy', service=service))
     db.save(Account(username='pwnbus', password='redfred', service=service))
     db.save(Account(username='rusty', password='catdog', service=service))
@@ -115,7 +115,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating FTP Upload Service")
-    service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', ip_address='127.0.0.1', points=50)
+    service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', ip_address='127.0.0.1', port=21, points=50)
     db.save(Account(username='techy', password='techy', service=service))
     db.save(Account(username='pwnbus', password='redfred', service=service))
     db.save(Account(username='rusty', password='catdog', service=service))
@@ -126,7 +126,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating HTTP Service")
-    service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='127.0.0.1', port=80, points=100)
     for useragent in useragents:
         environment = Environment(service=service, matching_regex='some random string')
         db.save(Property(environment=environment, name='useragent', value=useragent))
@@ -137,7 +137,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating HTTPS Service")
-    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', ip_address='127.0.0.1', port=443, points=100)
     for useragent in useragents:
         environment = Environment(service=service, matching_regex='some random string')
         db.save(Property(environment=environment, name='useragent', value=useragent))
@@ -148,7 +148,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating MYSQL Service")
-    service = Service(name='MySQL', team=team, check_name='MYSQLCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='MySQL', team=team, check_name='MYSQLCheck', ip_address='127.0.0.1', port=3306, points=100)
     db.save(Account(username='techy', password='techy', service=service))
     db.save(Account(username='pwnbus', password='redfred', service=service))
     db.save(Account(username='rusty', password='catdog', service=service))
@@ -160,7 +160,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating POSTGRESQL Service")
-    service = Service(name='Postgresql', team=team, check_name='POSTGRESQLCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='Postgresql', team=team, check_name='POSTGRESQLCheck', ip_address='127.0.0.1', port=5432, points=100)
     db.save(Account(username='testuser', password='testpass', service=service))
     environment = Environment(service=service, matching_regex='testtable')
     db.save(Property(environment=environment, name='database', value='testdb'))
@@ -170,7 +170,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating POP3 Service")
-    service = Service(name='POP3', team=team, check_name='POP3Check', ip_address='127.0.0.1', points=100)
+    service = Service(name='POP3', team=team, check_name='POP3Check', ip_address='127.0.0.1', port=110, points=100)
     db.save(Account(username='testuser', password='testpass', service=service))
     environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
     db.save(Property(environment=environment, name='domain', value='test.com'))
@@ -179,7 +179,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating IMAP Service")
-    service = Service(name='IMAP', team=team, check_name='IMAPCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='IMAP', team=team, check_name='IMAPCheck', ip_address='127.0.0.1', port=143, points=100)
     db.save(Account(username='testuser', password='testpass', service=service))
     environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
     db.save(Property(environment=environment, name='domain', value='test.com'))
@@ -188,7 +188,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating SMTP Service")
-    service = Service(name='SMTP', team=team, check_name='SMTPCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='SMTP', team=team, check_name='SMTPCheck', ip_address='127.0.0.1', port=25, points=100)
     db.save(Account(username='testuser', password='testpass', service=service))
     environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
     db.save(Property(environment=environment, name='domain', value='test.com'))
@@ -197,7 +197,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating VNC Service")
-    service = Service(name='VNC', team=team, check_name='VNCCheck', ip_address='127.0.0.1', points=100)
+    service = Service(name='VNC', team=team, check_name='VNCCheck', ip_address='127.0.0.1', port=5900, points=100)
     # BLANK for no username required
     db.save(Account(username='BLANK', password='testpass', service=service))
     environment = Environment(service=service, matching_regex='ACCOUNT FOUND')

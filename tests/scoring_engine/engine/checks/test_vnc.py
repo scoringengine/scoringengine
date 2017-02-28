@@ -6,4 +6,4 @@ class TestVNCCheck(CheckTest):
     accounts = {
         'BLANK': 'passtest'
     }
-    cmd = "medusa -R 1 -h '127.0.0.1' -u ' ' -p 'passtest' -M vnc"
+    cmd = "medusa -R 1 -h '127.0.0.1' -n 100 -u ' ' -p 'passtest' -M vnc"

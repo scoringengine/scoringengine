@@ -8,25 +8,25 @@ from tests.scoring_engine.unit_test import UnitTest
 
 class TestBasicCheck(UnitTest):
 
+    def setup(self):
+        super(TestBasicCheck, self).setup()
+        self.service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        self.environment = Environment(matching_regex='*', service=self.service)
+
     def test_init(self):
-        environment = Environment(matching_regex='*')
-        check = BasicCheck(environment)
-        assert check.environment == environment
+        check = BasicCheck(self.environment)
+        assert check.environment == self.environment
         assert check.required_properties == []
 
     def test_get_ip_address(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.4')
-        self.db.save(service)
-        environment = Environment(matching_regex='*', service=service)
-        self.db.save(environment)
-        check = BasicCheck(environment)
-        assert check.get_ip_address() == '127.0.0.4'
+        self.db.save(self.service)
+        self.db.save(self.environment)
+        check = BasicCheck(self.environment)
+        assert check.ip_address == '127.0.0.1'
 
     def test_get_random_account(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.4')
-        self.db.save(Account(username='pwnbus', password='pass', service=service))
-        self.db.save(service)
-        environment = Environment(matching_regex='*', service=service)
-        self.db.save(environment)
-        check = BasicCheck(environment)
+        self.db.save(Account(username='pwnbus', password='pass', service=self.service))
+        self.db.save(self.service)
+        self.db.save(self.environment)
+        check = BasicCheck(self.environment)
         assert check.get_random_account().username == 'pwnbus'

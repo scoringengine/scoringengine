@@ -14,7 +14,7 @@ class CheckTest(UnitTest):
     def setup(self):
         super(CheckTest, self).setup()
         self.engine = Engine()
-        self.service = Service(name='Example Service', check_name=self.check_name, ip_address='127.0.0.1')
+        self.service = Service(name='Example Service', check_name=self.check_name, ip_address='127.0.0.1', port=100)
         self.environment = Environment(service=self.service, matching_regex='*')
         if not hasattr(self, 'properties'):
             self.properties = {}

@@ -28,17 +28,19 @@ class TestService(UnitTest):
         assert service.team == team
         assert service.team_id == team.id
         assert service.check_name == "ICMP IPv4 Check"
+        assert service.port == 0
         assert service.points == 100
 
     def test_basic_service_with_points(self):
         team = generate_sample_model_tree('Team', self.db)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, ip_address='127.0.0.1')
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, ip_address='127.0.0.1', port=100)
         self.db.save(service)
         assert service.id is not None
         assert service.name == "Example Service"
         assert service.team == team
         assert service.team_id == team.id
         assert service.check_name == "ICMP IPv4 Check"
+        assert service.port == 100
         assert service.points == 500
         assert service.score_earned == 0
         assert service.max_score == 0

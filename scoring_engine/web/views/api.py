@@ -100,6 +100,20 @@ def admin_update_ip_address():
     return jsonify({'error': 'Incorrect permissions'})
 
 
+@mod.route('/api/admin/update_port', methods=['POST'])
+@login_required
+def admin_update_port():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            service = Service.query.get(int(request.form['pk']))
+            if service:
+                if request.form['name'] == 'port':
+                    service.port = int(request.form['value'])
+                    db.save(service)
+                    return jsonify({'status': 'Updated Service Information'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
 @mod.route('/api/update_ip_address', methods=['POST'])
 @login_required
 def update_ip_address():
@@ -238,7 +252,7 @@ def overview_get_data():
                 team_dict[columns[x]] = team.current_score
                 count += 1
             else:
-                team_dict[columns[x]] = team.services[x - count].ip_address + " - " + str(team.services[x - count].last_check_result())
+                team_dict[columns[x]] = team.services[x - count].ip_address + ":" + str(team.services[x - count].port) + " - " + str(team.services[x - count].last_check_result())
         data.append(team_dict)
     columnlist = []
     for column in columns:
@@ -342,6 +356,7 @@ def overview_data():
             service_data[service.name] = {
                 'passing': service.last_check_result(),
                 'ip_address': service.ip_address,
+                'port': service.port,
             }
         team_data[team.name] = service_data
     return json.dumps(team_data)
