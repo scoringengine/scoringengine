@@ -88,6 +88,14 @@ class Engine(object):
                 all_tasks_finished = False
         return all_tasks_finished
 
+    def all_pending_tasks(self, tasks):
+        pending_tasks = []
+        for task_id in tasks:
+            task = execute_command.AsyncResult(task_id)
+            if task.state == 'PENDING':
+                pending_tasks.append(task_id)
+        return pending_tasks
+
     def run(self):
         while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
             self.current_round += 1
@@ -111,7 +119,10 @@ class Engine(object):
                 task_ids.append(task.id)
 
             while not self.is_all_tasks_finished(task_ids):
-                logger.info("Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)")
+                pending_tasks = self.all_pending_tasks(task_ids)
+                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)"
+                waiting_info += " " + str(len(pending_tasks)) + " left in queue."
+                logger.info(waiting_info)
                 self.sleep(self.worker_wait_time)
             logger.info("All jobs have finished for this round")
 
