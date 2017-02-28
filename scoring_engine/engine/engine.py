@@ -56,12 +56,12 @@ class Engine(object):
         self.checks = sorted(self.checks, key=lambda check: check.__name__)
 
     def load_checks(self):
-        logger.info("Loading checks source from " + str(self.checks_location))
+        logger.debug("Loading checks source from " + str(self.checks_location))
         for check in self.checks_class_list:
             check_file_module = __import__(self.checks_location, fromlist=[check])
             check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
             check_class_attr = getattr(check_file_module, check + 'Check')
-            logger.info(" Found " + check_class_attr.__name__)
+            logger.debug(" Found " + check_class_attr.__name__)
             self.add_check(check_class_attr)
 
     def check_name_to_obj(self, check_name):
