@@ -12,6 +12,8 @@ class TestEngine(UnitTest):
         from scoring_engine.engine.checks.dns import DNSCheck
         from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
         from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
+        from scoring_engine.engine.checks.ftp import FTPCheck
+        from scoring_engine.engine.checks.ftps import FTPSCheck
         from scoring_engine.engine.checks.http import HTTPCheck
         from scoring_engine.engine.checks.https import HTTPSCheck
         from scoring_engine.engine.checks.mysql import MYSQLCheck
@@ -29,6 +31,8 @@ class TestEngine(UnitTest):
             DNSCheck,
             FTPDownloadCheck,
             FTPUploadCheck,
+            FTPCheck,
+            FTPSCheck,
             HTTPCheck,
             HTTPSCheck,
             MYSQLCheck,
