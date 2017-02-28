@@ -24,7 +24,7 @@ config = {
         'sqlalchemy',
         'celery',
         'uwsgi',
-		'shellescape',
+        'shellescape',
         # Develpment Dependencies
         'pycodestyle',
         'pytest-cov',
