@@ -125,6 +125,28 @@ for num in range(1, num_teams + 1):
     db.save(environment)
     services.append(service)
 
+    print("\t\tCreating Generic FTP Service")
+    service = Service(name='FTP', team=team, check_name='FTPCheck', ip_address='127.0.0.1', port=21, points=50)
+    db.save(Account(username='techy', password='techy', service=service))
+    db.save(Account(username='pwnbus', password='redfred', service=service))
+    db.save(Account(username='rusty', password='catdog', service=service))
+    environment = Environment(service=service, matching_regex='> STOR foo.txt')
+    db.save(Property(environment=environment, name='filename', value='foo.txt'))
+    db.save(service)
+    db.save(environment)
+    services.append(service)
+
+    print("\t\tCreating FTPS Service")
+    service = Service(name='FTPS', team=team, check_name='FTPSCheck', ip_address='127.0.0.1', port=21, points=50)
+    db.save(Account(username='techy', password='techy', service=service))
+    db.save(Account(username='pwnbus', password='redfred', service=service))
+    db.save(Account(username='rusty', password='catdog', service=service))
+    environment = Environment(service=service, matching_regex='> STOR foo.txt')
+    db.save(Property(environment=environment, name='filename', value='foo.txt'))
+    db.save(service)
+    db.save(environment)
+    services.append(service)
+
     print("\t\tCreating HTTP Service")
     service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='127.0.0.1', port=80, points=100)
     for useragent in useragents:
