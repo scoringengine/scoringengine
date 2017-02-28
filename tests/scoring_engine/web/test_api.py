@@ -79,8 +79,8 @@ class TestAPI(WebTest):
         for team_num in range(1, 6):
             team = Team(name="team" + str(team_num), color="Blue")
             icmp_service = Service(name="ICMP", team=team, check_name="ICMP IPv4 Check", ip_address="127.0.0.1")
-            dns_service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="8.8.8.8")
-            ftp_upload_service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', ip_address='1.2.3.4')
+            dns_service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="8.8.8.8", port=53)
+            ftp_upload_service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', ip_address='1.2.3.4', port=21)
             self.db.save(icmp_service)
             self.db.save(dns_service)
             self.db.save(ftp_upload_service)
@@ -138,25 +138,25 @@ class TestAPI(WebTest):
         overview_dict = json.loads(overview_data.data.decode('utf8'))
         expected_dict = {
             'team1': {
-                'FTPUpload': {'passing': True, 'ip_address': '1.2.3.4'},
-                'DNS': {'passing': True, 'ip_address': '8.8.8.8'},
-                'ICMP': {'passing': True, 'ip_address': '127.0.0.1'}},
+                'FTPUpload': {'passing': True, 'ip_address': '1.2.3.4', 'port': 21},
+                'DNS': {'passing': True, 'ip_address': '8.8.8.8', 'port': 53},
+                'ICMP': {'passing': True, 'ip_address': '127.0.0.1', 'port': 0}},
             'team2': {
-                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4'},
-                'DNS': {'passing': True, 'ip_address': '8.8.8.8'},
-                'ICMP': {'passing': True, 'ip_address': '127.0.0.1'}},
+                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4', 'port': 21},
+                'DNS': {'passing': True, 'ip_address': '8.8.8.8', 'port': 53},
+                'ICMP': {'passing': True, 'ip_address': '127.0.0.1', 'port': 0}},
             'team3': {
-                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4'},
-                'DNS': {'passing': True, 'ip_address': '8.8.8.8'},
-                'ICMP': {'passing': False, 'ip_address': '127.0.0.1'}},
+                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4', 'port': 21},
+                'DNS': {'passing': True, 'ip_address': '8.8.8.8', 'port': 53},
+                'ICMP': {'passing': False, 'ip_address': '127.0.0.1', 'port': 0}},
             'team4': {
-                'FTPUpload': {'passing': True, 'ip_address': '1.2.3.4'},
-                'DNS': {'passing': False, 'ip_address': '8.8.8.8'},
-                'ICMP': {'passing': False, 'ip_address': '127.0.0.1'}},
+                'FTPUpload': {'passing': True, 'ip_address': '1.2.3.4', 'port': 21},
+                'DNS': {'passing': False, 'ip_address': '8.8.8.8', 'port': 53},
+                'ICMP': {'passing': False, 'ip_address': '127.0.0.1', 'port': 0}},
             'team5': {
-                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4'},
-                'DNS': {'passing': False, 'ip_address': '8.8.8.8'},
-                'ICMP': {'passing': False, 'ip_address': '127.0.0.1'}
+                'FTPUpload': {'passing': False, 'ip_address': '1.2.3.4', 'port': 21},
+                'DNS': {'passing': False, 'ip_address': '8.8.8.8', 'port': 53},
+                'ICMP': {'passing': False, 'ip_address': '127.0.0.1', 'port': 0}
             }
         }
         assert sorted(overview_dict.items()) == sorted(expected_dict.items())
