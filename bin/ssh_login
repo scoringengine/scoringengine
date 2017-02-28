@@ -1,9 +1,10 @@
 #!/usr/bin/expect -f
 set IPAddress [lindex $argv 0]
-set Username [lindex $argv 1]
-set Password [lindex $argv 2]
-set Command [lindex $argv 3]
-spawn ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $Username@$IPAddress
+set Port [lindex $argv 1]
+set Username [lindex $argv 2]
+set Password [lindex $argv 3]
+set Command [lindex $argv 4]
+spawn ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $Username@$IPAddress -p $Port
 expect "password: "
 send "$Password\r"
 expect "$ "

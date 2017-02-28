@@ -7,4 +7,4 @@ class TestDNSCheck(CheckTest):
         'qtype': 'A',
         'domain': 'www.google.com'
     }
-    cmd = "dig @'127.0.0.1' -t 'A' -q 'www.google.com'"
+    cmd = "dig @'127.0.0.1' -p 100 -t 'A' -q 'www.google.com'"

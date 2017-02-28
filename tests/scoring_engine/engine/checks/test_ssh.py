@@ -9,4 +9,4 @@ class TestSSHCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = "/usr/bin/ssh_login '127.0.0.1' 'pwnbus' 'pwnbuspass' 'ls -l'"
+    cmd = "/usr/bin/ssh_login '127.0.0.1' 100 'pwnbus' 'pwnbuspass' 'ls -l'"

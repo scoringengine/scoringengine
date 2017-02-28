@@ -8,9 +8,8 @@ class BasicCheck(object):
         if not hasattr(self, 'required_properties'):
             self.required_properties = []
         self.set_properties()
-
-    def get_ip_address(self):
-        return self.environment.service.ip_address
+        self.ip_address = self.environment.service.ip_address
+        self.port = self.environment.service.port
 
     def get_environment_property_by_name(self, property_name):
         return [prop.value for prop in self.environment.properties if prop.name == property_name][0]
@@ -27,7 +26,10 @@ class BasicCheck(object):
         args = self.command_format(self.properties)
         sanitized_args = []
         for arg in args:
-            sanitized_args.append(shellescape.quote(arg))
+            if type(arg) is str:
+                sanitized_args.append(shellescape.quote(arg))
+            else:
+                sanitized_args.append(arg)
         cmd = self.CMD.format(*sanitized_args)
         return cmd
 
