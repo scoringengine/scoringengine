@@ -1,4 +1,5 @@
 import random
+import shellescape
 
 
 class BasicCheck(object):
@@ -24,7 +25,10 @@ class BasicCheck(object):
 
     def command(self):
         args = self.command_format(self.properties)
-        cmd = self.CMD.format(*args)
+        sanitized_args = []
+        for arg in args:
+            sanitized_args.append(shellescape.quote(arg))
+        cmd = self.CMD.format(*sanitized_args)
         return cmd
 
     def get_random_account(self):

@@ -9,4 +9,4 @@ class TestSMTPCheck(CheckTest):
     accounts = {
         'testuser': 'passtest'
     }
-    cmd = "medusa -R 1 -h 127.0.0.1 -u testuser@test.com -p passtest -M smtp"
+    cmd = "medusa -R 1 -h '127.0.0.1' -u 'testuser'@'test.com' -p 'passtest' -M smtp"

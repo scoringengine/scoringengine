@@ -9,4 +9,4 @@ class TestFTPUploadCheck(CheckTest):
     accounts = {
         'techy': 'techypass'
     }
-    cmd = 'echo "cyberengine check" | curl -s -S -4 -v --ftp-pasv --ftp-create-dirs -T - ftp://techy:techypass@127.0.0.1/textfile.txt'
+    cmd = "echo \"cyberengine check\" | curl -s -S -4 -v --ftp-pasv --ftp-create-dirs -T - ftp://'techy':'techypass'@'127.0.0.1'/'textfile.txt'"

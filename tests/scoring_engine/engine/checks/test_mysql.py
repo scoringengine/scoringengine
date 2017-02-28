@@ -10,4 +10,4 @@ class TestMYSQLCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = "mysql -h 127.0.0.1 -u pwnbus -ppwnbuspass wordpressdb -e 'show tables'"
+    cmd = "mysql -h '127.0.0.1' -u 'pwnbus' -p'pwnbuspass' 'wordpressdb' -e 'show tables'"
