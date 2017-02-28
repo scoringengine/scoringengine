@@ -80,14 +80,6 @@ class Engine(object):
     def is_last_round(self):
         return (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0)
 
-    def is_all_tasks_finished(self, tasks):
-        all_tasks_finished = True
-        for task_id in tasks:
-            task = execute_command.AsyncResult(task_id)
-            if task.state == 'PENDING':
-                all_tasks_finished = False
-        return all_tasks_finished
-
     def all_pending_tasks(self, tasks):
         pending_tasks = []
         for task_id in tasks:
