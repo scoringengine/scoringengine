@@ -1,8 +1,11 @@
 import json
 import random
 
+from collections import OrderedDict
+
 from flask import Blueprint, flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
+
 from scoring_engine.db import db
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
@@ -404,7 +407,7 @@ def scoreboard_get_line_data():
 
 @mod.route('/api/overview/data')
 def overview_data():
-    team_data = {}
+    team_data = OrderedDict()
     teams = Team.query.filter(Team.color == 'Blue').order_by(Team.id).all()
     random.shuffle(teams)
     for team in teams:
