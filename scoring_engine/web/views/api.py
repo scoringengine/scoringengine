@@ -1,3 +1,6 @@
+import json
+import random
+
 from flask import Blueprint, flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 from scoring_engine.db import db
@@ -12,8 +15,6 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.engine.execute_command import execute_command
 from sqlalchemy.orm.exc import NoResultFound
-import json
-import random
 
 
 mod = Blueprint('api', __name__)
@@ -159,7 +160,6 @@ def get_check_progress_total():
 
         team_stats = {}
         if task_id_settings:
-            import json
             task_dict = json.loads(task_id_settings.value)
             for team_name, task_ids in task_dict.items():
                 for task_id in task_ids:
@@ -270,6 +270,20 @@ def admin_add_team():
         else:
             flash('Error: Team name or color not defined.', 'danger')
             return redirect(url_for('admin.manage'))
+    else:
+        return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/get_engine_stats')
+@login_required
+def admin_get_engine_stats():
+    if current_user.is_white_team:
+        engine_stats = {}
+        engine_stats['round_number'] = Round.get_last_round_num() + 1
+        engine_stats['num_passed_checks'] = Check.query.filter_by(result=True).count()
+        engine_stats['num_failed_checks'] = Check.query.filter_by(result=False).count()
+        engine_stats['total_checks'] = Check.query.count()
+        return jsonify(engine_stats)
     else:
         return {'status': 'Unauthorized'}, 403
 

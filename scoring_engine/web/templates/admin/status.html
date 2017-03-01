@@ -9,19 +9,19 @@
         <tbody>
           <tr>
             <td>Round</td>
-            <td>{{engine_stats['round_number']}}</td>
+            <td id="round_number"></td>
           </tr>
           <tr>
             <td>Passed Checks</td>
-            <td>{{engine_stats['num_passed_checks']}}</td>
+            <td id="num_passed_checks"></td>
           </tr>
           <tr>
             <td>Failed Checks</td>
-            <td>{{engine_stats['num_failed_checks']}}</td>
+            <td id="num_failed_checks"></td>
           </tr>
           <tr>
             <td>Total Checks</td>
-            <td>{{engine_stats['total_checks']}}</td>
+            <td id="total_checks"></td>
           </tr>
         </tbody>
       </table>
@@ -48,22 +48,41 @@
   </div>
 </div>
 <script>
-function getProgress(){
-    $.getJSON('/api/admin/get_round_progress', function(data) {
-        $.each(data, function(key, val) {
-            $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
-            $("#" + key + "Percent span").text(val + "%");
-            if (val < 30) {
-                $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-danger');
-            } else if (val < 70) {
-                $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
-            } else {
-                $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-success');
-            }
-        });
-    });
-}
+  function getProgress(){
+      $.getJSON('/api/admin/get_round_progress', function(data) {
+          $.each(data, function(key, val) {
+              $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
+              $("#" + key + "Percent span").text(val + "%");
+              if (val < 30) {
+                  $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-danger');
+              } else if (val < 70) {
+                  $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
+              } else {
+                  $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-success');
+              }
+          });
+      });
+  }
 
-var getTotalProgress = setInterval(getProgress, 3000);
+  function getEngineStats() {
+      $.ajax({
+          url: '/api/admin/get_engine_stats',
+          dataType: 'json',
+          success: function(data) {
+              $('#round_number').text(data.round_number);
+              $('#num_passed_checks').text(data.num_passed_checks);
+              $('#num_failed_checks').text(data.num_failed_checks);
+              $('#total_checks').text(data.num_passed_checks);
+          }
+      });
+  }
+
+  $(document).ready(function() {
+      getEngineStats();
+      getProgress()
+  });
+
+  setInterval(getEngineStats, 3000);
+  setInterval(getProgress, 3000);
 </script>
 {% endblock %}
