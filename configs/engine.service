@@ -6,7 +6,7 @@ After=syslog.target
 Type=simple
 User=engine
 Group=engine
-Environment=ENGINE_ROOT='/home/engine/scoring_engine'
+Environment=ENGINE_ROOT=/home/engine/scoring_engine
 ExecStart=/bin/bash -c 'source ${ENGINE_ROOT}/env/bin/activate; ${ENGINE_ROOT}/src/bin/engine'
 StandardOutput=syslog
 StandardError=syslog
