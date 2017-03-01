@@ -308,7 +308,8 @@ def overview_get_data():
                 team_dict[columns[x]] = team.current_score
                 count += 1
             else:
-                team_dict[columns[x]] = team.services[x - count].ip_address + ":" + str(team.services[x - count].port) + " - " + str(team.services[x - count].last_check_result())
+                service = Service.query.filter(Service.name == columns[x]).filter(Service.team == team).first()
+                team_dict[columns[x]] = service.ip_address + ":" + str(service.port) + " - " + str(service.last_check_result())
         data.append(team_dict)
     columnlist = []
     for column in columns:
