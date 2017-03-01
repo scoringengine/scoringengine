@@ -4,8 +4,6 @@ from operator import itemgetter
 
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
-from scoring_engine.models.round import Round
-from scoring_engine.models.check import Check
 
 
 mod = Blueprint('admin', __name__)
@@ -17,13 +15,7 @@ mod = Blueprint('admin', __name__)
 def status():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
-        engine_stats = {}
-        engine_stats['round_number'] = Round.get_last_round_num() + 1
-        engine_stats['num_passed_checks'] = Check.query.filter_by(result=True).count()
-        engine_stats['num_failed_checks'] = Check.query.filter_by(result=False).count()
-        engine_stats['total_checks'] = Check.query.count()
-
-        return render_template('admin/status.html', engine_stats=engine_stats, blue_teams=blue_teams)
+        return render_template('admin/status.html', blue_teams=blue_teams)
     else:
         return redirect(url_for('auth.unauthorized'))
 
