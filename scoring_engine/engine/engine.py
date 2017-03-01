@@ -3,12 +3,14 @@ import random
 import signal
 import time
 import re
+import json
 from functools import partial
 from scoring_engine.engine.config import config
 from scoring_engine.db import DB
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
+from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
@@ -82,10 +84,11 @@ class Engine(object):
 
     def all_pending_tasks(self, tasks):
         pending_tasks = []
-        for task_id in tasks:
-            task = execute_command.AsyncResult(task_id)
-            if task.state == 'PENDING':
-                pending_tasks.append(task_id)
+        for team_name, task_ids in tasks.items():
+            for task_id in task_ids:
+                task = execute_command.AsyncResult(task_id)
+                if task.state == 'PENDING':
+                    pending_tasks.append(task_id)
         return pending_tasks
 
     def run(self):
@@ -97,7 +100,7 @@ class Engine(object):
 
             services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
-            task_ids = []
+            task_ids = {}
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
@@ -108,7 +111,16 @@ class Engine(object):
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
                 task = execute_command.delay(job)
-                task_ids.append(task.id)
+                team_name = environment.service.team.name
+                if team_name not in task_ids:
+                    task_ids[team_name] = []
+                task_ids[team_name].append(task.id)
+
+            # We store the list of tasks in the db, so that the web app
+            # can consume them and can dynamically update a progress bar
+            task_ids_str = json.dumps(task_ids)
+            latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
+            self.db.save(latest_kb)
 
             pending_tasks = self.all_pending_tasks(task_ids)
             while pending_tasks:
@@ -126,33 +138,34 @@ class Engine(object):
             # We keep track of the number of passed and failed checks per round
             # so we can report a little bit at the end of each round
             teams = {}
-            for task_id in task_ids:
-                task = execute_command.AsyncResult(task_id)
-                environment = self.db.session.query(Environment).get(task.result['environment_id'])
-                if task.result['errored_out']:
-                    result = False
-                    reason = 'Task Timed Out'
-                else:
-                    if re.search(environment.matching_regex, task.result['output']):
-                        result = True
-                        reason = "Successful Content Match"
-                    else:
+            for team_name, task_ids in task_ids.items():
+                for task_id in task_ids:
+                    task = execute_command.AsyncResult(task_id)
+                    environment = self.db.session.query(Environment).get(task.result['environment_id'])
+                    if task.result['errored_out']:
                         result = False
-                        reason = 'Unsuccessful Content Match'
+                        reason = 'Task Timed Out'
+                    else:
+                        if re.search(environment.matching_regex, task.result['output']):
+                            result = True
+                            reason = "Successful Content Match"
+                        else:
+                            result = False
+                            reason = 'Unsuccessful Content Match'
 
-                if environment.service.team.name not in teams:
-                    teams[environment.service.team.name] = {
-                        "Success": [],
-                        "Failed": [],
-                    }
-                if result:
-                    teams[environment.service.team.name]['Success'].append(environment.service.name)
-                else:
-                    teams[environment.service.team.name]['Failed'].append(environment.service.name)
+                    if environment.service.team.name not in teams:
+                        teams[environment.service.team.name] = {
+                            "Success": [],
+                            "Failed": [],
+                        }
+                    if result:
+                        teams[environment.service.team.name]['Success'].append(environment.service.name)
+                    else:
+                        teams[environment.service.team.name]['Failed'].append(environment.service.name)
 
-                check = Check(service=environment.service, round=round_obj)
-                check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
-                self.db.save(check)
+                    check = Check(service=environment.service, round=round_obj)
+                    check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
+                    self.db.save(check)
 
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Stats:")
