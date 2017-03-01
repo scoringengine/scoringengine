@@ -6,9 +6,11 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
+from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.engine.execute_command import execute_command
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import random
@@ -150,12 +152,52 @@ def modify_service_account():
 @login_required
 def get_check_progress_total():
     if current_user.is_white_team:
-        return json.dumps({'Total': random.randint(1, 100),
-                           'Team1': random.randint(1, 100),
-                           'Team2': random.randint(1, 100),
-                           'Team3': random.randint(1, 100),
-                           'Team4': random.randint(1, 100),
-                           'Team5': random.randint(1, 100)})
+        task_id_settings = KB.query.filter_by(name='task_ids').order_by(KB.round_num.desc()).first()
+        total_stats = {}
+        total_stats['finished'] = 0
+        total_stats['pending'] = 0
+
+        team_stats = {}
+        if task_id_settings:
+            import json
+            task_dict = json.loads(task_id_settings.value)
+            for team_name, task_ids in task_dict.items():
+                for task_id in task_ids:
+                    task = execute_command.AsyncResult(task_id)
+                    if team_name not in team_stats:
+                        team_stats[team_name] = {}
+                        team_stats[team_name]['pending'] = 0
+                        team_stats[team_name]['finished'] = 0
+
+                    if task.state == 'PENDING':
+                        team_stats[team_name]['pending'] += 1
+                        total_stats['pending'] += 1
+                    else:
+                        team_stats[team_name]['finished'] += 1
+                        total_stats['finished'] += 1
+
+        total_percentage = 0
+        total_tasks = total_stats['finished'] + total_stats['pending']
+        if total_stats['finished'] == 0:
+            total_percentage = 0
+        elif total_tasks == 0:
+            total_percentage = 100
+        elif total_stats and total_stats['finished']:
+            total_percentage = int((total_stats['finished'] / total_tasks) * 100)
+
+        output_dict = {'Total': total_percentage}
+        for team_name, team_stat in team_stats.items():
+            team_total_percentage = 0
+            team_total_tasks = team_stat['finished'] + team_stat['pending']
+            if team_stat['finished'] == 0:
+                team_total_percentage = 0
+            elif team_total_tasks == 0:
+                team_total_percentage = 100
+            elif team_stat and team_stat['finished']:
+                team_total_percentage = int((team_stat['finished'] / team_total_tasks) * 100)
+            output_dict[team_name] = team_total_percentage
+
+        return json.dumps(output_dict)
     else:
         return {'status': 'Unauthorized'}, 403
 

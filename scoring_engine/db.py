@@ -28,6 +28,7 @@ class DB(object):
         from scoring_engine.models.check import Check
         from scoring_engine.models.property import Property
         from scoring_engine.models.round import Round
+        from scoring_engine.models.kb import KB
         from scoring_engine.models.base import Base
         Base.metadata.create_all(self.engine)
 
@@ -40,6 +41,7 @@ class DB(object):
         from scoring_engine.models.check import Check
         from scoring_engine.models.property import Property
         from scoring_engine.models.round import Round
+        from scoring_engine.models.kb import KB
         from scoring_engine.models.base import Base
         Base.metadata.drop_all(self.engine)
 
