@@ -1,23 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
-<nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
-  <div class="navbar-inner">
-    <ul class="nav navbar-nav">
-      <li class="navbar-item {% if request.path == '/admin/status' %}active{% elif request.path == '/admin' %}active{% endif %}"><a class="nav-link"  href="/admin/status">Status</a></li>
-      <li class="navbar-item {% if request.path == '/admin/manage' %}active{% endif %}"><a class="nav-link" href="/admin/manage">Manage Users</a></li>
-      <ul class="nav navbar-nav">
-        <li class="dropdown navbar-item {% if '/admin/team/' in request.path %}active{% endif %}">
-        <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle navbar-item">Manage Teams<b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            {% for team in current_user.team.blue_teams %}
-              <li><a href="/admin/team/{{team.id}}">{{team.name}}</a></li>
-            {% endfor %}
-          </ul>
-        </li>
-      </ul>
-    </ul>
-  </div>
-</nav>
+<div class="container md-page">
+  <div class="row">
+      <div class="col-sm-3" style="padding-top: 10px;">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <b class="pull-right glyphicon glyphicon-list-alt"></b>
+                    <a href="/admin/status"><span>Round Stats</span></a>
+                </div>
+            </div>
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <b class="pull-right glyphicon glyphicon-align-left"></b>
+                    <a href="/admin/progress"><span>Round Progress</span></a>
+                </div>
+            </div>
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <b class="pull-right glyphicon glyphicon-wrench"/></b>
+                    <a href="/admin/manage"><span>Manage Users</span></a>
+                </div>
+            </div>
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <b class="pull-right glyphicon glyphicon-random"></b>
+                    <span>Manage Teams</span>
+                </div>
+            </div>
+            <ul class="list-group">
+                {% for team in blue_teams %}
+                <li class="list-group-item">
+                    <a href="/admin/team/{{team.id}}"><span>{{team.name}}</span></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+      </div>
+      <div class="col-sm-9">
 {% block admincontent %}
+      </div>
+  </div>
+</div>
 {% endblock %}
 {% endblock %}

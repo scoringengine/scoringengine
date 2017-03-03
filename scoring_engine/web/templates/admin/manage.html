@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block admincontent %}
-<div class="container md-page">
-  <div class="row">
     <div class="card">
       <h2 class="text-center">Update Password</h2>
       <form method="POST" action="{{ url_for('api.admin_update_password') }}" role="form" class="form-signin">
@@ -64,7 +62,6 @@
         <button type="submit" class="btn btn-primary center-block">Add Team</button>
       </form>
     </div>
-  </div>
   <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
     <thead>
         <tr>
@@ -131,5 +128,4 @@
 
     } );
   </script>
-</div>
 {% endblock %}
