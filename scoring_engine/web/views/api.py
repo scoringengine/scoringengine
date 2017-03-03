@@ -349,6 +349,35 @@ def profile_update_password():
         return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/services')
+@login_required
+def api_services():
+    team = current_user.team
+    if not current_user.is_blue_team:
+        return jsonify({'status': 'unauthorized'})
+    data = []
+    for service in team.services:
+        if not service.checks:
+            check = 'Undetermined'
+        else:
+            if service.last_check_result():
+                check = 'UP'
+            else:
+                check = 'DOWN'
+        data.append(dict(
+            service_id=service.id,
+            service_name=service.name,
+            ip_address=service.ip_address,
+            port=service.port,
+            check=check,
+            score_earned=service.score_earned,
+            max_score=service.max_score,
+            percent_earned=service.percent_earned,
+            last_ten_checks=[check.result for check in service.last_ten_checks[::-1]]
+        ))
+    return jsonify(data=data)
+
+
 @mod.route('/api/service/get_checks/<id>')
 @login_required
 def service_get_checks(id):
