@@ -20,13 +20,25 @@ def status():
         return redirect(url_for('auth.unauthorized'))
 
 
+@mod.route('/admin/progress')
+@login_required
+def progress():
+    if current_user.is_white_team:
+        teams = Team.query.with_entities(Team.id, Team.name).all()
+        blue_teams = Team.get_all_blue_teams()
+        return render_template('admin/progress.html', teams=teams, blue_teams=blue_teams)
+    else:
+        return redirect(url_for('auth.unauthorized'))
+
+
 @mod.route('/admin/manage')
 @login_required
 def manage():
     if current_user.is_white_team:
         users = User.query.with_entities(User.id, User.username).all()
         teams = Team.query.with_entities(Team.id, Team.name).all()
-        return render_template('admin/manage.html', users=sorted(users, key=itemgetter(0)), teams=teams)
+        blue_teams = Team.get_all_blue_teams()
+        return render_template('admin/manage.html', users=sorted(users, key=itemgetter(0)), teams=teams, blue_teams=blue_teams)
     else:
         return redirect(url_for('auth.unauthorized'))
 
@@ -36,9 +48,10 @@ def manage():
 def team(id):
     if current_user.is_white_team:
         team = Team.query.get(id)
+        blue_teams = Team.get_all_blue_teams()
         if team is None:
             return redirect(url_for('auth.unauthorized'))
 
-        return render_template('admin/team.html', team=team)
+        return render_template('admin/team.html', team=team, blue_teams=blue_teams)
     else:
         return redirect(url_for('auth.unauthorized'))
