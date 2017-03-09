@@ -160,11 +160,7 @@
                                 <td width="20%">{{check.command}}</td>
                                 <td width="30%">{{check.completed_timestamp}}</td>
                             </tr>
-                            <tr style="display:none;">
-                            <td colspan="6">
-                                {{check.output|safe}}
-                            </td>
-                            </tr>
+                            <tr style="display:none;"><td colspan="6">{{check.output|safe}}</td></tr>
                         {% endfor %}
                       </tbody>
                     </table>
