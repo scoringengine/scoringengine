@@ -9,4 +9,4 @@ class TestSSHCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = "/usr/bin/ssh_login '127.0.0.1' 100 'pwnbus' 'pwnbuspass' 'ls -l'"
+    cmd = "sshpass -p 'pwnbuspass' ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 'pwnbus@127.0.0.1' -p 100 'ls -l'"
