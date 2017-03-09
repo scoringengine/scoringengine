@@ -3,8 +3,9 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 class HTTPSCheck(BasicCheck):
     required_properties = ['useragent', 'vhost', 'uri']
-    CMD = 'curl -s -S -4 -v -L -k --ssl-reqd -A {0} {1}'
+    CMD = 'curl -s -S -4 -v -L --header {0} -k --ssl-reqd -A {1} {2}'
 
     def command_format(self, properties):
-        url = 'https://' + properties['vhost'] + ':' + str(self.port) + properties['uri']
-        return (properties['useragent'], url)
+        host_header = 'Host: ' + properties['vhost']
+        host_uri = self.ip_address + ':' + str(self.port) + properties['uri']
+        return (host_header, properties['useragent'], host_uri)
