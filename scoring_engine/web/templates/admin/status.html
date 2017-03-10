@@ -39,9 +39,10 @@
   }
 
   $(document).ready(function() {
-      getProgress()
+      getEngineStats();
+      setInterval(function(){
+        getEngineStats()
+      }, 5000);
   });
-
-  setInterval(getProgress, 3000);
 </script>
 {% endblock %}
