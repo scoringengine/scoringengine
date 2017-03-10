@@ -19,6 +19,8 @@ class Config(object):
 
         self.timezone = self.parser['GENERAL']['timezone']
 
+        self.web_about_us_page_content = self.parser['WEB']['about_us_page_content']
+
         self.db_uri = self.parser['DB']['uri']
 
         self.redis_host = self.parser['REDIS']['host']
@@ -26,9 +28,9 @@ class Config(object):
         self.redis_password = self.parser['REDIS']['password']
 
         self.sponsorship_images = OrderedDict()
-        for sponsorship_level in self.parser['sponsorships']['levels'].split(','):
+        for sponsorship_level in self.parser['SPONSORSHIPS']['levels'].split(','):
             self.sponsorship_images[sponsorship_level] = []
-            for company in self.parser['sponsorships'][sponsorship_level].split(','):
+            for company in self.parser['SPONSORSHIPS'][sponsorship_level].split(','):
                 self.sponsorship_images[sponsorship_level].append("/static/" + str(company))
 
 
