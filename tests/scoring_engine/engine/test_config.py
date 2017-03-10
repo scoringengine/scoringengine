@@ -18,6 +18,9 @@ class TestConfig(object):
     def test_timezone(self):
         assert self.config.timezone == 'US/Eastern'
 
+    def test_web_about_us_page_content(self):
+        assert self.config.web_about_us_page_content == 'Test content here <br> and here'
+
     def test_redis_host(self):
         assert self.config.redis_host == "127.0.0.1"
 
