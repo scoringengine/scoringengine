@@ -158,7 +158,7 @@
                                 <td width="5%"><a href="#" class="editable-dropdown" data-pk="{{check.id}}" data-value="{% if check.result %}1{% else %}2{% endif %}" data-source='[{value: 1, text: "Pass"}, {value: 2, text: "Fail"}]' data-title="Select Result" data-url="{{url_for('api.admin_update_check')}}" data-name='check_value'>{% if check.result %}Pass {% else %} Fail {% endif %}</a></td>
                                 <td width="30%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{check.id}}" data-title="Enter Reason" data-url="{{url_for('api.admin_update_check')}}" data-name='check_reason'>{{check.reason}}</a></td>
                                 <td width="20%">{{check.command}}</td>
-                                <td width="30%">{{check.completed_timestamp}}</td>
+                                <td width="30%">{{check.local_completed_timestamp}}</td>
                             </tr>
                             <tr style="display:none;"><td colspan="6"><pre>{{check.output|safe}}</pre></td></tr>
                         {% endfor %}

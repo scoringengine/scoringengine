@@ -17,6 +17,8 @@ class Config(object):
         self.check_timeout = int(self.parser['GENERAL']['check_timeout'])
         self.checks_class_list = self.parser['GENERAL']['checks'].split(',')
 
+        self.timezone = self.parser['GENERAL']['timezone']
+
         self.db_uri = self.parser['DB']['uri']
 
         self.redis_host = self.parser['REDIS']['host']

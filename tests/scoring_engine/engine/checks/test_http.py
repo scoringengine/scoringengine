@@ -9,4 +9,4 @@ class TestHTTPCheck(CheckTest):
         'vhost': 'www.example.com',
         'uri': '/index.html'
     }
-    cmd = "curl -s -S -4 -v -L -A 'testagent' 'http://www.example.com:100/index.html'"
+    cmd = "curl -s -S -4 -v -L --header 'Host: www.example.com' -A 'testagent' '127.0.0.1:100/index.html'"
