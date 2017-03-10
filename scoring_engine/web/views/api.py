@@ -324,7 +324,7 @@ def overview_get_data():
 def overview_get_round_data():
     round_obj = Round.query.order_by(Round.number.desc()).first()
     if round_obj:
-        round_start = round_obj.round_start
+        round_start = round_obj.local_round_start
         number = round_obj.number
     else:
         round_start = "No rounds data"
@@ -388,7 +388,7 @@ def service_get_checks(id):
     for check in service.checks_reversed:
         data.append({'round': check.round.number,
                      'result': check.result,
-                     'timestamp': check.completed_timestamp,
+                     'timestamp': check.local_completed_timestamp,
                      'reason': check.reason})
     return jsonify(data=data)
 

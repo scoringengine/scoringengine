@@ -45,3 +45,4 @@ class TestCheck(UnitTest):
         assert check.reason == 'Successful Match'
         assert check.command == 'example command'
         assert check.completed is True
+        assert type(check.local_completed_timestamp) is str
