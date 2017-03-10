@@ -17,6 +17,7 @@ class TestRound(UnitTest):
         self.db.save(round_obj)
         assert round_obj.id is not None
         assert round_obj.number == 5
+        assert type(round_obj.local_round_start) is str
 
     def test_checks(self):
         service = generate_sample_model_tree('Service', self.db)

@@ -1,8 +1,11 @@
-import datetime
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import relationship
 
+from datetime import datetime
+import pytz
+
 from scoring_engine.models.base import Base
+from scoring_engine.engine.config import config
 
 
 class Round(Base):
@@ -10,7 +13,7 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     checks = relationship("Check", back_populates="round")
-    round_start = Column(DateTime, default=datetime.datetime.utcnow)
+    round_start = Column(DateTime, default=datetime.utcnow)
     round_end = Column(DateTime)
 
     @staticmethod
@@ -20,3 +23,8 @@ class Round(Base):
             return 0
         else:
             return round_obj.number
+
+    @property
+    def local_round_start(self):
+        round_start_obj = pytz.timezone('UTC').localize(self.round_start)
+        return round_start_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S')

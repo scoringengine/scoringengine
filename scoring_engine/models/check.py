@@ -1,10 +1,13 @@
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text, DateTime
 from sqlalchemy.orm import relationship
 
 from datetime import datetime
+import pytz
+
+import html
 
 from scoring_engine.models.base import Base
-import html
+from scoring_engine.engine.config import config
 
 
 class Check(Base):
@@ -18,7 +21,7 @@ class Check(Base):
     output = Column(Text, default="")
     reason = Column(Text, default="")
     command = Column(Text, default="")
-    completed_timestamp = Column(Text)
+    completed_timestamp = Column(DateTime)
     completed = Column(Boolean, default=False)
 
     def finished(self, result, reason, output, command):
@@ -26,5 +29,10 @@ class Check(Base):
         self.reason = reason
         self.output = html.escape(output)
         self.completed = True
-        self.completed_timestamp = str(datetime.now())
+        self.completed_timestamp = datetime.utcnow()
         self.command = command
+
+    @property
+    def local_completed_timestamp(self):
+        completed_timezone_obj = pytz.timezone('UTC').localize(self.completed_timestamp)
+        return completed_timezone_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S')

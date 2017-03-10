@@ -15,6 +15,9 @@ class TestConfig(object):
     def test_db_uri(self):
         assert self.config.db_uri == "sqlite:////tmp/test_engine.db"
 
+    def test_timezone(self):
+        assert self.config.timezone == 'US/Eastern'
+
     def test_redis_host(self):
         assert self.config.redis_host == "127.0.0.1"
 
