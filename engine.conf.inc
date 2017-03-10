@@ -20,7 +20,7 @@ host = 127.0.0.1
 port = 6379
 password =
 
-[sponsorships]
+[SPONSORSHIPS]
 levels=diamond,platinum,somecustomlevel,gold
 diamond=images/logo-placeholder.jpg,images/logo-placeholder.jpg,images/logo-placeholder.jpg
 platinum=images/logo-placeholder.jpg,images/logo-placeholder.jpg,images/logo-placeholder.jpg
