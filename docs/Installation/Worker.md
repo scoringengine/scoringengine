@@ -30,3 +30,9 @@ Change REDIS host/port/password fields to main engine host
 
 ### Install dependencies for SSH check
 `apt-get install -y sshpass`  
+
+### Install dependencies for SMTP/SMTPS check
+`cp /home/engine/scoring_engine/src/scoring_engine/engine/checks/bin/smtp_check /usr/bin/smtp_check`  
+`cp /home/engine/scoring_engine/src/scoring_engine/engine/checks/bin/smtps_check /usr/bin/smtps_check`  
+`chmod a+x /usr/bin/smtp_check`  
+`chmod a+x /usr/bin/smtps_check`  
