@@ -6,6 +6,8 @@ from collections import OrderedDict
 from flask import Blueprint, flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
+import html
+
 from scoring_engine.db import db
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
@@ -17,6 +19,7 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.engine.execute_command import execute_command
+
 from sqlalchemy.orm.exc import NoResultFound
 
 
@@ -32,9 +35,9 @@ def update_service_account_info():
             if current_user.team == account.service.team:
                 if account:
                     if request.form['name'] == 'username':
-                        account.username = request.form['value']
+                        account.username = html.escape(request.form['value'])
                     elif request.form['name'] == 'password':
-                        account.password = request.form['value']
+                        account.password = html.escape(request.form['value'])
                     db.save(account)
                     return jsonify({'status': 'Updated Account Information'})
                 return jsonify({'error': 'Incorrect permissions'})
@@ -50,7 +53,7 @@ def admin_update_environment():
             environment = Environment.query.get(int(request.form['pk']))
             if environment:
                 if request.form['name'] == 'matching_regex':
-                    environment.matching_regex = request.form['value']
+                    environment.matching_regex = html.escape(request.form['value'])
                 db.save(environment)
                 return jsonify({'status': 'Updated Environment Information'})
             return jsonify({'error': 'Incorrect permissions'})
@@ -65,9 +68,9 @@ def admin_update_property():
             property_obj = Property.query.get(int(request.form['pk']))
             if property_obj:
                 if request.form['name'] == 'property_name':
-                    property_obj.name = request.form['value']
+                    property_obj.name = html.escape(request.form['value'])
                 elif request.form['name'] == 'property_value':
-                    property_obj.value = request.form['value']
+                    property_obj.value = html.escape(request.form['value'])
                 db.save(property_obj)
                 return jsonify({'status': 'Updated Property Information'})
             return jsonify({'error': 'Incorrect permissions'})
@@ -100,7 +103,7 @@ def admin_update_ip_address():
             service = Service.query.get(int(request.form['pk']))
             if service:
                 if request.form['name'] == 'ip_address':
-                    service.ip_address = request.form['value']
+                    service.ip_address = html.escape(request.form['value'])
                     db.save(service)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -128,7 +131,7 @@ def update_ip_address():
             service = Service.query.get(int(request.form['pk']))
             if service:
                 if service.team == current_user.team and request.form['name'] == 'ip_address':
-                    service.ip_address = request.form['value']
+                    service.ip_address = html.escape(request.form['value'])
                     db.save(service)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -142,7 +145,7 @@ def modify_service_account():
             account = Account.query.get(int(request.form['account_id']))
             if account:
                 if account.service.team == current_user.team:
-                    account.password = request.form['password']
+                    account.password = html.escape(request.form['password'])
                     db.save(account)
                     flash('Successfully updated password for ' + account.username, 'success')
                     return redirect('/service/' + str(account.service.id))
@@ -230,7 +233,7 @@ def admin_update_password():
                 user_obj = User.query.filter(User.id == request.form['user_id']).one()
             except NoResultFound:
                 return redirect(url_for('auth.login'))
-            user_obj.update_password(request.form['password'])
+            user_obj.update_password(html.escape(request.form['password']))
             user_obj.authenticated = False
             db.save(user_obj)
             flash('Password Successfully Updated.', 'success')
@@ -248,8 +251,8 @@ def admin_add_user():
     if current_user.is_white_team:
         if 'username' in request.form and 'password' in request.form and 'team_id' in request.form:
             team_obj = Team.query.filter(Team.id == request.form['team_id']).one()
-            user_obj = User(username=request.form['username'],
-                            password=request.form['password'],
+            user_obj = User(username=html.escape(request.form['username']),
+                            password=html.escape(request.form['password']),
                             team=team_obj)
             db.save(user_obj)
             flash('User successfully added.', 'success')
@@ -266,7 +269,7 @@ def admin_add_user():
 def admin_add_team():
     if current_user.is_white_team:
         if 'name' in request.form and 'color' in request.form:
-            team_obj = Team(request.form['name'], request.form['color'])
+            team_obj = Team(html.escape(request.form['name']), html.escape(request.form['color']))
             db.save(team_obj)
             flash('Team successfully added.', 'success')
             return redirect(url_for('admin.manage'))
@@ -338,7 +341,7 @@ def overview_get_round_data():
 def profile_update_password():
     if 'user_id' in request.form and 'password' in request.form:
         if str(current_user.id) == request.form['user_id']:
-            current_user.update_password(request.form['password'])
+            current_user.update_password(html.escape(request.form['password']))
             current_user.authenticated = False
             db.save(current_user)
             flash('Password Successfully Updated.', 'success')
