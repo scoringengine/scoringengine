@@ -8,12 +8,12 @@ class SMTPSCheck(BasicCheck):
     def command_format(self, properties):
         account = self.get_random_account()
         return (
-          account.username,
-          account.password,
-          properties['fromuser'],
-          properties['touser'],
-          properties['subject'],
-          properties['body'],
-          self.ip_address,
-          self.port
+            account.username,
+            account.password,
+            properties['fromuser'],
+            properties['touser'],
+            properties['subject'],
+            properties['body'],
+            self.ip_address,
+            self.port
         )
