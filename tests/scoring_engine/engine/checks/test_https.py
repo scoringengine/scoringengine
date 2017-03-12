@@ -9,4 +9,4 @@ class TestHTTPSCheck(CheckTest):
         'vhost': 'www.example.com',
         'uri': '/index.html'
     }
-    cmd = "curl -s -S -4 -v -L --header 'Host: www.example.com' -k --ssl-reqd -A 'testagent' '127.0.0.1:100/index.html'"
+    cmd = "curl -s -S -4 -v -L --ssl-reqd --insecure --header 'Host: www.example.com' -A 'testagent' 'https://127.0.0.1:100/index.html'"
