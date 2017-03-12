@@ -17,7 +17,6 @@ class DB(object):
     def connect(self):
         self.connected = True
         self.engine = create_engine(self.db_uri, convert_unicode=True)
-        # self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
         self.session = scoped_session(sessionmaker(autocommit=False, bind=self.engine))
 
     def setup(self):
