@@ -113,6 +113,7 @@
     <script>
         $(document).ready(function() {
             $.ajax({
+                cache: false,
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {

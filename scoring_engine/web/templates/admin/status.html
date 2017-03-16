@@ -27,6 +27,7 @@
 <script>
   function getEngineStats() {
       $.ajax({
+          cache: false,
           url: '/api/admin/get_engine_stats',
           dataType: 'json',
           success: function(data) {
