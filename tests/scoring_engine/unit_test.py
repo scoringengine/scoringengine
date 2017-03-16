@@ -8,4 +8,5 @@ class UnitTest(object):
         self.db.setup()
 
     def teardown(self):
+        self.db.disconnect()
         self.db.destroy()
