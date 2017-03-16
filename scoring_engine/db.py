@@ -5,8 +5,9 @@ import bcrypt
 
 from scoring_engine.db_not_connected import DBNotConnected
 
-db_salt = bcrypt.gensalt()
 from scoring_engine.engine.config import config
+
+db_salt = bcrypt.gensalt()
 
 
 class DB(object):
@@ -17,11 +18,12 @@ class DB(object):
     def connect(self):
         self.connected = True
         self.engine = create_engine(self.db_uri, convert_unicode=True)
-        self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
+        self.session = scoped_session(sessionmaker(bind=self.engine))
 
     def setup(self):
         if not self.connected:
             raise DBNotConnected()
+
         from scoring_engine.models.user import User
         from scoring_engine.models.team import Team
         from scoring_engine.models.service import Service
@@ -51,6 +53,10 @@ class DB(object):
 
         self.session.add(obj)
         self.session.commit()
+
+    def disconnect(self):
+        self.engine.dispose()
+        self.session.close()
 
 
 db = DB()
