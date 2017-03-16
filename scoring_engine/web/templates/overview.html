@@ -19,6 +19,7 @@
     <script>
         function refreshheader() {
             $.ajax({
+                cache: false,
                 url: '/api/overview/get_round_data',
                 dataType: 'json',
                 success: function(data) {
@@ -38,6 +39,7 @@
 
             // Populate our table
             $.ajax({
+                cache: false,
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {

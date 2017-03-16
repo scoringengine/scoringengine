@@ -83,6 +83,7 @@
     <script>
         (function updateLineGraph() {
             $.ajax({
+                cache: false,
                 url: '/api/scoreboard/get_line_data',
                 dataType: 'json',
                 success: function(data) {
@@ -105,6 +106,7 @@
     <script>
         (function updateBarGraph() {
             $.ajax({
+                cache: false,
                 url: '/api/scoreboard/get_bar_data',
                 dataType: 'json',
                 success: function(data) {
