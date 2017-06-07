@@ -21,3 +21,8 @@ Scoring Engine for Red/White/Blue Team Competitions
 7. `systemctl start redis-server`
 
 8. `py.test tests`
+
+# Docker INSTRUCTIONS
+
+1. docker build -t scoring_engine:latest .
+2. docker run --name scoring_engine -p 5000:5000 -d scoring_engine:latest
