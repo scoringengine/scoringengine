@@ -16,4 +16,5 @@ RUN pip install -e .
 
 RUN python3.5 ./bin/populate_db
 
+EXPOSE 5000
 CMD python3.5 run.py
