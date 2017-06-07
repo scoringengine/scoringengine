@@ -25,4 +25,11 @@ Scoring Engine for Red/White/Blue Team Competitions
 # Docker INSTRUCTIONS
 
 1. docker build -t scoring_engine:latest .
-2. docker run --name scoring_engine -p 5000:5000 -d scoring_engine:latest
+2. docker run --name scoring_engine -p 127.0.0.1:5000:5000 -d scoring_engine:latest
+3. Login with any of the following logins at http://127.0.0.1:5000:
+    - whiteteamuser:testpass
+    - team1user1:testpass
+    - team2user1:testpass
+    - team2user2:testpass
+    - redteamuser:testpass
+ 
