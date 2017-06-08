@@ -15,7 +15,7 @@ RUN sed -i -e 's/about_us_page_content =.*/about_us_page_content = <h4>Use the f
 
 RUN pip install -e .
 
-RUN python3.5 ./bin/populate_db 2>/dev/null
+RUN python3.5 ./bin/populate_db > /dev/null
 
 EXPOSE 5000
 CMD python3.5 run.py
