@@ -11,11 +11,11 @@ WORKDIR /app
 
 RUN cp engine.conf.inc engine.conf
 RUN sed -i -e 's/DEBUG = True/DEBUG = False/g' scoring_engine/web/settings.cfg
-RUN sed -i -e 's/about_us_page_content =.*/about_us_page_content = Use the following logins: <ul><li>whiteteamuser:testpass<\/li><li>team1user1:testpass<\/li><li>team2user1:testpass<\/li><li>redteamuser:testpass<\/li><\/ul>/g' engine.conf
+RUN sed -i -e 's/about_us_page_content =.*/about_us_page_content = <h4>Use the following credentials to login<\/h4><ul><li>whiteteamuser:testpass<\/li><li>team1user1:testpass<\/li><li>team2user1:testpass<\/li><li>redteamuser:testpass<\/li><\/ul>/g' engine.conf
 
 RUN pip install -e .
 
-RUN python3.5 ./bin/populate_db
+RUN python3.5 ./bin/populate_db > /dev/null
 
 EXPOSE 5000
 CMD python3.5 run.py
