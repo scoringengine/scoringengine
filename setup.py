@@ -13,7 +13,6 @@ config = {
     'author_email': 'pwnbus@mozilla.com, rusty@rustybower.com, zallen@fastly.com',
     'version': version,
     'install_requires': [
-        # Required Dependencies
         'bcrypt==3.1.3',
         'configparser==3.5.0',
         'Flask==0.12',
@@ -23,12 +22,6 @@ config = {
         'redis==2.10.5',
         'celery==4.0.2',
         'shellescape==3.4.1',
-        # Develpment Dependencies
-        'pycodestyle==2.3.1',
-        'pytest-cov==2.4.0',
-        'pytest==3.0.6',
-        'codeclimate-test-reporter==0.2.1',
-        'mock==2.0.0'
     ],
     'packages': ['scoring_engine', 'tests', 'bin'],
     'scripts': [],
