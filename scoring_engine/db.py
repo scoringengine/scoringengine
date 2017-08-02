@@ -17,8 +17,16 @@ class DB(object):
 
     def connect(self):
         self.connected = True
-        self.engine = create_engine(self.db_uri, convert_unicode=True)
-        self.session = scoped_session(sessionmaker(bind=self.engine))
+        self.engine = create_engine(
+            self.db_uri,
+            convert_unicode=True,
+        )
+        self.session = scoped_session(sessionmaker(
+            bind=self.engine,
+            autocommit=False,
+            autoflush=True,
+            expire_on_commit=True,
+        ))
 
     def setup(self):
         if not self.connected:
