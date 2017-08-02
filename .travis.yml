@@ -1,7 +1,9 @@
 language: python
 python:
   - '3.5'
-install: "pip install -e ."
+install:
+  - pip install -e .
+  - pip install -r requirements.txt
 services:
   - redis-server
 script:
