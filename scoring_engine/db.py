@@ -51,8 +51,14 @@ class DB(object):
         if not self.connected:
             raise DBNotConnected()
 
-        self.session.add(obj)
-        self.session.commit()
+        try:
+            self.session.add(obj)
+            self.session.commit()
+        except:
+            self.session.rollback()
+            raise
+        finally:
+            self.session.close()
 
     def disconnect(self):
         self.engine.dispose()
