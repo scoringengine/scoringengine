@@ -90,6 +90,7 @@
     $(document).ready(function() {
         // Disable datatables error reporting
         $.fn.dataTable.ext.errMode = 'none';
+
         var table = $('#users')
             .on('error.dt', function (e, settings, techNote, message) {
                 console.log('An error has been reported by DataTables: ', message);

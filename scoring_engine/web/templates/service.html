@@ -112,6 +112,9 @@
     <br>
     <script>
         $(document).ready(function() {
+            // Disable datatables error reporting
+            $.fn.dataTable.ext.errMode = 'none';
+
             $.ajax({
                 cache: false,
                 url: '/api/overview/get_data',

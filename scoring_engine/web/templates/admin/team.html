@@ -180,10 +180,10 @@
                             }
                         } );
 
-                        // Disable datatables error reporting
-                        $.fn.dataTable.ext.errMode = 'none';
-
                         $(document).ready(function() {
+                            // Disable datatables error reporting
+                            $.fn.dataTable.ext.errMode = 'none';
+
                             var table = $('#checks{{service.id}}')
                                 .on('error.dt', function (e, settings, techNote, message) {
                                     console.log('An error has been reported by DataTables: ', message);
