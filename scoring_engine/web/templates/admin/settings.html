@@ -4,9 +4,6 @@
     {{ super() }}
     <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block admincontent %}
     <h2>Settings</h2>
