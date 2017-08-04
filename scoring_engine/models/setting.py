@@ -12,4 +12,4 @@ class Setting(Base):
 
     @staticmethod
     def get_setting(name):
-        return Setting.query.filter(Setting.name == name).order_by(desc(Setting.id)).first().value
+        return Setting.query.filter(Setting.name == name).order_by(desc(Setting.id)).first()

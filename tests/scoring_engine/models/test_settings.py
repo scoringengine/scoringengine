@@ -18,4 +18,4 @@ class TestSetting(UnitTest):
         self.db.save(setting_old)
         setting_new = Setting(name='test_setting', value='updated example')
         self.db.save(setting_new)
-        assert Setting.get_setting('test_setting') == 'updated example'
+        assert Setting.get_setting('test_setting').value == 'updated example'

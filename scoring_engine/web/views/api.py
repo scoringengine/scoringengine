@@ -143,7 +143,8 @@ def update_ip_address():
 def admin_update_about_page_content():
     if current_user.is_white_team:
         if 'about_page_content' in request.form:
-            setting = Setting(name='about_page_content', value=request.form['about_page_content'])
+            setting = Setting.get_setting('about_page_content')
+            setting.value = request.form['about_page_content']
             db.save(setting)
             flash('About Page Content Successfully Updated.', 'success')
             return redirect(url_for('admin.settings'))

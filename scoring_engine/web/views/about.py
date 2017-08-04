@@ -7,5 +7,5 @@ mod = Blueprint('about', __name__)
 
 @mod.route('/about')
 def about():
-    about_content = Setting.get_setting('about_page_content')
+    about_content = Setting.get_setting('about_page_content').value
     return render_template('about.html', version=version, about_content=about_content)

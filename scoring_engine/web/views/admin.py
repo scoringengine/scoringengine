@@ -62,7 +62,7 @@ def team(id):
 @login_required
 def settings():
     if current_user.is_white_team:
-        about_page_content = Setting.get_setting('about_page_content')
+        about_page_content = Setting.get_setting('about_page_content').value
         blue_teams = Team.get_all_blue_teams()
         return render_template('admin/settings.html', blue_teams=blue_teams, about_page_content=about_page_content)
     else:

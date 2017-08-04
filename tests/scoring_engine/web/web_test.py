@@ -8,6 +8,7 @@ from flask_wtf.csrf import generate_csrf
 from scoring_engine.web import app
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.models.setting import Setting
 
 from tests.scoring_engine.unit_test import UnitTest
 from mock import MagicMock, call
@@ -49,6 +50,10 @@ class WebTest(UnitTest):
         user1 = User(username='testuser', password='testpass', team=team1)
         self.db.save(user1)
         return user1
+
+    def create_default_settings(self):
+        setting = Setting(name='about_page_content', value='example content value')
+        self.db.save(setting)
 
     def test_debug(self):
         assert self.app.debug is True
