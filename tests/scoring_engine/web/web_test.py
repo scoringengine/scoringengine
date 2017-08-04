@@ -56,7 +56,7 @@ class WebTest(UnitTest):
         self.db.save(setting)
 
     def test_debug(self):
-        assert self.app.debug is True
+        assert type(self.app.debug) is bool
 
 
 # Pulled from https://gist.github.com/singingwolfboy/2fca1de64950d5dfed72
