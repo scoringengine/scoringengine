@@ -2,6 +2,10 @@
 
 from random import randint
 
+from sqlalchemy.exc import OperationalError
+
+import optparse
+
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
@@ -12,9 +16,25 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
 from scoring_engine.db import DB
 
+
+parser = optparse.OptionParser()
+parser.add_option('--overwrite-db', action="store_true", default=False)
+
 print("Setting up DB")
 db = DB()
 db.connect()
+
+options, arguments = parser.parse_args()
+
+if not options.overwrite_db:
+    try:
+        db.session.query(User).get(1)
+        print("Exiting script and not overwriting db...must set 'overwrite_db' flag if wanted.")
+        exit()
+    except OperationalError:
+        # Database doesn't exist, so continuing on to setup script
+        print("Database doesn't exist yet...")
+
 db.destroy()
 db.setup()
 
