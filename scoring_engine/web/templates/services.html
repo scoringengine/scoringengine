@@ -30,52 +30,55 @@
         </table>
         <script>
             $(document).ready(function() {
-                var table = $('#services').DataTable({
-                    'paging': false,
-                    'bFilter': false,
-                    'bInfo': false,
-                    "ajax": "/api/services",
-                    "columns": [
-                        {
-                            "data": null,
-                            "defaultContent": ''
-                        },
-                        { "data": "ip_address" },
-                        { "data": "port" },
-                        {
-                            "data": null,
-                            "defaultContent": ''
-                        },
-                        { "data": "score_earned" },
-                        { "data": "max_score" },
-                        { "data": "percent_earned" },
-                        {
-                            "data": null,
-                            "defaultContent": ''
-                        },
-                    ],
-                    "order": [[0, 'desc']],
-                    "createdRow": function ( row, data, index ) {
-                        $('td:eq(0)', row).html( '<a href="/service/' + data.service_id + '">' + data.service_name + '</a>' );
-                        if ( data.check == "UP" ) {
-                            $('td:eq(3)', row).html( '<span class="label label-success">UP</span>' );
-                        } else if ( data.check == "DOWN" ) {
-                            $('td:eq(3)', row).html( '<span class="label label-danger">DOWN</span>' );
-                        } else {
-                            $('td:eq(3)', row).html( '<span class="label label-default">Undetermined</span>' );
-                        }
-                        var last_ten_checks = ''
-                        for (var index in data.last_ten_checks) {
-                            if ( data.last_ten_checks[index] == true ) {
-                                last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                var table = $('#services')
+                    .on('error.dt', function (e, settings, techNote, message) {
+                        console.log('An error has been reported by DataTables: ', message);
+                    })
+                    .DataTable({
+                        'paging': false,
+                        'bFilter': false,
+                        'bInfo': false,
+                        "ajax": "/api/services",
+                        "columns": [
+                            {
+                                "data": null,
+                                "defaultContent": ''
+                            },
+                            { "data": "ip_address" },
+                            { "data": "port" },
+                            {
+                                "data": null,
+                                "defaultContent": ''
+                            },
+                            { "data": "score_earned" },
+                            { "data": "max_score" },
+                            { "data": "percent_earned" },
+                            {
+                                "data": null,
+                                "defaultContent": ''
+                            },
+                        ],
+                        "order": [[0, 'desc']],
+                        "createdRow": function ( row, data, index ) {
+                            $('td:eq(0)', row).html( '<a href="/service/' + data.service_id + '">' + data.service_name + '</a>' );
+                            if ( data.check == "UP" ) {
+                                $('td:eq(3)', row).html( '<span class="label label-success">UP</span>' );
+                            } else if ( data.check == "DOWN" ) {
+                                $('td:eq(3)', row).html( '<span class="label label-danger">DOWN</span>' );
                             } else {
-                                last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                                $('td:eq(3)', row).html( '<span class="label label-default">Undetermined</span>' );
                             }
+                            var last_ten_checks = ''
+                            for (var index in data.last_ten_checks) {
+                                if ( data.last_ten_checks[index] == true ) {
+                                    last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                                } else {
+                                    last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                                }
+                            }
+                            $('td:eq(7)', row).html(last_ten_checks);
                         }
-                        $('td:eq(7)', row).html(last_ten_checks);
-                    }
-
-                });
+                    });
                 setInterval( function () {
                     table.ajax.reload();
                 }, 3000 );

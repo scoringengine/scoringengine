@@ -28,8 +28,7 @@
                 }
             });
         }
-    </script>
-    <script>
+
         $(document).ready(function() {
             // Disable datatables error reporting
             $.fn.dataTable.ext.errMode = 'none';
@@ -48,7 +47,7 @@
                 success: function(data) {
                     var table = $('#overview')
                         .on('error.dt', function (e, settings, techNote, message) {
-                            console.log( 'An error has been reported by DataTables: ', message);
+                            console.log('An error has been reported by DataTables: ', message);
                         })
                         .DataTable({
                             ajax: "/api/overview/get_data",
