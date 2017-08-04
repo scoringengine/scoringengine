@@ -10,6 +10,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+from scoring_engine.models.setting import Setting
 from scoring_engine.db import DB
 
 print("Setting up DB")
@@ -281,3 +282,15 @@ for num_round in range(1, num_rounds + 1):
         check = Check(round=round_obj, service=service)
         check.finished(result, reason, output, command)
         db.save(check)
+
+login_creds_about_content = '''
+<h4>Use the following credentials to login</h4>
+<ul>
+    <li>whiteteamuser:testpass</li>
+    <li>team1user1:testpass</li>
+    <li>team2user1:testpass</li>
+    <li>redteamuser:testpass</li>
+</ul>'''
+print("Creating the default About page content")
+setting = Setting(name='about_page_content', value=login_creds_about_content)
+db.save(setting)

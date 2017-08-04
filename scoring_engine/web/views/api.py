@@ -18,6 +18,7 @@ from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -135,6 +136,20 @@ def update_ip_address():
                     db.save(service)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/admin/update_about_page_content', methods=['POST'])
+@login_required
+def admin_update_about_page_content():
+    if current_user.is_white_team:
+        if 'about_page_content' in request.form:
+            setting = Setting(name='about_page_content', value=request.form['about_page_content'])
+            db.save(setting)
+            flash('About Page Content Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: about_page_content not specified.', 'danger')
+        return redirect(url_for('admin.manage'))
+    return {'status': 'Unauthorized'}, 403
 
 
 @mod.route('/api/modify_service_account', methods=['POST'])
