@@ -1,6 +1,5 @@
 from sqlalchemy import Column, String, Integer, desc
 
-
 from scoring_engine.models.base import Base
 
 
