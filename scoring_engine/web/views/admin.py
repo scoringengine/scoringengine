@@ -4,6 +4,7 @@ from operator import itemgetter
 
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
+from scoring_engine.models.setting import Setting
 
 
 mod = Blueprint('admin', __name__)
@@ -53,5 +54,16 @@ def team(id):
             return redirect(url_for('auth.unauthorized'))
 
         return render_template('admin/team.html', team=team, blue_teams=blue_teams)
+    else:
+        return redirect(url_for('auth.unauthorized'))
+
+
+@mod.route('/admin/settings')
+@login_required
+def settings():
+    if current_user.is_white_team:
+        about_page_content = Setting.get_setting('about_page_content').value
+        blue_teams = Team.get_all_blue_teams()
+        return render_template('admin/settings.html', blue_teams=blue_teams, about_page_content=about_page_content)
     else:
         return redirect(url_for('auth.unauthorized'))

@@ -19,8 +19,6 @@ class Config(object):
 
         self.timezone = self.parser['GENERAL']['timezone']
 
-        self.web_about_us_page_content = self.parser['WEB']['about_us_page_content']
-
         self.db_uri = self.parser['DB']['uri']
 
         self.redis_host = self.parser['REDIS']['host']
