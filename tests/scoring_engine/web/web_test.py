@@ -52,8 +52,10 @@ class WebTest(UnitTest):
         return user1
 
     def create_default_settings(self):
-        setting = Setting(name='about_page_content', value='example content value')
-        self.db.save(setting)
+        about_page_setting = Setting(name='about_page_content', value='example content value')
+        self.db.save(about_page_setting)
+        welcome_page_setting = Setting(name='welcome_page_content', value='example welcome content <br>here')
+        self.db.save(welcome_page_setting)
 
     def test_debug(self):
         assert type(self.app.debug) is bool

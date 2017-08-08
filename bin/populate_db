@@ -30,7 +30,7 @@ options, arguments = parser.parse_args()
 if not options.overwrite_db:
     try:
         db.session.query(User).get(1)
-        print("Exiting script and not overwriting db...must set 'overwrite_db' flag if wanted.")
+        print("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
     except OperationalError:
         # Database doesn't exist, so continuing on to setup script
@@ -303,7 +303,7 @@ for num_round in range(1, num_rounds + 1):
         check.finished(result, reason, output, command)
         db.save(check)
 
-login_creds_about_content = '''
+about_content = '''
 <h4>Use the following credentials to login</h4>
 <ul>
     <li>whiteteamuser:testpass</li>
@@ -311,6 +311,54 @@ login_creds_about_content = '''
     <li>team2user1:testpass</li>
     <li>redteamuser:testpass</li>
 </ul>'''
-print("Creating the default About page content")
-setting = Setting(name='about_page_content', value=login_creds_about_content)
-db.save(setting)
+
+welcome_content = '''
+<div class="row">
+    <h1 class="text-center">Diamond</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+<div class="row">
+    <h1 class="text-center">Platinum</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+<div class="row">
+    <h1 class="text-center">Gold</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+'''
+
+print("Creating the default Settings")
+about_page_setting = Setting(name='about_page_content', value=about_content)
+db.save(about_page_setting)
+welcome_page_setting = Setting(name='welcome_page_content', value=welcome_content)
+db.save(welcome_page_setting)
