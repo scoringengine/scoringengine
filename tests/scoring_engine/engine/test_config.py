@@ -26,10 +26,3 @@ class TestConfig(object):
 
     def test_redis_password(self):
         assert self.config.redis_password == "testpass"
-
-    def test_sponsorship_images(self):
-        assert len(self.config.sponsorship_images) == 4
-        assert self.config.sponsorship_images['diamond'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['platinum'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['somecustomlevel'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['gold'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']

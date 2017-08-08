@@ -26,6 +26,7 @@ class WebTest(UnitTest):
         self.view_module.render_template = MagicMock()
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
+        self.create_default_settings()
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)
