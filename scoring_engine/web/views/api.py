@@ -153,6 +153,21 @@ def admin_update_about_page_content():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_welcome_page_content', methods=['POST'])
+@login_required
+def admin_update_welcome_page_content():
+    if current_user.is_white_team:
+        if 'welcome_page_content' in request.form:
+            setting = Setting.get_setting('welcome_page_content')
+            setting.value = request.form['welcome_page_content']
+            db.save(setting)
+            flash('Welcome Page Content Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: welcome_page_content not specified.', 'danger')
+        return redirect(url_for('admin.manage'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/modify_service_account', methods=['POST'])
 @login_required
 def modify_service_account():
