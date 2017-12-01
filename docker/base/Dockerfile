@@ -22,4 +22,4 @@ WORKDIR /app
 
 RUN pip install -e .
 
-COPY docker/base/files/engine.conf /app/engine.conf
+COPY docker/base/files/engine.conf.inc /app/engine.conf
