@@ -6,8 +6,10 @@ services:
       context: ../
       dockerfile: docker/redis/Dockerfile
     command: redis-server
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
+    networks:
+      - default
   base:
     build:
       context: ../
@@ -21,6 +23,8 @@ services:
       - redis
     command: bash -c 'sleep 20 && /app/bin/worker'
     scale: 3
+    networks:
+      - default
   engine:
     build:
       context: ../
@@ -31,6 +35,8 @@ services:
     command: bash -c 'sleep 20 && /app/bin/engine'
     volumes:
       - data:/app/data
+    networks:
+      - default
   bootstrap:
     build:
       context: ../
@@ -54,8 +60,6 @@ services:
       context: ../
       dockerfile: docker/flask/Dockerfile
     command: python3.5 /app/run.py
-    ports:
-      - 5000:5000
     networks:
       - default
     volumes:
