@@ -9,16 +9,17 @@ RUN \
     curl && \
   curl -o /root/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
   python3.5 /root/get-pip.py && \
-  rm /root/get-pip.py
+  rm /root/get-pip.py && \
+  mkdir /app && \
+  mkdir /app/data && \
+  ln -s /usr/bin/python3.5 /usr/bin/python
 
-COPY . /app
+COPY setup.py /app/setup.py
+COPY scoring_engine /app/scoring_engine
+COPY bin /app/bin
+
 WORKDIR /app
 
-RUN \
-  cp engine.conf.inc engine.conf && \
-  pip install -e .
+RUN pip install -e .
 
-RUN python3.5 ./bin/populate_db > /dev/null
-
-EXPOSE 5000
-CMD python3.5 run.py
+COPY docker/base/files/engine.conf /app/engine.conf
