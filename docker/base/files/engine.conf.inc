@@ -6,7 +6,7 @@ timezone = US/Eastern
 
 [DB]
 # SQLite
-uri = sqlite:////app/data/engine.db
+uri = mysql://se_user:CHANGEME@mysql/scoring_engine
 
 [REDIS]
 host = redis

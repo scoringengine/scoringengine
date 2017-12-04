@@ -19,7 +19,7 @@ services:
     depends_on:
       - base
       - redis
-    command: bash -c 'sleep 20 && /app/bin/worker'
+    command: bash -c 'sleep 120 && /app/bin/worker'
     scale: 3
   engine:
     build:
@@ -28,16 +28,14 @@ services:
     depends_on:
       - base
       - redis
-    command: bash -c 'sleep 20 && /app/bin/engine'
-    volumes:
-      - data:/app/data
+    command: bash -c 'sleep 120 && /app/bin/engine'
   bootstrap:
     build:
       context: ../
       dockerfile: docker/bootstrap/Dockerfile
-    command: python3.5 /app/bin/populate_db --overwrite-db
-    volumes:
-      - data:/app/data
+    command: bash -c 'sleep 15 && python3.5 /app/bin/populate_db'
+    networks:
+      - default
   nginx:
     build:
       context: ../
@@ -53,16 +51,21 @@ services:
     build:
       context: ../
       dockerfile: docker/flask/Dockerfile
-    command: python3.5 /app/run.py
+    command: bash -c 'sleep 30 && python3.5 /app/run.py'
     ports:
       - 5000:5000
     networks:
       - default
-    volumes:
-      - data:/app/data
+  mysql:
+    image: mysql:latest
+    networks:
+      - default
+    environment:
+     - MYSQL_ROOT_PASSWORD=CHANGEME
+     - MYSQL_DATABASE=scoring_engine
+     - MYSQL_USER=se_user
+     - MYSQL_PASSWORD=CHANGEME
 
-volumes:
-  data:
 
 networks:
   default:

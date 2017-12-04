@@ -23,3 +23,8 @@ WORKDIR /app
 RUN pip install -e .
 
 COPY docker/base/files/engine.conf.inc /app/engine.conf
+
+# To use mysql as database
+RUN \
+  apt-get install -y libmysqlclient-dev && \
+  pip install mysqlclient

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, desc
+from sqlalchemy import Column, Integer, Text, desc
 
 from scoring_engine.models.base import Base
 
@@ -6,8 +6,8 @@ from scoring_engine.models.base import Base
 class Setting(Base):
     __tablename__ = "settings"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    value = Column(String, nullable=False)
+    name = Column(Text, nullable=False)
+    value = Column(Text, nullable=False)
 
     @staticmethod
     def get_setting(name):
