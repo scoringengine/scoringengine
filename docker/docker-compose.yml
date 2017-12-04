@@ -1,0 +1,72 @@
+---
+version: '2.2'
+services:
+  redis:
+    build:
+      context: ../
+      dockerfile: docker/redis/Dockerfile
+    command: redis-server
+    # ports:
+    #   - 6379:6379
+    networks:
+      - default
+  base:
+    build:
+      context: ../
+      dockerfile: docker/base/Dockerfile
+  worker:
+    build:
+      context: ../
+      dockerfile: docker/worker/Dockerfile
+    depends_on:
+      - base
+      - redis
+    command: bash -c 'sleep 20 && /app/bin/worker'
+    scale: 3
+    networks:
+      - default
+  engine:
+    build:
+      context: ../
+      dockerfile: docker/engine/Dockerfile
+    depends_on:
+      - base
+      - redis
+    command: bash -c 'sleep 20 && /app/bin/engine'
+    volumes:
+      - data:/app/data
+    networks:
+      - default
+  bootstrap:
+    build:
+      context: ../
+      dockerfile: docker/bootstrap/Dockerfile
+    command: python3.5 /app/bin/populate_db --overwrite-db
+    volumes:
+      - data:/app/data
+  nginx:
+    build:
+      context: ../
+      dockerfile: docker/nginx/Dockerfile
+    depends_on:
+      - flask
+    command: /usr/sbin/nginx
+    ports:
+      - 80:80
+    networks:
+      - default
+  flask:
+    build:
+      context: ../
+      dockerfile: docker/flask/Dockerfile
+    command: python3.5 /app/run.py
+    networks:
+      - default
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:
+
+networks:
+  default:

@@ -102,3 +102,7 @@ tr.shown td.details-control {
 a.editable-click {
     border-bottom: none;
 }
+
+.middle-page {
+    max-width: 95%;
+}

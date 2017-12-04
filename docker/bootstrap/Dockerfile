@@ -1,0 +1,1 @@
+FROM scoringengine_base:latest

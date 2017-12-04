@@ -6,22 +6,9 @@
 {% endblock %}
 {% block content %}
 <div class="container md-page">
-  {% if sponsorship_images %}
-    {% for sponsorship_level in sponsorship_images %}
-      <div class="row">
-        <h1 class="text-center">{{sponsorship_level.title()}}</h1>
-      </div>
-      <div class="row">
-      {% for image in sponsorship_images[sponsorship_level] %}
-        <div class="card">
-          <img class='center-block' src="{{image}}" alt="{{image}}">
-        </div>
-      {% endfor %}
-      </div>
-    {% endfor %}
-  {% else %}
-    No sponsorship images defined in the environment.conf file
-  {% endif %}
+  <div class="row">
+    {{welcome_content|safe}}
+  </div>
 </div>
 {% endblock %}
 

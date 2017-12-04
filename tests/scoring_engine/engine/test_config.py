@@ -18,9 +18,6 @@ class TestConfig(object):
     def test_timezone(self):
         assert self.config.timezone == 'US/Eastern'
 
-    def test_web_about_us_page_content(self):
-        assert self.config.web_about_us_page_content == 'Test content here <br> and here'
-
     def test_redis_host(self):
         assert self.config.redis_host == "127.0.0.1"
 
@@ -29,10 +26,3 @@ class TestConfig(object):
 
     def test_redis_password(self):
         assert self.config.redis_password == "testpass"
-
-    def test_sponsorship_images(self):
-        assert len(self.config.sponsorship_images) == 4
-        assert self.config.sponsorship_images['diamond'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['platinum'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['somecustomlevel'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']
-        assert self.config.sponsorship_images['gold'] == ['/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg', '/static/images/logo-placeholder.jpg']

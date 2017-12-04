@@ -2,6 +2,10 @@
 
 from random import randint
 
+from sqlalchemy.exc import OperationalError
+
+import optparse
+
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
@@ -10,11 +14,28 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+from scoring_engine.models.setting import Setting
 from scoring_engine.db import DB
+
+
+parser = optparse.OptionParser()
+parser.add_option('--overwrite-db', action="store_true", default=False)
 
 print("Setting up DB")
 db = DB()
 db.connect()
+
+options, arguments = parser.parse_args()
+
+if not options.overwrite_db:
+    try:
+        db.session.query(User).get(1)
+        print("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
+        exit()
+    except OperationalError:
+        # Database doesn't exist, so continuing on to setup script
+        print("Database doesn't exist yet...")
+
 db.destroy()
 db.setup()
 
@@ -281,3 +302,63 @@ for num_round in range(1, num_rounds + 1):
         check = Check(round=round_obj, service=service)
         check.finished(result, reason, output, command)
         db.save(check)
+
+about_content = '''
+<h4>Use the following credentials to login</h4>
+<ul>
+    <li>whiteteamuser:testpass</li>
+    <li>team1user1:testpass</li>
+    <li>team2user1:testpass</li>
+    <li>redteamuser:testpass</li>
+</ul>'''
+
+welcome_content = '''
+<div class="row">
+    <h1 class="text-center">Diamond</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+<div class="row">
+    <h1 class="text-center">Platinum</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+<div class="row">
+    <h1 class="text-center">Gold</h1>
+</div>
+<div class="row">
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+    <div class="card">
+        <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+    </div>
+</div>
+'''
+
+print("Creating the default Settings")
+about_page_setting = Setting(name='about_page_content', value=about_content)
+db.save(about_page_setting)
+welcome_page_setting = Setting(name='welcome_page_content', value=welcome_content)
+db.save(welcome_page_setting)

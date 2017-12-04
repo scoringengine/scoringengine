@@ -8,6 +8,7 @@ from flask_wtf.csrf import generate_csrf
 from scoring_engine.web import app
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.models.setting import Setting
 
 from tests.scoring_engine.unit_test import UnitTest
 from mock import MagicMock, call
@@ -25,6 +26,7 @@ class WebTest(UnitTest):
         self.view_module.render_template = MagicMock()
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
+        self.create_default_settings()
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)
@@ -50,8 +52,14 @@ class WebTest(UnitTest):
         self.db.save(user1)
         return user1
 
+    def create_default_settings(self):
+        about_page_setting = Setting(name='about_page_content', value='example content value')
+        self.db.save(about_page_setting)
+        welcome_page_setting = Setting(name='welcome_page_content', value='example welcome content <br>here')
+        self.db.save(welcome_page_setting)
+
     def test_debug(self):
-        assert self.app.debug is True
+        assert type(self.app.debug) is bool
 
 
 # Pulled from https://gist.github.com/singingwolfboy/2fca1de64950d5dfed72

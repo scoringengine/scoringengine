@@ -23,7 +23,7 @@ config = {
         'celery==4.0.2',
         'shellescape==3.4.1',
     ],
-    'packages': ['scoring_engine', 'tests', 'bin'],
+    'packages': ['scoring_engine', 'bin'],
     'scripts': [],
     'name': 'scoring_engine'
 }

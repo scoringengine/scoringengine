@@ -6,13 +6,9 @@ timezone = US/Eastern
 
 [DB]
 # SQLite
-uri = sqlite:////tmp/engine.db
-# MySQL
-#uri = mysql://user:password@host/database
-# Postgresql
-#uri = postgresql://user:password@host/database
+uri = sqlite:////app/data/engine.db
 
 [REDIS]
-host = 127.0.0.1
+host = redis
 port = 6379
 password =
