@@ -88,26 +88,33 @@
     }
 
     $(document).ready(function() {
-        var table = $('#users').DataTable( {
-            "ajax": {
-              "url": "/api/admin/get_teams",
-              "type": 'GET'
-            },
-            "columns": [
-                {
-                    "className":      'details-control',
-                    "orderable":      false,
-                    "data":           null,
-                    "defaultContent": ''
+        // Disable datatables error reporting
+        $.fn.dataTable.ext.errMode = 'none';
+
+        var table = $('#users')
+            .on('error.dt', function (e, settings, techNote, message) {
+                console.log('An error has been reported by DataTables: ', message);
+            })
+            .DataTable( {
+                "ajax": {
+                    "url": "/api/admin/get_teams",
+                    "type": 'GET'
                 },
-                { "data": "name" },
-                { "data": "color" }
-            ],
-            'order': [[2, 'asc']],
-            'paging': false,
-            'bFilter': false,
-            'bInfo': false
-        } );
+                "columns": [
+                    {
+                        "className":      'details-control',
+                        "orderable":      false,
+                        "data":           null,
+                        "defaultContent": ''
+                    },
+                    { "data": "name" },
+                    { "data": "color" }
+                ],
+                'order': [[2, 'asc']],
+                'paging': false,
+                'bFilter': false,
+                'bInfo': false
+            });
 
         // Add event listener for opening and closing details
         $('#users tbody').on('click', 'td.details-control', function () {
