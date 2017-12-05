@@ -1,4 +1,5 @@
-import importlib
+import pynsive
+import inspect
 import random
 import signal
 import time
@@ -59,12 +60,17 @@ class Engine(object):
 
     def load_checks(self):
         logger.debug("Loading checks source from " + str(self.checks_location))
-        for check in self.checks_class_list:
-            check_file_module = __import__(self.checks_location, fromlist=[check])
-            check_file_module = importlib.import_module(self.checks_location + '.' + check.lower())
-            check_class_attr = getattr(check_file_module, check + 'Check')
-            logger.debug(" Found " + check_class_attr.__name__)
-            self.add_check(check_class_attr)
+        checks_location_module_str = self.checks_location.replace('/', '.')
+        found_check_modules = pynsive.list_modules(checks_location_module_str)
+        for found_module in found_check_modules:
+            module_obj = pynsive.import_module(found_module)
+            for name, arg in inspect.getmembers(module_obj):
+                if name == 'BasicCheck':
+                    continue
+                elif not name.endswith('Check'):
+                    continue
+                logger.debug(" Found " + arg.__name__)
+                self.add_check(arg)
 
     def check_name_to_obj(self, check_name):
         for check in self.checks:
@@ -105,7 +111,7 @@ class Engine(object):
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
                     raise LookupError("Unable to map service to check code for " + str(service.check_name))
-                logger.debug("Adding " + service.team.name + ' - ' + service.name + " check to queue")
+                logger.info("Adding " + service.team.name + ' - ' + service.name + " check to queue")
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
