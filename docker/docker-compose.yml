@@ -37,7 +37,7 @@ services:
     build:
       context: ../
       dockerfile: docker/bootstrap/Dockerfile
-    command: bash -c 'sleep 15 && python3.5 /app/bin/populate_db'
+    command: bash -c 'sleep 30 && python3.5 /app/bin/populate_db'
     networks:
       - default
   nginx:
@@ -55,7 +55,7 @@ services:
     build:
       context: ../
       dockerfile: docker/flask/Dockerfile
-    command: bash -c 'sleep 30 && python3.5 /app/run.py'
+    command: bash -c 'sleep 60 && python3.5 /app/run.py'
     networks:
       - default
   mysql:
