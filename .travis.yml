@@ -12,8 +12,12 @@ before_script:
   - ./cc-test-reporter before-build
 script:
   - cp engine.conf.inc engine.conf
-  - py.test --cov=scoring_engine tests
-  - codeclimate-test-reporter
+  - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
   - pycodestyle --show-source --ignore=E501,E402  ./
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - >
+      if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then \
+        ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT ;\
+      else \
+        exit 0 ;\
+      fi
