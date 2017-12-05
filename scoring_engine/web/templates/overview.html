@@ -28,9 +28,11 @@
                 }
             });
         }
-    </script>
-    <script>
+
         $(document).ready(function() {
+            // Disable datatables error reporting
+            $.fn.dataTable.ext.errMode = 'none';
+
             // Populate our header
             refreshheader();
             setInterval(function(){
@@ -43,39 +45,43 @@
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {
-                    var table = $('#overview').DataTable( {
-                        ajax: "/api/overview/get_data",
-                        columns: data.columns,
-                        paging: false,
-                        order: [[ 1, 'desc' ]],
-                        info: false,
-                        searching: false,
-                        scrollX: true,
-                        'createdRow': function ( row, data, index ) {
-                            count = 0;
-                            $('td', row).each(function() {
-                                var value = $(this).html()
-                                // Doing nothing if it's the current score
-                                if (value.match(/^\d+$/)) {
-                                }
-                                else if (value.search('Team') == 0) {
-                                }
-                                else if (value.search('- True') > 0) {
-                                    $('td', row).eq(count).addClass('label-success');
-                                    $('td', row).eq(count).html(value.replace(' - True', ''));
-                                }
-                                else if (value.search('- False') > 0) {
-                                    $('td', row).eq(count).addClass('label-danger');
-                                    $('td', row).eq(count).html(value.replace(' - False', ''));
-                                }
-                                else {
-                                    $('td', row).eq(count).addClass('label-default');
-                                    $('td', row).eq(count).html('Undetermined');
-                                }
-                                count++;
-                            })
-                        }
-                    });
+                    var table = $('#overview')
+                        .on('error.dt', function (e, settings, techNote, message) {
+                            console.log('An error has been reported by DataTables: ', message);
+                        })
+                        .DataTable({
+                            ajax: "/api/overview/get_data",
+                            columns: data.columns,
+                            paging: false,
+                            order: [[ 1, 'desc' ]],
+                            info: false,
+                            searching: false,
+                            scrollX: true,
+                            'createdRow': function ( row, data, index ) {
+                                count = 0;
+                                $('td', row).each(function() {
+                                    var value = $(this).html()
+                                    // Doing nothing if it's the current score
+                                    if (value.match(/^\d+$/)) {
+                                    }
+                                    else if (value.search('Team') == 0) {
+                                    }
+                                    else if (value.search('- True') > 0) {
+                                        $('td', row).eq(count).addClass('label-success');
+                                        $('td', row).eq(count).html(value.replace(' - True', ''));
+                                    }
+                                    else if (value.search('- False') > 0) {
+                                        $('td', row).eq(count).addClass('label-danger');
+                                        $('td', row).eq(count).html(value.replace(' - False', ''));
+                                    }
+                                    else {
+                                        $('td', row).eq(count).addClass('label-default');
+                                        $('td', row).eq(count).html('Undetermined');
+                                    }
+                                    count++;
+                                })
+                            }
+                        });
                     setInterval( function () {
                         table.ajax.reload();
                     }, 30000 );

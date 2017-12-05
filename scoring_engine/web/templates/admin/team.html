@@ -181,13 +181,20 @@
                         } );
 
                         $(document).ready(function() {
-                            $('#checks{{service.id}}').DataTable({
-                                'paging': true,
-                                'bFilter': false,
-                                'bInfo': false,
-                                "order": [[ 0, "desc" ]]
-                            });
-                        } );
+                            // Disable datatables error reporting
+                            $.fn.dataTable.ext.errMode = 'none';
+
+                            var table = $('#checks{{service.id}}')
+                                .on('error.dt', function (e, settings, techNote, message) {
+                                    console.log('An error has been reported by DataTables: ', message);
+                                })
+                                .DataTable({
+                                    'paging': true,
+                                    'bFilter': false,
+                                    'bInfo': false,
+                                    "order": [[ 0, "desc" ]]
+                                });
+                        });
                     </script>
                 {% else %}
                     No Checks Found.

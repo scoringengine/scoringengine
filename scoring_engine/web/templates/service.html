@@ -112,29 +112,36 @@
     <br>
     <script>
         $(document).ready(function() {
+            // Disable datatables error reporting
+            $.fn.dataTable.ext.errMode = 'none';
+
             $.ajax({
                 cache: false,
                 url: '/api/overview/get_data',
                 dataType: 'json',
                 success: function(data) {
-                    var table = $('#checks').DataTable( {
-                        "ajax": {
-                          "url": "/api/service/get_checks/{{ id }}",
-                          "type": 'GET'
-                        },
-                        "columns": [
-                            { "data": "round" },
-                            {
-                              "data": "result",
-                              "render": function( data ) {
-                                return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
-                              }
+                    var table = $('#checks')
+                        .on('error.dt', function (e, settings, techNote, message) {
+                            console.log('An error has been reported by DataTables: ', message);
+                        })
+                        .DataTable( {
+                            "ajax": {
+                              "url": "/api/service/get_checks/{{ id }}",
+                              "type": 'GET'
                             },
-                            { "data": "reason"},
-                            { "data": "timestamp" }
-                        ],
-                        'order': [[0, 'desc']],
-                    });
+                            "columns": [
+                                { "data": "round" },
+                                {
+                                  "data": "result",
+                                  "render": function( data ) {
+                                    return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                                  }
+                                },
+                                { "data": "reason"},
+                                { "data": "timestamp" }
+                            ],
+                            'order': [[0, 'desc']],
+                        });
                     setInterval( function () {
                         table.ajax.reload();
                     }, 5000 );
