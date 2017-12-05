@@ -31,7 +31,6 @@ class Engine(object):
         self.worker_wait_time = worker_wait_time
         self.config = config
         self.checks_location = self.config.checks_location
-        self.checks_class_list = self.config.checks_class_list
 
         self.last_round = False
         self.rounds_run = 0
