@@ -346,7 +346,11 @@ def overview_get_data():
                 count += 1
             else:
                 service = Service.query.filter(Service.name == columns[x]).filter(Service.team == team).first()
-                team_dict[columns[x]] = service.ip_address + ":" + str(service.port) + " - " + str(service.last_check_result())
+                service_text = service.ip_address
+                if str(service.port) != '0':
+                    service_text += ':' + str(service.port)
+                service_text += ' - ' + str(service.last_check_result())
+                team_dict[columns[x]] = service_text
         data.append(team_dict)
     columnlist = []
     for column in columns:
