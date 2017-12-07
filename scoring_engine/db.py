@@ -41,11 +41,19 @@ class DB(object):
         Base.metadata.drop_all(self.engine)
 
     def save(self, obj):
+        self.connect()
+
         if not self.connected:
             raise DBNotConnected()
 
-        self.session.add(obj)
-        self.session.commit()
+        try:
+            self.session.add(obj)
+            self.session.commit()
+        except:
+            self.session.rollback()
+            raise
+        finally:
+            self.session.close()
 
     def disconnect(self):
         self.engine.dispose()
