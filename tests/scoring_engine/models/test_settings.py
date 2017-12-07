@@ -20,4 +20,4 @@ class TestSetting(UnitTest):
         setting_new = Setting(name='test_setting', value='updated example')
         self.session.add(setting_new)
         self.session.commit()
-        assert Setting.get_setting('test_setting', self.session).value == 'updated example'
+        assert Setting.get_setting('test_setting').value == 'updated example'
