@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, url_for, redirect
 from flask_login import login_required, current_user
 from scoring_engine.models.service import Service
+from scoring_engine.db import session
+
 
 mod = Blueprint('services', __name__)
 
@@ -17,7 +19,7 @@ def home():
 @mod.route('/service/<id>')
 @login_required
 def service(id):
-    service = Service.query.get(id)
+    service = session.query(Service).get(id)
     if service is None or not current_user.team == service.team:
         return redirect(url_for('auth.unauthorized'))
     return render_template('service.html', id=id, service=service)
