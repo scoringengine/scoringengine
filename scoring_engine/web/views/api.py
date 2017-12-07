@@ -329,7 +329,7 @@ def admin_add_team():
 def admin_get_engine_stats():
     if current_user.is_white_team:
         engine_stats = {}
-        engine_stats['round_number'] = Round.get_last_round_num(session)
+        engine_stats['round_number'] = Round.get_last_round_num()
         engine_stats['num_passed_checks'] = session.query(Check).filter_by(result=True).count()
         engine_stats['num_failed_checks'] = session.query(Check).filter_by(result=False).count()
         engine_stats['total_checks'] = session.query(Check).count()

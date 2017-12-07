@@ -40,7 +40,7 @@ class Engine(object):
 
         self.session = session
 
-        self.current_round = Round.get_last_round_num(self.session)
+        self.current_round = Round.get_last_round_num()
 
         self.load_checks()
         self.round_running = False
