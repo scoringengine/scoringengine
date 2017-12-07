@@ -99,7 +99,7 @@ def logout():
     user = current_user
     user.authenticated = False
     session.add(user)
-    session.save()
+    session.commit()
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))
