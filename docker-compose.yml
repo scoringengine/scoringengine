@@ -9,6 +9,8 @@ services:
       timeout: 3s
       retries: 10
     restart: on-failure
+    volumes:
+      - redis:/data
   engine:
     build:
       context: .
@@ -72,3 +74,9 @@ services:
       timeout: 3s
       retries: 10
     restart: on-failure
+    volumes:
+      - mysql:/var/lib/mysql
+
+volumes:
+  redis:
+  mysql:
