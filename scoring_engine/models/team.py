@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.round import Round
+from scoring_engine.db import session
 
 
 class Team(Base):
@@ -68,7 +69,7 @@ class Team(Base):
     def get_round_scores(self, round_num):
         if round_num == 0:
             return 0
-        round_obj = Round.query.filter(Round.number == round_num).all()[0]
+        round_obj = session.query(Round).filter(Round.number == round_num).all()[0]
         round_score = 0
         for check in round_obj.checks:
             if check.service.team == self:
@@ -78,7 +79,7 @@ class Team(Base):
 
     @staticmethod
     def get_all_blue_teams():
-        return Team.query.filter(Team.color == 'Blue').all()
+        return session.query(Team).filter(Team.color == 'Blue').all()
 
     @staticmethod
     def get_all_rounds_results():
@@ -88,8 +89,8 @@ class Team(Base):
 
         rounds = []
         scores = {}
-        blue_teams = Team.query.filter(Team.color == 'Blue').all()
-        last_round_obj = Round.query.order_by(Round.number.desc()).first()
+        blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
+        last_round_obj = session.query(Round).order_by(Round.number.desc()).first()
         if last_round_obj:
             last_round = last_round_obj.number
             for round_num in range(0, last_round + 1):

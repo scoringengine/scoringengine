@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Text, desc
 
 from scoring_engine.models.base import Base
+from scoring_engine.db import session
 
 
 class Setting(Base):
@@ -11,4 +12,4 @@ class Setting(Base):
 
     @staticmethod
     def get_setting(name):
-        return Setting.query.filter(Setting.name == name).order_by(desc(Setting.id)).first()
+        return session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()

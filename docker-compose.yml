@@ -1,0 +1,82 @@
+---
+version: '3'
+services:
+  redis:
+    image: "redis:latest"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - redis:/data
+  engine:
+    build:
+      context: .
+      dockerfile: ./docker/engine/Dockerfile
+    depends_on:
+      - redis
+      - bootstrap
+    restart: on-failure
+  worker:
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+    depends_on:
+      - redis
+    restart: on-failure
+  bootstrap:
+    build:
+      context: .
+      dockerfile: ./docker/bootstrap/Dockerfile
+    depends_on:
+      - mysql
+    healthcheck:
+      test: ["CMD", "exit", "1"]
+    restart: on-failure
+  flask:
+    build:
+      context: .
+      dockerfile: ./docker/flask/Dockerfile
+    depends_on:
+      - mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:5000"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    depends_on:
+      - flask
+    ports:
+    - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_DATABASE=scoring_engine
+      - MYSQL_USER=se_user
+      - MYSQL_PASSWORD=CHANGEME
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pCHANGEME"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - mysql:/var/lib/mysql
+
+volumes:
+  redis:
+  mysql:

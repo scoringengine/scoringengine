@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/pwnbus/scoring_engine.svg?branch=master)](https://travis-ci.org/pwnbus/scoring_engine)
-[![Code Climate](https://codeclimate.com/github/pwnbus/scoring_engine/badges/gpa.svg)](https://codeclimate.com/github/pwnbus/scoring_engine)
-[![Test Coverage](https://codeclimate.com/github/pwnbus/scoring_engine/badges/coverage.svg)](https://codeclimate.com/github/pwnbus/scoring_engine/coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/maintainability)](https://codeclimate.com/github/pwnbus/scoring_engine/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/test_coverage)](https://codeclimate.com/github/pwnbus/scoring_engine/test_coverage)
 # scoring_engine
 Scoring Engine for Red/White/Blue Team Competitions
 

@@ -15,9 +15,10 @@ class TestAccount(UnitTest):
         assert account.service_id is None
 
     def test_basic_property(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         account = Account(username="testname", password="testpass", service=service)
-        self.db.save(account)
+        self.session.add(account)
+        self.session.commit()
         assert account.id is not None
         assert account.service == service
         assert account.service_id == service.id

@@ -7,7 +7,7 @@ import re
 import json
 from functools import partial
 from scoring_engine.engine.config import config
-from scoring_engine.db import DB
+from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
@@ -38,8 +38,7 @@ class Engine(object):
         signal.signal(signal.SIGINT, partial(engine_sigint_handler, obj=self))
         signal.signal(signal.SIGTERM, partial(engine_sigint_handler, obj=self))
 
-        self.db = DB()
-        self.db.connect()
+        self.session = session
 
         self.current_round = Round.get_last_round_num()
 
@@ -103,7 +102,7 @@ class Engine(object):
             self.round_running = True
             self.rounds_run += 1
 
-            services = self.db.session.query(Service).all()[:]
+            services = self.session.query(Service).all()[:]
             random.shuffle(services)
             task_ids = {}
             for service in services:
@@ -125,7 +124,8 @@ class Engine(object):
             # can consume them and can dynamically update a progress bar
             task_ids_str = json.dumps(task_ids)
             latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
-            self.db.save(latest_kb)
+            self.session.add(latest_kb)
+            self.session.commit()
 
             pending_tasks = self.all_pending_tasks(task_ids)
             while pending_tasks:
@@ -138,7 +138,8 @@ class Engine(object):
 
             logger.info("Determining check results and saving to db")
             round_obj = Round(number=self.current_round)
-            self.db.save(round_obj)
+            self.session.add(round_obj)
+            self.session.commit()
 
             # We keep track of the number of passed and failed checks per round
             # so we can report a little bit at the end of each round
@@ -146,7 +147,7 @@ class Engine(object):
             for team_name, task_ids in task_ids.items():
                 for task_id in task_ids:
                     task = execute_command.AsyncResult(task_id)
-                    environment = self.db.session.query(Environment).get(task.result['environment_id'])
+                    environment = self.session.query(Environment).get(task.result['environment_id'])
                     if task.result['errored_out']:
                         result = False
                         reason = 'Task Timed Out'
@@ -170,7 +171,9 @@ class Engine(object):
 
                     check = Check(service=environment.service, round=round_obj)
                     check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
-                    self.db.save(check)
+                    self.session.add(check)
+
+            self.session.commit()
 
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Stats:")

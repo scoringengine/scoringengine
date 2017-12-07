@@ -10,12 +10,14 @@ class TestSetting(UnitTest):
         assert setting.id is None
         assert setting.name == 'test_setting'
         assert setting.value == 'test value example'
-        self.db.save(setting)
+        self.session.add(setting)
+        self.session.commit()
         assert setting.id is not None
 
     def test_get_setting(self):
         setting_old = Setting(name='test_setting', value='test value example')
-        self.db.save(setting_old)
+        self.session.add(setting_old)
         setting_new = Setting(name='test_setting', value='updated example')
-        self.db.save(setting_new)
+        self.session.add(setting_new)
+        self.session.commit()
         assert Setting.get_setting('test_setting').value == 'updated example'
