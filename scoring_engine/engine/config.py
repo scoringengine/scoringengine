@@ -12,7 +12,7 @@ class Config(object):
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
 
-        self.web_debug = bool(self.parser['WEB']['debug'])
+        self.web_debug = self.parser['WEB']['debug'].lower() == 'true'
 
         self.checks_location = self.parser['GENERAL']['checks_location']
         self.check_timeout = int(self.parser['GENERAL']['check_timeout'])

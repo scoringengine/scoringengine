@@ -7,7 +7,7 @@ class TestConfig(object):
         self.config = Config(location="../../tests/scoring_engine/engine/example.conf")
 
     def test_web_debug(self):
-        assert self.config.web_debug is True
+        assert self.config.web_debug is False
 
     def test_checks_location(self):
         assert self.config.checks_location == "scoring_engine/engine/checks"
