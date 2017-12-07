@@ -9,7 +9,7 @@ from wtforms.validators import InputRequired
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 
-from scoring_engine.db import db
+from scoring_engine.db import session
 from scoring_engine.models.user import User
 
 from scoring_engine.web import app
@@ -26,7 +26,7 @@ login_manager.session_protection = 'strong'
 
 @login_manager.user_loader
 def load_user(id):
-    return db.session.query(User).get(int(id))
+    return session.query(User).get(int(id))
 
 
 @app.before_request
@@ -57,7 +57,7 @@ def login():
         password = request.form.get('password')
 
         try:
-            user = db.session.query(User).filter(User.username == username).one()
+            user = session.query(User).filter(User.username == username).one()
         except NoResultFound:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
@@ -68,7 +68,8 @@ def login():
         if user:
             if User.generate_hash(password, user.password) == user.password:
                 user.authenticated = True
-                db.save(user)
+                session.add(user)
+                session.commit()
                 login_user(user, remember=True)
 
                 if user.is_white_team:
@@ -97,7 +98,8 @@ def unauthorized():
 def logout():
     user = current_user
     user.authenticated = False
-    db.save(user)
+    session.add(user)
+    session.save()
     logout_user()
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('auth.login'))

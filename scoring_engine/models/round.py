@@ -6,6 +6,7 @@ import pytz
 
 from scoring_engine.models.base import Base
 from scoring_engine.engine.config import config
+from scoring_engine.db import session
 
 
 class Round(Base):
@@ -18,7 +19,7 @@ class Round(Base):
 
     @staticmethod
     def get_last_round_num():
-        round_obj = Round.query.order_by(Round.number.desc()).first()
+        round_obj = session.query(Round).order_by(Round.number.desc()).first()
         if round_obj is None:
             return 0
         else:

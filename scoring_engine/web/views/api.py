@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 
 import html
 
-from scoring_engine.db import db
+from scoring_engine.db import session
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
@@ -32,14 +32,15 @@ mod = Blueprint('api', __name__)
 def update_service_account_info():
     if current_user.is_white_team or current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            account = Account.query.get(int(request.form['pk']))
+            account = session.query(Account).get(int(request.form['pk']))
             if current_user.team == account.service.team:
                 if account:
                     if request.form['name'] == 'username':
                         account.username = html.escape(request.form['value'])
                     elif request.form['name'] == 'password':
                         account.password = html.escape(request.form['value'])
-                    db.save(account)
+                    session.add(account)
+                    session.commit()
                     return jsonify({'status': 'Updated Account Information'})
                 return jsonify({'error': 'Incorrect permissions'})
             return jsonify({'error': 'Incorrect permissions'})
@@ -51,11 +52,12 @@ def update_service_account_info():
 def admin_update_environment():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            environment = Environment.query.get(int(request.form['pk']))
+            environment = session.query(Environment).get(int(request.form['pk']))
             if environment:
                 if request.form['name'] == 'matching_regex':
                     environment.matching_regex = html.escape(request.form['value'])
-                db.save(environment)
+                session.add(environment)
+                session.commit()
                 return jsonify({'status': 'Updated Environment Information'})
             return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -66,13 +68,14 @@ def admin_update_environment():
 def admin_update_property():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            property_obj = Property.query.get(int(request.form['pk']))
+            property_obj = session.query(Property).get(int(request.form['pk']))
             if property_obj:
                 if request.form['name'] == 'property_name':
                     property_obj.name = html.escape(request.form['value'])
                 elif request.form['name'] == 'property_value':
                     property_obj.value = html.escape(request.form['value'])
-                db.save(property_obj)
+                session.add(property_obj)
+                session.commit()
                 return jsonify({'status': 'Updated Property Information'})
             return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -83,14 +86,15 @@ def admin_update_property():
 def admin_update_check():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            check = Check.query.get(int(request.form['pk']))
+            check = session.query(Check).get(int(request.form['pk']))
             if check:
                 if request.form['name'] == 'check_value':
                     if request.form['value'] == '1':
                         check.result = True
                     elif request.form['value'] == '2':
                         check.result = False
-                    db.save(check)
+                    session.add(check)
+                    session.commit()
                     return jsonify({'status': 'Updated Property Information'})
             return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -101,11 +105,12 @@ def admin_update_check():
 def admin_update_ip_address():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            service = Service.query.get(int(request.form['pk']))
+            service = session.query(Service).get(int(request.form['pk']))
             if service:
                 if request.form['name'] == 'ip_address':
                     service.ip_address = html.escape(request.form['value'])
-                    db.save(service)
+                    session.add(service)
+                    session.commit()
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -115,11 +120,12 @@ def admin_update_ip_address():
 def admin_update_port():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            service = Service.query.get(int(request.form['pk']))
+            service = session.query(Service).get(int(request.form['pk']))
             if service:
                 if request.form['name'] == 'port':
                     service.port = int(request.form['value'])
-                    db.save(service)
+                    session.add(service)
+                    session.commit()
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -129,11 +135,12 @@ def admin_update_port():
 def update_ip_address():
     if current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            service = Service.query.get(int(request.form['pk']))
+            service = session.query(Service).get(int(request.form['pk']))
             if service:
                 if service.team == current_user.team and request.form['name'] == 'ip_address':
                     service.ip_address = html.escape(request.form['value'])
-                    db.save(service)
+                    session.add(service)
+                    session.commit()
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -145,7 +152,8 @@ def admin_update_about_page_content():
         if 'about_page_content' in request.form:
             setting = Setting.get_setting('about_page_content')
             setting.value = request.form['about_page_content']
-            db.save(setting)
+            session.add(setting)
+            session.commit()
             flash('About Page Content Successfully Updated.', 'success')
             return redirect(url_for('admin.settings'))
         flash('Error: about_page_content not specified.', 'danger')
@@ -160,7 +168,8 @@ def admin_update_welcome_page_content():
         if 'welcome_page_content' in request.form:
             setting = Setting.get_setting('welcome_page_content')
             setting.value = request.form['welcome_page_content']
-            db.save(setting)
+            session.add(setting)
+            session.commit()
             flash('Welcome Page Content Successfully Updated.', 'success')
             return redirect(url_for('admin.settings'))
         flash('Error: welcome_page_content not specified.', 'danger')
@@ -173,11 +182,12 @@ def admin_update_welcome_page_content():
 def modify_service_account():
     if current_user.is_blue_team:
         if 'account_id' in request.form and 'password' in request.form:
-            account = Account.query.get(int(request.form['account_id']))
+            account = session.query(Account).get(int(request.form['account_id']))
             if account:
                 if account.service.team == current_user.team:
                     account.password = html.escape(request.form['password'])
-                    db.save(account)
+                    session.add(account)
+                    session.commit()
                     flash('Successfully updated password for ' + account.username, 'success')
                     return redirect('/service/' + str(account.service.id))
             flash('Incorrect permissions', 'error')
@@ -190,7 +200,7 @@ def modify_service_account():
 @login_required
 def get_check_progress_total():
     if current_user.is_white_team:
-        task_id_settings = KB.query.filter_by(name='task_ids').order_by(KB.round_num.desc()).first()
+        task_id_settings = session.query(KB).filter_by(name='task_ids').order_by(KB.round_num.desc()).first()
         total_stats = {}
         total_stats['finished'] = 0
         total_stats['pending'] = 0
@@ -243,7 +253,7 @@ def get_check_progress_total():
 @login_required
 def admin_get_teams():
     if current_user.is_white_team:
-        all_teams = Team.query.all()
+        all_teams = session.query(Team).all()
         data = []
         for team in all_teams:
             users = {}
@@ -261,12 +271,13 @@ def admin_update_password():
     if current_user.is_white_team:
         if 'user_id' in request.form and 'password' in request.form:
             try:
-                user_obj = User.query.filter(User.id == request.form['user_id']).one()
+                user_obj = session.query(User).filter(User.id == request.form['user_id']).one()
             except NoResultFound:
                 return redirect(url_for('auth.login'))
             user_obj.update_password(html.escape(request.form['password']))
             user_obj.authenticated = False
-            db.save(user_obj)
+            session.add(user_obj)
+            session.commit()
             flash('Password Successfully Updated.', 'success')
             return redirect(url_for('admin.manage'))
         else:
@@ -281,11 +292,12 @@ def admin_update_password():
 def admin_add_user():
     if current_user.is_white_team:
         if 'username' in request.form and 'password' in request.form and 'team_id' in request.form:
-            team_obj = Team.query.filter(Team.id == request.form['team_id']).one()
+            team_obj = session.query(Team).filter(Team.id == request.form['team_id']).one()
             user_obj = User(username=html.escape(request.form['username']),
                             password=html.escape(request.form['password']),
                             team=team_obj)
-            db.save(user_obj)
+            session.add(user_obj)
+            session.commit()
             flash('User successfully added.', 'success')
             return redirect(url_for('admin.manage'))
         else:
@@ -301,7 +313,8 @@ def admin_add_team():
     if current_user.is_white_team:
         if 'name' in request.form and 'color' in request.form:
             team_obj = Team(html.escape(request.form['name']), html.escape(request.form['color']))
-            db.save(team_obj)
+            session.add(team_obj)
+            session.commit()
             flash('Team successfully added.', 'success')
             return redirect(url_for('admin.manage'))
         else:
@@ -316,10 +329,10 @@ def admin_add_team():
 def admin_get_engine_stats():
     if current_user.is_white_team:
         engine_stats = {}
-        engine_stats['round_number'] = Round.get_last_round_num()
-        engine_stats['num_passed_checks'] = Check.query.filter_by(result=True).count()
-        engine_stats['num_failed_checks'] = Check.query.filter_by(result=False).count()
-        engine_stats['total_checks'] = Check.query.count()
+        engine_stats['round_number'] = Round.get_last_round_num(session)
+        engine_stats['num_passed_checks'] = session.query(Check).filter_by(result=True).count()
+        engine_stats['num_failed_checks'] = session.query(Check).filter_by(result=False).count()
+        engine_stats['total_checks'] = session.query(Check).count()
         return jsonify(engine_stats)
     else:
         return {'status': 'Unauthorized'}, 403
@@ -327,7 +340,7 @@ def admin_get_engine_stats():
 
 @mod.route('/api/overview/get_data')
 def overview_get_data():
-    blue_teams = Team.query.filter(Team.color == 'Blue').all()
+    blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
     columns = []
     columns.append('Team Name')
     columns.append('Current Score')
@@ -345,7 +358,7 @@ def overview_get_data():
                 team_dict[columns[x]] = team.current_score
                 count += 1
             else:
-                service = Service.query.filter(Service.name == columns[x]).filter(Service.team == team).first()
+                service = session.query(Service).filter(Service.name == columns[x]).filter(Service.team == team).first()
                 service_text = service.ip_address
                 if str(service.port) != '0':
                     service_text += ':' + str(service.port)
@@ -360,7 +373,7 @@ def overview_get_data():
 
 @mod.route('/api/overview/get_round_data')
 def overview_get_round_data():
-    round_obj = Round.query.order_by(Round.number.desc()).first()
+    round_obj = session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
         round_start = round_obj.local_round_start
         number = round_obj.number
@@ -378,7 +391,8 @@ def profile_update_password():
         if str(current_user.id) == request.form['user_id']:
             current_user.update_password(html.escape(request.form['password']))
             current_user.authenticated = False
-            db.save(current_user)
+            session.add(current_user)
+            session.commit()
             flash('Password Successfully Updated.', 'success')
             return redirect(url_for('profile.home'))
         else:
@@ -419,7 +433,7 @@ def api_services():
 @mod.route('/api/service/get_checks/<id>')
 @login_required
 def service_get_checks(id):
-    service = Service.query.get(id)
+    service = session.query(Service).get(id)
     if service is None or not current_user.team == service.team:
         return jsonify({'status': 'Unauthorized'}), 403
     data = []
@@ -475,7 +489,7 @@ def scoreboard_get_line_data():
 @mod.route('/api/overview/data')
 def overview_data():
     team_data = OrderedDict()
-    teams = Team.query.filter(Team.color == 'Blue').order_by(Team.id).all()
+    teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
     random.shuffle(teams)
     for team in teams:
         service_data = {}
