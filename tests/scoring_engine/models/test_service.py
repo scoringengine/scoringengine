@@ -20,9 +20,10 @@ class TestService(UnitTest):
         assert service.points is None
 
     def test_basic_service(self):
-        team = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.session)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        self.db.save(service)
+        self.session.add(service)
+        self.session.commit()
         assert service.id is not None
         assert service.name == "Example Service"
         assert service.team == team
@@ -32,9 +33,10 @@ class TestService(UnitTest):
         assert service.points == 100
 
     def test_basic_service_with_points(self):
-        team = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.session)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, ip_address='127.0.0.1', port=100)
-        self.db.save(service)
+        self.session.add(service)
+        self.session.commit()
         assert service.id is not None
         assert service.name == "Example Service"
         assert service.team == team
@@ -47,141 +49,152 @@ class TestService(UnitTest):
         assert service.percent_earned == 0
 
     def test_last_check_result_false(self):
-        team = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.session)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        self.db.save(service)
-        round_obj = generate_sample_model_tree('Round', self.db)
+        self.session.add(service)
+        round_obj = generate_sample_model_tree('Round', self.session)
         check_1 = Check(round=round_obj, service=service, result=True, output='Good output')
-        self.db.save(check_1)
+        self.session.add(check_1)
         check_2 = Check(round=round_obj, service=service, result=True, output='Good output')
-        self.db.save(check_2)
+        self.session.add(check_2)
         check_3 = Check(round=round_obj, service=service, result=False, output='Check exceeded time')
-        self.db.save(check_3)
+        self.session.add(check_3)
+        self.session.commit()
         assert service.last_check_result() is False
 
     def test_last_check_result_true(self):
-        team = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.session)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        self.db.save(service)
-        round_obj = generate_sample_model_tree('Round', self.db)
+        self.session.add(service)
+        round_obj = generate_sample_model_tree('Round', self.session)
         check_1 = Check(round=round_obj, service=service, result=False, output='Check exceeded time')
-        self.db.save(check_1)
+        self.session.add(check_1)
         check_2 = Check(round=round_obj, service=service, result=False, output='Check exceeded time')
-        self.db.save(check_2)
+        self.session.add(check_2)
         check_3 = Check(round=round_obj, service=service, result=True, output='Good output')
-        self.db.save(check_3)
+        self.session.add(check_3)
+        self.session.commit()
         assert service.last_check_result() is True
 
     def test_last_check_result_not_found(self):
-        team = generate_sample_model_tree('Team', self.db)
+        team = generate_sample_model_tree('Team', self.session)
         service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        self.db.save(service)
+        self.session.add(service)
+        self.session.commit()
         assert service.last_check_result() is None
 
     def test_checks(self):
-        service = generate_sample_model_tree('Service', self.db)
-        round_obj = generate_sample_model_tree('Round', self.db)
+        service = generate_sample_model_tree('Service', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
         check_1 = Check(round=round_obj, service=service)
-        self.db.save(check_1)
+        self.session.add(check_1)
         check_2 = Check(round=round_obj, service=service)
-        self.db.save(check_2)
+        self.session.add(check_2)
         check_3 = Check(round=round_obj, service=service)
-        self.db.save(check_3)
+        self.session.add(check_3)
+        self.session.commit()
         assert service.checks == [check_1, check_2, check_3]
 
     def test_checks_reversed(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         round_obj_1 = Round(number=1)
         round_obj_2 = Round(number=2)
         round_obj_3 = Round(number=3)
-        self.db.save(round_obj_1)
-        self.db.save(round_obj_2)
-        self.db.save(round_obj_3)
+        self.session.add(round_obj_1)
+        self.session.add(round_obj_2)
+        self.session.add(round_obj_3)
         check_1 = Check(round=round_obj_1, service=service)
-        self.db.save(check_1)
+        self.session.add(check_1)
         check_2 = Check(round=round_obj_2, service=service)
-        self.db.save(check_2)
+        self.session.add(check_2)
         check_3 = Check(round=round_obj_3, service=service)
-        self.db.save(check_3)
+        self.session.add(check_3)
+        self.session.commit()
         assert service.checks_reversed == [check_3, check_2, check_1]
 
     def test_environments(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         environment_1 = Environment(service=service, matching_regex='*')
-        self.db.save(environment_1)
+        self.session.add(environment_1)
         environment_2 = Environment(service=service, matching_regex='*')
-        self.db.save(environment_2)
+        self.session.add(environment_2)
         environment_3 = Environment(service=service, matching_regex='*')
-        self.db.save(environment_3)
+        self.session.add(environment_3)
+        self.session.commit()
         assert service.environments == [environment_1, environment_2, environment_3]
 
     def test_accounts(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         account_1 = Account(username="testname", password="testpass", service=service)
-        self.db.save(account_1)
+        self.session.add(account_1)
         account_2 = Account(username="testname123", password="testpass", service=service)
-        self.db.save(account_2)
+        self.session.add(account_2)
         account_3 = Account(username="testusername", password="testpass", service=service)
-        self.db.save(account_3)
+        self.session.add(account_3)
+        self.session.commit()
         assert service.accounts == [account_1, account_2, account_3]
 
     def test_score_earned(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         check_1 = Check(service=service, result=True, output='Good output')
         check_2 = Check(service=service, result=True, output='Good output')
         check_3 = Check(service=service, result=True, output='Good output')
         check_4 = Check(service=service, result=True, output='Good output')
         check_5 = Check(service=service, result=False, output='bad output')
-        self.db.save(check_1)
-        self.db.save(check_2)
-        self.db.save(check_3)
-        self.db.save(check_4)
-        self.db.save(check_5)
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.add(check_3)
+        self.session.add(check_4)
+        self.session.add(check_5)
+        self.session.commit()
         assert service.score_earned == 400
 
     def test_max_score(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         check_1 = Check(service=service, result=True, output='Good output')
         check_2 = Check(service=service, result=True, output='Good output')
         check_3 = Check(service=service, result=True, output='Good output')
         check_4 = Check(service=service, result=True, output='Good output')
         check_5 = Check(service=service, result=False, output='bad output')
-        self.db.save(check_1)
-        self.db.save(check_2)
-        self.db.save(check_3)
-        self.db.save(check_4)
-        self.db.save(check_5)
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.add(check_3)
+        self.session.add(check_4)
+        self.session.add(check_5)
+        self.session.commit()
         assert service.max_score == 500
 
     def test_percent_earned(self):
-        service = generate_sample_model_tree('Service', self.db)
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
+        service = generate_sample_model_tree('Service', self.session)
         check_1 = Check(service=service, result=True, output='Good output')
         check_2 = Check(service=service, result=True, output='Good output')
         check_3 = Check(service=service, result=True, output='Good output')
         check_4 = Check(service=service, result=True, output='Good output')
         check_5 = Check(service=service, result=False, output='bad output')
-        self.db.save(check_1)
-        self.db.save(check_2)
-        self.db.save(check_3)
-        self.db.save(check_4)
-        self.db.save(check_5)
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.add(check_3)
+        self.session.add(check_4)
+        self.session.add(check_5)
+        self.session.commit()
         assert service.percent_earned == 80
 
     def test_last_ten_checks_4_checks(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         check_1 = Check(service=service, result=True, output='Good output')
         check_2 = Check(service=service, result=True, output='Good output')
         check_3 = Check(service=service, result=True, output='Good output')
         check_4 = Check(service=service, result=True, output='Good output')
-        self.db.save(check_1)
-        self.db.save(check_2)
-        self.db.save(check_3)
-        self.db.save(check_4)
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.add(check_3)
+        self.session.add(check_4)
+        self.session.commit()
         assert service.last_ten_checks == [check_4, check_3, check_2, check_1]
 
     def test_last_ten_checks_15_checks(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         check_1 = Check(service=service, result=True, output='Good output')
         check_2 = Check(service=service, result=True, output='Good output')
         check_3 = Check(service=service, result=True, output='Good output')
@@ -197,21 +210,22 @@ class TestService(UnitTest):
         check_13 = Check(service=service, result=True, output='Good output')
         check_14 = Check(service=service, result=True, output='Good output')
         check_15 = Check(service=service, result=True, output='Good output')
-        self.db.save(check_1)
-        self.db.save(check_2)
-        self.db.save(check_3)
-        self.db.save(check_4)
-        self.db.save(check_5)
-        self.db.save(check_6)
-        self.db.save(check_7)
-        self.db.save(check_8)
-        self.db.save(check_9)
-        self.db.save(check_10)
-        self.db.save(check_11)
-        self.db.save(check_12)
-        self.db.save(check_13)
-        self.db.save(check_14)
-        self.db.save(check_15)
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.add(check_3)
+        self.session.add(check_4)
+        self.session.add(check_5)
+        self.session.add(check_6)
+        self.session.add(check_7)
+        self.session.add(check_8)
+        self.session.add(check_9)
+        self.session.add(check_10)
+        self.session.add(check_11)
+        self.session.add(check_12)
+        self.session.add(check_13)
+        self.session.add(check_14)
+        self.session.add(check_15)
+        self.session.commit()
         assert service.last_ten_checks == [
             check_15,
             check_14,
@@ -230,22 +244,23 @@ class TestService(UnitTest):
         assert service.check_result_for_round(1) is False
 
     def test_check_result_for_round_3_rounds(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
 
         round_1 = Round(number=1)
-        self.db.save(round_1)
+        self.session.add(round_1)
         check_1 = Check(round=round_1, result=True, service=service)
-        self.db.save(check_1)
+        self.session.add(check_1)
 
         round_2 = Round(number=2)
-        self.db.save(round_2)
+        self.session.add(round_2)
         check_2 = Check(round=round_2, result=True, service=service)
-        self.db.save(check_2)
+        self.session.add(check_2)
 
         round_3 = Round(number=3)
-        self.db.save(round_3)
+        self.session.add(round_3)
         check_3 = Check(round=round_3, result=False, service=service)
-        self.db.save(check_3)
+        self.session.add(check_3)
+        self.session.commit()
         assert service.check_result_for_round(1) is True
         assert service.check_result_for_round(2) is True
         assert service.check_result_for_round(3) is False

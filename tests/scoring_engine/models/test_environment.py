@@ -14,13 +14,14 @@ class TestEnvironment(UnitTest):
         assert environment.matching_regex == '*'
 
     def test_basic_service(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         environment = Environment(service=service, matching_regex='*')
-        self.db.save(environment)
+        self.session.add(environment)
         property_1 = Property(name='example_property1', value='somevalue', environment=environment)
         property_2 = Property(name='example_property2', value='anotheralue', environment=environment)
-        self.db.save(property_1)
-        self.db.save(property_2)
+        self.session.add(property_1)
+        self.session.add(property_2)
+        self.session.commit()
         assert environment.id is not None
         assert environment.service_id == service.id
         assert environment.service == service

@@ -19,14 +19,16 @@ class TestBasicCheck(UnitTest):
         assert check.required_properties == []
 
     def test_get_ip_address(self):
-        self.db.save(self.service)
-        self.db.save(self.environment)
+        self.session.add(self.service)
+        self.session.add(self.environment)
+        self.session.commit()
         check = BasicCheck(self.environment)
         assert check.ip_address == '127.0.0.1'
 
     def test_get_random_account(self):
-        self.db.save(Account(username='pwnbus', password='pass', service=self.service))
-        self.db.save(self.service)
-        self.db.save(self.environment)
+        self.session.add(Account(username='pwnbus', password='pass', service=self.service))
+        self.session.add(self.service)
+        self.session.add(self.environment)
+        self.session.commit()
         check = BasicCheck(self.environment)
         assert check.get_random_account().username == 'pwnbus'

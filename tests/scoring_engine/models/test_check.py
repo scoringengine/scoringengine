@@ -14,11 +14,12 @@ class TestCheck(UnitTest):
         assert check.round_id is None
 
     def test_basic_check(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         round_obj = Round(number=1)
-        self.db.save(round_obj)
+        self.session.add(round_obj)
         check = Check(round=round_obj, service=service, result=True, output="example_output")
-        self.db.save(check)
+        self.session.add(check)
+        self.session.commit()
         assert check.id is not None
         assert check.round == round_obj
         assert check.round_id == round_obj.id
@@ -29,17 +30,19 @@ class TestCheck(UnitTest):
         assert check.completed is False
 
     def test_finished(self):
-        service = generate_sample_model_tree('Service', self.db)
+        service = generate_sample_model_tree('Service', self.session)
         round_obj = Round(number=1)
-        self.db.save(round_obj)
+        self.session.add(round_obj)
         check = Check(round=round_obj, service=service)
-        self.db.save(check)
+        self.session.add(check)
+        self.session.commit()
         assert check.result is None
         assert check.output == ''
         assert check.completed is False
         assert check.reason == ''
         check.finished(True, 'Successful Match', 'good output', 'example command')
-        self.db.save(check)
+        self.session.add(check)
+        self.session.commit()
         assert check.result is True
         assert check.output == 'good output'
         assert check.reason == 'Successful Match'
