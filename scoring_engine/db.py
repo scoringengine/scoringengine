@@ -1,4 +1,3 @@
-import bcrypt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -12,7 +11,4 @@ if 'sqlite' in config.db_uri:
     isolation_level = "READ UNCOMMITTED"
 
 engine = create_engine(config.db_uri, isolation_level=isolation_level)
-
 session = scoped_session(sessionmaker(bind=engine))
-
-db_salt = bcrypt.gensalt()
