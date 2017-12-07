@@ -1,35 +1,26 @@
 [![Build Status](https://travis-ci.org/pwnbus/scoring_engine.svg?branch=master)](https://travis-ci.org/pwnbus/scoring_engine)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/maintainability)](https://codeclimate.com/github/pwnbus/scoring_engine/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/test_coverage)](https://codeclimate.com/github/pwnbus/scoring_engine/test_coverage)
-# scoring_engine
+
+Scoring Engine
+==============
 Scoring Engine for Red/White/Blue Team Competitions
 
-# DEV INSTRUCTIONS
+Getting started
+---------------
 
-1. Install Vagrant
+Download [Docker](https://www.docker.com/products/overview). If you are on Mac or Windows, [Docker Compose](https://docs.docker.com/compose) will be automatically installed. On Linux, make sure you have the latest version of [Compose](https://docs.docker.com/compose/install/). If you're using [Docker for Windows](https://docs.docker.com/docker-for-windows/) on Windows 10 pro or later, you must also [switch to Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
 
-2. Install Virtualbox
+Run in this directory:
+```
+docker-compose build
+docker-compose up
+```
+The app will be running at [http://localhost](http://localhost)
 
-3. Fork this repo
-
-4. Clone your fork
-
-5. `vagrant up` then `vagrant ssh`
-
-6. `cd /vagrant; pip install -e .`
-
-7. `systemctl start redis-server`
-
-8. `py.test tests`
-
-# Docker INSTRUCTIONS
-
-1. docker build -t scoring_engine:latest .
-2. docker run --name scoring_engine -p 127.0.0.1:5000:5000 -d scoring_engine:latest
-3. Login with any of the following logins at http://127.0.0.1:5000:
-    - whiteteamuser:testpass
-    - team1user1:testpass
-    - team2user1:testpass
-    - team2user2:testpass
-    - redteamuser:testpass
- 
+Log in with any of the following logins at http://localhost:
+* whiteteamuser:testpass
+* team1user1:testpass
+* team2user1:testpass
+* team2user2:testpass
+* redteamuser:testpass
