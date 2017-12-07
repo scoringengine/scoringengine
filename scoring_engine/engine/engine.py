@@ -24,13 +24,20 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, round_time_sleep=180, worker_wait_time=30):
+    def __init__(self, total_rounds=0, round_time_sleep=None, worker_refresh_time=None):
         self.checks = []
         self.total_rounds = total_rounds
-        self.round_time_sleep = round_time_sleep
-        self.worker_wait_time = worker_wait_time
+
         self.config = config
         self.checks_location = self.config.checks_location
+
+        if round_time_sleep is None:
+            round_time_sleep = self.config.round_time_sleep
+        self.round_time_sleep = round_time_sleep
+
+        if worker_refresh_time is None:
+            worker_refresh_time = self.config.worker_refresh_time
+        self.worker_refresh_time = worker_refresh_time
 
         self.last_round = False
         self.rounds_run = 0
@@ -129,10 +136,10 @@ class Engine(object):
 
             pending_tasks = self.all_pending_tasks(task_ids)
             while pending_tasks:
-                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_wait_time) + " seconds)"
+                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_refresh_time) + " seconds)"
                 waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                 logger.info(waiting_info)
-                self.sleep(self.worker_wait_time)
+                self.sleep(self.worker_refresh_time)
                 pending_tasks = self.all_pending_tasks(task_ids)
             logger.info("All jobs have finished for this round")
 

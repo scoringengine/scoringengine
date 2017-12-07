@@ -52,9 +52,9 @@ class TestEngine(UnitTest):
         assert engine.total_rounds == 100
 
     def test_custom_sleep_timers(self):
-        engine = Engine(round_time_sleep=60, worker_wait_time=20)
+        engine = Engine(round_time_sleep=60, worker_refresh_time=20)
         assert engine.round_time_sleep == 60
-        assert engine.worker_wait_time == 20
+        assert engine.worker_refresh_time == 20
 
     def test_shutdown(self):
         engine = Engine()
@@ -63,14 +63,14 @@ class TestEngine(UnitTest):
         assert engine.last_round is True
 
     def test_run_one_round(self):
-        engine = Engine(total_rounds=1, round_time_sleep=1, worker_wait_time=1)
+        engine = Engine(total_rounds=1, round_time_sleep=1, worker_refresh_time=1)
         assert engine.rounds_run == 0
         engine.run()
         assert engine.rounds_run == 1
         assert engine.current_round == 1
 
     def test_run_ten_rounds(self):
-        engine = Engine(total_rounds=10, round_time_sleep=0, worker_wait_time=0)
+        engine = Engine(total_rounds=10, round_time_sleep=0, worker_refresh_time=0)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()
@@ -78,7 +78,7 @@ class TestEngine(UnitTest):
         assert engine.current_round == 10
 
     def test_run_hundred_rounds(self):
-        engine = Engine(total_rounds=100, round_time_sleep=0, worker_wait_time=0)
+        engine = Engine(total_rounds=100, round_time_sleep=0, worker_refresh_time=0)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()
