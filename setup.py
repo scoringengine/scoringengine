@@ -23,6 +23,7 @@ config = {
         'mysqlclient==1.3.12',
         'redis==2.10.5',
         'shellescape==3.4.1',
+        'pynsive==0.2.7'
     ],
     'packages': ['scoring_engine', 'bin'],
     'scripts': [],
