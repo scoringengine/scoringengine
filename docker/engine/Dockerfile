@@ -4,4 +4,4 @@ ADD . /app
 WORKDIR /app
 RUN pip install -e .
 
-CMD ["./wait-for-it.sh", "mysql:3306", "--", "python", "/app/bin/engine"]
+CMD ["./wait-for-bootstrap.sh", "bootstrap", "python", "/app/bin/engine"]
