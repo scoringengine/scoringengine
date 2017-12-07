@@ -7,10 +7,16 @@ class TestConfig(object):
         self.config = Config(location="../../tests/scoring_engine/engine/example.conf")
 
     def test_checks_location(self):
-        assert self.config.checks_location == "scoring_engine.engine.checks"
+        assert self.config.checks_location == "scoring_engine/engine/checks"
 
     def test_check_timeout(self):
         assert self.config.check_timeout == 30
+
+    def test_round_time_sleep(self):
+        assert self.config.round_time_sleep == 180
+
+    def test_worker_refresh_time(self):
+        assert self.config.worker_refresh_time == 30
 
     def test_db_uri(self):
         assert self.config.db_uri == "sqlite:////tmp/test_engine.db"

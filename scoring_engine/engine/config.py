@@ -15,6 +15,9 @@ class Config(object):
         self.checks_location = self.parser['GENERAL']['checks_location']
         self.check_timeout = int(self.parser['GENERAL']['check_timeout'])
 
+        self.round_time_sleep = int(self.parser['GENERAL']['round_time_sleep'])
+        self.worker_refresh_time = int(self.parser['GENERAL']['worker_refresh_time'])
+
         self.timezone = self.parser['GENERAL']['timezone']
 
         self.db_uri = self.parser['DB']['uri']
