@@ -14,5 +14,6 @@ class TestKB(UnitTest):
 
     def test_basic_kb(self):
         kb = KB(name="task_ids", value="1,2,3,4,5,6", round_num=50)
-        self.db.save(kb)
+        self.session.add(kb)
+        self.session.commit()
         assert kb.id is not None

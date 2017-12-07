@@ -15,16 +15,18 @@ class TestProperty(UnitTest):
         assert property_obj.environment_id is None
 
     def test_basic_property(self):
-        environment = generate_sample_model_tree('Environment', self.db)
+        environment = generate_sample_model_tree('Environment', self.session)
         property_obj = Property(name="ip", value="127.0.0.1", environment=environment)
-        self.db.save(property_obj)
+        self.session.add(property_obj)
+        self.session.commit()
         assert property_obj.id is not None
         assert property_obj.environment == environment
         assert property_obj.environment_id == environment.id
         assert property_obj.visible is False
 
     def test_nonhidden_property(self):
-        environment = generate_sample_model_tree('Environment', self.db)
+        environment = generate_sample_model_tree('Environment', self.session)
         property_obj = Property(name="ip", value="127.0.0.1", environment=environment, visible=True)
-        self.db.save(property_obj)
+        self.session.add(property_obj)
+        self.session.commit()
         assert property_obj.visible is True

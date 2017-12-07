@@ -21,15 +21,17 @@ class CheckTest(UnitTest):
         if not hasattr(self, 'accounts'):
             self.accounts = {}
         for property_name, property_value in self.properties.items():
-            self.db.save(Property(environment=self.environment, name=property_name, value=property_value))
+            self.session.add(Property(environment=self.environment, name=property_name, value=property_value))
         for account_name, account_pass in self.accounts.items():
-            self.db.save(Account(username=account_name, password=account_pass, service=self.service))
-        self.db.save(self.service)
-        self.db.save(self.environment)
+            self.session.add(Account(username=account_name, password=account_pass, service=self.service))
+        self.session.add(self.service)
+        self.session.add(self.environment)
+        self.session.commit()
 
     def test_bad_properties(self):
         environment = Environment(service=self.service, matching_regex='*')
-        self.db.save(environment)
+        self.session.add(environment)
+        self.session.commit()
         self.service.environments = [environment]
         temp_properties = dict(self.properties)
         if len(temp_properties) > 0:
@@ -38,7 +40,8 @@ class CheckTest(UnitTest):
             temp_properties['exampleproperty'] = 'propertyvalueexample'
         for property_name, property_value in temp_properties.items():
             property_obj = Property(environment=environment, name=property_name, value=property_value)
-            self.db.save(property_obj)
+            self.session.add(property_obj)
+            self.session.commit()
         with pytest.raises(LookupError):
             self.engine.check_name_to_obj(self.check_name)(environment)
 

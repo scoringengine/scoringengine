@@ -1,12 +1,12 @@
-from scoring_engine.db import db
+from scoring_engine.db import session, engine
+from scoring_engine.models.base import Base
 
 
 class UnitTest(object):
     def setup(self):
-        self.db = db
-        self.db.connect()
-        self.db.setup()
+        self.session = session
+        Base.metadata.create_all(engine)
 
     def teardown(self):
-        self.db.disconnect()
-        self.db.destroy()
+        Base.metadata.drop_all(engine)
+        self.session.close_all()
