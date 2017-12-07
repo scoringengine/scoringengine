@@ -1,10 +1,16 @@
 import os
 
+import logging
 from flask import Flask
+
 
 app = Flask(__name__)
 app.config.from_pyfile('settings.cfg')
 app.secret_key = os.urandom(128)
+
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth, profile, api, about
 
