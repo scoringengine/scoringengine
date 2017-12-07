@@ -54,7 +54,7 @@ services:
     depends_on:
       - flask
     ports:
-    - "80:80"
+      - "80:80"
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost"]
       interval: 30s
