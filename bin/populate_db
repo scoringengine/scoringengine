@@ -2,7 +2,7 @@
 
 from random import randint
 
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 import optparse
 
@@ -29,7 +29,7 @@ if not options.overwrite_db:
         session.query(User).get(1)
         print("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
-    except OperationalError:
+    except (OperationalError, ProgrammingError):
         # Database doesn't exist, so continuing on to setup script
         print("Database doesn't exist yet...")
 
