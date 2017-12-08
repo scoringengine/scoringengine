@@ -10,7 +10,7 @@ def home():
     team_data = {}
     # We start at one because that's how javascript expects the team_data
     current_index = 1
-    for name in sorted(results['scores'].keys()):
+    for name in results['scores'].keys():
         scores = results['scores'][name]
         rgb_color = results['rgb_colors'][name]
         team_data[current_index] = {
