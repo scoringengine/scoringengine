@@ -14,6 +14,6 @@ class SMTPSCheck(BasicCheck):
             properties['touser'],
             properties['subject'],
             properties['body'],
-            self.ip_address,
+            self.host,
             self.port
         )

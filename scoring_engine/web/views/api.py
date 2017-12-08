@@ -100,15 +100,15 @@ def admin_update_check():
     return jsonify({'error': 'Incorrect permissions'})
 
 
-@mod.route('/api/admin/update_ip_address', methods=['POST'])
+@mod.route('/api/admin/update_host', methods=['POST'])
 @login_required
-def admin_update_ip_address():
+def admin_update_host():
     if current_user.is_white_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             service = session.query(Service).get(int(request.form['pk']))
             if service:
-                if request.form['name'] == 'ip_address':
-                    service.ip_address = html.escape(request.form['value'])
+                if request.form['name'] == 'host':
+                    service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()
                     return jsonify({'status': 'Updated Service Information'})
@@ -130,15 +130,15 @@ def admin_update_port():
     return jsonify({'error': 'Incorrect permissions'})
 
 
-@mod.route('/api/update_ip_address', methods=['POST'])
+@mod.route('/api/update_host', methods=['POST'])
 @login_required
-def update_ip_address():
+def update_host():
     if current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             service = session.query(Service).get(int(request.form['pk']))
             if service:
-                if service.team == current_user.team and request.form['name'] == 'ip_address':
-                    service.ip_address = html.escape(request.form['value'])
+                if service.team == current_user.team and request.form['name'] == 'host':
+                    service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()
                     return jsonify({'status': 'Updated Service Information'})
@@ -359,7 +359,7 @@ def overview_get_data():
                 count += 1
             else:
                 service = session.query(Service).filter(Service.name == columns[x]).filter(Service.team == team).first()
-                service_text = service.ip_address
+                service_text = service.host
                 if str(service.port) != '0':
                     service_text += ':' + str(service.port)
                 service_text += ' - ' + str(service.last_check_result())
@@ -419,7 +419,7 @@ def api_services():
         data.append(dict(
             service_id=service.id,
             service_name=service.name,
-            ip_address=service.ip_address,
+            host=service.host,
             port=service.port,
             check=check,
             score_earned=service.score_earned,
@@ -491,7 +491,7 @@ def overview_data():
         for service in team.services:
             service_data[service.name] = {
                 'passing': service.last_check_result(),
-                'ip_address': service.ip_address,
+                'host': service.host,
                 'port': service.port,
             }
         team_data[team.name] = service_data

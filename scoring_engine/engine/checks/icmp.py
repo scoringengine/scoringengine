@@ -6,4 +6,4 @@ class ICMPCheck(BasicCheck):
     CMD = "ping -c 1 {0}"
 
     def command_format(self, properties):
-        return (self.ip_address, '')
+        return (self.host, '')

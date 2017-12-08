@@ -8,5 +8,5 @@ class FTPUploadCheck(BasicCheck):
     def command_format(self, properties):
         account = self.get_random_account()
         url = 'ftp://' + account.username + ':' + account.password
-        url += '@' + self.ip_address + ':' + str(self.port) + properties['filename']
+        url += '@' + self.host + ':' + str(self.port) + properties['filename']
         return (url, '')

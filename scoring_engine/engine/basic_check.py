@@ -8,7 +8,7 @@ class BasicCheck(object):
         if not hasattr(self, 'required_properties'):
             self.required_properties = []
         self.set_properties()
-        self.ip_address = self.environment.service.ip_address
+        self.host = self.environment.service.host
         self.port = self.environment.service.port
 
     def get_environment_property_by_name(self, property_name):

@@ -8,4 +8,4 @@ class IMAPCheck(BasicCheck):
     def command_format(self, properties):
         account = self.get_random_account()
         username_with_domain = account.username + '@' + properties['domain']
-        return (self.ip_address, self.port, username_with_domain, account.password)
+        return (self.host, self.port, username_with_domain, account.password)

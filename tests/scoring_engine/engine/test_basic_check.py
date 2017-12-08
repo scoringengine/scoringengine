@@ -10,7 +10,7 @@ class TestBasicCheck(UnitTest):
 
     def setup(self):
         super(TestBasicCheck, self).setup()
-        self.service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        self.service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.environment = Environment(matching_regex='*', service=self.service)
 
     def test_init(self):
@@ -18,12 +18,12 @@ class TestBasicCheck(UnitTest):
         assert check.environment == self.environment
         assert check.required_properties == []
 
-    def test_get_ip_address(self):
+    def test_get_host(self):
         self.session.add(self.service)
         self.session.add(self.environment)
         self.session.commit()
         check = BasicCheck(self.environment)
-        assert check.ip_address == '127.0.0.1'
+        assert check.host == '127.0.0.1'
 
     def test_get_random_account(self):
         self.session.add(Account(username='pwnbus', password='pass', service=self.service))

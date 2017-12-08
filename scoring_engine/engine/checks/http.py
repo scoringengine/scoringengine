@@ -7,5 +7,5 @@ class HTTPCheck(BasicCheck):
 
     def command_format(self, properties):
         host_header = 'Host: ' + properties['vhost']
-        host_uri = self.ip_address + ':' + str(self.port) + properties['uri']
+        host_uri = self.host + ':' + str(self.port) + properties['uri']
         return (host_header, properties['useragent'], host_uri)

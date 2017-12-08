@@ -11,7 +11,7 @@ class CheckTest(UnitTest):
 
     def test_cmd(self):
         engine = Engine()
-        service = Service(name='Example Service', check_name=self.check_name, ip_address='127.0.0.1', port=100)
+        service = Service(name='Example Service', check_name=self.check_name, host='127.0.0.1', port=100)
         environment = Environment(service=service, matching_regex='*')
         if not hasattr(self, 'properties'):
             self.properties = {}

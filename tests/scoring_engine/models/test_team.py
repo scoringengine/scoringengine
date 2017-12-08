@@ -56,8 +56,8 @@ class TestTeam(UnitTest):
 
     def test_services(self):
         team = generate_sample_model_tree('Team', self.session)
-        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
-        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check", ip_address='2.3.4.5')
+        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
+        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check", host='2.3.4.5')
         self.session.add(service_1)
         self.session.add(service_2)
         self.session.commit()
@@ -74,17 +74,17 @@ class TestTeam(UnitTest):
 
     def test_current_score(self):
         team = generate_sample_model_tree('Team', self.session)
-        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
         check_1 = Check(service=service_1, result=True, output='Good output')
         self.session.add(check_1)
-        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check", ip_address='127.0.0.2')
+        service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check", host='127.0.0.2')
         self.session.add(service_2)
         check_2 = Check(service=service_2, result=True, output='Good output')
         self.session.add(check_2)
         check_3 = Check(service=service_2, result=True, output='Good output')
         self.session.add(check_3)
-        service_3 = Service(name="Example Service 3", team=team, check_name="SSH IPv4 Check", ip_address='127.0.0.3')
+        service_3 = Service(name="Example Service 3", team=team, check_name="SSH IPv4 Check", host='127.0.0.3')
         self.session.add(service_3)
         check_3 = Check(service=service_3, result=False, output='bad output')
         self.session.add(check_3)
@@ -94,7 +94,7 @@ class TestTeam(UnitTest):
     def test_place(self):
         team_1 = Team(name="Blue Team 1", color="Blue")
         self.session.add(team_1)
-        service_1 = Service(name="Example Service 1", team=team_1, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service_1 = Service(name="Example Service 1", team=team_1, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
         check_1 = Check(service=service_1, result=True, output='Good output')
         check_2 = Check(service=service_1, result=True, output='Good output')
@@ -104,7 +104,7 @@ class TestTeam(UnitTest):
 
         team_2 = Team(name="Blue Team 2", color="Blue")
         self.session.add(team_2)
-        service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
         check_1 = Check(service=service_1, result=False, output='Good output')
         check_2 = Check(service=service_1, result=False, output='Good output')
@@ -114,7 +114,7 @@ class TestTeam(UnitTest):
 
         team_3 = Team(name="Blue Team 3", color="Blue")
         self.session.add(team_3)
-        service_1 = Service(name="Example Service 1", team=team_3, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service_1 = Service(name="Example Service 1", team=team_3, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
         check_1 = Check(service=service_1, result=True, output='Good output')
         check_2 = Check(service=service_1, result=False, output='Good output')

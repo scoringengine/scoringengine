@@ -10,4 +10,4 @@ class VNCCheck(BasicCheck):
         username = account.username
         if account.username == 'BLANK':
             username = ' '
-        return (self.ip_address, self.port, username, account.password)
+        return (self.host, self.port, username, account.password)

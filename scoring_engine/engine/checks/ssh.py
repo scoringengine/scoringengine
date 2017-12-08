@@ -7,5 +7,5 @@ class SSHCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        username_domain = account.username + '@' + self.ip_address
+        username_domain = account.username + '@' + self.host
         return (account.password, username_domain, self.port, properties['command'])
