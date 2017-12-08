@@ -1,0 +1,20 @@
+---
+version: '3'
+services:
+  testbed_icmp:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/icmp/Dockerfile
+  testbed_web:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/web/Dockerfile
+    # ports:
+    #   - 80:80
+    #   - 443:443
+  testbed_ssh:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/ssh/Dockerfile
+    # ports:
+    #   - 22:22
