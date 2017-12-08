@@ -378,7 +378,7 @@ def overview_get_round_data():
         round_start = round_obj.local_round_start
         number = round_obj.number
     else:
-        round_start = "No rounds data"
+        round_start = ""
         number = 0
     data = {'round_start': round_start, 'number': number}
     return jsonify(data)
