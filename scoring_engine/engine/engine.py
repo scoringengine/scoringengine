@@ -6,7 +6,7 @@ import time
 import re
 import json
 from functools import partial
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment

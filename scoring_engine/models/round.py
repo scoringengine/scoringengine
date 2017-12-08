@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 
 from scoring_engine.models.base import Base
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 from scoring_engine.db import session
 
 

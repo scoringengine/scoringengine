@@ -7,7 +7,7 @@ import pytz
 import html
 
 from scoring_engine.models.base import Base
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 
 
 class Check(Base):

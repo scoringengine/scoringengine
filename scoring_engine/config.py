@@ -6,7 +6,7 @@ class Config(object):
 
     def __init__(self, location=None):
         if location is None:
-            location = "../../engine.conf"
+            location = "../engine.conf"
         config_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), location)
 
         self.parser = configparser.ConfigParser()
