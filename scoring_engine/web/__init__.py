@@ -2,7 +2,7 @@ import os
 import logging
 from flask import Flask
 
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 
 
 app = Flask(__name__)

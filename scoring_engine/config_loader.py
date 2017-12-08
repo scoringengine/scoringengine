@@ -2,11 +2,11 @@ import configparser
 import os
 
 
-class Config(object):
+class ConfigLoader(object):
 
     def __init__(self, location=None):
         if location is None:
-            location = "../../engine.conf"
+            location = "../engine.conf"
         config_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), location)
 
         self.parser = configparser.ConfigParser()
@@ -27,6 +27,3 @@ class Config(object):
         self.redis_host = self.parser['REDIS']['host']
         self.redis_port = int(self.parser['REDIS']['port'])
         self.redis_password = self.parser['REDIS']['password']
-
-
-config = Config()

@@ -2,7 +2,7 @@ import bcrypt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 
 
 isolation_level = "READ COMMITTED"

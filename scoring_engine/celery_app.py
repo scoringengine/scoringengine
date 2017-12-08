@@ -1,5 +1,5 @@
 from celery import Celery
-from scoring_engine.engine.config import config
+from scoring_engine.config import config
 
 
 redis_server = 'redis://:' + config.redis_password + '@' + config.redis_host + ':' + str(config.redis_port)
