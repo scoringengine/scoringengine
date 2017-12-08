@@ -2,7 +2,7 @@
 
 from random import randint
 
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 import optparse
 
