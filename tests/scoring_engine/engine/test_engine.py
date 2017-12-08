@@ -1,5 +1,24 @@
 from scoring_engine.engine.engine import Engine
 
+from scoring_engine.engine.checks.icmp import ICMPCheck
+from scoring_engine.engine.checks.ssh import SSHCheck
+from scoring_engine.engine.checks.dns import DNSCheck
+from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
+from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
+from scoring_engine.engine.checks.ftp import FTPCheck
+from scoring_engine.engine.checks.ftps import FTPSCheck
+from scoring_engine.engine.checks.http import HTTPCheck
+from scoring_engine.engine.checks.https import HTTPSCheck
+from scoring_engine.engine.checks.mysql import MYSQLCheck
+from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
+from scoring_engine.engine.checks.pop3 import POP3Check
+from scoring_engine.engine.checks.pop3s import POP3SCheck
+from scoring_engine.engine.checks.imap import IMAPCheck
+from scoring_engine.engine.checks.imaps import IMAPSCheck
+from scoring_engine.engine.checks.smtp import SMTPCheck
+from scoring_engine.engine.checks.smtps import SMTPSCheck
+from scoring_engine.engine.checks.vnc import VNCCheck
+
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -7,24 +26,6 @@ class TestEngine(UnitTest):
 
     def test_init(self):
         engine = Engine()
-        from scoring_engine.engine.checks.icmp import ICMPCheck
-        from scoring_engine.engine.checks.ssh import SSHCheck
-        from scoring_engine.engine.checks.dns import DNSCheck
-        from scoring_engine.engine.checks.ftpdownload import FTPDownloadCheck
-        from scoring_engine.engine.checks.ftpupload import FTPUploadCheck
-        from scoring_engine.engine.checks.ftp import FTPCheck
-        from scoring_engine.engine.checks.ftps import FTPSCheck
-        from scoring_engine.engine.checks.http import HTTPCheck
-        from scoring_engine.engine.checks.https import HTTPSCheck
-        from scoring_engine.engine.checks.mysql import MYSQLCheck
-        from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
-        from scoring_engine.engine.checks.pop3 import POP3Check
-        from scoring_engine.engine.checks.pop3s import POP3SCheck
-        from scoring_engine.engine.checks.imap import IMAPCheck
-        from scoring_engine.engine.checks.imaps import IMAPSCheck
-        from scoring_engine.engine.checks.smtp import SMTPCheck
-        from scoring_engine.engine.checks.smtps import SMTPSCheck
-        from scoring_engine.engine.checks.vnc import VNCCheck
         expected_checks = [
             ICMPCheck,
             SSHCheck,
