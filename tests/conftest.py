@@ -11,4 +11,7 @@ class MockConfig(object):
 
 
 def pytest_configure(config):
+    # This is so that we can override (mock) the config
+    # variable, so that we can tell it to load our custom
+    # unit test based config file
     modules['scoring_engine.config'] = MockConfig()
