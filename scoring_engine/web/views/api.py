@@ -447,9 +447,7 @@ def service_get_checks(id):
 
 @mod.route('/api/scoreboard/get_bar_data')
 def scoreboard_get_bar_data():
-    results = Team.get_all_rounds_results()
     team_data = {}
-
     team_labels = []
     team_scores = []
     scores_colors = []
@@ -468,12 +466,10 @@ def scoreboard_get_bar_data():
 @mod.route('/api/scoreboard/get_line_data')
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
-    team_data = {}
-    team_data['team'] = {}
-    team_data['round'] = results['rounds']
+    team_data = {'team': {}, 'round': results['rounds']}
     # We start at one because that's how javascript expects the team_data
     current_index = 1
-    for name in sorted(results['scores'].keys()):
+    for name in results['scores'].keys():
         scores = results['scores'][name]
         rgb_color = results['rgb_colors'][name]
         team_data['team'][current_index] = {
@@ -482,7 +478,6 @@ def scoreboard_get_line_data():
             "color": rgb_color
         }
         current_index += 1
-
     return jsonify(team_data)
 
 
