@@ -96,7 +96,7 @@ for num in range(1, num_teams + 1):
 
     print("\t\tCreating ICMP Service")
     service = Service(name="ICMP", team=team, check_name="ICMPCheck", ip_address="testbed_icmp", points=100)
-    session.add(Environment(service=service, matching_regex=' bytes from '))
+    session.add(Environment(service=service, matching_regex='1 packets received'))
     session.add(service)
     services.append(service)
 
