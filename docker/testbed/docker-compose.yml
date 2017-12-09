@@ -18,3 +18,12 @@ services:
       dockerfile: ./docker/testbed/ssh/Dockerfile
     # ports:
     #   - 22:22
+  testbed_mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_DATABASE=randomdb
+      - MYSQL_USER=user1
+      - MYSQL_PASSWORD=CHANGEME
+    # ports:
+    #   - 3306:3306

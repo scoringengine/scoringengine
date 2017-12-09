@@ -3,7 +3,8 @@ FROM python:latest
 RUN \
   apt-get update && \
   apt-get install -y curl && \
-  apt-get install -y sshpass
+  apt-get install -y sshpass && \
+  apt-get install -y mysql-client
 
 COPY setup.py /app/setup.py
 COPY scoring_engine /app/scoring_engine
