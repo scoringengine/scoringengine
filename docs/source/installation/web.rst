@@ -2,7 +2,7 @@ Web
 ---
 
 Install MySQL Server
-++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get install -y mysql-server
@@ -10,7 +10,7 @@ Install MySQL Server
   systemctl restart mysql
 
 Install Postgresql Server
-+++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get install -y postgresql postgresql-contrib postgresql-server-dev-9.5
@@ -34,7 +34,7 @@ Run as root::
   \q
 
 Setup MySQL
-+++++++++++
+^^^^^^^^^^^
 ::
 
   mysql -u root -p<insert password set during installation>
@@ -43,13 +43,13 @@ Setup MySQL
   GRANT ALL on scoring_engine.* to 'engineuser'@'%' IDENTIFIED by 'enginepass';
 
 Install Nginx
-+++++++++++++
+^^^^^^^^^^^^^
 ::
 
   apt-get install -y nginx
 
 Setup SSL in Nginx
-++++++++++++++++++
+^^^^^^^^^^^^^^^^^^
 ::
 
   mkdir /etc/nginx/ssl
@@ -57,7 +57,7 @@ Setup SSL in Nginx
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt
 
 Copy nginx config
-+++++++++++++++++
+^^^^^^^^^^^^^^^^^
 ::
 
   cp /home/engine/scoring_engine/src/configs/nginx.conf /etc/nginx/sites-available/scoring_engine.conf
@@ -66,32 +66,26 @@ Copy nginx config
   systemctl restart nginx
 
 Setup web service
-+++++++++++++++++
+^^^^^^^^^^^^^^^^^
 ::
 
   cp /home/engine/scoring_engine/src/configs/web.service /etc/systemd/system/scoring_engine-web.service
 
 Modify configuration
-++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^
 ::
 
   vi /home/engine/scoring_engine/src/engine.conf
 
-Enable production mode in configuration
-+++++++++++++++++++++++++++++++++++++++
-::
-
-  sed -i -e 's/DEBUG = False/DEBUG = True/g' /home/engine/scoring_engine/src/scoring_engine/web/settings.cfg
-
 Start web
-+++++++++
+^^^^^^^^^
 ::
 
   systemctl enable scoring_engine-web
   systemctl start scoring_engine-web
 
 Monitoring
-++++++++++
+^^^^^^^^^^
 ::
 
   journalctl -f _SYSTEMD_UNIT=scoring_engine-web.service

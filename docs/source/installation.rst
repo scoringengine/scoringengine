@@ -1,13 +1,10 @@
 Installation
-============
+************
 
-Supported OS
-------------
+.. toctree::
+  :maxdepth: 2
 
-Currently, the only OS we have documentation on is Ubuntu 16.04.
+  installation/docker
+  installation/manual
 
 
-.. include:: installation/base.rst
-.. include:: installation/web.rst
-.. include:: installation/engine.rst
-.. include:: installation/worker.rst
