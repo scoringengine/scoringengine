@@ -6,11 +6,3 @@ Table of Contents
 
   overview
   installation
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
