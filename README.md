@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/scoringengine/badge/?version=latest)](https://scoringengine.readthedocs.io/en/latest)
+[![Documentation Status](https://readthedocs.org/projects/scoringengine/badge/?version=latest)](https://scoringengine.readthedocs.io/en/latest/)
 [![Build Status](https://travis-ci.org/pwnbus/scoring_engine.svg?branch=master)](https://travis-ci.org/pwnbus/scoring_engine)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/maintainability)](https://codeclimate.com/github/pwnbus/scoring_engine/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/b75e38be913b45250ed2/test_coverage)](https://codeclimate.com/github/pwnbus/scoring_engine/test_coverage)
