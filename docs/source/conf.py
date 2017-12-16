@@ -163,9 +163,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ScoringEngine', u'ScoringEngine Documentation',
-     author, 'ScoringEngine', 'One line description of project.',
+     author, 'ScoringEngine', 'Scoring Engine for Red/White/Blue Team Competitions',
      'Miscellaneous'),
 ]
-
-
-
