@@ -21,6 +21,7 @@ from scoring_engine.db import session, engine
 
 parser = optparse.OptionParser()
 parser.add_option('--overwrite-db', action="store_true", default=False)
+parser.add_option('--example', action="store_true", default=False)
 
 options, arguments = parser.parse_args()
 
@@ -94,34 +95,68 @@ for num in range(1, num_teams + 1):
         session.add(user)
 
     print("\t\tCreating ICMP Service")
-    service = Service(name="ICMP", team=team, check_name="ICMPCheck", ip_address="127.0.0.1", points=100)
-    session.add(Environment(service=service, matching_regex=' bytes from '))
+    service = Service(name="ICMP", team=team, check_name="ICMPCheck", ip_address="testbed_icmp", points=100)
+    session.add(Environment(service=service, matching_regex='1 packets received'))
     session.add(service)
     services.append(service)
 
     print("\t\tCreating SSH Service")
-    service = Service(name='SSH', team=team, check_name='SSHCheck', ip_address='127.0.0.1', port=22, points=100)
-    session.add(Account(username='techy', password='techy', service=service))
-    session.add(Account(username='pwnbus', password='redfred', service=service))
-    session.add(Account(username='rusty', password='catdog', service=service))
-    environment = Environment(service=service, matching_regex='users')
-    session.add(Property(environment=environment, name='command', value='ls -l'))
+    service = Service(name='SSH', team=team, check_name='SSHCheck', ip_address='testbed_ssh', port=22, points=100)
+    session.add(service)
+    session.add(Account(username='ttesterson', password='testpass', service=service))
+    session.add(Account(username='rpeterson', password='otherpass', service=service))
+    environment = Environment(service=service, matching_regex='ttesterson')
+    session.add(environment)
+    session.add(Property(environment=environment, name='command', value='ls -l /home'))
+    environment = Environment(service=service, matching_regex='PID')
+    session.add(environment)
+    session.add(Property(environment=environment, name='command', value='ps'))
+    services.append(service)
+
+    print("\t\tCreating HTTP Service")
+    service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='testbed_web', port=80, points=100)
+    for useragent in useragents:
+        environment = Environment(service=service, matching_regex='Thank you for using nginx')
+        session.add(Property(environment=environment, name='useragent', value=useragent))
+        session.add(Property(environment=environment, name='vhost', value='testbed_web'))
+        session.add(Property(environment=environment, name='uri', value='/'))
+        session.add(environment)
+        session.add(service)
+    services.append(service)
+
+    print("\t\tCreating HTTPS Service")
+    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', ip_address='testbed_web', port=443, points=100)
+    for useragent in useragents:
+        environment = Environment(service=service, matching_regex='Thank you for using nginx')
+        session.add(Property(environment=environment, name='useragent', value=useragent))
+        session.add(Property(environment=environment, name='vhost', value='testbed_web'))
+        session.add(Property(environment=environment, name='uri', value='/'))
+        session.add(environment)
+        session.add(service)
+    services.append(service)
+
+    print("\t\tCreating MYSQL Service")
+    service = Service(name='MySQL', team=team, check_name='MYSQLCheck', host='testbed_mysql', port=3306, points=100)
+    session.add(Account(username='user1', password='CHANGEME', service=service))
+    environment = Environment(service=service, matching_regex='USER_PRIVILEGES')
+    session.add(Property(environment=environment, name='database', value='information_schema'))
+    session.add(Property(environment=environment, name='command', value='show tables;'))
     session.add(service)
     session.add(environment)
     services.append(service)
 
-    print("\t\tCreating DNS Service")
-    service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="127.0.0.1", port=53, points=100)
-    environment = Environment(service=service, matching_regex='status: NOERROR')
-    session.add(environment)
-    session.add(Property(environment=environment, name='qtype', value='A'))
-    session.add(Property(environment=environment, name='domain', value='www.domain.com'))
-    environment_quad = Environment(service=service, matching_regex='status: NOERROR')
-    session.add(environment_quad)
-    session.add(Property(environment=environment_quad, name='qtype', value='AAAA'))
-    session.add(Property(environment=environment_quad, name='domain', value='www.domain.com'))
-    session.add(service)
-    services.append(service)
+    # print("\t\tCreating DNS Service")
+    # service = Service(name="DNS", team=team, check_name="DNSCheck", ip_address="127.0.0.1", port=53, points=100)
+    # environment = Environment(service=service, matching_regex='status: NOERROR')
+    # session.add(environment)
+    # session.add(Property(environment=environment, name='qtype', value='A'))
+    # session.add(Property(environment=environment, name='domain', value='www.domain.com'))
+    # environment_quad = Environment(service=service, matching_regex='status: NOERROR')
+    # session.add(environment_quad)
+    # session.add(Property(environment=environment_quad, name='qtype', value='AAAA'))
+    # session.add(Property(environment=environment_quad, name='domain', value='www.domain.com'))
+    # session.add(service)
+    # services.append(service)
 
     # print("\t\tCreating FTP Download Service")
     # service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', ip_address='127.0.0.1', port=21, points=50)
@@ -145,15 +180,15 @@ for num in range(1, num_teams + 1):
     # session.add(environment)
     # services.append(service)
 
-    print("\t\tCreating Generic FTP Service")
-    service = Service(name='FTP', team=team, check_name='FTPCheck', ip_address='127.0.0.1', port=21, points=50)
-    session.add(Account(username='techy', password='techy', service=service))
-    session.add(Account(username='pwnbus', password='redfred', service=service))
-    session.add(Account(username='rusty', password='catdog', service=service))
-    environment = Environment(service=service, matching_regex='> STOR foo.txt')
-    session.add(service)
-    session.add(environment)
-    services.append(service)
+    # print("\t\tCreating Generic FTP Service")
+    # service = Service(name='FTP', team=team, check_name='FTPCheck', ip_address='127.0.0.1', port=21, points=50)
+    # session.add(Account(username='techy', password='techy', service=service))
+    # session.add(Account(username='pwnbus', password='redfred', service=service))
+    # session.add(Account(username='rusty', password='catdog', service=service))
+    # environment = Environment(service=service, matching_regex='> STOR foo.txt')
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
     # print("\t\tCreating FTPS Service")
     # service = Service(name='FTPS', team=team, check_name='FTPSCheck', ip_address='127.0.0.1', port=21, points=50)
@@ -165,58 +200,24 @@ for num in range(1, num_teams + 1):
     # session.add(environment)
     # services.append(service)
 
-    print("\t\tCreating HTTP Service")
-    service = Service(name='HTTP', team=team, check_name='HTTPCheck', ip_address='127.0.0.1', port=80, points=100)
-    for useragent in useragents:
-        environment = Environment(service=service, matching_regex='some random string')
-        session.add(Property(environment=environment, name='useragent', value=useragent))
-        session.add(Property(environment=environment, name='vhost', value='www.domain.com'))
-        session.add(Property(environment=environment, name='uri', value='/'))
-        session.add(environment)
-        session.add(service)
-    services.append(service)
+    # print("\t\tCreating POSTGRESQL Service")
+    # service = Service(name='Postgresql', team=team, check_name='POSTGRESQLCheck', ip_address='127.0.0.1', port=5432, points=100)
+    # session.add(Account(username='testuser', password='testpass', service=service))
+    # environment = Environment(service=service, matching_regex='testtable')
+    # session.add(Property(environment=environment, name='database', value='testdb'))
+    # session.add(Property(environment=environment, name='command', value='\d'))
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
-    print("\t\tCreating HTTPS Service")
-    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', ip_address='127.0.0.1', port=443, points=100)
-    for useragent in useragents:
-        environment = Environment(service=service, matching_regex='some random string')
-        session.add(Property(environment=environment, name='useragent', value=useragent))
-        session.add(Property(environment=environment, name='vhost', value='www.domain.com'))
-        session.add(Property(environment=environment, name='uri', value='/'))
-        session.add(environment)
-        session.add(service)
-    services.append(service)
-
-    print("\t\tCreating MYSQL Service")
-    service = Service(name='MySQL', team=team, check_name='MYSQLCheck', ip_address='127.0.0.1', port=3306, points=100)
-    session.add(Account(username='techy', password='techy', service=service))
-    session.add(Account(username='pwnbus', password='redfred', service=service))
-    session.add(Account(username='rusty', password='catdog', service=service))
-    environment = Environment(service=service, matching_regex='users')
-    session.add(Property(environment=environment, name='database', value='wordpress'))
-    session.add(Property(environment=environment, name='command', value='show tables;'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating POSTGRESQL Service")
-    service = Service(name='Postgresql', team=team, check_name='POSTGRESQLCheck', ip_address='127.0.0.1', port=5432, points=100)
-    session.add(Account(username='testuser', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='testtable')
-    session.add(Property(environment=environment, name='database', value='testdb'))
-    session.add(Property(environment=environment, name='command', value='\d'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating POP3 Service")
-    service = Service(name='POP3', team=team, check_name='POP3Check', ip_address='127.0.0.1', port=110, points=100)
-    session.add(Account(username='testuser', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    session.add(Property(environment=environment, name='domain', value='test.com'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
+    # print("\t\tCreating POP3 Service")
+    # service = Service(name='POP3', team=team, check_name='POP3Check', ip_address='127.0.0.1', port=110, points=100)
+    # session.add(Account(username='testuser', password='testpass', service=service))
+    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+    # session.add(Property(environment=environment, name='domain', value='test.com'))
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
     # print("\t\tCreating POP3S Service")
     # service = Service(name='POP3S', team=team, check_name='POP3SCheck', ip_address='127.0.0.1', port=110, points=100)
@@ -227,14 +228,14 @@ for num in range(1, num_teams + 1):
     # session.add(environment)
     # services.append(service)
 
-    print("\t\tCreating IMAP Service")
-    service = Service(name='IMAP', team=team, check_name='IMAPCheck', ip_address='127.0.0.1', port=143, points=100)
-    session.add(Account(username='testuser', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    session.add(Property(environment=environment, name='domain', value='test.com'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
+    # print("\t\tCreating IMAP Service")
+    # service = Service(name='IMAP', team=team, check_name='IMAPCheck', ip_address='127.0.0.1', port=143, points=100)
+    # session.add(Account(username='testuser', password='testpass', service=service))
+    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+    # session.add(Property(environment=environment, name='domain', value='test.com'))
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
     # print("\t\tCreating IMAPS Service")
     # service = Service(name='IMAPS', team=team, check_name='IMAPSCheck', ip_address='127.0.0.1', port=143, points=100)
@@ -245,17 +246,17 @@ for num in range(1, num_teams + 1):
     # session.add(environment)
     # services.append(service)
 
-    print("\t\tCreating SMTP Service")
-    service = Service(name='SMTP', team=team, check_name='SMTPCheck', ip_address='127.0.0.1', port=25, points=100)
-    session.add(Account(username='testuser@domain.com', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='Successfully sent email')
-    session.add(Property(environment=environment, name='fromuser', value='user@domain.com'))
-    session.add(Property(environment=environment, name='touser', value='someother@example.com'))
-    session.add(Property(environment=environment, name='subject', value='A scoring engine test subject!'))
-    session.add(Property(environment=environment, name='body', value='This is the body of the email'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
+    # print("\t\tCreating SMTP Service")
+    # service = Service(name='SMTP', team=team, check_name='SMTPCheck', ip_address='127.0.0.1', port=25, points=100)
+    # session.add(Account(username='testuser@domain.com', password='testpass', service=service))
+    # environment = Environment(service=service, matching_regex='Successfully sent email')
+    # session.add(Property(environment=environment, name='fromuser', value='user@domain.com'))
+    # session.add(Property(environment=environment, name='touser', value='someother@example.com'))
+    # session.add(Property(environment=environment, name='subject', value='A scoring engine test subject!'))
+    # session.add(Property(environment=environment, name='body', value='This is the body of the email'))
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
     # print("\t\tCreating SMTPS Service")
     # service = Service(name='SMTPS', team=team, check_name='SMTPSCheck', ip_address='127.0.0.1', port=587, points=100)
@@ -269,42 +270,43 @@ for num in range(1, num_teams + 1):
     # session.add(environment)
     # services.append(service)
 
-    print("\t\tCreating VNC Service")
-    service = Service(name='VNC', team=team, check_name='VNCCheck', ip_address='127.0.0.1', port=5900, points=100)
-    # BLANK for no username required
-    session.add(Account(username='BLANK', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    session.add(service)
-    session.add(environment)
-    services.append(service)
+    # print("\t\tCreating VNC Service")
+    # service = Service(name='VNC', team=team, check_name='VNCCheck', ip_address='127.0.0.1', port=5900, points=100)
+    # # BLANK for no username required
+    # session.add(Account(username='BLANK', password='testpass', service=service))
+    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
 
 session.commit()
 
-print("Creating " + str(num_rounds) + " rounds")
-for num_round in range(1, num_rounds + 1):
-    print("\tCreating round " + str(num_round))
-    round_obj = Round(number=num_round)
-    for service in services:
-        #print("\t\tCreating check for " + str(service.id))
-        output = ""
-        if randint(0, 1) == 1:
-            result = True
-            reason = 'Successful Content Match'
-            output = "Some random output of a command"
-        else:
-            result = False
-            output = "Errored output"
+
+if options.example:
+    print("Creating " + str(num_rounds) + " rounds")
+    for num_round in range(1, num_rounds + 1):
+        print("\tCreating round " + str(num_round))
+        round_obj = Round(number=num_round)
+        for service in services:
+            # print("\t\tCreating check for " + str(service.id))
+            output = ""
             if randint(0, 1) == 1:
-                reason = 'Job Timed Out'
+                result = True
+                reason = 'Successful Content Match'
+                output = "Some random output of a command"
             else:
-                reason = 'Unsuccessful Content Match'
+                result = False
+                output = "Errored output"
+                if randint(0, 1) == 1:
+                    reason = 'Job Timed Out'
+                else:
+                    reason = 'Unsuccessful Content Match'
 
-        command = 'ping -c 1 127.0.0.1'
-        check = Check(round=round_obj, service=service)
-        check.finished(result, reason, output, command)
-        session.add(check)
-
-session.commit()
+            command = 'ping -c 1 127.0.0.1'
+            check = Check(round=round_obj, service=service)
+            check.finished(result, reason, output, command)
+            session.add(check)
+    session.commit()
 
 about_content = '''
 <h4>Use the following credentials to login</h4>
