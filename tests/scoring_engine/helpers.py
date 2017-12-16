@@ -18,7 +18,7 @@ def generate_sample_model_tree(model, session):
         return user
 
     # Services
-    service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+    service = Service(name="ICMP IPv4", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
     session.add(service)
     session.commit()
     if model == 'Service':

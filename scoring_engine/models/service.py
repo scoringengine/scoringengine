@@ -15,7 +15,7 @@ class Service(Base):
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
     environments = relationship('Environment', back_populates="service")
-    ip_address = Column(String(50), nullable=False)
+    host = Column(String(50), nullable=False)
     port = Column(Integer, default=0)
 
     def check_result_for_round(self, round_num):

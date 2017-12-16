@@ -11,7 +11,7 @@ from tests.scoring_engine.unit_test import UnitTest
 class TestService(UnitTest):
 
     def test_init_service(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1')
         assert service.id is None
         assert service.name == "Example Service"
         assert service.team is None
@@ -21,7 +21,7 @@ class TestService(UnitTest):
 
     def test_basic_service(self):
         team = generate_sample_model_tree('Team', self.session)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service)
         self.session.commit()
         assert service.id is not None
@@ -34,7 +34,7 @@ class TestService(UnitTest):
 
     def test_basic_service_with_points(self):
         team = generate_sample_model_tree('Team', self.session)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, ip_address='127.0.0.1', port=100)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", points=500, host='127.0.0.1', port=100)
         self.session.add(service)
         self.session.commit()
         assert service.id is not None
@@ -50,7 +50,7 @@ class TestService(UnitTest):
 
     def test_last_check_result_false(self):
         team = generate_sample_model_tree('Team', self.session)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service)
         round_obj = generate_sample_model_tree('Round', self.session)
         check_1 = Check(round=round_obj, service=service, result=True, output='Good output')
@@ -64,7 +64,7 @@ class TestService(UnitTest):
 
     def test_last_check_result_true(self):
         team = generate_sample_model_tree('Team', self.session)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service)
         round_obj = generate_sample_model_tree('Round', self.session)
         check_1 = Check(round=round_obj, service=service, result=False, output='Check exceeded time')
@@ -78,7 +78,7 @@ class TestService(UnitTest):
 
     def test_last_check_result_not_found(self):
         team = generate_sample_model_tree('Team', self.session)
-        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service)
         self.session.commit()
         assert service.last_check_result() is None
@@ -240,7 +240,7 @@ class TestService(UnitTest):
         ]
 
     def test_check_result_for_round_no_rounds(self):
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", ip_address='127.0.0.1')
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1')
         assert service.check_result_for_round(1) is False
 
     def test_check_result_for_round_3_rounds(self):

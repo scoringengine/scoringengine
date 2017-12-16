@@ -6,4 +6,4 @@ class DNSCheck(BasicCheck):
     CMD = 'dig @{0} -p {1} -t {2} -q {3}'
 
     def command_format(self, properties):
-        return (self.ip_address, self.port, properties['qtype'], properties['domain'])
+        return (self.host, self.port, properties['qtype'], properties['domain'])
