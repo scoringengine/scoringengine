@@ -1,7 +1,6 @@
 Base Setup
 ----------
-
-Currently, the only OS we have documentation on is Ubuntu 16.04.
+.. note:: Currently, the only OS we have documentation on is Ubuntu 16.04.
 
 Install dependencies via apt-get
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
