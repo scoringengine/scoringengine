@@ -25,3 +25,7 @@ Log in with any of the following logins at http://localhost:
 * team2user1:testpass
 * team2user2:testpass
 * redteamuser:testpass
+
+Documentation
+-------------
+[https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/)
