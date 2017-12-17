@@ -1,5 +1,5 @@
 import sys
-if 'scoring_engine.engine' in sys.modules:
+if 'scoring_engine.web' in sys.modules:
     del sys.modules['scoring_engine.web']
 from scoring_engine import web
 

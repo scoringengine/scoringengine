@@ -1,5 +1,5 @@
 import sys
-if 'scoring_engine.engine' in sys.modules:
+if 'scoring_engine.engine.checks' in sys.modules:
     del sys.modules['scoring_engine.engine.checks']
 from scoring_engine.engine import checks
 
