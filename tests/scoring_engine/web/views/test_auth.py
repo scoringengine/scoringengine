@@ -14,8 +14,34 @@ class TestAuth(WebTest):
     def test_auth_required_logout(self):
         self.verify_auth_required('/logout')
 
-    def test_login_logout(self):
+    def test_login_logout_whiteteam(self):
         user = self.create_default_user()
+        assert user.authenticated is False
+        resp = self.auth_and_get_path('/')
+        assert user.authenticated is True
+        logout_resp = self.client.get('/logout')
+        assert user.authenticated is False
+        assert logout_resp.status_code == 302
+        self.verify_auth_required('/services')
+
+    def test_login_logout_blueteam(self):
+        user = self.create_default_user()
+        user.team.color = 'Blue'
+        self.session.add(user.team)
+        self.session.commit()
+        assert user.authenticated is False
+        self.auth_and_get_path('/')
+        assert user.authenticated is True
+        logout_resp = self.client.get('/logout')
+        assert user.authenticated is False
+        assert logout_resp.status_code == 302
+        self.verify_auth_required('/services')
+
+    def test_login_logout_redteam(self):
+        user = self.create_default_user()
+        user.team.color = 'Red'
+        self.session.add(user.team)
+        self.session.commit()
         assert user.authenticated is False
         self.auth_and_get_path('/')
         assert user.authenticated is True
