@@ -8,3 +8,4 @@ Table of Contents
   overview
   installation
   configuration
+  checks
