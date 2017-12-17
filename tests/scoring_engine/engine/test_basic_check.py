@@ -1,3 +1,5 @@
+import pytest
+
 from scoring_engine.engine.basic_check import BasicCheck
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
@@ -32,3 +34,9 @@ class TestBasicCheck(UnitTest):
         self.session.commit()
         check = BasicCheck(self.environment)
         assert check.get_random_account().username == 'pwnbus'
+
+    def test_check_no_properties(self):
+        check = BasicCheck(self.environment)
+        check.required_properties = ['testparam']
+        with pytest.raises(LookupError):
+            check.set_properties()
