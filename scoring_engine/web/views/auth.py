@@ -61,9 +61,6 @@ def login():
         except NoResultFound:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)
-        except OperationalError:
-            flash("Error 'OperationError' received!. Try restarting the db service.", 'danger')
-            return render_template('login.html', form=form)
 
         if User.generate_hash(password, user.password) == user.password:
             user.authenticated = True
