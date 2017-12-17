@@ -79,4 +79,3 @@ class TestAuth(WebTest):
         self.create_default_user()
         self.auth_and_get_path('/')
         self.auth_and_get_path('/')
-
