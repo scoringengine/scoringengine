@@ -15,11 +15,11 @@ Install Postgresql Server
 
   apt-get install -y postgresql postgresql-contrib postgresql-server-dev-9.5
 
-Modify /etc/postgresql/9.5/main/postgresql.conf::
+Modify ``/etc/postgresql/9.5/main/postgresql.conf``::
 
   listen_addresses = '*'
 
-Modify /etc/postgresql/9.5/main/pg_hba.conf::
+Modify ``/etc/postgresql/9.5/main/pg_hba.conf``::
 
   host  all  all 0.0.0.0/0 md5
 

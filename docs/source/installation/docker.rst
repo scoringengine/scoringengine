@@ -11,9 +11,6 @@ TestBed Environment
 
 This command will build, stop any pre-existing scoring engine containers, and start a new environment. As part of the environment, multiple containers will be used as part of the testbed environment.
 
-
-
-
 Production Environment
 ----------------------
 
