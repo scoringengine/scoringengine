@@ -65,22 +65,18 @@ def login():
             flash("Error 'OperationError' received!. Try restarting the db service.", 'danger')
             return render_template('login.html', form=form)
 
-        if user:
-            if User.generate_hash(password, user.password) == user.password:
-                user.authenticated = True
-                session.add(user)
-                session.commit()
-                login_user(user, remember=True)
+        if User.generate_hash(password, user.password) == user.password:
+            user.authenticated = True
+            session.add(user)
+            session.commit()
+            login_user(user, remember=True)
 
-                if user.is_white_team:
-                    return redirect(request.values.get('next') or url_for("admin.status"))
-                elif user.is_blue_team:
-                    return redirect(request.values.get('next') or url_for("services.home"))
-                else:
-                    return redirect(request.values.get('next') or url_for("overview.home"))
+            if user.is_white_team:
+                return redirect(request.values.get('next') or url_for("admin.status"))
+            elif user.is_blue_team:
+                return redirect(request.values.get('next') or url_for("services.home"))
             else:
-                flash('Invalid username or password. Please try again.', 'danger')
-                return render_template('login.html', form=form)
+                return redirect(request.values.get('next') or url_for("overview.home"))
         else:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('login.html', form=form)

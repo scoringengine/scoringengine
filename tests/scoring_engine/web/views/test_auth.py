@@ -50,9 +50,17 @@ class TestAuth(WebTest):
         assert logout_resp.status_code == 302
         self.verify_auth_required('/services')
 
-    def test_wrong_password_login(self):
+    def test_wrong_username_login(self):
         user = self.create_default_user()
         user.username = 'RandomName'
+        self.session.add(user)
+        self.session.commit()
+        self.auth_and_get_path('/')
+        assert user.authenticated is False
+
+    def test_wrong_password_login(self):
+        user = self.create_default_user()
+        user.update_password('randompass')
         self.session.add(user)
         self.session.commit()
         self.auth_and_get_path('/')
