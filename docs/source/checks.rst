@@ -13,6 +13,8 @@ FTP(S)
 ^^^^^^
 Uses the medusa command to login to an FTP server
 
+Uses Accounts
+
 Custom Properties:
   - none
 
@@ -20,12 +22,16 @@ FTPDownload
 ^^^^^^^^^^^
 Logs in and downloads a specific file from the server's filesystem
 
+Uses Accounts
+
 Custom Properties:
   - filename: The relative path to download
 
 FTPUpload
 ^^^^^^^^^^^
 Logs in and uploads a specific file from the local filesystem to remote
+
+Uses Accounts
 
 Custom Properties:
   - filename: The relative path to upload
@@ -50,12 +56,16 @@ IMAP(S)
 ^^^^^^^
 Uses medusa to login to an imap server
 
+Uses Accounts
+
 Custom Properties:
   - domain: The domain of the username
 
 MySQL
 ^^^^^
 Logs into a MySQL server, uses a database, and executes a specific SQL command
+
+Uses Accounts
 
 Custom Properties:
   - database: The check will 'use database' before running command
@@ -65,12 +75,16 @@ POP3(S)
 ^^^^^^^
 Uses medusa to login to an pop3 server
 
+Uses Accounts
+
 Custom Properties:
   - domain: The domain of the username
 
 PostgreSQL
 ^^^^^^^^^^
 Logs into a postgresql server, selects a database, and executes a SQL command
+
+Uses Accounts
 
 Custom Properties:
   - database: The postgres database to use
@@ -79,6 +93,8 @@ Custom Properties:
 SMTP(S)
 ^^^^^^^
 Logs into an SMTP server and sends an email
+
+Uses Accounts
 
 Custom Properties:
   - fromuser: The address that the email will be sent from
@@ -90,12 +106,16 @@ SSH
 ^^^
 Logs into a system using SSH with an account/password, and executes command
 
+Uses Accounts
+
 Custom Properties:
   - command: The command that will run on the host after successful login
 
 VNC
 ^^^
 Connects and if specified, will login to a VNC server
+
+Uses Accounts (optional)
 
 Custom Properties:
   - none
