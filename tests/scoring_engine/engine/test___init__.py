@@ -1,8 +1,8 @@
 import sys
 if 'scoring_engine.engine' in sys.modules:
-    del sys.modules['scoring_engine.engine.checks']
-from scoring_engine.engine import checks
+    del sys.modules['scoring_engine.engine']
+from scoring_engine import engine
 
 
-def test_scoring_engine_engine_checks():
-    assert sys.modules['scoring_engine.engine.checks'] == checks
+def test_scoring_engine_engine():
+    assert sys.modules['scoring_engine.engine'] == engine
