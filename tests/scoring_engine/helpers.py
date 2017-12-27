@@ -2,6 +2,23 @@ import random
 from scoring_engine.models import *
 
 
+def populate_sample_data(session):
+    team = Team(name="Blue Team 1", color="Blue")
+    session.add(team)
+    service = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
+    session.add(service)
+    round_1 = Round(number=1)
+    session.add(round_1)
+    check_1 = Check(service=service, result=True, output='Good output', round=round_1)
+    session.add(check_1)
+
+    round_2 = Round(number=2)
+    session.add(round_2)
+    check_2 = Check(service=service, result=False, output='Bad output', round=round_2)
+    session.add(check_2)
+    session.commit()
+    return team
+
 def generate_sample_model_tree(model, session):
     # Team
     team = Team(name="Team 1", color="Blue")
