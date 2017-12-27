@@ -10,7 +10,7 @@ cmd="$@"
 while ping $host -c 1 > /dev/null 2>&1;
 do
   >&2 echo "Bootstrap container is still running...sleeping"
-  sleep 30
+  sleep 15
 done
 
 >&2 echo "Bootstrap container is finished...Starting container"
