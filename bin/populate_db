@@ -145,6 +145,29 @@ for num in range(1, num_teams + 1):
     session.add(environment)
     services.append(service)
 
+    print("\t\tCreating FTP Download Service")
+    service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', host='testbed_ftp', port=21, points=50)
+    session.add(Account(username='ttesterson', password='testpass', service=service))
+    session.add(Account(username='rpeterson', password='otherpass', service=service))
+    environment = Environment(service=service, matching_regex='< 226 Transfer complete.')
+    # We use double slashes in the filename to represent the absolute path
+    session.add(Property(environment=environment, name='filename', value='//ftp_files/testfile.txt'))
+    session.add(service)
+    session.add(environment)
+    services.append(service)
+
+    print("\t\tCreating FTP Upload Service")
+    service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', host='testbed_ftp', port=21, points=50)
+    session.add(Account(username='ttesterson', password='testpass', service=service))
+    session.add(Account(username='rpeterson', password='otherpass', service=service))
+    environment = Environment(service=service, matching_regex='< 226 Transfer complete')
+    # For testing purposes, we append the team number to upload file name since we're
+    # uploading to the same host
+    session.add(Property(environment=environment, name='filename', value='/uploaded_file' + str(num) + '.txt'))
+    session.add(service)
+    session.add(environment)
+    services.append(service)
+
     # print("\t\tCreating DNS Service")
     # service = Service(name="DNS", team=team, check_name="DNSCheck", host="127.0.0.1", port=53, points=100)
     # environment = Environment(service=service, matching_regex='status: NOERROR')
@@ -156,28 +179,6 @@ for num in range(1, num_teams + 1):
     # session.add(Property(environment=environment_quad, name='qtype', value='AAAA'))
     # session.add(Property(environment=environment_quad, name='domain', value='www.domain.com'))
     # session.add(service)
-    # services.append(service)
-
-    # print("\t\tCreating FTP Download Service")
-    # service = Service(name='FTPDownload', team=team, check_name='FTPDownloadCheck', host='127.0.0.1', port=21, points=50)
-    # session.add(Account(username='techy', password='techy', service=service))
-    # session.add(Account(username='pwnbus', password='redfred', service=service))
-    # session.add(Account(username='rusty', password='catdog', service=service))
-    # environment = Environment(service=service, matching_regex='> USER')
-    # session.add(Property(environment=environment, name='filename', value='foo.txt'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating FTP Upload Service")
-    # service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', host='127.0.0.1', port=21, points=50)
-    # session.add(Account(username='techy', password='techy', service=service))
-    # session.add(Account(username='pwnbus', password='redfred', service=service))
-    # session.add(Account(username='rusty', password='catdog', service=service))
-    # environment = Environment(service=service, matching_regex='> STOR foo.txt')
-    # session.add(Property(environment=environment, name='filename', value='foo.txt'))
-    # session.add(service)
-    # session.add(environment)
     # services.append(service)
 
     # print("\t\tCreating Generic FTP Service")
