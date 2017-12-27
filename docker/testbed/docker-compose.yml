@@ -27,3 +27,9 @@ services:
       - MYSQL_PASSWORD=CHANGEME
     # ports:
     #   - 3306:3306
+  testbed_ftp:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/ftp/Dockerfile
+    # ports:
+    #   - 21:21
