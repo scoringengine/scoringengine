@@ -19,6 +19,7 @@ def populate_sample_data(session):
     session.commit()
     return team
 
+
 def generate_sample_model_tree(model, session):
     # Team
     team = Team(name="Team 1", color="Blue")

@@ -10,6 +10,11 @@ from tests.scoring_engine.web.web_test import WebTest
 
 class TestAPI(WebTest):
 
+    def setup(self):
+        super(TestAPI, self).setup()
+        self.create_default_user()
+        self.create_default_settings()
+
     def test_auth_required_admin_get_round_progress(self):
         self.verify_auth_required('/api/admin/get_round_progress')
 
@@ -161,3 +166,8 @@ class TestAPI(WebTest):
             }
         }
         assert sorted(overview_dict.items()) == sorted(expected_dict.items())
+
+    def test_get_engine_stats(self):
+        resp = self.auth_and_get_path('/api/admin/get_engine_stats')
+        resp_json = json.loads(resp.data.decode('ascii'))
+        assert resp_json == {'num_passed_checks': 0, 'total_checks': 0, 'round_number': 0, 'num_failed_checks': 0}
