@@ -1,9 +1,11 @@
+import pytest
+
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 
-from tests.scoring_engine.helpers import generate_sample_model_tree
+from tests.scoring_engine.helpers import generate_sample_model_tree, populate_sample_data
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -124,3 +126,22 @@ class TestTeam(UnitTest):
         assert team_1.place == 1
         assert team_2.place == 3
         assert team_3.place == 2
+
+    def test_get_array_of_scores(self):
+        populate_sample_data(self.session)
+        results = Team.get_all_rounds_results()
+        assert 'rounds' in results
+        assert results['rounds'] == ['Round 0', 'Round 1', 'Round 2']
+        assert 'rgb_colors' in results
+        assert 'Blue Team 1' in results['rgb_colors']
+        assert results['rgb_colors']['Blue Team 1'].startswith('rgba')
+        assert 'scores' in results
+        assert results['scores'] == {'Blue Team 1': [0, 100, 100]}
+
+    def test_get_round_scores(self):
+        team = populate_sample_data(self.session)
+        assert team.get_round_scores(0) == 0
+        assert team.get_round_scores(1) == 100
+        assert team.get_round_scores(2) == 0
+        with pytest.raises(IndexError):
+            team.get_round_scores(3)
