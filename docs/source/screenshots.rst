@@ -30,3 +30,9 @@ Round Status
 
 .. image:: images/round_status.png
     :scale: 50%
+
+Admin Team View
+---------------
+
+.. image:: images/admin_team_view.png
+    :scale: 50%
