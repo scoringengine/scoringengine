@@ -10,7 +10,7 @@ Setup Configuration
   cp engine.conf.inc engine.conf
   sed -i '' 's/debug = False/debug = True/g' engine.conf
 
-.. note:: If the debug config value is set to True, the web ui will automatically reload on changes to files, and will tell the web ui to listen only on localhost
+.. note:: If the debug config value is set to True, the web ui will automatically reload on changes to files, and will tell the web ui to listen only on localhost with port 5000
 
 Install Development Dependencies
 --------------------------------
