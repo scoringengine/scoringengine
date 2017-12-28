@@ -10,3 +10,4 @@ Table of Contents
   configuration
   checks
   screenshots
+  development
