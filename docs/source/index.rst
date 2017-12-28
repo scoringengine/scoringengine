@@ -9,3 +9,4 @@ Table of Contents
   installation
   configuration
   checks
+  screenshots
