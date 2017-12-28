@@ -7,6 +7,8 @@ Scoring Engine
 ==============
 Scoring Engine for Red/White/Blue Team Competitions
 
+<img src="https://github.com/pwnbus/scoring_engine/blob/master/docs/source/images/screenshots.gif" width="800" height="577" />
+
 Getting started
 ---------------
 
