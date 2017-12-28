@@ -15,6 +15,7 @@
   <div class="row">
     <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
     </table>
+    <div id='hint'>Hover over status icon to get host:ip information</div>
     <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a href="{{ url_for('api.overview_data') }}">Here</a></div>
     <script>
         function refreshheader() {
@@ -67,16 +68,16 @@
                                     else if (value.search('Team') == 0) {
                                     }
                                     else if (value.search('- True') > 0) {
-                                        $('td', row).eq(count).addClass('label-success');
-                                        $('td', row).eq(count).html(value.replace(' - True', ''));
+                                        html_str = '<span class="glyphicon glyphicon-ok" style="color:green" title="' + value.replace(' - True', '') + '"></span>'
+                                        $('td', row).eq(count).html(html_str);
                                     }
                                     else if (value.search('- False') > 0) {
-                                        $('td', row).eq(count).addClass('label-danger');
-                                        $('td', row).eq(count).html(value.replace(' - False', ''));
+                                        html_str = '<span class="glyphicon glyphicon-remove" style="color:red" title="' + value.replace(' - False', '') + '"></span>'
+                                        $('td', row).eq(count).html(html_str);
                                     }
                                     else {
-                                        $('td', row).eq(count).addClass('label-default');
-                                        $('td', row).eq(count).html('Undetermined');
+                                        html_str = '<span class="glyphicon glyphicon-question-sign" style="color:black" title="Undetermined">Undetermined</span>'
+                                        $('td', row).eq(count).html(html_str);
                                     }
                                     count++;
                                 })

@@ -90,6 +90,12 @@ tr.shown td.details-control {
   text-align:center;
 }
 
+#hint {
+  font-style: italic;
+  padding-top: 10px;
+  text-align:center;
+}
+
 .md-page {
     background: #fff;
     padding: 0px 25px 25px 25px;
