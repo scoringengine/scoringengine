@@ -425,6 +425,7 @@ def api_services():
             score_earned=service.score_earned,
             max_score=service.max_score,
             percent_earned=service.percent_earned,
+            pts_per_check=service.points,
             last_ten_checks=[check.result for check in service.last_ten_checks[::-1]]
         ))
     return jsonify(data=data)
