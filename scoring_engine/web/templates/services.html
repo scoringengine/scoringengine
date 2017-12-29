@@ -22,6 +22,7 @@
                     <th>Score Earned</th>
                     <th>Max Score</th>
                     <th>% Earned</th>
+                    <th>Pts Per Check</th>
                     <th>Trending</th>
                 </tr>
             </thead>
@@ -56,6 +57,7 @@
                             { "data": "score_earned" },
                             { "data": "max_score" },
                             { "data": "percent_earned" },
+                            { "data": "pts_per_check" },
                             {
                                 "data": null,
                                 "defaultContent": ''
@@ -79,7 +81,7 @@
                                     last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                                 }
                             }
-                            $('td:eq(7)', row).html(last_ten_checks);
+                            $('td:eq(8)', row).html(last_ten_checks);
                         }
                     });
                 setInterval( function () {
