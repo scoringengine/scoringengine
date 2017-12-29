@@ -10,10 +10,9 @@ mod = Blueprint('services', __name__)
 @mod.route('/services')
 @login_required
 def home():
-    current_team = current_user.team
     if not current_user.is_blue_team:
         return redirect(url_for('auth.unauthorized'))
-    return render_template('services.html', team=current_team)
+    return render_template('services.html', team_name=current_user.team.name)
 
 
 @mod.route('/service/<id>')

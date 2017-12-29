@@ -9,9 +9,11 @@
 {% block content %}
 <div class="container md-page">
     <div class="row">
-        <h3>{{team.name}}</h3>
-        <h5>Place: {{team.place}}</h5>
-        <h5>Score: {{team.current_score}} points</h5>
+        <h3>{{team_name}}</h3>
+        <h5 id="team_place">Place: </h5>
+        <h5 id="team_current_score">Score: </h5>
+    </div>
+    <div class="row">
         <table id="services" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
             <thead>
                 <tr>
@@ -30,7 +32,24 @@
             </tbody>
         </table>
         <script>
+            function refreshteamdata() {
+                $.ajax({
+                    cache: false,
+                    url: '/api/overview/get_team_data',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#team_place').text("Place: " + data.place);
+                        $('#team_current_score').text("Score: " + data.current_score);
+                    }
+                });
+            }
+
             $(document).ready(function() {
+                refreshteamdata();
+                setInterval(function(){
+                    refreshteamdata()
+                }, 30000);
+
                 // Disable datatables error reporting
                 $.fn.dataTable.ext.errMode = 'none';
 
