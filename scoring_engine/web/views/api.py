@@ -384,9 +384,9 @@ def overview_get_round_data():
     return jsonify(data)
 
 
-@mod.route('/api/overview/get_team_data')
+@mod.route('/api/services/get_team_data')
 @login_required
-def overview_get_team_data():
+def services_get_team_data():
     if current_user.is_blue_team:
         current_team = current_user.team
         data = {

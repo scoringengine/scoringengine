@@ -35,7 +35,7 @@
             function refreshteamdata() {
                 $.ajax({
                     cache: false,
-                    url: '/api/overview/get_team_data',
+                    url: '/api/services/get_team_data',
                     dataType: 'json',
                     success: function(data) {
                         $('#team_place').text("Place: " + data.place);
