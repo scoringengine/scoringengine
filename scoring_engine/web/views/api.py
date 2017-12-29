@@ -384,6 +384,20 @@ def overview_get_round_data():
     return jsonify(data)
 
 
+@mod.route('/api/services/get_team_data')
+@login_required
+def services_get_team_data():
+    if current_user.is_blue_team:
+        current_team = current_user.team
+        data = {
+            'place': current_team.place,
+            'current_score': current_team.current_score
+        }
+        return jsonify(data)
+    else:
+        return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/profile/update_password', methods=['POST'])
 @login_required
 def profile_update_password():
