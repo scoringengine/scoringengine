@@ -26,8 +26,6 @@ General
 ^^^^^^^
 checks_location
   - The local path to the source code for checks
-check_timeout
-  - The maximum time a check will run for before it times out
 round_time_sleep
   - The amount of time in seconds we sleep inbetween rounds
 worker_refresh_time

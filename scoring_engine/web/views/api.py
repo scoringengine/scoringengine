@@ -177,6 +177,25 @@ def admin_update_welcome_page_content():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_round_time_sleep', methods=['POST'])
+@login_required
+def admin_update_round_time_sleep():
+    if current_user.is_white_team:
+        if 'round_time_sleep' in request.form:
+            setting = Setting.get_setting('round_time_sleep')
+            setting.value = request.form['round_time_sleep']
+            if not setting.value.isdigit():
+                flash('Error: Round Sleep Time must be an integer.', 'danger')
+                return redirect(url_for('admin.settings'))
+            session.add(setting)
+            session.commit()
+            flash('Round Sleep Time Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: round_time_sleep not specified.', 'danger')
+        return redirect(url_for('admin.settings'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/modify_service_account', methods=['POST'])
 @login_required
 def modify_service_account():

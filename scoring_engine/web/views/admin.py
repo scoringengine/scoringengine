@@ -65,10 +65,12 @@ def settings():
     if current_user.is_white_team:
         about_page_content = Setting.get_setting('about_page_content').value
         welcome_page_content = Setting.get_setting('welcome_page_content').value
+        round_time_sleep = Setting.get_setting('round_time_sleep').value
         blue_teams = Team.get_all_blue_teams()
         return render_template(
             'admin/settings.html',
             blue_teams=blue_teams,
+            round_time_sleep=round_time_sleep,
             about_page_content=about_page_content,
             welcome_page_content=welcome_page_content
         )

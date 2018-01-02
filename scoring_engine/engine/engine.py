@@ -13,6 +13,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
+from scoring_engine.models.setting import Setting
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
@@ -31,9 +32,7 @@ class Engine(object):
         self.config = config
         self.checks_location = self.config.checks_location
 
-        if round_time_sleep is None:
-            round_time_sleep = self.config.round_time_sleep
-        self.round_time_sleep = round_time_sleep
+        self.verify_settings()
 
         if worker_refresh_time is None:
             worker_refresh_time = self.config.worker_refresh_time
@@ -51,6 +50,9 @@ class Engine(object):
 
         self.load_checks()
         self.round_running = False
+
+    def verify_settings(self):
+        self.round_time_sleep = Setting.get_setting('round_time_sleep').value
 
     def shutdown(self):
         if self.round_running:
@@ -195,5 +197,6 @@ class Engine(object):
             self.round_running = False
 
             if not self.last_round:
+                self.round_time_sleep = Setting.get_setting('round_time_sleep').value
                 logger.info("Sleeping in between rounds (" + str(self.round_time_sleep) + " seconds)")
                 self.sleep(self.round_time_sleep)
