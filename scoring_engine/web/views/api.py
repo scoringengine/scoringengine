@@ -196,6 +196,25 @@ def admin_update_round_time_sleep():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_worker_refresh_time', methods=['POST'])
+@login_required
+def admin_update_worker_refresh_time():
+    if current_user.is_white_team:
+        if 'worker_refresh_time' in request.form:
+            setting = Setting.get_setting('worker_refresh_time')
+            setting.value = request.form['worker_refresh_time']
+            if not setting.value.isdigit():
+                flash('Error: Worker Refresh Time must be an integer.', 'danger')
+                return redirect(url_for('admin.settings'))
+            session.add(setting)
+            session.commit()
+            flash('Worker Refresh Time Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: worker_refresh_time not specified.', 'danger')
+        return redirect(url_for('admin.settings'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/modify_service_account', methods=['POST'])
 @login_required
 def modify_service_account():

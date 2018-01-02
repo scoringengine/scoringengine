@@ -21,6 +21,18 @@
   </div>
   <div class="row">
     <div class="card">
+      <form method="POST" action="{{ url_for('api.admin_update_round_time_sleep') }}" role="form" class="form-signin">
+        <div class="form-group">
+          <label for="round_time_sleep">Worker Refresh Time</label>
+          <textarea class="form-control" rows="1" style="width: 100px;" id="round_time_sleep" name="worker_refresh_time" placeholder="Insert Worker Refresh Time Here" required>{{ worker_refresh_time|safe }}</textarea>
+          <h6><label for="worker_refresh_time_footer">* This value determines how long the engine sleeps iterations of checking for finished checks (also displays in the engine log).</label></h6>
+        </div>
+        <button type="submit" class="btn btn-primary center-block">Save</button>
+      </form>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
       <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form" class="form-signin">
         <div class="form-group">
           <label for="welcome_page_content">Welcome Page Content</label>
