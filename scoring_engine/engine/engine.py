@@ -25,7 +25,7 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, worker_refresh_time=None):
+    def __init__(self, total_rounds=0):
         self.checks = []
         self.total_rounds = total_rounds
 
@@ -33,10 +33,6 @@ class Engine(object):
         self.checks_location = self.config.checks_location
 
         self.verify_settings()
-
-        if worker_refresh_time is None:
-            worker_refresh_time = self.config.worker_refresh_time
-        self.worker_refresh_time = worker_refresh_time
 
         self.last_round = False
         self.rounds_run = 0
@@ -52,9 +48,14 @@ class Engine(object):
         self.round_running = False
 
     def verify_settings(self):
-        if not Setting.get_setting('round_time_sleep'):
-            logger.error("Must have 'round_time_sleep' setting.")
-            exit(1)
+        settings = [
+            'round_time_sleep',
+            'worker_refresh_time'
+        ]
+        for setting_name in settings:
+            if not Setting.get_setting(setting_name):
+                logger.error("Must have " + setting_name + " setting.")
+                exit(1)
 
     def shutdown(self):
         if self.round_running:
@@ -140,10 +141,11 @@ class Engine(object):
 
             pending_tasks = self.all_pending_tasks(task_ids)
             while pending_tasks:
-                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_refresh_time) + " seconds)"
+                worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
+                waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                 waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                 logger.info(waiting_info)
-                self.sleep(self.worker_refresh_time)
+                self.sleep(worker_refresh_time)
                 pending_tasks = self.all_pending_tasks(task_ids)
             logger.info("All jobs have finished for this round")
 

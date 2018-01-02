@@ -20,4 +20,6 @@ class UnitTest(object):
         self.session.add(welcome_page_setting)
         round_time_sleep_setting = Setting(name='round_time_sleep', value=60)
         self.session.add(round_time_sleep_setting)
+        worker_refresh_time_setting = Setting(name='worker_refresh_time', value=30)
+        self.session.add(worker_refresh_time_setting)
         self.session.commit()

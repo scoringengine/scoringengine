@@ -371,4 +371,6 @@ welcome_page_setting = Setting(name='welcome_page_content', value=welcome_conten
 session.add(welcome_page_setting)
 round_time_sleep_setting = Setting(name='round_time_sleep', value=config.round_time_sleep)
 session.add(round_time_sleep_setting)
+worker_refresh_time_setting = Setting(name='worker_refresh_time', value=config.worker_refresh_time)
+session.add(worker_refresh_time_setting)
 session.commit()

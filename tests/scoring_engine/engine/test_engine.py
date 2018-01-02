@@ -29,8 +29,12 @@ class TestEngine(UnitTest):
     def setup(self):
         super(TestEngine, self).setup()
         round_time_sleep_obj = Setting.get_setting('round_time_sleep')
-        round_time_sleep_obj.value = 1
+        round_time_sleep_obj.value = 0
         self.session.add(round_time_sleep_obj)
+        worker_refresh_time_obj = Setting.get_setting('worker_refresh_time')
+        worker_refresh_time_obj.value = 0
+        self.session.add(worker_refresh_time_obj)
+
         self.session.commit()
 
     def test_init(self):
@@ -61,10 +65,6 @@ class TestEngine(UnitTest):
         engine = Engine(total_rounds=100)
         assert engine.total_rounds == 100
 
-    def test_custom_sleep_timers(self):
-        engine = Engine(worker_refresh_time=20)
-        assert engine.worker_refresh_time == 20
-
     def test_shutdown(self):
         engine = Engine()
         assert engine.last_round is False
@@ -72,18 +72,14 @@ class TestEngine(UnitTest):
         assert engine.last_round is True
 
     def test_run_one_round(self):
-        engine = Engine(total_rounds=1, worker_refresh_time=1)
+        engine = Engine(total_rounds=1)
         assert engine.rounds_run == 0
         engine.run()
         assert engine.rounds_run == 1
         assert engine.current_round == 1
 
     def test_run_ten_rounds(self):
-        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
-        round_time_sleep_obj.value = 0
-        self.session.add(round_time_sleep_obj)
-        self.session.commit()
-        engine = Engine(total_rounds=10, worker_refresh_time=0)
+        engine = Engine(total_rounds=10)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()
@@ -91,12 +87,7 @@ class TestEngine(UnitTest):
         assert engine.current_round == 10
 
     def test_run_hundred_rounds(self):
-        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
-        round_time_sleep_obj.value = 0
-        self.session.add(round_time_sleep_obj)
-        self.session.commit()
-
-        engine = Engine(total_rounds=100, worker_refresh_time=0)
+        engine = Engine(total_rounds=100)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()
