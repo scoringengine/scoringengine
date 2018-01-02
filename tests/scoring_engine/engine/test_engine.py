@@ -1,5 +1,7 @@
 from scoring_engine.engine.engine import Engine
 
+from scoring_engine.models.setting import Setting
+
 from scoring_engine.engine.checks.icmp import ICMPCheck
 from scoring_engine.engine.checks.ssh import SSHCheck
 from scoring_engine.engine.checks.dns import DNSCheck
@@ -23,6 +25,13 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestEngine(UnitTest):
+
+    def setup(self):
+        super(TestEngine, self).setup()
+        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
+        round_time_sleep_obj.value = 1
+        self.session.add(round_time_sleep_obj)
+        self.session.commit()
 
     def test_init(self):
         engine = Engine()
@@ -53,8 +62,7 @@ class TestEngine(UnitTest):
         assert engine.total_rounds == 100
 
     def test_custom_sleep_timers(self):
-        engine = Engine(round_time_sleep=60, worker_refresh_time=20)
-        assert engine.round_time_sleep == 60
+        engine = Engine(worker_refresh_time=20)
         assert engine.worker_refresh_time == 20
 
     def test_shutdown(self):
@@ -64,14 +72,18 @@ class TestEngine(UnitTest):
         assert engine.last_round is True
 
     def test_run_one_round(self):
-        engine = Engine(total_rounds=1, round_time_sleep=1, worker_refresh_time=1)
+        engine = Engine(total_rounds=1, worker_refresh_time=1)
         assert engine.rounds_run == 0
         engine.run()
         assert engine.rounds_run == 1
         assert engine.current_round == 1
 
     def test_run_ten_rounds(self):
-        engine = Engine(total_rounds=10, round_time_sleep=0, worker_refresh_time=0)
+        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
+        round_time_sleep_obj.value = 0
+        self.session.add(round_time_sleep_obj)
+        self.session.commit()
+        engine = Engine(total_rounds=10, worker_refresh_time=0)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()
@@ -79,7 +91,12 @@ class TestEngine(UnitTest):
         assert engine.current_round == 10
 
     def test_run_hundred_rounds(self):
-        engine = Engine(total_rounds=100, round_time_sleep=0, worker_refresh_time=0)
+        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
+        round_time_sleep_obj.value = 0
+        self.session.add(round_time_sleep_obj)
+        self.session.commit()
+
+        engine = Engine(total_rounds=100, worker_refresh_time=0)
         assert engine.current_round == 0
         assert engine.rounds_run == 0
         engine.run()

@@ -25,7 +25,7 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, round_time_sleep=None, worker_refresh_time=None):
+    def __init__(self, total_rounds=0, worker_refresh_time=None):
         self.checks = []
         self.total_rounds = total_rounds
 
@@ -52,7 +52,9 @@ class Engine(object):
         self.round_running = False
 
     def verify_settings(self):
-        self.round_time_sleep = Setting.get_setting('round_time_sleep').value
+        if not Setting.get_setting('round_time_sleep'):
+            logger.error("Must have 'round_time_sleep' setting.")
+            exit(1)
 
     def shutdown(self):
         if self.round_running:
@@ -197,6 +199,6 @@ class Engine(object):
             self.round_running = False
 
             if not self.last_round:
-                self.round_time_sleep = Setting.get_setting('round_time_sleep').value
-                logger.info("Sleeping in between rounds (" + str(self.round_time_sleep) + " seconds)")
-                self.sleep(self.round_time_sleep)
+                round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
+                logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
+                self.sleep(round_time_sleep)
