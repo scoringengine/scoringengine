@@ -8,7 +8,6 @@ class TestAbout(WebTest):
     def setup(self):
         super(TestAbout, self).setup()
         self.create_default_user()
-        self.create_default_settings()
 
     def test_about(self):
         resp = self.client.get('/about')

@@ -7,7 +7,6 @@ class TestAdmin(WebTest):
     def setup(self):
         super(TestAdmin, self).setup()
         self.create_default_user()
-        self.create_default_settings()
 
     def unauthorized_admin_test(self, path):
         red_team = Team(name="Red Team", color="Red")
