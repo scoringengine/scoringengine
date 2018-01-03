@@ -183,10 +183,11 @@ def admin_update_round_time_sleep():
     if current_user.is_white_team:
         if 'round_time_sleep' in request.form:
             setting = Setting.get_setting('round_time_sleep')
-            setting.value = request.form['round_time_sleep']
-            if not setting.value.isdigit():
+            input_time = request.form['round_time_sleep']
+            if not input_time.isdigit():
                 flash('Error: Round Sleep Time must be an integer.', 'danger')
                 return redirect(url_for('admin.settings'))
+            setting.value = input_time
             session.add(setting)
             session.commit()
             flash('Round Sleep Time Successfully Updated.', 'success')
@@ -202,10 +203,11 @@ def admin_update_worker_refresh_time():
     if current_user.is_white_team:
         if 'worker_refresh_time' in request.form:
             setting = Setting.get_setting('worker_refresh_time')
-            setting.value = request.form['worker_refresh_time']
-            if not setting.value.isdigit():
+            input_time = request.form['worker_refresh_time']
+            if not input_time.isdigit():
                 flash('Error: Worker Refresh Time must be an integer.', 'danger')
                 return redirect(url_for('admin.settings'))
+            setting.value = input_time
             session.add(setting)
             session.commit()
             flash('Worker Refresh Time Successfully Updated.', 'success')
