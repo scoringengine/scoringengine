@@ -13,6 +13,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
+from scoring_engine.models.setting import Setting
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
@@ -24,20 +25,14 @@ def engine_sigint_handler(signum, frame, engine):
 
 class Engine(object):
 
-    def __init__(self, total_rounds=0, round_time_sleep=None, worker_refresh_time=None):
+    def __init__(self, total_rounds=0):
         self.checks = []
         self.total_rounds = total_rounds
 
         self.config = config
         self.checks_location = self.config.checks_location
 
-        if round_time_sleep is None:
-            round_time_sleep = self.config.round_time_sleep
-        self.round_time_sleep = round_time_sleep
-
-        if worker_refresh_time is None:
-            worker_refresh_time = self.config.worker_refresh_time
-        self.worker_refresh_time = worker_refresh_time
+        self.verify_settings()
 
         self.last_round = False
         self.rounds_run = 0
@@ -51,6 +46,16 @@ class Engine(object):
 
         self.load_checks()
         self.round_running = False
+
+    def verify_settings(self):
+        settings = [
+            'round_time_sleep',
+            'worker_refresh_time'
+        ]
+        for setting_name in settings:
+            if not Setting.get_setting(setting_name):
+                logger.error("Must have " + setting_name + " setting.")
+                exit(1)
 
     def shutdown(self):
         if self.round_running:
@@ -136,10 +141,11 @@ class Engine(object):
 
             pending_tasks = self.all_pending_tasks(task_ids)
             while pending_tasks:
-                waiting_info = "Waiting for all jobs to finish (sleeping " + str(self.worker_refresh_time) + " seconds)"
+                worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
+                waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                 waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                 logger.info(waiting_info)
-                self.sleep(self.worker_refresh_time)
+                self.sleep(worker_refresh_time)
                 pending_tasks = self.all_pending_tasks(task_ids)
             logger.info("All jobs have finished for this round")
 
@@ -195,5 +201,6 @@ class Engine(object):
             self.round_running = False
 
             if not self.last_round:
-                logger.info("Sleeping in between rounds (" + str(self.round_time_sleep) + " seconds)")
-                self.sleep(self.round_time_sleep)
+                round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
+                logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
+                self.sleep(round_time_sleep)

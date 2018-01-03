@@ -6,7 +6,6 @@ class TestWelcome(WebTest):
     def setup(self):
         super(TestWelcome, self).setup()
         self.create_default_user()
-        self.create_default_settings()
         self.welcome_content = 'example welcome content <br>here'
 
     def test_home(self):

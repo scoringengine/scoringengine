@@ -13,7 +13,6 @@ class ConfigLoader(object):
         self.web_debug = self.parser['WEB']['debug'].lower() == 'true'
 
         self.checks_location = self.parser['GENERAL']['checks_location']
-        self.check_timeout = int(self.parser['GENERAL']['check_timeout'])
 
         self.round_time_sleep = int(self.parser['GENERAL']['round_time_sleep'])
         self.worker_refresh_time = int(self.parser['GENERAL']['worker_refresh_time'])

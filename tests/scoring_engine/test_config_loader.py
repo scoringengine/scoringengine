@@ -12,9 +12,6 @@ class TestConfigLoader(object):
     def test_checks_location(self):
         assert self.config.checks_location == "scoring_engine/engine/checks"
 
-    def test_check_timeout(self):
-        assert self.config.check_timeout == 30
-
     def test_round_time_sleep(self):
         assert self.config.round_time_sleep == 180
 

@@ -177,6 +177,46 @@ def admin_update_welcome_page_content():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_round_time_sleep', methods=['POST'])
+@login_required
+def admin_update_round_time_sleep():
+    if current_user.is_white_team:
+        if 'round_time_sleep' in request.form:
+            setting = Setting.get_setting('round_time_sleep')
+            input_time = request.form['round_time_sleep']
+            if not input_time.isdigit():
+                flash('Error: Round Sleep Time must be an integer.', 'danger')
+                return redirect(url_for('admin.settings'))
+            setting.value = input_time
+            session.add(setting)
+            session.commit()
+            flash('Round Sleep Time Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: round_time_sleep not specified.', 'danger')
+        return redirect(url_for('admin.settings'))
+    return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/update_worker_refresh_time', methods=['POST'])
+@login_required
+def admin_update_worker_refresh_time():
+    if current_user.is_white_team:
+        if 'worker_refresh_time' in request.form:
+            setting = Setting.get_setting('worker_refresh_time')
+            input_time = request.form['worker_refresh_time']
+            if not input_time.isdigit():
+                flash('Error: Worker Refresh Time must be an integer.', 'danger')
+                return redirect(url_for('admin.settings'))
+            setting.value = input_time
+            session.add(setting)
+            session.commit()
+            flash('Worker Refresh Time Successfully Updated.', 'success')
+            return redirect(url_for('admin.settings'))
+        flash('Error: worker_refresh_time not specified.', 'danger')
+        return redirect(url_for('admin.settings'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/modify_service_account', methods=['POST'])
 @login_required
 def modify_service_account():

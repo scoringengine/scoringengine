@@ -26,7 +26,6 @@ class WebTest(UnitTest):
         self.view_module.render_template = MagicMock()
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
-        self.create_default_settings()
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)
@@ -52,13 +51,6 @@ class WebTest(UnitTest):
         self.session.add(user1)
         self.session.commit()
         return user1
-
-    def create_default_settings(self):
-        about_page_setting = Setting(name='about_page_content', value='example content value')
-        self.session.add(about_page_setting)
-        welcome_page_setting = Setting(name='welcome_page_content', value='example welcome content <br>here')
-        self.session.add(welcome_page_setting)
-        self.session.commit()
 
     def test_debug(self):
         assert type(self.app.debug) is bool

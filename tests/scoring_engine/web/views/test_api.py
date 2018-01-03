@@ -13,7 +13,6 @@ class TestAPI(WebTest):
     def setup(self):
         super(TestAPI, self).setup()
         self.create_default_user()
-        self.create_default_settings()
 
     def test_auth_required_admin_get_round_progress(self):
         self.verify_auth_required('/api/admin/get_round_progress')
