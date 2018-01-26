@@ -3,7 +3,6 @@ FROM python:latest
 RUN \
   apt-get update && \
   apt-get install -y curl && \
-  apt-get install -y sshpass && \
   apt-get install -y mysql-client
 
 COPY setup.py /app/setup.py
@@ -14,5 +13,8 @@ COPY docker/wait-for-bootstrap.sh /app
 
 WORKDIR /app
 RUN pip install -e .
+
+# SSH Check
+RUN pip install paramiko
 
 CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]

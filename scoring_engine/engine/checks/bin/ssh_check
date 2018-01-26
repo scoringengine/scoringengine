@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+# A scoring engine check that logs into SSH and runs a command
+# The check will login each time and run ONE command
+# The idea of running separate sessions is to verify
+# the state of the machine was changed via SSH
+# IE: Login, create a file, logout, login, verify file is still there, logout
+#
+# To install: pip install paramiko
+
+import sys
+import paramiko
+
+
+if len(sys.argv) != 6:
+    print("Usage: " + sys.argv[0] + " host port username password commands")
+    print("commands parameter supports multiple commands, use ';' as the delimeter")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+username = sys.argv[3]
+password = sys.argv[4]
+commands = sys.argv[5].split(';')
+
+
+def connect_and_execute(host, port, username, password, command):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(
+        hostname=host,
+        port=port,
+        username=username,
+        password=password,
+        look_for_keys=False
+    )
+    client_stdin, client_stdout, client_stderr = client.exec_command(command)
+    stdout_output = client_stdout.readlines()
+    stderr_output = client_stderr.readlines()
+    client.close()
+    return ''.join(stdout_output), ''.join(stderr_output)
+
+
+last_command_output = ""
+for command in commands:
+    command_stdout, command_stderr = connect_and_execute(host, port, username, password, command)
+    if command_stderr:
+        print("ERROR: Command ran unsuccessfully: " + str(command))
+        print(command_stderr)
+        sys.exit(1)
+    last_command_output = command_stdout.rstrip()
+
+print("SUCCESS")
+print(last_command_output)
