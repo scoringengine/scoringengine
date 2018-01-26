@@ -1,11 +1,16 @@
-from scoring_engine.engine.basic_check import BasicCheck
+from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
 
 class SSHCheck(BasicCheck):
-    required_properties = ['command']
-    CMD = 'sshpass -p {0} ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {1} -p {2} {3}'
+    required_properties = ['commands']
+    CMD = CHECKS_BIN_PATH + '/ssh_check {0} {1} {2} {3} {4}'
 
     def command_format(self, properties):
         account = self.get_random_account()
-        username_domain = account.username + '@' + self.host
-        return (account.password, username_domain, self.port, properties['command'])
+        return (
+            self.host,
+            self.port,
+            account.username,
+            account.password,
+            properties['commands']
+        )

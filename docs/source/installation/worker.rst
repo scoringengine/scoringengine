@@ -55,7 +55,7 @@ Install dependencies for SSH check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  apt-get install -y sshpass
+  pip install paramiko
 
 Install dependencies for SMTP/SMTPS check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
