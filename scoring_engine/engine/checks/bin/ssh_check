@@ -21,7 +21,7 @@ host = sys.argv[1]
 port = sys.argv[2]
 username = sys.argv[3]
 password = sys.argv[4]
-commands = sys.argv[5:].split(';')
+commands = sys.argv[5].split(';')
 
 
 def connect_and_execute(host, port, username, password, command):
