@@ -56,27 +56,27 @@ class TestAPI(WebTest):
         teams = []
         last_check_results = {
             "team1": {
-                "FTPUpload": True,
+                "FTP": True,
                 "DNS": True,
                 "ICMP": True,
             },
             "team2": {
-                "FTPUpload": False,
+                "FTP": False,
                 "DNS": True,
                 "ICMP": True,
             },
             "team3": {
-                "FTPUpload": False,
+                "FTP": False,
                 "DNS": True,
                 "ICMP": False,
             },
             "team4": {
-                "FTPUpload": True,
+                "FTP": True,
                 "DNS": False,
                 "ICMP": False,
             },
             "team5": {
-                "FTPUpload": False,
+                "FTP": False,
                 "DNS": False,
                 "ICMP": False,
             },
@@ -85,55 +85,55 @@ class TestAPI(WebTest):
             team = Team(name="team" + str(team_num), color="Blue")
             icmp_service = Service(name="ICMP", team=team, check_name="ICMP IPv4 Check", host="127.0.0.1")
             dns_service = Service(name="DNS", team=team, check_name="DNSCheck", host="8.8.8.8", port=53)
-            ftp_upload_service = Service(name='FTPUpload', team=team, check_name='FTPUploadCheck', host='1.2.3.4', port=21)
+            ftp_service = Service(name='FTP', team=team, check_name='FTPCheck', host='1.2.3.4', port=21)
             self.session.add(icmp_service)
             self.session.add(dns_service)
-            self.session.add(ftp_upload_service)
+            self.session.add(ftp_service)
             # 5 rounds of checks
             round_1 = Round(number=1)
             icmp_check_1 = Check(round=round_1, service=icmp_service, result=True, output="example_output")
             dns_check_1 = Check(round=round_1, service=dns_service, result=False, output="example_output")
-            ftp_upload_check_1 = Check(round=round_1, service=ftp_upload_service, result=True, output="example_output")
+            ftp_check_1 = Check(round=round_1, service=ftp_service, result=True, output="example_output")
             self.session.add(round_1)
             self.session.add(icmp_check_1)
             self.session.add(dns_check_1)
-            self.session.add(ftp_upload_check_1)
+            self.session.add(ftp_check_1)
 
             round_2 = Round(number=2)
             icmp_check_2 = Check(round=round_2, service=icmp_service, result=True, output="example_output")
             dns_check_2 = Check(round=round_2, service=dns_service, result=True, output="example_output")
-            ftp_upload_check_2 = Check(round=round_2, service=ftp_upload_service, result=True, output="example_output")
+            ftp_check_2 = Check(round=round_2, service=ftp_service, result=True, output="example_output")
             self.session.add(round_2)
             self.session.add(icmp_check_2)
             self.session.add(dns_check_2)
-            self.session.add(ftp_upload_check_2)
+            self.session.add(ftp_check_2)
 
             round_3 = Round(number=3)
             icmp_check_3 = Check(round=round_3, service=icmp_service, result=True, output="example_output")
             dns_check_3 = Check(round=round_3, service=dns_service, result=False, output="example_output")
-            ftp_upload_check_3 = Check(round=round_3, service=ftp_upload_service, result=True, output="example_output")
+            ftp_check_3 = Check(round=round_3, service=ftp_service, result=True, output="example_output")
             self.session.add(round_3)
             self.session.add(icmp_check_3)
             self.session.add(dns_check_3)
-            self.session.add(ftp_upload_check_3)
+            self.session.add(ftp_check_3)
 
             round_4 = Round(number=4)
             icmp_check_4 = Check(round=round_4, service=icmp_service, result=False, output="example_output")
             dns_check_4 = Check(round=round_4, service=dns_service, result=False, output="example_output")
-            ftp_upload_check_4 = Check(round=round_4, service=ftp_upload_service, result=False, output="example_output")
+            ftp_check_4 = Check(round=round_4, service=ftp_service, result=False, output="example_output")
             self.session.add(round_4)
             self.session.add(icmp_check_4)
             self.session.add(dns_check_4)
-            self.session.add(ftp_upload_check_4)
+            self.session.add(ftp_check_4)
 
             round_5 = Round(number=5)
             icmp_check_5 = Check(round=round_5, service=icmp_service, result=last_check_results[team.name]['ICMP'], output="example_output")
             dns_check_5 = Check(round=round_5, service=dns_service, result=last_check_results[team.name]['DNS'], output="example_output")
-            ftp_upload_check_5 = Check(round=round_5, service=ftp_upload_service, result=last_check_results[team.name]['FTPUpload'], output="example_output")
+            ftp_check_5 = Check(round=round_5, service=ftp_service, result=last_check_results[team.name]['FTP'], output="example_output")
             self.session.add(round_5)
             self.session.add(icmp_check_5)
             self.session.add(dns_check_5)
-            self.session.add(ftp_upload_check_5)
+            self.session.add(ftp_check_5)
 
             self.session.add(team)
             self.session.commit()
@@ -143,23 +143,23 @@ class TestAPI(WebTest):
         overview_dict = json.loads(overview_data.data.decode('utf8'))
         expected_dict = {
             'team1': {
-                'FTPUpload': {'passing': True, 'host': '1.2.3.4', 'port': 21},
+                'FTP': {'passing': True, 'host': '1.2.3.4', 'port': 21},
                 'DNS': {'passing': True, 'host': '8.8.8.8', 'port': 53},
                 'ICMP': {'passing': True, 'host': '127.0.0.1', 'port': 0}},
             'team2': {
-                'FTPUpload': {'passing': False, 'host': '1.2.3.4', 'port': 21},
+                'FTP': {'passing': False, 'host': '1.2.3.4', 'port': 21},
                 'DNS': {'passing': True, 'host': '8.8.8.8', 'port': 53},
                 'ICMP': {'passing': True, 'host': '127.0.0.1', 'port': 0}},
             'team3': {
-                'FTPUpload': {'passing': False, 'host': '1.2.3.4', 'port': 21},
+                'FTP': {'passing': False, 'host': '1.2.3.4', 'port': 21},
                 'DNS': {'passing': True, 'host': '8.8.8.8', 'port': 53},
                 'ICMP': {'passing': False, 'host': '127.0.0.1', 'port': 0}},
             'team4': {
-                'FTPUpload': {'passing': True, 'host': '1.2.3.4', 'port': 21},
+                'FTP': {'passing': True, 'host': '1.2.3.4', 'port': 21},
                 'DNS': {'passing': False, 'host': '8.8.8.8', 'port': 53},
                 'ICMP': {'passing': False, 'host': '127.0.0.1', 'port': 0}},
             'team5': {
-                'FTPUpload': {'passing': False, 'host': '1.2.3.4', 'port': 21},
+                'FTP': {'passing': False, 'host': '1.2.3.4', 'port': 21},
                 'DNS': {'passing': False, 'host': '8.8.8.8', 'port': 53},
                 'ICMP': {'passing': False, 'host': '127.0.0.1', 'port': 0}
             }

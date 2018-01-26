@@ -39,7 +39,7 @@ Install dependencies for DNS check
 
   apt-get install -y dnsutils
 
-Install dependencies for HTTP/HTTPS/FTPUpload/FTPDownload check
+Install dependencies for HTTP/HTTPS check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 

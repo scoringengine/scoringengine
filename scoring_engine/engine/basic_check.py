@@ -1,5 +1,8 @@
 import random
 import shellescape
+import os
+
+CHECKS_BIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'checks/bin')
 
 
 class BasicCheck(object):
