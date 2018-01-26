@@ -1,9 +1,16 @@
+from scoring_engine.engine.basic_check import CHECKS_BIN_PATH
+
 from tests.scoring_engine.engine.checks.check_test import CheckTest
 
 
 class TestFTPCheck(CheckTest):
     check_name = 'FTPCheck'
+    properties = {
+        'remotefilepath': '/adir/textfile.txt',
+        'filecontents': 'Sample contents'
+    }
     accounts = {
         'testuser': 'testpass'
     }
-    cmd = "medusa -R 1 -h '127.0.0.1' -n 100 -u 'testuser' -p 'testpass' -M ftp"
+
+    cmd = CHECKS_BIN_PATH + "/ftp_check '127.0.0.1' 100 'testuser' 'testpass' '/adir/textfile.txt' 'Sample contents'"
