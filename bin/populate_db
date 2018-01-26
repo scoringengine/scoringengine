@@ -106,13 +106,13 @@ for num in range(1, num_teams + 1):
     session.add(service)
     session.add(Account(username='ttesterson', password='testpass', service=service))
     session.add(Account(username='rpeterson', password='otherpass', service=service))
-    environment = Environment(service=service, matching_regex='ttesterson')
+    environment = Environment(service=service, matching_regex='^SUCCESS')
     session.add(environment)
     # The commands property supports multiple commands, separated by ';'
     session.add(Property(environment=environment, name='commands', value='id;ls -l /home'))
     environment = Environment(service=service, matching_regex='PID')
     session.add(environment)
-    session.add(Property(environment=environment, name='command', value='ps'))
+    session.add(Property(environment=environment, name='commands', value='ps'))
     services.append(service)
 
     print("\t\tCreating HTTP Service")
