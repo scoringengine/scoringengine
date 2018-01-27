@@ -1,5 +1,5 @@
 LDAP
-^^^^^^^
+^^^^
 Uses ldapsearch to login to ldap server
 
 Uses Accounts
