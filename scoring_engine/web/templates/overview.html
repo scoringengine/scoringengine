@@ -76,7 +76,7 @@
                                         $('td', row).eq(count).html(html_str);
                                     }
                                     else {
-                                        html_str = '<span class="glyphicon glyphicon-question-sign" style="color:black"></span>'
+                                        html_str = '<span class="glyphicon glyphicon-question-sign" style="color:black" title="' + value.replace(' - None', '') + '"></span>'
                                         $('td', row).eq(count).html(html_str);
                                     }
                                     count++;
