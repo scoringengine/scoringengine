@@ -33,7 +33,7 @@ def update_service_account_info():
     if current_user.is_white_team or current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             account = session.query(Account).get(int(request.form['pk']))
-            if current_user.team == account.service.team:
+            if current_user.team == account.service.team or current_user.is_white_team:
                 if account:
                     if request.form['name'] == 'username':
                         account.username = html.escape(request.form['value'])
