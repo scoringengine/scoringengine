@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+# A scoring engine check that inserts a record
+# and verifies that the record exists in Elasticsearch
+#
+# To install: pip install requests
+
+import sys
+import datetime
+import json
+import requests
+import time
+
+
+if len(sys.argv) != 5:
+    print("Usage: " + sys.argv[0] + " host port index doc_type")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+index = sys.argv[3]
+doc_type = sys.argv[4]
+
+# The message that will get inserted
+message = {
+    'summary': 'Scoring engine message',
+    'timestamp': datetime.datetime.now().isoformat(),
+}
+
+headers = {'content-type': 'application/json'}
+
+# Insert message into elasticsearch
+url_str = 'http://{0}:{1}/{2}/{3}/'.format(host, port, index, doc_type)
+insert_resp = requests.post(url_str, json.dumps(message), headers=headers)
+if insert_resp.status_code != 201:
+    print("ERROR: Unable to insert data into elasticsearch")
+    print(insert_resp.text)
+    sys.exit(1)
+
+inserted_resp_json = json.loads(insert_resp.text)
+inserted_id = inserted_resp_json['_id']
+
+# we sleep just to give ES some time to index the message
+time.sleep(2)
+
+# Search for the message
+url_str = 'http://{0}:{1}/{2}/{3}/{4}'.format(host, port, index, doc_type, inserted_id)
+
+search_resp = requests.get(url_str, headers=headers)
+search_resp_json = json.loads(search_resp.text)
+
+if search_resp.status_code == 200 and search_resp_json['found'] is True:
+    print("SUCCESS: Inserted and searched for message")
+else:
+    print("ERROR: Unable to search for message with id: " + inserted_id)
+    print(search_resp.text)
+    sys.exit(1)

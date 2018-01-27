@@ -17,4 +17,7 @@ RUN pip install -e .
 # SSH Check
 RUN pip install paramiko
 
+# Elasticsearch Check
+RUN pip install requests
+
 CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]
