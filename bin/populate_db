@@ -168,6 +168,17 @@ for num in range(1, num_teams + 1):
     session.add(environment)
     services.append(service)
 
+    # print("\t\tCreating LDAP Service")
+    # service = Service(name='LDAP', team=team, check_name='LDAPCheck', host='testbed_ldap', port=389, points=50)
+    # session.add(Account(username='ttesterson', password='testpass', service=service))
+    # session.add(Account(username='rpeterson', password='otherpass', service=service))
+    # environment = Environment(service=service, matching_regex='result: 0 Success')
+    # session.add(Property(environment=environment, name='domain', value='example.com'))
+    # session.add(Property(environment=environment, name='base_dn', value='dc=example,dc=com'))
+    # session.add(service)
+    # session.add(environment)
+    # services.append(service)
+
     # print("\t\tCreating DNS Service")
     # service = Service(name="DNS", team=team, check_name="DNSCheck", host="127.0.0.1", port=53, points=100)
     # environment = Environment(service=service, matching_regex='status: NOERROR')

@@ -6,6 +6,7 @@ Implemented Checks
 .. include:: checks/http.rst
 .. include:: checks/icmp.rst
 .. include:: checks/imap.rst
+.. include:: checks/ldap.rst
 .. include:: checks/mysql.rst
 .. include:: checks/pop3.rst
 .. include:: checks/postgresql.rst
