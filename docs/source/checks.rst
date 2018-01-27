@@ -2,6 +2,7 @@ Implemented Checks
 *********************
 
 .. include:: checks/dns.rst
+.. include:: checks/elasticsearch.rst
 .. include:: checks/ftp.rst
 .. include:: checks/http.rst
 .. include:: checks/icmp.rst
