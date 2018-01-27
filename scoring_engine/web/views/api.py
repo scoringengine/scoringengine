@@ -496,7 +496,14 @@ def service_get_checks(id):
         data.append({'round': check.round.number,
                      'result': check.result,
                      'timestamp': check.local_completed_timestamp,
-                     'reason': check.reason})
+                     'details': {
+                        # We stuff the round number and output so we can
+                        # display the output via modals
+                        'round': check.round.number,
+                        'reason': check.reason,
+                        'output': check.output
+                     }
+                    })
     return jsonify(data=data)
 
 

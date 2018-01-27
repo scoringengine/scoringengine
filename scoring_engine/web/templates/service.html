@@ -137,7 +137,29 @@
                                     return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
                                   }
                                 },
-                                { "data": "reason"},
+                                { "data": "details",
+                                  "render": function( data ) {
+                                    return data['reason'] + `
+                                    <a href="#" data-toggle="modal" data-target="#checkOutputModal` + data['round'] + `">View Output</a>
+                                      <div class="modal fade" id="checkOutputModal` + data['round'] + `" role="dialog">
+                                        <div class="modal-dialog">
+                                          <div class="modal-content">
+                                            <div class="modal-header">
+                                              <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                              <h4 class="modal-title">Check Output</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                              <pre>` + data['output'] + `</pre>
+                                            </div>
+                                            <div class="modal-footer">
+                                              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                            </div>
+                                          </div>
+
+                                        </div>
+                                      </div>`;
+                                  }
+                                },
                                 { "data": "timestamp" }
                             ],
                             'order': [[0, 'desc']],
