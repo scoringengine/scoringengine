@@ -10,4 +10,4 @@ class TestLDAPCheck(CheckTest):
     accounts = {
         'testuser': 'testpass'
     }
-    cmd = "ldapsearch -x -h '127.0.0.1' -p 100 -D 'testuser'@'example.com' -b 'dc=example,dc=com' -w 'testpass'"
+    cmd = "ldapsearch -x -h '127.0.0.1' -p 100 -D 'testuser'@'example.com' -b 'dc=example,dc=com' -w 'testpass' '(objectclass=User)' cn"

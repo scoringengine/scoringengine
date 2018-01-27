@@ -1,6 +1,6 @@
 LDAP
 ^^^^
-Uses ldapsearch to login to ldap server
+Uses ldapsearch to login to ldap server. Once authenticated, it performs a lookup of all users in the same domain
 
 Uses Accounts
 
