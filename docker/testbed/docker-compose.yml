@@ -33,3 +33,9 @@ services:
       dockerfile: ./docker/testbed/ftp/Dockerfile
     # ports:
     #   - 21:21
+  testbed_elasticsearch:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/elasticsearch/Dockerfile
+    # ports:
+    #   - 9200:9200
