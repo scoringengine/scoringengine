@@ -1,12 +1,16 @@
 from tests.scoring_engine.web.web_test import WebTest
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.models.service import Service
 
 
 class TestAdmin(WebTest):
     def setup(self):
         super(TestAdmin, self).setup()
-        self.create_default_user()
+        user = self.create_default_user()
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1', team=user.team)
+        self.session.add(service)
+        self.session.commit()
 
     def unauthorized_admin_test(self, path):
         red_team = Team(name="Red Team", color="Red")
@@ -56,16 +60,16 @@ class TestAdmin(WebTest):
     def test_auth_bad_auth_progress(self):
         self.unauthorized_admin_test('/admin/progress')
 
-    def test_auth_required_admin_team(self):
-        self.verify_auth_required('/admin/team/1')
-        stats_resp = self.auth_and_get_path('/admin/team/1')
+    def test_auth_required_admin_service(self):
+        self.verify_auth_required('/admin/service/1')
+        stats_resp = self.auth_and_get_path('/admin/service/1')
         assert stats_resp.status_code == 200
 
-    def test_admin_bad_team(self):
-        self.verify_auth_required('/admin/team/20')
-        resp = self.auth_and_get_path('/admin/team/20')
+    def test_admin_bad_service(self):
+        self.verify_auth_required('/admin/service/200')
+        resp = self.auth_and_get_path('/admin/service/200')
         assert resp.status_code == 302
         assert 'unauthorized' in str(resp.data)
 
     def test_auth_bad_auth_team(self):
-        self.unauthorized_admin_test('/admin/team/3')
+        self.unauthorized_admin_test('/admin/service/3')
