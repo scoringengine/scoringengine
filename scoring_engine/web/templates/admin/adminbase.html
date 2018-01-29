@@ -18,9 +18,9 @@
           <div class="list-group">
             {% for team in blue_teams %}
                 <a href="#" class="list-group-item" data-toggle="collapse" data-target="#services_team{{team.id}}">{{team.name}}</a>
-                <div id="services_team{{team.id}}" class="sublinks collapse {% if team.id == service.team.id %}in{% endif %}">
+                <div id="services_team{{team.id}}" class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
                 {% for service in team.services %}
-                    <a href="/admin/service/{{service.id}}" class="list-group-item small {% if request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+                    <a href="/admin/service/{{service.id}}" class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
                 {% endfor %}
                 </div>
             {% endfor %}
