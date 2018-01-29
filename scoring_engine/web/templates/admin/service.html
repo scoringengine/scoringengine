@@ -9,6 +9,46 @@
 
         <script src="{{ url_for('static', filename='js/bootstrap-editable.min.js') }}"></script>
         <link href="{{ url_for('static', filename='css/bootstrap-editable.css') }}" rel="stylesheet" />
+
+        <script>
+            $.fn.editable.defaults.mode = 'inline';
+            $(function(){
+                //enable / disable
+                $('#enable').click(function() {
+                    $('.editable-table .editable').editable('toggleDisabled');
+                });
+                //editables
+                $('.editable-textfield').editable({
+                    type: 'text',
+                    validate: function(value) {
+                        if($.trim(value) == '') return 'This field is required';
+                    }
+                });
+                //editables
+                $('.editable-dropdown').editable({
+                    type: 'select',
+                    validate: function(value) {
+                        if($.trim(value) == '') return 'This field is required';
+                    }
+                });
+                $('.editable-table .editable').on('hidden', function(e, reason){
+                    if(reason === 'save' || reason === 'nochange') {
+                        var $next = $(this).closest('tr').next().find('.editable');
+                        if($('#autoopen').is(':checked')) {
+                            setTimeout(function() {
+                                $next.editable('show');
+                            }, 300);
+                        } else {
+                            $next.focus();
+                        }
+                        $('.password').text("************");
+                    }
+                });
+            });
+            $(document).ready(function(){
+                $('.password').text("************");
+            });
+        </script>
 {% endblock %}
 
 {% block admincontent %}
