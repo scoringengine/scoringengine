@@ -46,20 +46,6 @@ def manage():
         return redirect(url_for('auth.unauthorized'))
 
 
-@mod.route('/admin/team/<id>')
-@login_required
-def team(id):
-    if current_user.is_white_team:
-        team = session.query(Team).get(id)
-        blue_teams = Team.get_all_blue_teams()
-        if team is None:
-            return redirect(url_for('auth.unauthorized'))
-
-        return render_template('admin/team.html', team=team, blue_teams=blue_teams)
-    else:
-        return redirect(url_for('auth.unauthorized'))
-
-
 @mod.route('/admin/service/<id>')
 @login_required
 def service(id):
