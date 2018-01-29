@@ -10,10 +10,19 @@
             <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}" href="/admin/settings">Settings <b class="pull-right glyphicon glyphicon-wrench"></b></a>
         </div>
         <div class="panel panel-default">
-          <div class="panel-heading">Teams</div>
-          <div class="panel-body">
+          <div class="panel-heading">
+            <div class="panel-title">
+              <span>Teams</span>
+            </div>
+          </div>
+          <div class="list-group">
             {% for team in blue_teams %}
-            <a href="/admin/team/{{team.id}}" class="list-group-item {% if request.path == '/admin/team/{0}'.format(team.id) %}active{% endif %}">{{team.name}}</a>
+                <a href="#" class="list-group-item" data-toggle="collapse" data-target="#services_team{{team.id}}">{{team.name}}</a>
+                <div id="services_team{{team.id}}" class="sublinks collapse {% if team.id == service.team.id %}in{% endif %}">
+                {% for service in team.services %}
+                    <a href="/admin/service/{{service.id}}" class="list-group-item small {% if request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+                {% endfor %}
+                </div>
             {% endfor %}
           </div>
         </div>

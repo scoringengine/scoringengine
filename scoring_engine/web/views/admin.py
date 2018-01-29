@@ -4,6 +4,7 @@ from operator import itemgetter
 
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
+from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session
 
@@ -55,6 +56,20 @@ def team(id):
             return redirect(url_for('auth.unauthorized'))
 
         return render_template('admin/team.html', team=team, blue_teams=blue_teams)
+    else:
+        return redirect(url_for('auth.unauthorized'))
+
+
+@mod.route('/admin/service/<id>')
+@login_required
+def service(id):
+    if current_user.is_white_team:
+        service = session.query(Service).get(id)
+        blue_teams = Team.get_all_blue_teams()
+        if service is None:
+            return redirect(url_for('auth.unauthorized'))
+
+        return render_template('admin/service.html', service=service, blue_teams=blue_teams)
     else:
         return redirect(url_for('auth.unauthorized'))
 
