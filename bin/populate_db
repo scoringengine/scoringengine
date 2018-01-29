@@ -56,17 +56,8 @@ services = []
 
 print("Creating models and writing them to DB")
 num_teams = 6
-num_services = randint(5, 8)
-num_accounts = randint(2, 4)
-num_environments = randint(2, 4)
-num_properties = randint(2, 4)
 num_rounds = randint(20, 50)
 print("\tNum Blue Teams: " + str(num_teams))
-print("\tNum Services: " + str(num_services))
-print("\tNum Accounts: " + str(num_accounts))
-print("\tNum Environments: " + str(num_environments))
-print("\tNum Properties: " + str(num_properties))
-print("\tNum Rounds: " + str(num_rounds))
 print()
 
 print("Creating White Team")
