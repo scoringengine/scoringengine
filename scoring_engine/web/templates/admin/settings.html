@@ -8,50 +8,70 @@
 {% block admincontent %}
   <h4>Settings</h4>
   <div class="row">
-    <div class="card">
-      <form method="POST" action="{{ url_for('api.admin_update_round_time_sleep') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <label for="round_time_sleep">Round Sleep Time</label>
-          <textarea class="form-control" rows="1" style="width: 100px;" id="round_time_sleep" name="round_time_sleep" placeholder="Insert Round Sleep Value Here" required>{{ round_time_sleep|safe }}</textarea>
-          <h6><label for="round_time_sleep_footer">* This value determines how long the engine sleeps between rounds.</label></h6>
+    <div style="padding-top: 30px;">
+      <form method="POST" action="{{ url_for('api.admin_update_round_time_sleep') }}" role="form">
+        <div class="form-group row">
+          <div class="col-xs-3">
+            <label for="ex1" class="pull-right" style="padding-top: 7px;">Round Sleep Time</label>
+          </div>
+          <div class="col-xs-2" style="padding-top: 5px;">
+            <div class="input-group input-group-md">
+              <input class="form-control" id="round_time_sleep" name="round_time_sleep" placeholder="Insert Round Sleep Value Here" value="{{ round_time_sleep|safe }}"required />
+              <div class="input-group-btn">
+                <button type="submit" class="btn btn-primary center-block">Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-4">
+            <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps between rounds.</span>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary center-block">Save</button>
       </form>
-    </div>
-  </div>
-  <div class="row">
-    <div class="card">
-      <form method="POST" action="{{ url_for('api.admin_update_worker_refresh_time') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <label for="worker_refresh_time">Worker Refresh Time</label>
-          <textarea class="form-control" rows="1" style="width: 100px;" id="worker_refresh_time" name="worker_refresh_time" placeholder="Insert Worker Refresh Time Here" required>{{ worker_refresh_time|safe }}</textarea>
-          <h6><label for="worker_refresh_time_footer">* This value determines how long the engine sleeps iterations of checking for finished checks (also displays in the engine log).</label></h6>
+      <form method="POST" action="{{ url_for('api.admin_update_worker_refresh_time') }}" role="form">
+        <div class="form-group row" style="margin-bottom: 0px;">
+          <div class="col-xs-3">
+            <label for="ex1" class="pull-right" style="padding-top: 7px;">Worker Refresh Time</label>
+          </div>
+          <div class="col-xs-2" style="padding-top: 5px;">
+            <div class="input-group input-group-md">
+              <input class="form-control" id="worker_refresh_time" name="worker_refresh_time" placeholder="Insert Worker Refresh Time Here" value="{{ worker_refresh_time|safe }}"required />
+              <div class="input-group-btn">
+                <button type="submit" class="btn btn-primary center-block">Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-4">
+            <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps iterations of checking for finished checks (also displays in the engine log).</span>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary center-block">Save</button>
       </form>
-    </div>
-  </div>
-  <div class="row">
-    <div class="card">
-      <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <label for="welcome_page_content">Welcome Page Content</label>
-          <textarea class="form-control" rows="12" style="width: 650px;" id="welcome_page_content" name="welcome_page_content" placeholder="Insert Welcome Page Content Here" required>{{ welcome_page_content|safe }}</textarea>
-          <h6><label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label></h6>
+      <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
+        <div class="form-group row">
+          <div class="col-xs-3">
+            <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
+          </div>
+          <div class="col-xs-2" style="padding-top: 5px;">
+            <div class="input-group input-group-md">
+              <textarea class="form-control" rows="12" style="width: 525px;" id="welcome_page_content" name="welcome_page_content" placeholder="Insert Welcome Page Content Here" required>{{ welcome_page_content|safe }}</textarea>
+              <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
+            </div>
+            <button type="submit" class="btn btn-primary center-block">Save</button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary center-block">Save</button>
       </form>
-    </div>
-  </div>
-  <div class="row">
-      <div class="card">
-      <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <label for="about_page_content">About Page Content</label>
-          <textarea class="form-control" rows="8" style="width: 450px;" id="about_page_content" name="about_page_content" placeholder="Insert About Page Content Here" required>{{ about_page_content|safe }}</textarea>
-          <h6><label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label></h6>
+      <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
+        <div class="form-group row" style="margin-bottom: 0px;">
+          <div class="col-xs-3">
+            <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
+          </div>
+          <div class="col-xs-2" style="padding-top: 5px;">
+            <div class="input-group input-group-md">
+              <textarea class="form-control" rows="8" style="width: 525px;" id="about_page_content" name="about_page_content" placeholder="Insert About Page Content Here" required>{{ about_page_content|safe }}</textarea>
+              <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>
+            </div>
+            <button type="submit" class="btn btn-primary center-block">Save</button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary center-block">Save</button>
       </form>
     </div>
   </div>
