@@ -1,5 +1,5 @@
 FTP
-^^^^^^
+^^^
 Uses python ftplib to login to an FTP server, upload a file, login again to FTP and download file
 
 Uses Accounts
