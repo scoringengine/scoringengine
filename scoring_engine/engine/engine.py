@@ -5,6 +5,7 @@ import signal
 import time
 import re
 import json
+import sys
 from functools import partial
 from scoring_engine.config import config
 from scoring_engine.db import session
@@ -132,61 +133,89 @@ class Engine(object):
                     task_ids[team_name] = []
                 task_ids[team_name].append(task.id)
 
-            # We store the list of tasks in the db, so that the web app
-            # can consume them and can dynamically update a progress bar
-            task_ids_str = json.dumps(task_ids)
-            latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
-            self.session.add(latest_kb)
-            self.session.commit()
+            # This array keeps track of all current round objects
+            # incase we need to backout any changes to prevent
+            # inconsistent check results
+            cleanup_items = []
 
-            pending_tasks = self.all_pending_tasks(task_ids)
-            while pending_tasks:
-                worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
-                waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
-                waiting_info += " " + str(len(pending_tasks)) + " left in queue."
-                logger.info(waiting_info)
-                self.sleep(worker_refresh_time)
+            try:
+                # We store the list of tasks in the db, so that the web app
+                # can consume them and can dynamically update a progress bar
+                task_ids_str = json.dumps(task_ids)
+                latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
+                cleanup_items.append(latest_kb)
+                self.session.add(latest_kb)
+                self.session.commit()
+
                 pending_tasks = self.all_pending_tasks(task_ids)
-            logger.info("All jobs have finished for this round")
+                while pending_tasks:
+                    worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
+                    waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
+                    waiting_info += " " + str(len(pending_tasks)) + " left in queue."
+                    logger.info(waiting_info)
+                    self.sleep(worker_refresh_time)
+                    pending_tasks = self.all_pending_tasks(task_ids)
+                logger.info("All jobs have finished for this round")
 
-            logger.info("Determining check results and saving to db")
-            round_obj = Round(number=self.current_round)
-            self.session.add(round_obj)
-            self.session.commit()
+                logger.info("Determining check results and saving to db")
+                round_obj = Round(number=self.current_round)
+                cleanup_items.append(round_obj)
+                self.session.add(round_obj)
+                self.session.commit()
 
-            # We keep track of the number of passed and failed checks per round
-            # so we can report a little bit at the end of each round
-            teams = {}
-            for team_name, task_ids in task_ids.items():
-                for task_id in task_ids:
-                    task = execute_command.AsyncResult(task_id)
-                    environment = self.session.query(Environment).get(task.result['environment_id'])
-                    if task.result['errored_out']:
-                        result = False
-                        reason = 'Task Timed Out'
-                    else:
-                        if re.search(environment.matching_regex, task.result['output']):
-                            result = True
-                            reason = "Successful Content Match"
-                        else:
+                # We keep track of the number of passed and failed checks per round
+                # so we can report a little bit at the end of each round
+                teams = {}
+                # Used so we import the finished checks at the end of the round
+                finished_checks = []
+                for team_name, task_ids in task_ids.items():
+                    for task_id in task_ids:
+                        task = execute_command.AsyncResult(task_id)
+                        environment = self.session.query(Environment).get(task.result['environment_id'])
+                        if task.result['errored_out']:
                             result = False
-                            reason = 'Unsuccessful Content Match'
+                            reason = 'Task Timed Out'
+                        else:
+                            if re.search(environment.matching_regex, task.result['output']):
+                                result = True
+                                reason = "Successful Content Match"
+                            else:
+                                result = False
+                                reason = 'Unsuccessful Content Match'
 
-                    if environment.service.team.name not in teams:
-                        teams[environment.service.team.name] = {
-                            "Success": [],
-                            "Failed": [],
-                        }
-                    if result:
-                        teams[environment.service.team.name]['Success'].append(environment.service.name)
-                    else:
-                        teams[environment.service.team.name]['Failed'].append(environment.service.name)
+                        if environment.service.team.name not in teams:
+                            teams[environment.service.team.name] = {
+                                "Success": [],
+                                "Failed": [],
+                            }
+                        if result:
+                            teams[environment.service.team.name]['Success'].append(environment.service.name)
+                        else:
+                            teams[environment.service.team.name]['Failed'].append(environment.service.name)
 
-                    check = Check(service=environment.service, round=round_obj)
-                    check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
-                    self.session.add(check)
+                        check = Check(service=environment.service, round=round_obj)
+                        check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
+                        finished_checks.append(check)
 
-            self.session.commit()
+                for finished_check in finished_checks:
+                    cleanup_items.append(finished_check)
+                    self.session.add(finished_check)
+                self.session.commit()
+
+            except Exception as e:
+                # We got an error while writing to db (could be normal docker stop command)
+                # but we gotta clean up any trace of the current round so when we startup
+                # again, we're at a consistent state
+                logger.error('Error received while writing check results to db')
+                logger.exception(e)
+                logger.error('Ending round and cleaning up the db')
+                for cleanup_item in cleanup_items:
+                    try:
+                        self.session.delete(cleanup_item)
+                        self.session.commit()
+                    except Exception:
+                        pass
+                sys.exit(1)
 
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Stats:")
