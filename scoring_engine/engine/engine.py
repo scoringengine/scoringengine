@@ -166,6 +166,8 @@ class Engine(object):
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
                 teams = {}
+                # Used so we import the finished checks at the end of the round
+                finished_checks = []
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
@@ -193,17 +195,20 @@ class Engine(object):
 
                         check = Check(service=environment.service, round=round_obj)
                         check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
-                        cleanup_items.append(check)
-                        self.session.add(check)
+                        finished_checks.append(check)
 
+                for finished_check in finished_checks:
+                    cleanup_items.append(finished_check)
+                    self.session.add(finished_check)
                 self.session.commit()
+
             except Exception as e:
                 # We got an error while writing to db (could be normal docker stop command)
                 # but we gotta clean up any trace of the current round so when we startup
                 # again, we're at a consistent state
-                logger.error('Error Received while writing check results to db')
-                logger.error('Ending round and cleaning up the db.')
-                # logger.exception(e)
+                logger.error('Error received while writing check results to db')
+                logger.exception(e)
+                logger.error('Ending round and cleaning up the db')
                 for cleanup_item in cleanup_items:
                     try:
                         self.session.delete(cleanup_item)
