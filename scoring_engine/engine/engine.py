@@ -133,11 +133,17 @@ class Engine(object):
                     task_ids[team_name] = []
                 task_ids[team_name].append(task.id)
 
+            # This array keeps track of all current round objects
+            # incase we need to backout any changes to prevent
+            # inconsistent check results
+            cleanup_items = []
+
             try:
                 # We store the list of tasks in the db, so that the web app
                 # can consume them and can dynamically update a progress bar
                 task_ids_str = json.dumps(task_ids)
                 latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
+                cleanup_items.append(latest_kb)
                 self.session.add(latest_kb)
                 self.session.commit()
 
@@ -153,12 +159,9 @@ class Engine(object):
 
                 logger.info("Determining check results and saving to db")
                 round_obj = Round(number=self.current_round)
+                cleanup_items.append(round_obj)
                 self.session.add(round_obj)
                 self.session.commit()
-
-                # We save the db objects to an array so we can revert if we
-                # encounter an error during writing to db
-                check_db_records = []
 
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
@@ -190,8 +193,8 @@ class Engine(object):
 
                         check = Check(service=environment.service, round=round_obj)
                         check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
+                        cleanup_items.append(check)
                         self.session.add(check)
-                        check_db_records.append(check)
 
                 self.session.commit()
             except Exception as e:
@@ -201,28 +204,12 @@ class Engine(object):
                 logger.error('Error Received while writing check results to db')
                 logger.error('Ending round and cleaning up the db.')
                 # logger.exception(e)
-                # Delete the record that has current round task ids
-                if 'latest_kb' in locals():
+                for cleanup_item in cleanup_items:
                     try:
-                        self.session.delete(latest_kb)
+                        self.session.delete(cleanup_item)
                         self.session.commit()
                     except Exception:
                         pass
-                # Delete the round record so we get a fresh start
-                if 'round_obj' in locals():
-                    try:
-                        self.session.delete(round_obj)
-                        self.session.commit()
-                    except Exception:
-                        pass
-                # Delete any leftover check orphans
-                if 'check_db_records' in locals():
-                    for check_record in check_db_records:
-                        try:
-                            self.session.delete(check_record)
-                            self.session.commit()
-                        except Exception:
-                            pass
                 sys.exit(1)
 
             logger.info("Finished Round " + str(self.current_round))
