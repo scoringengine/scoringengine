@@ -11,50 +11,50 @@
     <link href="{{ url_for('static', filename='css/bootstrap-editable.css') }}" rel="stylesheet" />
 {% endblock %}
 {% block content %}
-    <script>
-        $.fn.editable.defaults.mode = 'inline';
+<script>
+  $.fn.editable.defaults.mode = 'inline';
 
-        $(function(){
-            //enable / disable
-            $('#enable').click(function() {
-                $('.editable-table .editable').editable('toggleDisabled');
-            });
+  $(function(){
+      //enable / disable
+      $('#enable').click(function() {
+          $('.editable-table .editable').editable('toggleDisabled');
+      });
 
-            //editables
-            $('.editable-textfield').editable({
-                type: 'text',
-                validate: function(value) {
-                    if($.trim(value) == '') return 'This field is required';
-                }
-            });
+      //editables
+      $('.editable-textfield').editable({
+          type: 'text',
+          validate: function(value) {
+              if($.trim(value) == '') return 'This field is required';
+          }
+      });
 
-            //editables
-            $('.editable-dropdown').editable({
-                type: 'select',
-                validate: function(value) {
-                    if($.trim(value) == '') return 'This field is required';
-                }
-            });
+      //editables
+      $('.editable-dropdown').editable({
+          type: 'select',
+          validate: function(value) {
+              if($.trim(value) == '') return 'This field is required';
+          }
+      });
 
-            $('.editable-table .editable').on('hidden', function(e, reason){
-                if(reason === 'save' || reason === 'nochange') {
-                    var $next = $(this).closest('tr').next().find('.editable');
-                    if($('#autoopen').is(':checked')) {
-                        setTimeout(function() {
-                            $next.editable('show');
-                        }, 300);
-                    } else {
-                        $next.focus();
-                    }
-                    $('.password').text("************");
-                }
-            });
+      $('.editable-table .editable').on('hidden', function(e, reason){
+          if(reason === 'save' || reason === 'nochange') {
+              var $next = $(this).closest('tr').next().find('.editable');
+              if($('#autoopen').is(':checked')) {
+                  setTimeout(function() {
+                      $next.editable('show');
+                  }, 300);
+              } else {
+                  $next.focus();
+              }
+              $('.password').text("************");
+          }
+      });
 
-        });
-        $(document).ready(function(){
-            $('.password').text("************");
-        });
-    </script>
+  });
+  $(document).ready(function(){
+      $('.password').text("************");
+  });
+</script>
 <div class="container md-page">
   <div class="row">
     <div class="col-sm-2" style="padding-top: 10px;">
@@ -120,124 +120,112 @@
         <br>
         <script>
             $(document).ready(function() {
-                // Disable datatables error reporting
-                $.fn.dataTable.ext.errMode = 'none';
+              // Disable datatables error reporting
+              $.fn.dataTable.ext.errMode = 'none';
 
-                $.ajax({
-                    cache: false,
-                    url: '/api/overview/get_data',
-                    dataType: 'json',
-                    success: function(data) {
-                        var table = $('#checks')
-                            .on('error.dt', function (e, settings, techNote, message) {
-                                console.log('An error has been reported by DataTables: ', message);
-                            })
-                            .DataTable( {
-                                "ajax": {
-                                  "url": "/api/service/get_checks/{{ id }}",
-                                  "type": 'GET'
-                                },
-                                "columns": [
-                                    {
-                                      "width": 15,
-                                      "orderable": false,
-                                      "data": null,
-                                      "render": function( data ) {
-                                        button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
-                                        button_icon = 'glyphicon-plus'
-                                        if ( window.expanded_rows ){
-                                            if (window.expanded_rows.indexOf(data['round']) >= 0) {
-                                              button_icon = 'glyphicon-minus';
-                                            }
-                                        }
-                                        button_text += button_icon + `"></span></a>`;
-                                        return button_text;
-                                      }
-                                    },
-                                    { "data": "round" },
-                                    {
-                                      "data": "result",
-                                      "render": function( data ) {
-                                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
-                                      }
-                                    },
-                                    { "data": "reason"
-
-                                    },
-                                    { "data": "timestamp" }
-                                ],
-                                'order': [[1, 'desc']],
-                            });
-
-                        $('#checks tbody').on('click', 'a.expand-button', function () {
-                            var tr = $(this).closest('tr');
-                            var row = table.row(tr);
-
-                            if (!window.expanded_rows){
-                                window.expanded_rows = []
-                            }
-                            round_num = row.data().round
-                            // Add round_num to array to keep track of what
-                            // rows need to get opened on table reload
-                            if (window.expanded_rows.indexOf(round_num) == -1) {
-                                window.expanded_rows.push(round_num);
-                            }
-                            else{
-                                // Remove round_num from array
-                                var index = window.expanded_rows.indexOf(round_num);
-                                if (index > -1) {
-                                    window.expanded_rows.splice(index, 1);
-                                }
-                            }
-
-                            icon_span = $(tr).find('span:first');
-                            if (row.child.isShown()) {
-                                // Close the check output row
-                                row.child.hide();
-                                icon_span.removeClass('glyphicon-minus')
-                                icon_span.addClass('glyphicon-plus')
-                            }
-                            else {
-                                // Open the check output row
-                                output_row = '<pre>' + row.data().output + '</pre>';
-                                row.child(output_row).show();
-                                icon_span.removeClass('glyphicon-plus')
-                                icon_span.addClass('glyphicon-minus')
-                            }
-                        });
-
-                        // Expands previously expanded rows on datatables reload
-                        function expandRows(data){
-                            if ( window.expanded_rows ){
-                                for (var i = 0; i < window.expanded_rows; i++) {
-                                    key = window.expanded_rows[i];
-                                    table.rows().every(function(){
-                                        if (this.data()['round'] == key) {
-                                            row = table.row(this);
-                                            output_row = '<pre>' + row.data().output + '</pre>';
-                                            row.child(output_row).show();
-                                            icon_span = $(this).find('span:first');
-                                            icon_span.removeClass('glyphicon-plus');
-                                            icon_span.addClass('glyphicon-minus');
-                                        }
-                                    });
-                                }
+              var table = $('#checks')
+                .on('error.dt', function (e, settings, techNote, message) {
+                  console.log('An error has been reported by DataTables: ', message);
+                })
+                .DataTable( {
+                  "ajax": {
+                    "url": "/api/service/get_checks/{{ id }}",
+                    "type": 'GET'
+                  },
+                  "columns": [
+                    {
+                      "width": 15,
+                      "orderable": false,
+                      "data": null,
+                      "render": function( data ) {
+                        button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
+                        button_icon = 'glyphicon-plus'
+                        if ( window.expanded_rows ){
+                            if (window.expanded_rows.indexOf(data['round']) >= 0) {
+                              button_icon = 'glyphicon-minus';
                             }
                         }
-
-                        setInterval( function () {
-                          table.ajax.reload(expandRows, false);
-                        }, 30000 );
-                    }
+                        button_text += button_icon + `"></span></a>`;
+                        return button_text;
+                      }
+                    },
+                    { "data": "round" },
+                    {
+                      "data": "result",
+                      "render": function( data ) {
+                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                      }
+                    },
+                    { "data": "reason"},
+                    { "data": "timestamp" }
+                  ],
+                  'order': [[1, 'desc']],
                 });
+
+                $('#checks tbody').on('click', 'a.expand-button', function () {
+                  var tr = $(this).closest('tr');
+                  var row = table.row(tr);
+
+                  if (!window.expanded_rows){
+                    window.expanded_rows = []
+                  }
+                  round_num = row.data().round
+                  // Add round_num to array to keep track of what
+                  // rows need to get opened on table reload
+                  if (window.expanded_rows.indexOf(round_num) == -1) {
+                    window.expanded_rows.push(round_num);
+                  }
+                  else{
+                    // Remove round_num from array
+                    var index = window.expanded_rows.indexOf(round_num);
+                    if (index > -1) {
+                      window.expanded_rows.splice(index, 1);
+                    }
+                  }
+
+                  icon_span = $(tr).find('span:first');
+                  if (row.child.isShown()) {
+                    // Close the check output row
+                    row.child.hide();
+                    icon_span.removeClass('glyphicon-minus')
+                    icon_span.addClass('glyphicon-plus')
+                  }
+                  else {
+                    // Open the check output row
+                    output_row = '<pre>' + row.data().output + '</pre>';
+                    row.child(output_row).show();
+                    icon_span.removeClass('glyphicon-plus')
+                    icon_span.addClass('glyphicon-minus')
+                  }
+                });
+
+                // Expands previously expanded rows on datatables reload
+                function expandRows(data){
+                  if (window.expanded_rows){
+                    for (var i = 0; i < window.expanded_rows; i++) {
+                      key = window.expanded_rows[i];
+                      table.rows().every(function(){
+                        if (this.data()['round'] == key) {
+                          row = table.row(this);
+                          output_row = '<pre>' + row.data().output + '</pre>';
+                          row.child(output_row).show();
+                          icon_span = $(this).find('span:first');
+                          icon_span.removeClass('glyphicon-plus');
+                          icon_span.addClass('glyphicon-minus');
+                        }
+                      });
+                    }
+                  }
+                }
+
+                setInterval(function() {
+                  table.ajax.reload(expandRows, false);
+                }, 30000);
             });
-        </script>
+          </script>
+        </div>
       </div>
     </div>
-</div>
-
-
-
   </div>
 </div>
 {% endblock %}
