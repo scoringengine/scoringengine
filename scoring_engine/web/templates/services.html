@@ -65,13 +65,28 @@
                         "columns": [
                             {
                                 "data": null,
-                                "defaultContent": ''
+                                "render": function( data ) {
+                                    return '<a href="/service/' + data.service_id + '">' + data.service_name + '</a>';
+                                }
                             },
                             { "data": "host" },
                             { "data": "port" },
                             {
                                 "data": null,
-                                "defaultContent": ''
+                                "render": function( data ) {
+                                    span_str = '<span class="label label-'
+                                    label_level = 'default'
+                                    label_str = 'Undetermined'
+                                    if ( data.check == "UP" ) {
+                                        label_level = 'success'
+                                        label_str = 'UP'
+                                    } else if ( data.check == "DOWN" ) {
+                                        label_level = 'danger'
+                                        label_str = 'DOWN'
+                                    }
+                                    span_str += label_level + '">' + label_str + '</span>'
+                                    return span_str;
+                                }
                             },
                             { "data": "score_earned" },
                             { "data": "max_score" },
@@ -79,29 +94,22 @@
                             { "data": "pts_per_check" },
                             {
                                 "data": null,
-                                "defaultContent": ''
+                                "orderable": false,
+                                "render": function( data ) {
+                                    var last_ten_checks = ''
+                                    for (var index in data.last_ten_checks) {
+                                        if ( data.last_ten_checks[index] == true ) {
+                                            last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                                        }
+                                        else {
+                                        last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                                        }
+                                    }
+                                    return last_ten_checks;
+                                }
                             },
                         ],
-                        "order": [[0, 'desc']],
-                        "createdRow": function ( row, data, index ) {
-                            $('td:eq(0)', row).html( '<a href="/service/' + data.service_id + '">' + data.service_name + '</a>' );
-                            if ( data.check == "UP" ) {
-                                $('td:eq(3)', row).html( '<span class="label label-success">UP</span>' );
-                            } else if ( data.check == "DOWN" ) {
-                                $('td:eq(3)', row).html( '<span class="label label-danger">DOWN</span>' );
-                            } else {
-                                $('td:eq(3)', row).html( '<span class="label label-default">Undetermined</span>' );
-                            }
-                            var last_ten_checks = ''
-                            for (var index in data.last_ten_checks) {
-                                if ( data.last_ten_checks[index] == true ) {
-                                    last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
-                                } else {
-                                    last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
-                                }
-                            }
-                            $('td:eq(8)', row).html(last_ten_checks);
-                        }
+                        "order": [[4, 'desc']],
                     });
                 setInterval( function () {
                     table.ajax.reload();
