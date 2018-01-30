@@ -52,14 +52,6 @@ class TestAdmin(WebTest):
     def test_auth_bad_auth_settings(self):
         self.unauthorized_admin_test('/admin/settings')
 
-    def test_auth_required_admin_progress(self):
-        self.verify_auth_required('/admin/progress')
-        stats_resp = self.auth_and_get_path('/admin/progress')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_progress(self):
-        self.unauthorized_admin_test('/admin/progress')
-
     def test_auth_required_admin_service(self):
         self.verify_auth_required('/admin/service/1')
         stats_resp = self.auth_and_get_path('/admin/service/1')
