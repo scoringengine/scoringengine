@@ -1,3 +1,4 @@
+from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
@@ -264,3 +265,37 @@ class TestService(UnitTest):
         assert service.check_result_for_round(1) is True
         assert service.check_result_for_round(2) is True
         assert service.check_result_for_round(3) is False
+
+    def test_rank(self):
+        team_1 = Team(name="Blue Team 1", color="Blue")
+        self.session.add(team_1)
+        service_1 = Service(name="Example Service 1", team=team_1, check_name="ICMP IPv4 Check", host='127.0.0.1')
+        self.session.add(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.commit()
+
+        team_2 = Team(name="Blue Team 2", color="Blue")
+        self.session.add(team_2)
+        service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check", host='127.0.0.1')
+        self.session.add(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.commit()
+
+        team_3 = Team(name="Blue Team 3", color="Blue")
+        self.session.add(team_3)
+        service_1 = Service(name="Example Service 1", team=team_3, check_name="ICMP IPv4 Check", host='127.0.0.1')
+        self.session.add(service_1)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=False, output='Good output')
+        self.session.add(check_1)
+        self.session.add(check_2)
+        self.session.commit()
+        assert team_1.services[0].rank == 1
+        assert team_2.services[0].rank == 1
+        assert team_3.services[0].rank == 3
