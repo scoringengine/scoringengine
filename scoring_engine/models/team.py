@@ -32,9 +32,12 @@ class Team(Base):
     def place(self):
         sorted_blue_teams = sorted(self.blue_teams, key=lambda team: team.current_score, reverse=True)
         place = 0
+        previous_place = 1
         for index, team in enumerate(sorted_blue_teams):
+            if not self.current_score == team.current_score:
+                previous_place += 1
             if self.id == team.id:
-                place = index + 1
+                place = previous_place
         return place
 
     @property
