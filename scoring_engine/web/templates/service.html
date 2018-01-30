@@ -57,7 +57,7 @@
 </script>
 <div class="container md-page">
   <div class="row">
-    <div class="col-sm-2" style="padding-top: 10px;">
+    <div class="col-sm-2" style="padding-top: 20px;">
       <div class="list-group">
         {% for team_service in service.team.services %}
           <a href="/service/{{team_service.id}}" class="list-group-item {% if request.path == '/service/{0}'.format(team_service.id) %}active{% endif %}">{{team_service.name}}</a>
