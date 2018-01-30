@@ -476,6 +476,7 @@ def api_services():
             host=service.host,
             port=service.port,
             check=check,
+            rank=service.rank,
             score_earned=service.score_earned,
             max_score=service.max_score,
             percent_earned=service.percent_earned,

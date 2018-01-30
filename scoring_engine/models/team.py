@@ -33,7 +33,7 @@ class Team(Base):
         sorted_blue_teams = sorted(self.blue_teams, key=lambda team: team.current_score, reverse=True)
         place = 0
         previous_place = 1
-        for index, team in enumerate(sorted_blue_teams):
+        for team in sorted_blue_teams:
             if not self.current_score == team.current_score:
                 previous_place += 1
             if self.id == team.id:
