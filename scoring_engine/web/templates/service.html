@@ -138,8 +138,8 @@
                                   "render": function( data ) {
                                     button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
                                     button_icon = 'glyphicon-plus'
-                                    if ( window.variableName ){
-                                        if (data['round'] in window.variableName) {
+                                    if ( window.expanded_rows ){
+                                        if (window.expanded_rows.indexOf(data['round']) >= 0) {
                                           button_icon = 'glyphicon-minus';
                                         }
                                     }
@@ -164,23 +164,28 @@
                                 },
                                 { "data": "timestamp" }
                             ],
-                            'order': [[1, 'desc']],
+                            'order': [[2, 'desc']],
                         });
 
                     $('#checks tbody').on('click', 'a.expand-button', function () {
                         var tr = $(this).closest('tr');
                         var row = table.row(tr);
 
-                        if (!window.variableName){
-                            window.variableName = {};
+                        if (!window.expanded_rows){
+                            window.expanded_rows = []
                         }
-
                         round_num = row.data().details['round']
-                        if (!(round_num in window.variableName)) {
-                            window.variableName[round_num] = tr;
+                        // Add round_num to array to keep track of what
+                        // rows need to get opened on table reload
+                        if (window.expanded_rows.indexOf(round_num) == -1) {
+                            window.expanded_rows.push(round_num);
                         }
                         else{
-                            delete window.variableName[round_num]
+                            // Remove round_num from array
+                            var index = window.expanded_rows.indexOf(round_num);
+                            if (index > -1) {
+                                window.expanded_rows.splice(index, 1);
+                            }
                         }
 
                         icon_span = $(tr).find('span:first');
@@ -201,26 +206,19 @@
 
                     // Expands previously expanded rows on datatables reload
                     function expandRows(data){
-                        // // var spans = $( "span" );
-                        // $('span .glyphicon-minus').removeClass('glyphicon-minus');
-                        // // $('span .glyphicon-minus').removeClass('glyphicon-minus');
-                        // // $('span .glyphicon-minus').removeClass('glyphicon-minus');
-                        // // $('span').removeClass('glyphicon-plus');
-                        // // $("#checks").find(spans).removeClass('glyphicon-plus');
-                        // // $("#checks").find(spans).addClass('glyphicon-plus');
-
-                        if ( window.variableName ){
-                            for(var key in window.variableName) {
-                                // tr = $('tr').eq(0) + window.variableName[key] + ')', table);
-                                // tr = $("tr").index(window.variableName[key])
-                                tr = window.variableName[key]
-                                // row = table.row(tr);
-
-                                output_row = '<pre>' + row.data().details['output'] + '</pre>';
-                                row.child(output_row).show();
-                                icon_span = $(tr).find('span:first');
-                                icon_span.removeClass('glyphicon-plus');
-                                icon_span.addClass('glyphicon-minus');
+                        if ( window.expanded_rows ){
+                            for (var i = 0; i < window.expanded_rows; i++) {
+                                key = window.expanded_rows[i];
+                                table.rows().every(function(){
+                                    if (this.data()['round'] == key) {
+                                        row = table.row(this);
+                                        output_row = '<pre>' + row.data().details['output'] + '</pre>';
+                                        row.child(output_row).show();
+                                        icon_span = $(this).find('span:first');
+                                        icon_span.removeClass('glyphicon-plus');
+                                        icon_span.addClass('glyphicon-minus');
+                                    }
+                                });
                             }
                         }
                     }
