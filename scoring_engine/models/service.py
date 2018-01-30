@@ -34,6 +34,23 @@ class Service(Base):
         return sorted(self.checks, key=lambda check: check.round.number, reverse=True)
 
     @property
+    def rank(self):
+        services = []
+        for blue_team in self.team.blue_teams:
+            for service in blue_team.services:
+                if self.check_name == service.check_name:
+                    services.append(service)
+        sorted_services = sorted(services, key=lambda service: service.score_earned, reverse=True)
+        place = 0
+        previous_place = 1
+        for service in sorted_services:
+            if not self.score_earned == service.score_earned:
+                previous_place += 1
+            if self.id == service.id:
+                place = previous_place
+        return place
+
+    @property
     def score_earned(self):
         passed_checks = [check for check in self.checks if check.result is True]
         return len(passed_checks) * self.points

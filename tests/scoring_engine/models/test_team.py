@@ -108,8 +108,8 @@ class TestTeam(UnitTest):
         self.session.add(team_2)
         service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
-        check_1 = Check(service=service_1, result=False, output='Good output')
-        check_2 = Check(service=service_1, result=False, output='Good output')
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
         self.session.add(check_1)
         self.session.add(check_2)
         self.session.commit()
@@ -124,8 +124,8 @@ class TestTeam(UnitTest):
         self.session.add(check_2)
         self.session.commit()
         assert team_1.place == 1
-        assert team_2.place == 3
-        assert team_3.place == 2
+        assert team_2.place == 1
+        assert team_3.place == 3
 
     def test_get_array_of_scores(self):
         populate_sample_data(self.session)
