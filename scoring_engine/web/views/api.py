@@ -555,3 +555,18 @@ def overview_data():
             }
         team_data[team.name] = service_data
     return json.dumps(team_data)
+
+
+@mod.route('/api/team/<id>/services_status')
+@login_required
+def team_services_status(id):
+    if current_user.is_blue_team and current_user.team.id == int(id):
+        services = {}
+        team = session.query(Team).get(id)
+        for service in team.services:
+            services[service.name] = {
+                'id': str(service.id),
+                'result': str(service.last_check_result()),
+            }
+        return json.dumps(services)
+    return jsonify({'error': 'Incorrect permissions'}).dumps(team_data)

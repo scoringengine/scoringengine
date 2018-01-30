@@ -57,11 +57,8 @@
 </script>
 <div class="container md-page">
   <div class="row">
-    <div class="col-sm-2" style="padding-top: 20px;">
-      <div class="list-group">
-        {% for team_service in service.team.services %}
-          <a href="/service/{{team_service.id}}" class="list-group-item {% if request.path == '/service/{0}'.format(team_service.id) %}active{% endif %}">{{team_service.name}}</a>
-        {% endfor %}
+    <div class="col-sm-3" style="padding-top: 20px;">
+      <div id="service_navbar" class="list-group">
       </div>
     </div>
     <div class="col-sm-9">
@@ -119,6 +116,34 @@
         </table>
         <br>
         <script>
+            function refreshServicesNavbar() {
+              $.ajax({
+                  cache: false,
+                  url: "/api/team/{{service.team.id}}/services_status",
+                  dataType: 'json',
+                  success: function(data) {
+                    navbar_str = ""
+                    for (var key in data) {
+                      value = data[key];
+                      navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item'
+                      if ("{{service.id}}" == value['id']){
+                        navbar_row_str += " active"
+                      }
+                      navbar_row_str += '">' + key;
+                      if (value['result'] == 'True'){
+                        navbar_row_str += '<span class="pull-right label label-success">UP</span>'
+                      }
+                      else if (value['result'] == 'False') {
+                        navbar_row_str += '<span class="pull-right label label-danger">DOWN</span>'
+                      }
+                      navbar_row_str += "</a>"
+                      navbar_str += navbar_row_str
+                    }
+                    $('div#service_navbar').html(navbar_str);
+                  }
+              });
+            }
+
             $(document).ready(function() {
               // Disable datatables error reporting
               $.fn.dataTable.ext.errMode = 'none';
@@ -220,7 +245,10 @@
 
                 setInterval(function() {
                   table.ajax.reload(expandRows, false);
+                  refreshServicesNavbar();
                 }, 30000);
+
+                refreshServicesNavbar();
             });
           </script>
         </div>
