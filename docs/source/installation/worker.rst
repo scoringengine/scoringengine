@@ -20,7 +20,7 @@ Change REDIS host/port/password fields to main engine host::
 
   vi /home/engine/scoring_engine/src/engine.conf
 
-Modify worker to customize number of processes. Append '--concurrency <num of processes>' to the celery command line.
+Modify worker to customize number of processes. Append '--concurrency <num of processes>' to the celery command line. If not specified, it defaults to # of CPUs.
 ::
 
   vi /home/engine/scoring_engine/src/bin/worker
