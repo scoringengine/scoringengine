@@ -462,7 +462,8 @@ def api_services():
     if not current_user.is_blue_team:
         return jsonify({'status': 'unauthorized'})
     data = []
-    for service in team.services:
+    sorted_services = sorted(team.services, key=lambda service: service.id)
+    for service in sorted_services:
         if not service.checks:
             check = 'Undetermined'
         else:
