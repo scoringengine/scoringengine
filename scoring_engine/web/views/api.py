@@ -462,7 +462,8 @@ def api_services():
     if not current_user.is_blue_team:
         return jsonify({'status': 'unauthorized'})
     data = []
-    for service in team.services:
+    sorted_services = sorted(team.services, key=lambda service: service.id)
+    for service in sorted_services:
         if not service.checks:
             check = 'Undetermined'
         else:
@@ -561,12 +562,13 @@ def overview_data():
 @login_required
 def team_services_status(id):
     if current_user.is_blue_team and current_user.team.id == int(id):
-        services = {}
+        services = OrderedDict()
         team = session.query(Team).get(id)
-        for service in team.services:
+        sorted_services = sorted(team.services, key=lambda service: service.id)
+        for service in sorted_services:
             services[service.name] = {
                 'id': str(service.id),
                 'result': str(service.last_check_result()),
             }
         return json.dumps(services)
-    return jsonify({'error': 'Incorrect permissions'}).dumps(team_data)
+    return jsonify({'status': 'Unauthorized'}), 403
