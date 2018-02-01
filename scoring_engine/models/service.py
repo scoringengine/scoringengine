@@ -38,7 +38,7 @@ class Service(Base):
         services = []
         for blue_team in self.team.blue_teams:
             for service in blue_team.services:
-                if self.check_name == service.check_name:
+                if self.name == service.name:
                     services.append(service)
         sorted_services = sorted(services, key=lambda service: service.score_earned, reverse=True)
         place = 0
