@@ -53,6 +53,12 @@ Modify configuration
 
   vi /home/engine/scoring_engine/src/engine.conf
 
+Install uwsgi
+^^^^^^^^^^^^^
+::
+
+  pip install uwsgi
+
 Start web
 ^^^^^^^^^
 ::
