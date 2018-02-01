@@ -7,7 +7,7 @@ Install dependencies via apt-get
 ::
 
   apt-get update
-  apt-get install -y python3.5 wget git python3.5-dev build-essential
+  apt-get install -y python3.5 wget git python3.5-dev build-essential libmysqlclient-dev
 
 Create engine user
 ^^^^^^^^^^^^^^^^^^
@@ -71,21 +71,3 @@ Restart rsyslog
 ::
 
   systemctl restart rsyslog
-
-If mysql is the database server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Run as root::
-
-  apt-get install -y libmysqlclient-dev
-  su engine
-  source /home/engine/scoring_engine/env/bin/activate
-  pip install mysqlclient
-
-If postgresql is the database server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Run as root::
-
-  apt-get install -y postgresql-server-dev-9.5
-  su engine
-  source /home/engine/scoring_engine/env/bin/activate
-  pip install -U psycopg2

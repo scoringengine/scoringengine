@@ -9,30 +9,6 @@ Install MySQL Server
   sed -i -e 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mysql.conf.d/mysqld.cnf
   systemctl restart mysql
 
-Install Postgresql Server
-^^^^^^^^^^^^^^^^^^^^^^^^^
-::
-
-  apt-get install -y postgresql postgresql-contrib postgresql-server-dev-9.5
-
-Modify ``/etc/postgresql/9.5/main/postgresql.conf``::
-
-  listen_addresses = '*'
-
-Modify ``/etc/postgresql/9.5/main/pg_hba.conf``::
-
-  host  all  all 0.0.0.0/0 md5
-
-Run as root::
-
-  systemctl restart postgresql
-  su - postgres
-  psql
-  CREATE USER engineuser WITH PASSWORD 'enginepass';
-  CREATE DATABASE scoring_engine;
-  GRANT ALL PRIVILEGES ON DATABASE scoring_engine to engineuser;
-  \q
-
 Setup MySQL
 ^^^^^^^^^^^
 ::
