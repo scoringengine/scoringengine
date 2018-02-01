@@ -16,8 +16,14 @@ Setup worker service (run as root)
 Modify configuration
 ^^^^^^^^^^^^^^^^^^^^
 Change REDIS host/port/password fields to main engine host::
+::
 
   vi /home/engine/scoring_engine/src/engine.conf
+
+Modify worker to customize number of processes. Append '--concurrency <num of processes>' to the celery command line.
+::
+
+  vi /home/engine/scoring_engine/src/bin/worker
 
 Start worker service (must run as root)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,13 +64,13 @@ Install dependencies for SSH check
   pip install paramiko
 
 Install dependencies for LDAP check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get install -y ldap-utils
 
 Install dependencies for Elasticsearch check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   pip install requests
