@@ -1,8 +1,8 @@
 run:
-	docker-compose -f docker-compose.yml -p scoring_engine up -d
+	docker-compose -f docker-compose.yml -p scoring_engine up -d --scale flask=5
 
 run-testbed:
-	docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -p scoring_engine up -d
+	docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -p scoring_engine up -d --scale flask=5
 
 build:
 	docker-compose -f docker-compose.yml -p scoring_engine build

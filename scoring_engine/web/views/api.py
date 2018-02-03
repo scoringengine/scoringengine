@@ -20,6 +20,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.cache import cache
 
 from sqlalchemy.orm.exc import NoResultFound
 

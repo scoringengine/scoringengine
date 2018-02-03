@@ -1,8 +1,9 @@
 import os
 import logging
 from flask import Flask
-
+from nplusone.ext.flask_sqlalchemy import NPlusOne
 from scoring_engine.config import config
+from scoring_engine.cache import cache
 
 
 app = Flask(__name__)
@@ -10,11 +11,17 @@ app = Flask(__name__)
 app.config.update(DEBUG=config.web_debug)
 app.secret_key = os.urandom(128)
 
+app.config['NPLUSONE_LOGGER'] = logging.getLogger('app.nplusone')
+app.config['NPLUSONE_LOG_LEVEL'] = logging.ERROR
+NPlusOne(app)
+
 if not config.web_debug:
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
 
 from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth, profile, api, about
+
+cache.init_app(app)
 
 app.register_blueprint(welcome.mod)
 app.register_blueprint(scoreboard.mod)

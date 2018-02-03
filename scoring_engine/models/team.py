@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from scoring_engine.models.base import Base
 from scoring_engine.models.round import Round
 from scoring_engine.db import session
+from scoring_engine.cache import cache
 
 
 class Team(Base):
@@ -12,7 +13,8 @@ class Team(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     color = Column(String(10), nullable=False)
-    services = relationship("Service", back_populates="team")
+    # services = relationship("Service", back_populates="team")
+    services = relationship("Service", back_populates="team", lazy="joined")
     users = relationship("User", back_populates="team")
     rgb_color = Column(String(30))
 
@@ -56,6 +58,7 @@ class Team(Base):
     def blue_teams(self):
         return Team.get_all_blue_teams()
 
+    @cache.memoize(30)
     def get_array_of_scores(self, max_round):
         scores = [0]
         overall_score = 0
@@ -69,6 +72,7 @@ class Team(Base):
             scores.append(overall_score)
         return scores
 
+    @cache.memoize(30)
     def get_round_scores(self, round_num):
         if round_num == 0:
             return 0
@@ -81,10 +85,12 @@ class Team(Base):
         return round_score
 
     @staticmethod
+    @cache.memoize(30)
     def get_all_blue_teams():
         return session.query(Team).filter(Team.color == 'Blue').all()
 
     @staticmethod
+    @cache.memoize(30)
     def get_all_rounds_results():
         results = {}
         results['scores'] = {}

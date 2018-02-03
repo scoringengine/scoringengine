@@ -14,4 +14,6 @@ RUN pip install -e .
 EXPOSE 5000
 
 
-CMD ["./wait-for-bootstrap.sh", "bootstrap", "python", "run.py"]
+#CMD ["./wait-for-bootstrap.sh", "bootstrap", "python", "run.py"]
+#CMD ["./wait-for-bootstrap.sh", "bootstrap", "uwsgi", "--enable-threads", "-b", "32768", "--processes", "2", "--threads", "2", "--socket", "0.0.0.0:5000", "--wsgi-file", "/app/run.py"]
+CMD ["./wait-for-bootstrap.sh", "bootstrap", "uwsgi", "--enable-threads", "-b", "32768", "--processes", "2", "--socket", "0.0.0.0:5000", "--wsgi-file", "/app/run.py", "--stats", "/tmp/stats.socket"]

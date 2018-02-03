@@ -17,13 +17,16 @@ config = {
         'celery==4.0.2',
         'configparser==3.5.0',
         'Flask==0.12',
+        'Flask-Caching==1.3.3',
         'Flask-Login==0.4.0',
         'Flask-SQLAlchemy==2.2',
         'Flask-WTF==0.14.2',
         'mysqlclient==1.3.12',
+        'nplusone==0.9.0',
+        'pynsive==0.2.7',
         'redis==2.10.5',
         'shellescape==3.4.1',
-        'pynsive==0.2.7'
+        'uwsgi==2.0.15'
     ],
     'packages': ['scoring_engine', 'bin'],
     'scripts': [],
