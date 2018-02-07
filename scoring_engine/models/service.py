@@ -11,7 +11,7 @@ class Service(Base):
     check_name = Column(String(100), nullable=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship("Team", back_populates="services")
-    checks = relationship("Check", back_populates="service")
+    checks = relationship("Check", back_populates="service", lazy="joined")
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
     environments = relationship('Environment', back_populates="service")
