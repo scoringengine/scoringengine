@@ -1,4 +1,4 @@
 zone "team.scoringengine." {
     type master;
-    file "/etc/bind/team.scoringengine";
+    file "/etc/bind/team.scoringengine.db";
 };

@@ -23,4 +23,7 @@ RUN pip install requests
 # SMB Check
 RUN pip install pysmb
 
+# DNS Check
+RUN apt-get install -y dnsutils
+
 CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]
