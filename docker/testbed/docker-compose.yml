@@ -39,3 +39,10 @@ services:
       dockerfile: ./docker/testbed/elasticsearch/Dockerfile
     # ports:
     #   - 9200:9200
+  testbed_smb:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/smb/Dockerfile
+    # ports:
+      # - 139:139
+      # - 445:445
