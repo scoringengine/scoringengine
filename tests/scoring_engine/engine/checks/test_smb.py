@@ -14,4 +14,4 @@ class TestSMBCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = CHECKS_BIN_PATH + "/smb_check --host '127.0.0.1' --user 'pwnbus' --pass 'pwnbuspass' --share 'ScoringShare' --file 'flag.txt' --hash '123456789'"
+    cmd = CHECKS_BIN_PATH + "/smb_check --host '127.0.0.1' --port 100 --user 'pwnbus' --pass 'pwnbuspass' --share 'ScoringShare' --file 'flag.txt' --hash '123456789'"
