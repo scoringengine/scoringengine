@@ -15,6 +15,7 @@ from scoring_engine.engine.checks.pop3s import POP3SCheck
 from scoring_engine.engine.checks.imap import IMAPCheck
 from scoring_engine.engine.checks.imaps import IMAPSCheck
 from scoring_engine.engine.checks.smtp import SMTPCheck
+from scoring_engine.engine.checks.smb import SMBCheck
 from scoring_engine.engine.checks.smtps import SMTPSCheck
 from scoring_engine.engine.checks.vnc import VNCCheck
 from scoring_engine.engine.checks.elasticsearch import ElasticsearchCheck
@@ -56,6 +57,7 @@ class TestEngine(UnitTest):
             VNCCheck,
             ElasticsearchCheck,
             LDAPCheck,
+            SMBCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 

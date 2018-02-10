@@ -20,4 +20,7 @@ RUN pip install paramiko
 # Elasticsearch Check
 RUN pip install requests
 
+# SMB Check
+RUN pip install pysmb
+
 CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]
