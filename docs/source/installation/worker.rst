@@ -75,6 +75,12 @@ Install dependencies for Elasticsearch check
 
   pip install requests
 
+Install dependencies for SMB check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  pip install pysmb
+
 Install dependencies for SMTP/SMTPS check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
