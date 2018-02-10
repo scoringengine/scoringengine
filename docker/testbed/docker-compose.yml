@@ -46,3 +46,10 @@ services:
     # ports:
       # - 139:139
       # - 445:445
+  testbed_dns:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/dns/Dockerfile
+    # ports:
+      # - 53:53/udp
+      # - 53:53
