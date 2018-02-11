@@ -1,5 +1,7 @@
 import json
+import pickle
 import random
+import redis
 
 from collections import OrderedDict
 
@@ -8,6 +10,7 @@ from flask_login import current_user, login_required
 
 import html
 
+from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
@@ -20,6 +23,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.engine.engine import update_get_data, update_get_bar_data, update_get_line_data
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -380,35 +384,13 @@ def admin_get_engine_stats():
 
 @mod.route('/api/overview/get_data')
 def overview_get_data():
-    blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
-    columns = []
-    columns.append('Team Name')
-    columns.append('Current Score')
-    for service in blue_teams[0].services:
-        columns.append(service.name)
-    data = []
-    for team in blue_teams:
-        count = 0
-        team_dict = {}
-        for x in range(0, len(columns)):
-            if columns[x] == "Team Name":
-                team_dict[columns[x]] = team.name
-                count += 1
-            elif columns[x] == "Current Score":
-                team_dict[columns[x]] = team.current_score
-                count += 1
-            else:
-                service = session.query(Service).filter(Service.name == columns[x]).filter(Service.team == team).first()
-                service_text = service.host
-                if str(service.port) != '0':
-                    service_text += ':' + str(service.port)
-                service_text += ' - ' + str(service.last_check_result())
-                team_dict[columns[x]] = service_text
-        data.append(team_dict)
-    columnlist = []
-    for column in columns:
-        columnlist.append({'title': column, 'data': column})
-    return jsonify(columns=columnlist, data=data)
+    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
+    data = r.get('get_data')
+    if data:
+        return jsonify(pickle.loads(data))
+    else:
+        # TODO add updating, but in a way that does murder the database
+        return jsonify({})
 
 
 @mod.route('/api/overview/get_round_data')
@@ -507,38 +489,24 @@ def service_get_checks(id):
 
 @mod.route('/api/scoreboard/get_bar_data')
 def scoreboard_get_bar_data():
-    team_data = {}
-    team_labels = []
-    team_scores = []
-    scores_colors = []
-    for blue_team in Team.get_all_blue_teams():
-        team_labels.append(blue_team.name)
-        team_scores.append(blue_team.current_score)
-        scores_colors.append(blue_team.rgb_color)
-
-    team_data['labels'] = team_labels
-    team_data['scores'] = team_scores
-    team_data['colors'] = scores_colors
-
-    return jsonify(team_data)
+    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
+    data = r.get('get_bar_data')
+    if data:
+        return jsonify(pickle.loads(data))
+    else:
+        # TODO add updating, but in a way that does murder the database
+        return jsonify({})
 
 
 @mod.route('/api/scoreboard/get_line_data')
 def scoreboard_get_line_data():
-    results = Team.get_all_rounds_results()
-    team_data = {'team': {}, 'round': results['rounds']}
-    # We start at one because that's how javascript expects the team_data
-    current_index = 1
-    for name in results['scores'].keys():
-        scores = results['scores'][name]
-        rgb_color = results['rgb_colors'][name]
-        team_data['team'][current_index] = {
-            "label": name,
-            "data": scores,
-            "color": rgb_color
-        }
-        current_index += 1
-    return jsonify(team_data)
+    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
+    data = r.get('get_line_data')
+    if data:
+        return jsonify(pickle.loads(data))
+    else:
+        # TODO add updating, but in a way that does murder the database
+        return jsonify({})
 
 
 @mod.route('/api/overview/data')
