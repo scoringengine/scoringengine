@@ -65,7 +65,7 @@
                                     // Doing nothing if it's the current score
                                     if (value.match(/^\d+$/)) {
                                     }
-                                    else if (value.search('Team') == 0) {
+                                    else if (value == $('td', row).eq(0).text()) {
                                     }
                                     else if (value.search('- True') > 0) {
                                         html_str = '<span class="glyphicon glyphicon-ok" style="color:green" title="' + value.replace(' - True', '') + '"></span>'
