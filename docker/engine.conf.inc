@@ -8,8 +8,8 @@ timezone = US/Eastern
 debug = False
 
 [DB]
-# SQLite
-uri = mysql://se_user:CHANGEME@mysql/scoring_engine
+# MySQL
+uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 
 [REDIS]
 host = redis
