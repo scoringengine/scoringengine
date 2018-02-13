@@ -36,7 +36,7 @@ mod = Blueprint('api', __name__)
 def update_service_account_info():
     if current_user.is_white_team or current_user.is_blue_team:
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            account = session.query(Account).get(int(request.form['pk']))
+            account = session.query(Account).get_id(int(request.form['pk']))
             if current_user.team == account.service.team or current_user.is_white_team:
                 if account:
                     if request.form['name'] == 'username':
