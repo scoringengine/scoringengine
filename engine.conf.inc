@@ -11,7 +11,7 @@ debug = False
 # SQLite
 uri = sqlite:////tmp/engine.db
 # MySQL
-#uri = mysql://user:password@host/database
+#uri = mysql://user:password@host/database?charset=utf8mb4
 # Postgresql
 #uri = postgresql://user:password@host/database
 
