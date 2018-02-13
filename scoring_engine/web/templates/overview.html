@@ -59,27 +59,36 @@
                             searching: false,
                             scrollX: true,
                             'createdRow': function ( row, data, index ) {
-                                count = 0;
                                 $('td', row).each(function() {
-                                    var value = $(this).html()
-                                    // Doing nothing if it's the current score
-                                    if (value.match(/^\d+$/)) {
+                                    var value = $(this).html();
+                                    column_num = $(this).index()
+                                    switch (column_num) {
+                                        case 0:
+                                            // Team Name
+                                            break;
+                                        case 1:
+                                            // Score
+                                            break;
+                                        default:
+                                            // Services
+                                            if (value.search('- True') > 0) {
+                                                image_icon = 'glyphicon-ok';
+                                                image_color = 'green';
+                                                value_str = value.replace(' - True', '');
+                                            }
+                                            else if (value.search('- False') > 0) {
+                                                image_icon = 'glyphicon-remove';
+                                                image_color = 'red';
+                                                value_str = value.replace(' - False', '');
+                                            }
+                                            else {
+                                                image_icon = 'glyphicon-question-sign';
+                                                image_color = 'black';
+                                                value_str = value.replace(' - None', '');
+                                            }
+                                            html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
+                                            $(this).html(html_str);
                                     }
-                                    else if (value.search('Team') == 0) {
-                                    }
-                                    else if (value.search('- True') > 0) {
-                                        html_str = '<span class="glyphicon glyphicon-ok" style="color:green" title="' + value.replace(' - True', '') + '"></span>'
-                                        $('td', row).eq(count).html(html_str);
-                                    }
-                                    else if (value.search('- False') > 0) {
-                                        html_str = '<span class="glyphicon glyphicon-remove" style="color:red" title="' + value.replace(' - False', '') + '"></span>'
-                                        $('td', row).eq(count).html(html_str);
-                                    }
-                                    else {
-                                        html_str = '<span class="glyphicon glyphicon-question-sign" style="color:black" title="' + value.replace(' - None', '') + '"></span>'
-                                        $('td', row).eq(count).html(html_str);
-                                    }
-                                    count++;
                                 })
                             }
                         });

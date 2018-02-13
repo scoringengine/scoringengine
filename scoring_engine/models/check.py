@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text, DateTime, UnicodeText
 from sqlalchemy.orm import relationship
 
 from datetime import datetime
@@ -18,7 +18,7 @@ class Check(Base):
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship('Service')
     result = Column(Boolean)
-    output = Column(Text, default="")
+    output = Column(UnicodeText, default="")
     reason = Column(Text, default="")
     command = Column(Text, default="")
     completed_timestamp = Column(DateTime)
