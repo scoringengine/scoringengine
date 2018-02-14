@@ -3,12 +3,17 @@ import logging
 from flask import Flask
 
 from scoring_engine.config import config
-
+from scoring_engine.cache import cache
 
 app = Flask(__name__)
 
 app.config.update(DEBUG=config.web_debug)
 app.secret_key = os.urandom(128)
+
+if not config.web_caching:
+    cache.config['CACHE_TYPE'] = "null"
+
+cache.init_app(app)
 
 if not config.web_debug:
     log = logging.getLogger('werkzeug')
