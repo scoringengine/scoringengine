@@ -36,7 +36,7 @@
             function refreshteamdata() {
                 $.ajax({
                     cache: false,
-                    url: '/api/services/get_team_data',
+                    url: '/api/team/{{team_id}}/stats',
                     dataType: 'json',
                     success: function(data) {
                         $('#team_place').text("Place: " + data.place);
@@ -62,7 +62,7 @@
                         'paging': false,
                         'bFilter': false,
                         'bInfo': false,
-                        "ajax": "/api/services",
+                        "ajax": "/api/team/{{team_id}}/services",
                         "order": [],
                         "columns": [
                             {
