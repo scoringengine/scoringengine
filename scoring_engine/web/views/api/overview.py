@@ -9,11 +9,13 @@ from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
+from scoring_engine.cache import cache
 
 from . import mod
 
 
 @mod.route('/api/overview/get_round_data')
+@cache.cached(60)
 def overview_get_round_data():
     round_obj = session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
@@ -27,6 +29,7 @@ def overview_get_round_data():
 
 
 @mod.route('/api/overview/data')
+@cache.cached(60)
 def overview_data():
     team_data = OrderedDict()
     teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
@@ -54,11 +57,13 @@ def get_service_columns():
 
 
 @mod.route('/api/overview/get_columns')
+@cache.cached(60)
 def overview_get_columns():
     return jsonify(columns=get_service_columns())
 
 
 @mod.route('/api/overview/get_data')
+@cache.cached(60)
 def overview_get_data():
     blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
     columns = get_service_columns()

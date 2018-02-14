@@ -6,12 +6,14 @@ import html
 from scoring_engine.db import session
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
+from scoring_engine.cache import cache
 
 from . import mod
 
 
 @mod.route('/api/service/<id>/checks')
 @login_required
+@cache.cached(60)
 def service_get_checks(id):
     service = session.query(Service).get(id)
     if service is None or not current_user.team == service.team:
