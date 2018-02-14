@@ -30,7 +30,7 @@ class TestServices(WebTest):
         self.session.commit()
         resp = self.auth_and_get_path('/services')
         assert resp.status_code == 200
-        assert self.mock_obj.call_args == self.build_args('services.html', team_name='Team 1')
+        assert self.mock_obj.call_args == self.build_args('services.html', team_name='Team 1', team_id=1)
 
     def test_unauthorized_services(self):
         user = self.create_default_user()

@@ -43,7 +43,7 @@
             // Populate our table
             $.ajax({
                 cache: false,
-                url: '/api/overview/get_data',
+                url: '/api/overview/get_columns',
                 dataType: 'json',
                 success: function(data) {
                     var table = $('#overview')
