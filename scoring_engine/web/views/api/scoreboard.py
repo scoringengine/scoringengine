@@ -1,23 +1,27 @@
-import pickle
-import redis
-
 from flask import jsonify
 
-from scoring_engine.config import config
 from scoring_engine.models.team import Team
+
 
 from . import mod
 
 
 @mod.route('/api/scoreboard/get_bar_data')
 def scoreboard_get_bar_data():
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    data = r.get('get_bar_data')
-    if data:
-        return jsonify(pickle.loads(data))
-    else:
-        # TODO add updating, but in a way that does murder the database
-        return jsonify({})
+    team_data = {}
+    team_labels = []
+    team_scores = []
+    scores_colors = []
+    for blue_team in Team.get_all_blue_teams():
+        team_labels.append(blue_team.name)
+        team_scores.append(blue_team.current_score)
+        scores_colors.append(blue_team.rgb_color)
+
+    team_data['labels'] = team_labels
+    team_data['scores'] = team_scores
+    team_data['colors'] = scores_colors
+
+    return jsonify(team_data)
 
 
 @mod.route('/api/scoreboard/get_line_data')

@@ -9,6 +9,9 @@ class TestConfigLoader(object):
     def test_web_debug(self):
         assert self.config.web_debug is False
 
+    def test_web_cache(self):
+        assert self.config.web_cache is False
+
     def test_checks_location(self):
         assert self.config.checks_location == "scoring_engine/engine/checks"
 
