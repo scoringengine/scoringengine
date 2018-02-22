@@ -1,18 +1,11 @@
 import json
-import pickle
-import random
-import redis
 
-from collections import OrderedDict
-
-from flask import Blueprint, flash, redirect, request, url_for, jsonify
+from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
 import html
 
-from scoring_engine.config import config
 from scoring_engine.db import session
-from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -23,32 +16,10 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
-from scoring_engine.engine.engine import update_get_data, update_get_bar_data, update_get_line_data
 
 from sqlalchemy.orm.exc import NoResultFound
 
-
-mod = Blueprint('api', __name__)
-
-
-@mod.route('/api/update_account_info', methods=['POST'])
-@login_required
-def update_service_account_info():
-    if current_user.is_white_team or current_user.is_blue_team:
-        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            account = session.query(Account).get(int(request.form['pk']))
-            if current_user.team == account.service.team or current_user.is_white_team:
-                if account:
-                    if request.form['name'] == 'username':
-                        account.username = html.escape(request.form['value'])
-                    elif request.form['name'] == 'password':
-                        account.password = html.escape(request.form['value'])
-                    session.add(account)
-                    session.commit()
-                    return jsonify({'status': 'Updated Account Information'})
-                return jsonify({'error': 'Incorrect permissions'})
-            return jsonify({'error': 'Incorrect permissions'})
-    return jsonify({'error': 'Incorrect permissions'})
+from . import mod
 
 
 @mod.route('/api/admin/update_environment_info', methods=['POST'])
@@ -134,21 +105,6 @@ def admin_update_port():
     return jsonify({'error': 'Incorrect permissions'})
 
 
-@mod.route('/api/update_host', methods=['POST'])
-@login_required
-def update_host():
-    if current_user.is_blue_team:
-        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
-            service = session.query(Service).get(int(request.form['pk']))
-            if service:
-                if service.team == current_user.team and request.form['name'] == 'host':
-                    service.host = html.escape(request.form['value'])
-                    session.add(service)
-                    session.commit()
-                    return jsonify({'status': 'Updated Service Information'})
-    return jsonify({'error': 'Incorrect permissions'})
-
-
 @mod.route('/api/admin/update_about_page_content', methods=['POST'])
 @login_required
 def admin_update_about_page_content():
@@ -219,25 +175,6 @@ def admin_update_worker_refresh_time():
         flash('Error: worker_refresh_time not specified.', 'danger')
         return redirect(url_for('admin.settings'))
     return {'status': 'Unauthorized'}, 403
-
-
-@mod.route('/api/modify_service_account', methods=['POST'])
-@login_required
-def modify_service_account():
-    if current_user.is_blue_team:
-        if 'account_id' in request.form and 'password' in request.form:
-            account = session.query(Account).get(int(request.form['account_id']))
-            if account:
-                if account.service.team == current_user.team:
-                    account.password = html.escape(request.form['password'])
-                    session.add(account)
-                    session.commit()
-                    flash('Successfully updated password for ' + account.username, 'success')
-                    return redirect('/service/' + str(account.service.id))
-            flash('Incorrect permissions', 'error')
-            return jsonify({'error': 'Incorrect permissions'})
-    flash('Incorrect permissions', 'error')
-    return jsonify({'error': 'Incorrect permissions'})
 
 
 @mod.route('/api/admin/get_round_progress')
@@ -380,163 +317,3 @@ def admin_get_engine_stats():
         return jsonify(engine_stats)
     else:
         return {'status': 'Unauthorized'}, 403
-
-
-@mod.route('/api/overview/get_data')
-def overview_get_data():
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    data = r.get('get_data')
-    if data:
-        return jsonify(pickle.loads(data))
-    else:
-        # TODO add updating, but in a way that does murder the database
-        return jsonify({})
-
-
-@mod.route('/api/overview/get_round_data')
-def overview_get_round_data():
-    round_obj = session.query(Round).order_by(Round.number.desc()).first()
-    if round_obj:
-        round_start = round_obj.local_round_start
-        number = round_obj.number
-    else:
-        round_start = ""
-        number = 0
-    data = {'round_start': round_start, 'number': number}
-    return jsonify(data)
-
-
-@mod.route('/api/services/get_team_data')
-@login_required
-def services_get_team_data():
-    if current_user.is_blue_team:
-        current_team = current_user.team
-        data = {
-            'place': current_team.place,
-            'current_score': current_team.current_score
-        }
-        return jsonify(data)
-    else:
-        return {'status': 'Unauthorized'}, 403
-
-
-@mod.route('/api/profile/update_password', methods=['POST'])
-@login_required
-def profile_update_password():
-    if 'user_id' in request.form and 'password' in request.form:
-        if str(current_user.id) == request.form['user_id']:
-            current_user.update_password(html.escape(request.form['password']))
-            current_user.authenticated = False
-            session.add(current_user)
-            session.commit()
-            flash('Password Successfully Updated.', 'success')
-            return redirect(url_for('profile.home'))
-        else:
-            return {'status': 'Unauthorized'}, 403
-    else:
-        return {'status': 'Unauthorized'}, 403
-
-
-@mod.route('/api/services')
-@login_required
-def api_services():
-    team = current_user.team
-    if not current_user.is_blue_team:
-        return jsonify({'status': 'unauthorized'})
-    data = []
-    sorted_services = sorted(team.services, key=lambda service: service.id)
-    for service in sorted_services:
-        if not service.checks:
-            check = 'Undetermined'
-        else:
-            if service.last_check_result():
-                check = 'UP'
-            else:
-                check = 'DOWN'
-        data.append(dict(
-            service_id=service.id,
-            service_name=service.name,
-            host=service.host,
-            port=service.port,
-            check=check,
-            rank=service.rank,
-            score_earned=service.score_earned,
-            max_score=service.max_score,
-            percent_earned=service.percent_earned,
-            pts_per_check=service.points,
-            last_ten_checks=[check.result for check in service.last_ten_checks[::-1]]
-        ))
-    return jsonify(data=data)
-
-
-@mod.route('/api/service/get_checks/<id>')
-@login_required
-def service_get_checks(id):
-    service = session.query(Service).get(id)
-    if service is None or not current_user.team == service.team:
-        return jsonify({'status': 'Unauthorized'}), 403
-    data = []
-    for check in service.checks_reversed:
-        data.append({
-            'round': check.round.number,
-            'result': check.result,
-            'timestamp': check.local_completed_timestamp,
-            'reason': check.reason,
-            'output': check.output,
-        })
-    return jsonify(data=data)
-
-
-@mod.route('/api/scoreboard/get_bar_data')
-def scoreboard_get_bar_data():
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    data = r.get('get_bar_data')
-    if data:
-        return jsonify(pickle.loads(data))
-    else:
-        # TODO add updating, but in a way that does murder the database
-        return jsonify({})
-
-
-@mod.route('/api/scoreboard/get_line_data')
-def scoreboard_get_line_data():
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    data = r.get('get_line_data')
-    if data:
-        return jsonify(pickle.loads(data))
-    else:
-        # TODO add updating, but in a way that does murder the database
-        return jsonify({})
-
-
-@mod.route('/api/overview/data')
-def overview_data():
-    team_data = OrderedDict()
-    teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
-    random.shuffle(teams)
-    for team in teams:
-        service_data = {}
-        for service in team.services:
-            service_data[service.name] = {
-                'passing': service.last_check_result(),
-                'host': service.host,
-                'port': service.port,
-            }
-        team_data[team.name] = service_data
-    return json.dumps(team_data)
-
-
-@mod.route('/api/team/<id>/services_status')
-@login_required
-def team_services_status(id):
-    if current_user.is_blue_team and current_user.team.id == int(id):
-        services = OrderedDict()
-        team = session.query(Team).get(id)
-        sorted_services = sorted(team.services, key=lambda service: service.id)
-        for service in sorted_services:
-            services[service.name] = {
-                'id': str(service.id),
-                'result': str(service.last_check_result()),
-            }
-        return json.dumps(services)
-    return jsonify({'status': 'Unauthorized'}), 403

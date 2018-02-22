@@ -30,7 +30,7 @@ class TestAPI(WebTest):
         self.verify_auth_required_post('/api/profile/update_password')
 
     def test_auth_required_service_get_checks_id(self):
-        self.verify_auth_required('/api/service/get_checks/1')
+        self.verify_auth_required('/api/service/1/checks')
 
     '''
     def test_api_scoreboard_get_bar_data(self):
