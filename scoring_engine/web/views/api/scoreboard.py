@@ -1,10 +1,6 @@
-import pickle
-import redis
-
 from flask import jsonify
 
 from scoring_engine.cache import cache
-from scoring_engine.config import config
 from scoring_engine.models.team import Team
 
 from . import mod
