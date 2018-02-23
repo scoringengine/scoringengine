@@ -11,11 +11,17 @@ services:
     restart: on-failure
     volumes:
       - redis:/data
+  base:
+    build:
+      context: .
+      dockerfile: ./docker/base/Dockerfile
+    image: base:latest
   engine:
     build:
       context: .
       dockerfile: ./docker/engine/Dockerfile
     depends_on:
+      - base
       - redis
       - bootstrap
     restart: on-failure
@@ -24,6 +30,7 @@ services:
       context: .
       dockerfile: ./docker/worker/Dockerfile
     depends_on:
+      - base
       - redis
     restart: on-failure
   bootstrap:
@@ -31,6 +38,7 @@ services:
       context: .
       dockerfile: ./docker/bootstrap/Dockerfile
     depends_on:
+      - base
       - mysql
     healthcheck:
       test: ["CMD", "exit", "1"]
@@ -40,6 +48,7 @@ services:
       context: .
       dockerfile: ./docker/flask/Dockerfile
     depends_on:
+      - base
       - mysql
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost:5000"]
