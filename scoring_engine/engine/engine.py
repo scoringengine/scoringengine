@@ -1,11 +1,8 @@
-import datetime
 import inspect
 import json
-import pickle
 import pynsive
 import random
 import re
-import redis
 import signal
 import sys
 import time
@@ -19,7 +16,6 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
-from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
