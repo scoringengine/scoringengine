@@ -36,7 +36,7 @@ class Service(Base):
     @property
     def rank(self):
         services = []
-        for blue_team in self.team.blue_teams:
+        for blue_team in Team.get_all_blue_teams():
             for service in blue_team.services:
                 if self.name == service.name:
                     services.append(service)
