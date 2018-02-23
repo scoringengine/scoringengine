@@ -21,6 +21,8 @@ class ConfigLoader(object):
 
         self.db_uri = self.parser['DB']['uri']
 
+        self.cache_type = self.parser['CACHE']['cache_type']
+
         self.redis_host = self.parser['REDIS']['host']
         self.redis_port = int(self.parser['REDIS']['port'])
         self.redis_password = self.parser['REDIS']['password']

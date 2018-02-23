@@ -11,6 +11,10 @@ debug = False
 # MySQL
 uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 
+[CACHE]
+# Set to null to disable caching
+cache_type = redis
+
 [REDIS]
 host = redis
 port = 6379
