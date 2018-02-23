@@ -80,7 +80,7 @@ for num in range(1, num_teams + 1):
     team = Team(name="Team" + str(num), color="Blue")
     session.add(team)
 
-    for user_num in range(1, randint(3, 5) + 1):
+    for user_num in range(1, 3):
         username = "team" + str(num) + "user" + str(user_num)
         print("\t\tCreating User " + username)
         user = User(username=username, password="testpass", team=team)
