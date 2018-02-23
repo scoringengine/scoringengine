@@ -3,6 +3,7 @@ from flask_login import current_user, login_required
 
 import html
 
+from scoring_engine.cache import cache
 from scoring_engine.db import session
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
@@ -11,6 +12,7 @@ from . import mod
 
 
 @mod.route('/api/service/<id>/checks')
+@cache.memoize()
 @login_required
 def service_get_checks(id):
     service = session.query(Service).get(id)
