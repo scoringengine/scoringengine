@@ -87,7 +87,7 @@ class Team(Base):
         teams = []
         team_ids = Team.get_team_ids()
         for team_id in team_ids:
-            teams.append(Team.get_results(team_id))
+            teams.append(Team.get_team_results_cache(team_id))
         return teams
 
     @staticmethod
