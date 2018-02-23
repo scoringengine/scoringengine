@@ -13,7 +13,6 @@ from . import mod
 
 
 @mod.route('/api/team/<team_id>/stats')
-@cache.memoize()
 @login_required
 def services_get_team_data(team_id):
     team = session.query(Team).get(team_id)
@@ -28,7 +27,6 @@ def services_get_team_data(team_id):
 
 
 @mod.route('/api/team/<team_id>/services')
-@cache.memoize()
 @login_required
 def api_services(team_id):
     team = session.query(Team).get(team_id)
@@ -61,7 +59,6 @@ def api_services(team_id):
 
 
 @mod.route('/api/team/<id>/services/status')
-@cache.memoize()
 @login_required
 def team_services_status(id):
     if current_user.is_blue_team and current_user.team.id == int(id):

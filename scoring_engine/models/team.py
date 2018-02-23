@@ -6,6 +6,8 @@ from scoring_engine.models.base import Base
 from scoring_engine.models.round import Round
 from scoring_engine.db import session
 
+from scoring_engine.cache import cache
+
 
 class Team(Base):
     __tablename__ = 'teams'
@@ -30,7 +32,7 @@ class Team(Base):
 
     @property
     def place(self):
-        sorted_blue_teams = sorted(self.blue_teams, key=lambda team: team.current_score, reverse=True)
+        sorted_blue_teams = sorted(Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True)
         place = 0
         previous_place = 1
         for team in sorted_blue_teams:
@@ -51,10 +53,6 @@ class Team(Base):
     @property
     def is_blue_team(self):
         return self.color == 'Blue'
-
-    @property
-    def blue_teams(self):
-        return Team.get_all_blue_teams()
 
     def get_array_of_scores(self, max_round):
         scores = [0]
@@ -83,6 +81,39 @@ class Team(Base):
     @staticmethod
     def get_all_blue_teams():
         return session.query(Team).filter(Team.color == 'Blue').all()
+
+    @staticmethod
+    def get_all_blue_teams_cached():
+        teams = []
+        team_ids = Team.get_team_ids()
+        for team_id in team_ids:
+            teams.append(Team.get_team_results_cache(team_id))
+        return teams
+
+    @staticmethod
+    @cache.memoize()
+    def get_team_ids():
+        team_ids = []
+        for team_id, in session.query(Team.id).filter(Team.color == 'Blue'):
+            team_ids.append(team_id)
+        return team_ids
+
+    @staticmethod
+    @cache.memoize()
+    def get_team_results_cache(team_id):
+        blue_team = session.query(Team).filter(Team.id == team_id).first()
+
+        blue_team_results = blue_team.asdict()
+        blue_team_results['current_score'] = blue_team.current_score
+        blue_team_results['services'] = []
+        for service in blue_team.services:
+            service_dict = service.asdict()
+            service_dict['last_check_result'] = service.last_check_result()
+            service_dict['checks'] = []
+            for check in service.checks:
+                service_dict['checks'].append(check.asdict())
+            blue_team_results['services'].append(service_dict)
+        return blue_team_results
 
     @staticmethod
     def get_all_rounds_results():

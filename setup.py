@@ -16,6 +16,7 @@ config = {
         'bcrypt==3.1.3',
         'celery==4.0.2',
         'configparser==3.5.0',
+        'dictalchemy==0.1.2.7',
         'Flask==0.12',
         'Flask-Caching==1.3.3',
         'Flask-Login==0.4.0',

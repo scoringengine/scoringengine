@@ -12,7 +12,6 @@ from . import mod
 
 
 @mod.route('/api/service/<id>/checks')
-@cache.memoize()
 @login_required
 def service_get_checks(id):
     service = session.query(Service).get(id)
