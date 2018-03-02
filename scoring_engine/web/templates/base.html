@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
     <title>Scoring Engine - {% block title %}{% endblock %}</title>
-    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/bootstrap.min.js') }}"></script>
     {% endblock %}
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/bootstrap-glyphicons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/css/bootstrap-glyphicons.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
   </head>
@@ -71,6 +72,5 @@
     </nav>
     {% block content %}
     {% endblock %}
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
   </body>
 </html>
