@@ -94,8 +94,8 @@ def admin_update_host():
                     session.add(service)
                     session.commit()
                     update_overview_data()
-                    update_services_data(check.service.team.id)
-                    update_service_data(check.service.id)
+                    update_services_data(service.team.id)
+                    update_service_data(service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -112,8 +112,8 @@ def admin_update_port():
                     session.add(service)
                     session.commit()
                     update_overview_data()
-                    update_services_data(check.service.team.id)
-                    update_service_data(check.service.id)
+                    update_services_data(service.team.id)
+                    update_service_data(service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
