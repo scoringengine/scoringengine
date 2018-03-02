@@ -5,7 +5,7 @@ import html
 
 from scoring_engine.cache import cache
 from scoring_engine.db import session
-from scoring_engine.cache_helper import update_overview_data, update_services_navbar, update_service_data
+from scoring_engine.cache_helper import update_overview_data, update_services_data, update_service_data
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 
