@@ -29,7 +29,7 @@ def scoreboard_get_bar_data():
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
     team_data = {'team': {}, 'round': results['rounds']}
-    # We start at one because that's how javascript expects the team_data
+    # We start the index at one for javascript
     current_index = 1
     for name in results['scores'].keys():
         scores = results['scores'][name]
