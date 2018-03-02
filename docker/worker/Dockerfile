@@ -19,4 +19,4 @@ RUN apt-get install -y dnsutils
 
 COPY bin/worker /app/bin/worker
 
-CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]
+CMD ["./wait-for-it.sh", "redis:6379", "--", "sh", "/app/bin/worker"]
