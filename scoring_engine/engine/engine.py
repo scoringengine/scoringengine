@@ -1,15 +1,13 @@
-import datetime
 import inspect
 import json
-import pickle
 import pynsive
 import random
 import re
-import redis
 import signal
 import sys
 import time
 from functools import partial
+
 from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
@@ -18,90 +16,14 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
-from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
+from scoring_engine.cache_helper import update_all_cache
 
 
 def engine_sigint_handler(signum, frame, engine):
     engine.shutdown()
-
-
-def update_get_data():
-    # Populate redis with our round information
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
-    columns = []
-    columns.append('Team Name')
-    columns.append('Current Score')
-    if len(blue_teams) > 0:
-        for service in blue_teams[0].services:
-            columns.append(service.name)
-        data = []
-        for team in blue_teams:
-            count = 0
-            team_dict = {}
-            for x in range(0, len(columns)):
-                if columns[x] == "Team Name":
-                    team_dict[columns[x]] = team.name
-                    count += 1
-                elif columns[x] == "Current Score":
-                    team_dict[columns[x]] = team.current_score
-                    count += 1
-                else:
-                    service = session.query(Service).filter(Service.name == columns[x]).filter(
-                        Service.team == team).first()
-                    service_text = service.host
-                    if str(service.port) != '0':
-                        service_text += ':' + str(service.port)
-                    service_text += ' - ' + str(service.last_check_result())
-                    team_dict[columns[x]] = service_text
-            data.append(team_dict)
-        columnlist = []
-        for column in columns:
-            columnlist.append({'title': column, 'data': column})
-        r.set('get_data', pickle.dumps({'columns': columnlist, 'data': data, 'last_updated': str(datetime.datetime.now())}))
-    else:
-        r.set('get_data', pickle.dumps({}))
-
-
-def update_get_bar_data():
-    # Populate redis with our round information
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    team_data = {}
-    team_labels = []
-    team_scores = []
-    scores_colors = []
-    for blue_team in Team.get_all_blue_teams():
-        team_labels.append(blue_team.name)
-        team_scores.append(blue_team.current_score)
-        scores_colors.append(blue_team.rgb_color)
-
-    team_data['labels'] = team_labels
-    team_data['scores'] = team_scores
-    team_data['colors'] = scores_colors
-    team_data['last_update'] = str(datetime.datetime.now())
-    r.set('get_bar_data', pickle.dumps(team_data))
-
-
-def update_get_line_data():
-    # Populate redis with our round information
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=0)
-    results = Team.get_all_rounds_results()
-    team_data = {'team': {}, 'round': results['rounds']}
-    # We start at one because that's how javascript expects the team_data
-    current_index = 1
-    for name in results['scores'].keys():
-        scores = results['scores'][name]
-        rgb_color = results['rgb_colors'][name]
-        team_data['team'][current_index] = {
-            "label": name,
-            "data": scores,
-            "color": rgb_color
-        }
-        current_index += 1
-    r.set('get_line_data', pickle.dumps(team_data))
 
 
 class Engine(object):
@@ -307,10 +229,8 @@ class Engine(object):
                     stat_string += ' (' + ', '.join(teams[team_name]['Failed']) + ')'
                 logger.info(stat_string)
 
-            # Populate data in Redis
-            update_get_data()
-            update_get_bar_data()
-            update_get_line_data()
+            logger.info("Updating Caches")
+            update_all_cache()
 
             self.round_running = False
 

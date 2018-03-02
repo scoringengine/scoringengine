@@ -17,6 +17,7 @@ config = {
         'celery==4.0.2',
         'configparser==3.5.0',
         'Flask==0.12',
+        'Flask-Caching==1.3.3',
         'Flask-Login==0.4.0',
         'Flask-SQLAlchemy==2.2',
         'Flask-WTF==0.14.2',
