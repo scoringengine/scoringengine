@@ -26,26 +26,30 @@ def update_scoreboard_data():
 def update_team_stats(team_id=None):
     from scoring_engine.web.views.api.team import services_get_team_data
     if team_id is not None:
-        team_id = str(team_id)
-    cache.delete_memoized(services_get_team_data, team_id)
+        cache.delete_memoized(services_get_team_data, str(team_id))
+    else:
+        cache.delete_memoized(services_get_team_data)
 
 
 def update_services_navbar(team_id=None):
     from scoring_engine.web.views.api.team import team_services_status
     if team_id is not None:
-        team_id = str(team_id)
-    cache.delete_memoized(team_services_status, team_id)
+        cache.delete_memoized(team_services_status, str(team_id))
+    else:
+        cache.delete_memoized(team_services_status)
 
 
 def update_service_data(service_id=None):
     from scoring_engine.web.views.api.service import service_get_checks
     if service_id is not None:
-        service_id = str(service_id)
-    cache.delete_memoized(service_get_checks, service_id)
+        cache.delete_memoized(service_get_checks, str(service_id))
+    else:
+        cache.delete_memoized(service_get_checks)
 
 
 def update_services_data(team_id=None):
     from scoring_engine.web.views.api.team import api_services
     if team_id is not None:
-        team_id = str(team_id)
-    cache.delete_memoized(api_services, team_id)
+        cache.delete_memoized(api_services, str(team_id))
+    else:
+        cache.delete_memoized(api_services)
