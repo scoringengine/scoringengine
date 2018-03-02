@@ -73,12 +73,10 @@ def admin_update_check():
                     session.commit()
                     update_scoreboard_data()
                     update_overview_data()
-
-
-                    # update_services_navbar(check.service.team.id)
-                    # update_team_stats(check.service.team.id)
-                    # update_services_data(check.service.team.id)
-                    # update_service_data(check.service.id)
+                    update_services_navbar(check.service.team.id)
+                    update_team_stats(check.service.team.id)
+                    update_services_data(check.service.team.id)
+                    update_service_data(check.service.id)
                     return jsonify({'status': 'Updated Property Information'})
             return jsonify({'error': 'Incorrect permissions'})
     return jsonify({'error': 'Incorrect permissions'})
@@ -95,9 +93,9 @@ def admin_update_host():
                     service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()
-                    # update_overview_data()
-                    # need to fix this
-                    # update_services_data(service.team.id)
+                    update_overview_data()
+                    update_services_data(check.service.team.id)
+                    update_service_data(check.service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
@@ -113,8 +111,9 @@ def admin_update_port():
                     service.port = int(request.form['value'])
                     session.add(service)
                     session.commit()
-                    # update_overview_data()
-                    # need to fix this
+                    update_overview_data()
+                    update_services_data(check.service.team.id)
+                    update_service_data(check.service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
 
