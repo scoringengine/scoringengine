@@ -63,15 +63,22 @@
                             ],
                             'createdRow': function ( row, data, index ) {
                                 $('td', row).each(function() {
+                                    var value = $(this).html();
+                                    column_num = $(this).index();
                                     switch(index) {
                                         case 0:
                                             // Current Score
+                                            if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
+                                                break;
+                                            }
                                             break;
                                         default:
                                             // Services
-                                            var value = $(this).html();
-                                            column_num = $(this).index();
                                             if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
                                                 break;
                                             }
                                             if (value.search('- True') > 0) {
