@@ -15,6 +15,10 @@ uri = sqlite:////tmp/engine.db
 # Postgresql
 #uri = postgresql://user:password@host/database
 
+[CACHE]
+# Set to null to disable caching
+cache_type = redis
+
 [REDIS]
 host = 127.0.0.1
 port = 6379

@@ -3,7 +3,9 @@ from flask_login import current_user, login_required
 
 import html
 
+from scoring_engine.cache import cache
 from scoring_engine.db import session
+from scoring_engine.cache_helper import update_overview_data, update_services_data, update_service_data
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 
@@ -12,6 +14,7 @@ from . import mod
 
 @mod.route('/api/service/<id>/checks')
 @login_required
+@cache.memoize()
 def service_get_checks(id):
     service = session.query(Service).get(id)
     if service is None or not current_user.team == service.team:
@@ -59,5 +62,8 @@ def update_host():
                     service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()
+                    update_overview_data()
+                    update_services_data(service.team.id)
+                    update_service_data(service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
