@@ -14,7 +14,7 @@ from . import mod
 
 @mod.route('/api/service/<id>/checks')
 @login_required
-@cache.memoize
+@cache.memoize()
 def service_get_checks(id):
     service = session.query(Service).get(id)
     if service is None or not current_user.team == service.team:
