@@ -12,7 +12,7 @@ before_script:
   - ./cc-test-reporter before-build
 script:
   - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
-  - pycodestyle --show-source --ignore=E501,E402  ./
+  - flake8 --ignore E501 --exclude *__init__.py ./
 after_script:
   - >
       if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then \
