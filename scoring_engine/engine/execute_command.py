@@ -8,6 +8,9 @@ from scoring_engine.logger import logger
 @celery_app.task(name='execute_command', soft_time_limit=30)
 def execute_command(job):
     output = ""
+    # Disable duplicate celery log messages
+    if logger.propagate:
+        logger.propagate = False
     logger.info("Running cmd for " + str(job))
     try:
         cmd_result = subprocess.run(
