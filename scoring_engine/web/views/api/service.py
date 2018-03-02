@@ -63,7 +63,7 @@ def update_host():
                     session.add(service)
                     session.commit()
                     update_overview_data()
-                    update_services_navbar(service.team.id)
+                    update_services_data(service.team.id)
                     update_service_data(service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
