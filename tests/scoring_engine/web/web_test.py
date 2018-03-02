@@ -8,7 +8,6 @@ from flask_wtf.csrf import generate_csrf
 from scoring_engine.web import app
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from scoring_engine.models.setting import Setting
 
 from tests.scoring_engine.unit_test import UnitTest
 from mock import MagicMock, call

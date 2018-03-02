@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text
 
 from scoring_engine.models.base import Base
 

@@ -6,7 +6,6 @@ from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
 from wtforms.validators import InputRequired
 
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 
 from scoring_engine.db import session
