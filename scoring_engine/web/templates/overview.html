@@ -58,6 +58,9 @@
                             info: false,
                             searching: false,
                             scrollX: true,
+                            columnDefs: [
+                                { "width": "10%", "targets": 0 }
+                            ],
                             'createdRow': function ( row, data, index ) {
                                 $('td', row).each(function() {
                                     switch(index) {
