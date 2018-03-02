@@ -4,7 +4,7 @@ from scoring_engine.config_loader import ConfigLoader
 class TestConfigLoader(object):
 
     def setup(self):
-        self.config = ConfigLoader(location="../tests/scoring_engine/example.conf")
+        self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf")
 
     def test_web_debug(self):
         assert self.config.web_debug is False
