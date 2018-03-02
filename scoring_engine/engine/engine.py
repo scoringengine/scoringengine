@@ -1,16 +1,13 @@
-import datetime
 import inspect
 import json
-import pickle
 import pynsive
 import random
 import re
-import redis
 import signal
 import sys
 import time
 from functools import partial
-from scoring_engine.cache import cache
+
 from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
@@ -19,34 +16,14 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
-from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
+from scoring_engine.cache_helper import update_all_cache
 
 
 def engine_sigint_handler(signum, frame, engine):
     engine.shutdown()
-
-
-def clear_caches():
-    from scoring_engine.web.views.api.overview import overview_get_round_data, overview_data, overview_get_columns, overview_get_data
-    cache.delete_memoized(overview_get_round_data)
-    cache.delete_memoized(overview_data)
-    cache.delete_memoized(overview_get_columns)
-    cache.delete_memoized(overview_get_data)
-
-    from scoring_engine.web.views.api.scoreboard import scoreboard_get_bar_data, scoreboard_get_line_data
-    cache.delete_memoized(scoreboard_get_bar_data)
-    cache.delete_memoized(scoreboard_get_line_data)
-
-    from scoring_engine.web.views.api.service import service_get_checks
-    cache.delete_memoized(service_get_checks)
-
-    from scoring_engine.web.views.api.team import services_get_team_data, api_services, team_services_status
-    cache.delete_memoized(services_get_team_data)
-    cache.delete_memoized(api_services)
-    cache.delete_memoized(team_services_status)
 
 
 class Engine(object):
@@ -252,8 +229,8 @@ class Engine(object):
                     stat_string += ' (' + ', '.join(teams[team_name]['Failed']) + ')'
                 logger.info(stat_string)
 
-            logger.info("Clearing Caches")
-            clear_caches()
+            logger.info("Updating Caches")
+            update_all_cache()
 
             self.round_running = False
 

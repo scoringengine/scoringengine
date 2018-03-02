@@ -1,5 +1,3 @@
-import pickle
-import redis
 import json
 import random
 
@@ -12,7 +10,6 @@ from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
-from scoring_engine.config import config
 
 from . import mod
 

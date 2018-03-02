@@ -30,7 +30,7 @@ class Team(Base):
 
     @property
     def place(self):
-        sorted_blue_teams = sorted(self.blue_teams, key=lambda team: team.current_score, reverse=True)
+        sorted_blue_teams = sorted(Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True)
         place = 0
         previous_place = 1
         for team in sorted_blue_teams:
@@ -51,10 +51,6 @@ class Team(Base):
     @property
     def is_blue_team(self):
         return self.color == 'Blue'
-
-    @property
-    def blue_teams(self):
-        return Team.get_all_blue_teams()
 
     def get_array_of_scores(self, max_round):
         scores = [0]
