@@ -3,12 +3,12 @@
 
 {% block head %}
     {{ super() }}
-        <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
-        <link href="{{ url_for('static', filename='css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+        <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
 
-        <script src="{{ url_for('static', filename='js/bootstrap-editable.min.js') }}"></script>
-        <link href="{{ url_for('static', filename='css/bootstrap-editable.css') }}" rel="stylesheet" />
+        <script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
 
         <script>
             $.fn.editable.defaults.mode = 'inline';

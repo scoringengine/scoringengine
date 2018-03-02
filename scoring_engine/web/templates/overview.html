@@ -2,9 +2,9 @@
 {% block title %}Overview{% endblock %}
 {% block head %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap.min.css') }}" />
+    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
