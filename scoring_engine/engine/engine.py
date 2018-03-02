@@ -19,7 +19,7 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.logger import logger
-from scoring_engine.cache_helper import clear_all_cache
+from scoring_engine.cache_helper import update_all_cache
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -229,8 +229,8 @@ class Engine(object):
                     stat_string += ' (' + ', '.join(teams[team_name]['Failed']) + ')'
                 logger.info(stat_string)
 
-            logger.info("Clearing Caches")
-            clear_all_cache()
+            logger.info("Updating Caches")
+            update_all_cache()
 
             self.round_running = False
 
