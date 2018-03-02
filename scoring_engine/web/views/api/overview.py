@@ -14,13 +14,12 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
-def get_service_columns():
-    blue_team = session.query(Team).filter(Team.color == 'Blue').first()
+def get_table_columns():
+    blue_teams = Team.get_all_blue_teams()
     columns = []
-    columns.append({'title': 'Team Name', 'data': 'Team Name'})
-    columns.append({'title': 'Current Score', 'data': 'Current Score'})
-    for service in blue_team.services:
-        columns.append({'title': service.name, 'data': service.name})
+    columns.append({'title': '', 'data': ''})
+    for team in blue_teams:
+        columns.append({'title': team.name, 'data': team.name})
     return columns
 
 
@@ -59,42 +58,33 @@ def overview_data():
 @mod.route('/api/overview/get_columns')
 @cache.memoize()
 def overview_get_columns():
-    return jsonify(columns=get_service_columns())
+    return jsonify(columns=get_table_columns())
 
 
 @mod.route('/api/overview/get_data')
 @cache.memoize()
 def overview_get_data():
-    blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
-    columns = []
-    columns.append('Team Name')
-    columns.append('Current Score')
+    columns = get_table_columns()
+    data = []
+    blue_teams = Team.get_all_blue_teams()
+
     if len(blue_teams) > 0:
+        current_score_row_data = {'': 'Current Score'}
+        for blue_team in blue_teams:
+            current_score_row_data[blue_team.name] = blue_team.current_score
+        data.append(current_score_row_data)
+
         for service in blue_teams[0].services:
-            columns.append(service.name)
-        data = []
-        for team in blue_teams:
-            count = 0
-            team_dict = {}
-            for x in range(0, len(columns)):
-                if columns[x] == "Team Name":
-                    team_dict[columns[x]] = team.name
-                    count += 1
-                elif columns[x] == "Current Score":
-                    team_dict[columns[x]] = team.current_score
-                    count += 1
-                else:
-                    service = session.query(Service).filter(Service.name == columns[x]).filter(
-                        Service.team == team).first()
-                    service_text = service.host
-                    if str(service.port) != '0':
-                        service_text += ':' + str(service.port)
-                    service_text += ' - ' + str(service.last_check_result())
-                    team_dict[columns[x]] = service_text
-            data.append(team_dict)
-        columnlist = []
-        for column in columns:
-            columnlist.append({'title': column, 'data': column})
-        return json.dumps({'columns': columnlist, 'data': data})
+            service_row_data = {'': service.name}
+            for blue_team in blue_teams:
+                service = session.query(Service).filter(Service.name == service.name).filter(Service.team == blue_team).first()
+                service_text = service.host
+                if str(service.port) != '0':
+                    service_text += ':' + str(service.port)
+                service_text += ' - ' + str(service.last_check_result())
+                service_row_data[blue_team.name] = service_text
+            data.append(service_row_data)
+
+        return json.dumps({'columns': columns, 'data': data})
     else:
         return '{}'

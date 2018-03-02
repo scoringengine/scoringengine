@@ -54,23 +54,33 @@
                             ajax: "/api/overview/get_data",
                             columns: data.columns,
                             paging: false,
-                            order: [[ 1, 'desc' ]],
+                            bSort: false,
                             info: false,
                             searching: false,
                             scrollX: true,
+                            columnDefs: [
+                                { "width": "10%", "targets": 0 }
+                            ],
                             'createdRow': function ( row, data, index ) {
                                 $('td', row).each(function() {
                                     var value = $(this).html();
-                                    column_num = $(this).index()
-                                    switch (column_num) {
+                                    column_num = $(this).index();
+                                    switch(index) {
                                         case 0:
-                                            // Team Name
-                                            break;
-                                        case 1:
-                                            // Score
+                                            // Current Score
+                                            if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
+                                                break;
+                                            }
                                             break;
                                         default:
                                             // Services
+                                            if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
+                                                break;
+                                            }
                                             if (value.search('- True') > 0) {
                                                 image_icon = 'glyphicon-ok';
                                                 image_color = 'green';
