@@ -11,6 +11,7 @@ class ConfigLoader(object):
         self.parser.read(config_location)
 
         self.web_debug = self.parser['WEB']['debug'].lower() == 'true'
+        self.web_cache = self.parser['WEB']['cache'].lower() == 'true'
 
         self.checks_location = self.parser['GENERAL']['checks_location']
 

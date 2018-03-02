@@ -6,6 +6,7 @@ timezone = US/Eastern
 
 [WEB]
 debug = False
+cache = True
 
 [DB]
 # MySQL
