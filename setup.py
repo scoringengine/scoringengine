@@ -26,7 +26,7 @@ config = {
         'shellescape==3.4.1',
         'pynsive==0.2.7'
     ],
-    'packages': ['scoring_engine', 'bin'],
+    'packages': ['scoring_engine'],
     'scripts': [],
     'name': 'scoring_engine'
 }
