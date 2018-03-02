@@ -4,6 +4,7 @@ from scoring_engine.cache import cache
 def update_all_cache():
     update_overview_data()
     update_scoreboard_data()
+    update_team_stats()
     update_services_navbar()
     update_service_data()
     update_services_data()
