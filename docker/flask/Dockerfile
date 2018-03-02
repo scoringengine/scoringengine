@@ -1,7 +1,7 @@
 FROM base:latest
 
-WORKDIR /app
-
-EXPOSE 5000
+COPY run.py /app/run.py
 
 CMD ["./wait-for-bootstrap.sh", "bootstrap", "python", "run.py"]
+
+EXPOSE 5000
