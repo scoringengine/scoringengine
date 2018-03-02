@@ -9,7 +9,6 @@ def update_all_cache():
     update_services_data()
 
 
-# DONE
 def update_overview_data():
     from scoring_engine.web.views.api.overview import overview_data, overview_get_data, overview_get_round_data
     cache.delete_memoized(overview_get_data)
@@ -17,7 +16,6 @@ def update_overview_data():
     cache.delete_memoized(overview_get_round_data)
 
 
-# DONE
 def update_scoreboard_data():
     from scoring_engine.web.views.api.scoreboard import scoreboard_get_bar_data, scoreboard_get_line_data
     cache.delete_memoized(scoreboard_get_bar_data)
@@ -26,19 +24,19 @@ def update_scoreboard_data():
 
 def update_team_stats(team_id=None):
     from scoring_engine.web.views.api.team import services_get_team_data
-    cache.delete_memoized(services_get_team_data, team_id)
+    cache.delete_memoized(services_get_team_data, str(team_id))
 
 
 def update_services_navbar(team_id=None):
     from scoring_engine.web.views.api.team import team_services_status
-    cache.delete_memoized(team_services_status, team_id)
+    cache.delete_memoized(team_services_status, str(team_id))
 
 
 def update_service_data(service_id=None):
     from scoring_engine.web.views.api.service import service_get_checks
-    cache.delete_memoized(service_get_checks, service_id)
+    cache.delete_memoized(service_get_checks, str(service_id))
 
 
 def update_services_data(team_id=None):
     from scoring_engine.web.views.api.team import api_services
-    cache.delete_memoized(api_services, team_id)
+    cache.delete_memoized(api_services, str(team_id))
