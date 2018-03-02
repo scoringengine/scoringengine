@@ -6,16 +6,12 @@
 {% endblock %}
 {% block content %}
 <div class="container md-page">
-    <div class="uk-vertical-align uk-text-center uk-height-1-1">
-        <div class="uk-vertical-align-middle">
-            <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
-        </div>
+    <div class="row">
+        <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
     </div>
     <hr>
-    <div class="uk-vertical-align uk-text-center uk-height-1-1">
-        <div class="uk-vertical-align-middle">
-            <canvas id="teamLine" width="1000px" height="400px"></canvas>
-        </div>
+    <div class="row">
+        <canvas id="teamLine" width="1000px" height="400px"></canvas>
     </div>
     <script>
         var ctx = document.getElementById("pointsByTeamBar");
