@@ -7,7 +7,7 @@ from . import mod
 
 
 @mod.route('/api/scoreboard/get_bar_data')
-@cache.memoize()
+@cache.memoize
 def scoreboard_get_bar_data():
     team_data = {}
     team_labels = []
@@ -25,7 +25,7 @@ def scoreboard_get_bar_data():
 
 
 @mod.route('/api/scoreboard/get_line_data')
-@cache.memoize()
+@cache.memoize
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
     team_data = {'team': {}, 'round': results['rounds']}
