@@ -54,23 +54,23 @@
                             ajax: "/api/overview/get_data",
                             columns: data.columns,
                             paging: false,
-                            order: [[ 1, 'desc' ]],
+                            bSort: false,
                             info: false,
                             searching: false,
                             scrollX: true,
                             'createdRow': function ( row, data, index ) {
                                 $('td', row).each(function() {
-                                    var value = $(this).html();
-                                    column_num = $(this).index()
-                                    switch (column_num) {
+                                    switch(index) {
                                         case 0:
-                                            // Team Name
-                                            break;
-                                        case 1:
-                                            // Score
+                                            // Current Score
                                             break;
                                         default:
                                             // Services
+                                            var value = $(this).html();
+                                            column_num = $(this).index();
+                                            if (column_num == 0) {
+                                                break;
+                                            }
                                             if (value.search('- True') > 0) {
                                                 image_icon = 'glyphicon-ok';
                                                 image_color = 'green';
