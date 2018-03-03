@@ -1,7 +1,4 @@
 import json
-import random
-
-from collections import OrderedDict
 
 from flask import jsonify
 
@@ -40,9 +37,8 @@ def overview_get_round_data():
 @mod.route('/api/overview/data')
 @cache.memoize()
 def overview_data():
-    team_data = OrderedDict()
+    team_data = {}
     teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
-    random.shuffle(teams)
     for team in teams:
         service_data = {}
         for service in team.services:
