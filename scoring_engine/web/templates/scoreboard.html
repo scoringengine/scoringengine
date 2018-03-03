@@ -27,38 +27,20 @@
                 }
             }
         });
-        var ctxTeamLine = document.getElementById("teamLine");
-        var myLineChart = new Chart(ctxTeamLine, {
-            type: 'line',
-        });
-
-        (function updateLineGraph() {
-            $.ajax({
-                cache: false,
-                url: '/api/scoreboard/get_line_data',
-                dataType: 'json',
-                success: function(data) {
-                    $.each(data['team'], function(key, value) {
-                        myLineChart.data.datasets[key-1].data = value.data;
-                    });
-                    myLineChart.data.labels = data['round'];
-                    myLineChart.update();
-
-                },
-                error: function(data) {
-                    console.log("Error: " + JSON.stringify(data));
-                }
-            }).then(function() {
-                setTimeout(updateLineGraph, 30000);
-            });
-        })();
         (function updateBarGraph() {
             $.ajax({
                 cache: false,
                 url: '/api/scoreboard/get_bar_data',
                 dataType: 'json',
                 success: function(data) {
-                    myBarChart.data.datasets[0].data = data['scores'];
+                    myBarChart.data.datasets = [
+                        {
+                            'label': 'Points',
+                            'data': data['scores'],
+                            'backgroundColor': data['colors'],
+                            'borderWidth': 2
+                        }
+                    ]
                     myBarChart.data.labels = data['labels'];
                     myBarChart.update();
                 },
@@ -69,6 +51,38 @@
                 setTimeout(updateBarGraph, 30000);
             });
         })();
+
+        // var ctxTeamLine = document.getElementById("teamLine");
+        // var myLineChart = new Chart(ctxTeamLine, {
+        //     type: 'line',
+        // });
+
+        // (function updateLineGraph() {
+        //     $.ajax({
+        //         cache: false,
+        //         url: '/api/scoreboard/get_line_data',
+        //         dataType: 'json',
+        //         success: function(data) {
+        //             alert(data.keys)
+        //             myBarCmyLineCharthart.data.datasets[0].data = data['scores']
+        //             myLineChart.data.datasets[0].backgroundColor = data['colors']
+
+        //             // myLineChart.data = data;
+        //             // $.each(data['team'], function(key, value) {
+        //                 // myLineChart.data.datasets[key-1].data = value.data;
+        //             // });
+        //             // alert(myLineChart.data.)
+        //             // myLineChart.data.labels = data['round'];
+        //             myLineChart.update();
+
+        //         },
+        //         error: function(data) {
+        //             console.log("Error: " + JSON.stringify(data));
+        //         }
+        //     }).then(function() {
+        //         setTimeout(updateLineGraph, 30000);
+        //     });
+        // })();
     </script>
 </div>
 {% endblock %}
