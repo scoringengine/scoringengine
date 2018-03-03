@@ -40,7 +40,7 @@
                     dataType: 'json',
                     success: function(data) {
                         $('#team_place').text("Place: " + data.place);
-                        $('#team_current_score').text("Score: " + data.current_score);
+                        $('#team_current_score').text("Score: " + parseFloat(data.current_score).toLocaleString());
                     }
                 });
             }
@@ -91,8 +91,18 @@
                                 }
                             },
                             { "data": "rank" },
-                            { "data": "score_earned" },
-                            { "data": "max_score" },
+                            {
+                                "data": "score_earned",
+                                "render": function( data ) {
+                                    return parseFloat(data).toLocaleString()
+                                }
+                            },
+                            {
+                                "data": "max_score",
+                                "render": function( data ) {
+                                    return parseFloat(data).toLocaleString()
+                                }
+                            },
                             { "data": "percent_earned" },
                             { "data": "pts_per_check" },
                             {

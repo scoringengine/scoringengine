@@ -71,7 +71,9 @@
                                             if (column_num == 0) {
                                                 html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
-                                                break;
+                                            } else {
+                                                var html_str = parseFloat(`${value}`).toLocaleString();
+                                                $(this).html(html_str);
                                             }
                                             break;
                                         // Current Place
@@ -79,7 +81,6 @@
                                             if (column_num == 0) {
                                                 html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
-                                                break;
                                             // Add Some Ribbons
                                             } else {
                                                 if (value == 1) {
@@ -89,7 +90,6 @@
                                                 } else if (value == 3) {
                                                     $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
                                                 }
-                                                break;
                                             }
                                             break;
                                         default:
