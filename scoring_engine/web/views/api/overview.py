@@ -70,9 +70,12 @@ def overview_get_data():
 
     if len(blue_teams) > 0:
         current_score_row_data = {'': 'Current Score'}
+        current_place_row_data = {'': 'Current Place'}
         for blue_team in blue_teams:
             current_score_row_data[blue_team.name] = blue_team.current_score
+            current_place_row_data[blue_team.name] = blue_team.place
         data.append(current_score_row_data)
+        data.append(current_place_row_data)
 
         for service in blue_teams[0].services:
             service_row_data = {'': service.name}

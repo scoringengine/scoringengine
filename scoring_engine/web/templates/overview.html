@@ -66,11 +66,29 @@
                                     var value = $(this).html();
                                     column_num = $(this).index();
                                     switch(index) {
+                                        // Current Score
                                         case 0:
-                                            // Current Score
                                             if (column_num == 0) {
                                                 html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
+                                                break;
+                                            }
+                                            break;
+                                        // Current Place
+                                        case 1:
+                                            if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
+                                                break;
+                                            // Add Some Ribbons
+                                            } else {
+                                                if (value == 1) {
+                                                    $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>`);
+                                                } else if (value == 2) {
+                                                    $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>`);
+                                                } else if (value == 3) {
+                                                    $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
+                                                }
                                                 break;
                                             }
                                             break;
@@ -81,8 +99,7 @@
                                                 $(this).html(html_str);
                                                 break;
                                             }
-                                            var column_service_name = $('#overview th').eq(column_num).text()
-
+                                            column_service_name = $('#overview th').eq(column_num).text()
                                             service_results = data[column_service_name]
                                             if (service_results['result'] == 'True') {
                                                 image_icon = 'glyphicon-ok';
