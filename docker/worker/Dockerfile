@@ -23,4 +23,4 @@ COPY bin/worker /app/bin/worker
 
 USER engine
 
-CMD ["./wait-for-bootstrap.sh", "bootstrap", "sh", "/app/bin/worker"]
+CMD ["./wait-for-it.sh", "redis:6379", "--", "sh", "/app/bin/worker"]

@@ -81,8 +81,11 @@ def overview_get_data():
                 service_text = service.host
                 if str(service.port) != '0':
                     service_text += ':' + str(service.port)
-                service_text += ' - ' + str(service.last_check_result())
-                service_row_data[blue_team.name] = service_text
+                service_data = {
+                    'result': str(service.last_check_result()),
+                    'host_info': service_text
+                }
+                service_row_data[blue_team.name] = service_data
             data.append(service_row_data)
 
         return json.dumps({'columns': columns, 'data': data})

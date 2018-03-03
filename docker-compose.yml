@@ -11,11 +11,54 @@ services:
     restart: on-failure
     volumes:
       - redis:/data
+    # ports:
+    #   - 6379:6379
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_DATABASE=scoring_engine
+      - MYSQL_USER=se_user
+      - MYSQL_PASSWORD=CHANGEME
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pCHANGEME"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - mysql:/var/lib/mysql
+    # ports:
+    #   - 3306:3306
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    depends_on:
+      - flask
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
   base:
     build:
       context: .
       dockerfile: ./docker/base/Dockerfile
     image: base:latest
+  bootstrap:
+    build:
+      context: .
+      dockerfile: ./docker/bootstrap/Dockerfile
+    depends_on:
+      - base
+      - mysql
+    healthcheck:
+      test: ["CMD", "exit", "1"]
+    restart: on-failure
   engine:
     build:
       context: .
@@ -33,16 +76,6 @@ services:
       - base
       - redis
     restart: on-failure
-  bootstrap:
-    build:
-      context: .
-      dockerfile: ./docker/bootstrap/Dockerfile
-    depends_on:
-      - base
-      - mysql
-    healthcheck:
-      test: ["CMD", "exit", "1"]
-    restart: on-failure
   flask:
     build:
       context: .
@@ -56,35 +89,6 @@ services:
       timeout: 3s
       retries: 10
     restart: on-failure
-  nginx:
-    build:
-      context: .
-      dockerfile: ./docker/nginx/Dockerfile
-    depends_on:
-      - flask
-    ports:
-      - "80:80"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "localhost"]
-      interval: 30s
-      timeout: 3s
-      retries: 10
-    restart: on-failure
-  mysql:
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=CHANGEME
-      - MYSQL_DATABASE=scoring_engine
-      - MYSQL_USER=se_user
-      - MYSQL_PASSWORD=CHANGEME
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pCHANGEME"]
-      interval: 30s
-      timeout: 3s
-      retries: 10
-    restart: on-failure
-    volumes:
-      - mysql:/var/lib/mysql
 
 volumes:
   redis:
