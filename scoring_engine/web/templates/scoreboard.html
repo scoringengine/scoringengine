@@ -14,19 +14,19 @@
         <canvas id="teamLine" width="1000px" height="400px"></canvas>
     </div>
     <script>
-        var ctx = document.getElementById("pointsByTeamBar");
-        var myBarChart = new Chart(ctx, {
+        var myBarChart = new Chart(document.getElementById("pointsByTeamBar"), {
             type: 'bar',
-            data: {
-                labels: {{team_labels|safe}},
-                datasets: [{
-                    label: 'Points',
-                    data: {{team_scores|safe}},
-                    backgroundColor: {{scores_colors|safe}},
-                    borderWidth: 2
-                }]
-            },
             options: {
+                legend: {
+                    display: false
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.yLabel;
+                        }
+                    }
+                },
                 scales: {
                     yAxes: [{
                         ticks: {
@@ -36,77 +36,19 @@
                 }
             }
         });
-    </script>
-    <script>
-        var teamLineData = {
-            labels: {{round_labels|safe}},
-            datasets: [
-                {% for key, value in team_data.items() %}
-                {
-                    label: '{{ value['label'] }}',
-                    fill: false,
-                    lineTension: 0.1,
-                    backgroundColor: "rgba(0, 0, 0, 0)",
-                    borderColor: "{{ value['color'] }}",
-                    borderCapStyle: 'butt',
-                    borderDash: [],
-                    borderDashOffset: 0.0,
-                    borderJoinStyle: 'miter',
-                    pointBorderColor: "{{ value['color'] }}",
-                    pointBackgroundColor: "#fff",
-                    pointBorderWidth: 1,
-                    pointHoverRadius: 5,
-                    pointHoverBackgroundColor: "rgba(75,192,192,1)",
-                    pointHoverBorderColor: "rgba(220,220,220,1)",
-                    pointHoverBorderWidth: 2,
-                    pointRadius: 1,
-                    pointHitRadius: 10,
-                    data: {{ value['data'] }},
-                    // data: [0, 100, 200],
-                    spanGaps: false,
-                },
-                {% endfor %}
-            ]
-        };
-    </script>
-    <script>
-        var ctxTeamLine = document.getElementById("teamLine");
-        var myLineChart = new Chart(ctxTeamLine, {
-            type: 'line',
-            data: teamLineData
-        });
-    </script>
-    <script>
-        (function updateLineGraph() {
-            $.ajax({
-                cache: false,
-                url: '/api/scoreboard/get_line_data',
-                dataType: 'json',
-                success: function(data) {
-                    $.each(data['team'], function(key, value) {
-                        myLineChart.data.datasets[key-1].data = value.data;
-
-                    });
-                    myLineChart.data.labels = data['round'];
-                    myLineChart.update();
-
-                },
-                error: function(data) {
-                    console.log("Error: " + JSON.stringify(data));
-                }
-            }).then(function() {
-                setTimeout(updateLineGraph, 30000);
-            });
-        })();
-    </script>
-    <script>
         (function updateBarGraph() {
             $.ajax({
                 cache: false,
                 url: '/api/scoreboard/get_bar_data',
                 dataType: 'json',
                 success: function(data) {
-                    myBarChart.data.datasets[0].data = data['scores'];
+                    myBarChart.data.datasets = [
+                        {
+                            'data': data['scores'],
+                            'backgroundColor': data['colors'],
+                            'borderWidth': 2
+                        }
+                    ]
                     myBarChart.data.labels = data['labels'];
                     myBarChart.update();
                 },
@@ -115,6 +57,53 @@
                 }
             }).then(function() {
                 setTimeout(updateBarGraph, 30000);
+            });
+        })();
+
+        var myLineChart = new Chart(document.getElementById("teamLine"), {
+            type: 'line',
+        });
+
+        (function updateLineGraph() {
+            $.ajax({
+                cache: false,
+                url: '/api/scoreboard/get_line_data',
+                dataType: 'json',
+                success: function(data) {
+                    myLineChart.data.datasets = []
+                    $.each(data['team'], function(index,value) {
+                        team_data = {
+                            "label": value['name'],
+                            "fill": false,
+                            "lineTension": 0.1,
+                            "backgroundColor": "rgba(0, 0, 0, 0)",
+                            "borderColor": value['color'],
+                            "borderCapStyle": 'butt',
+                            "borderDash": [],
+                            "borderDashOffset": 0.0,
+                            "borderJoinStyle": 'miter',
+                            "pointBorderColor": value['color'],
+                            "pointBackgroundColor": "#fff",
+                            "pointBorderWidth": 1,
+                            "pointHoverRadius": 5,
+                            "pointHoverBackgroundColor": "rgba(75,192,192,1)",
+                            "pointHoverBorderColor": "rgba(220,220,220,1)",
+                            "pointHoverBorderWidth": 2,
+                            "pointRadius": 1,
+                            "pointHitRadius": 10,
+                            "data": value['scores'],
+                            "spanGaps": false,
+                        }
+                        myLineChart.data.datasets.push(team_data);
+                    })
+                    myLineChart.data.labels = data['rounds'];
+                    myLineChart.update();
+                },
+                error: function(data) {
+                    console.log("Error: " + JSON.stringify(data));
+                }
+            }).then(function() {
+                setTimeout(updateLineGraph, 30000);
             });
         })();
     </script>

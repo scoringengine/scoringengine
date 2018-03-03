@@ -28,16 +28,14 @@ def scoreboard_get_bar_data():
 @cache.memoize()
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
-    team_data = {'team': {}, 'round': results['rounds']}
-    # We start the index at one for javascript
-    current_index = 1
-    for name in results['scores'].keys():
-        scores = results['scores'][name]
-        rgb_color = results['rgb_colors'][name]
-        team_data['team'][current_index] = {
-            "label": name,
-            "data": scores,
-            "color": rgb_color
-        }
-        current_index += 1
+    team_data = {'team': [], 'rounds': results['rounds']}
+    if 'team_names' in results.keys():
+        for team_name in results['team_names']:
+            scores = results['scores'][team_name]
+            rgb_color = results['rgb_colors'][team_name]
+            team_data['team'].append({
+                "name": team_name,
+                "scores": scores,
+                "color": rgb_color
+            })
     return jsonify(team_data)

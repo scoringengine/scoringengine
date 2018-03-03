@@ -96,10 +96,13 @@ class Team(Base):
                 rounds.append("Round " + str(round_num))
 
             rgb_colors = {}
+            team_names = []
             for team in blue_teams:
                 scores[team.name] = team.get_array_of_scores(last_round)
                 rgb_colors[team.name] = team.rgb_color
-                results['rgb_colors'] = rgb_colors
+                team_names.append(team.name)
+            results['team_names'] = team_names
+            results['rgb_colors'] = rgb_colors
 
         results['rounds'] = rounds
         results['scores'] = scores
