@@ -35,9 +35,12 @@ def scoreboard_get_line_data():
         scores = results['scores'][name]
         rgb_color = results['rgb_colors'][name]
         team_data['team'][current_index] = {
-            "label": name,
+            "backgroundColor": rgb_color,
+            "borderColor": rgb_color,
             "data": scores,
-            "color": rgb_color
+            "fill": False,
+            "label": name
         }
         current_index += 1
+    print(team_data)
     return jsonify(team_data)

@@ -14,8 +14,7 @@
         <canvas id="teamLine" width="1000px" height="400px"></canvas>
     </div>
     <script>
-        var ctx = document.getElementById("pointsByTeamBar");
-        var myBarChart = new Chart(ctx, {
+        var myBarChart = new Chart(document.getElementById("pointsByTeamBar"), {
             type: 'bar',
             options: {
                 legend: {
@@ -61,38 +60,32 @@
                 setTimeout(updateBarGraph, 30000);
             });
         })();
+    </script>
+    <script>
+        var myLineChart = new Chart(document.getElementById("teamLine"), {
+            type: 'line',
+        });
 
-        // var ctxTeamLine = document.getElementById("teamLine");
-        // var myLineChart = new Chart(ctxTeamLine, {
-        //     type: 'line',
-        // });
-
-        // (function updateLineGraph() {
-        //     $.ajax({
-        //         cache: false,
-        //         url: '/api/scoreboard/get_line_data',
-        //         dataType: 'json',
-        //         success: function(data) {
-        //             alert(data.keys)
-        //             myBarCmyLineCharthart.data.datasets[0].data = data['scores']
-        //             myLineChart.data.datasets[0].backgroundColor = data['colors']
-
-        //             // myLineChart.data = data;
-        //             // $.each(data['team'], function(key, value) {
-        //                 // myLineChart.data.datasets[key-1].data = value.data;
-        //             // });
-        //             // alert(myLineChart.data.)
-        //             // myLineChart.data.labels = data['round'];
-        //             myLineChart.update();
-
-        //         },
-        //         error: function(data) {
-        //             console.log("Error: " + JSON.stringify(data));
-        //         }
-        //     }).then(function() {
-        //         setTimeout(updateLineGraph, 30000);
-        //     });
-        // })();
+        (function updateLineGraph() {
+            $.ajax({
+                cache: false,
+                url: '/api/scoreboard/get_line_data',
+                dataType: 'json',
+                success: function(data) {
+                    myLineChart.data.datasets = []
+                    $.each(data['team'], function(key,value) {
+                        myLineChart.data.datasets.push(value);
+                    })
+                    myLineChart.data.labels = data['round'];
+                    myLineChart.update();
+                },
+                error: function(data) {
+                    console.log("Error: " + JSON.stringify(data));
+                }
+            }).then(function() {
+                setTimeout(updateLineGraph, 30000);
+            });
+        })();
     </script>
 </div>
 {% endblock %}
