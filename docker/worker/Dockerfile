@@ -1,5 +1,7 @@
 FROM base:latest
 
+USER root
+
 RUN \
   apt-get update && \
   apt-get install -y curl && \
@@ -18,5 +20,7 @@ RUN pip install pysmb
 RUN apt-get install -y dnsutils
 
 COPY bin/worker /app/bin/worker
+
+USER engine
 
 CMD ["./wait-for-it.sh", "redis:6379", "--", "sh", "/app/bin/worker"]
