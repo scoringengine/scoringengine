@@ -29,12 +29,13 @@ def scoreboard_get_bar_data():
 def scoreboard_get_line_data():
     results = Team.get_all_rounds_results()
     team_data = {'team': [], 'rounds': results['rounds']}
-    for team_name in results['team_names']:
-        scores = results['scores'][team_name]
-        rgb_color = results['rgb_colors'][team_name]
-        team_data['team'].append({
-            "name": team_name,
-            "scores": scores,
-            "color": rgb_color
-        })
+    if 'team_names' in results.keys():
+        for team_name in results['team_names']:
+            scores = results['scores'][team_name]
+            rgb_color = results['rgb_colors'][team_name]
+            team_data['team'].append({
+                "name": team_name,
+                "scores": scores,
+                "color": rgb_color
+            })
     return jsonify(team_data)
