@@ -1,5 +1,5 @@
 import json
-
+from collections import OrderedDict
 from flask import jsonify
 
 from scoring_engine.cache import cache
@@ -37,7 +37,7 @@ def overview_get_round_data():
 @mod.route('/api/overview/data')
 @cache.memoize()
 def overview_data():
-    team_data = {}
+    team_data = OrderedDict()
     teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
     for team in teams:
         service_data = {}
