@@ -75,27 +75,28 @@
                                             }
                                             break;
                                         default:
-                                            // Services
+                                            // Service Name
                                             if (column_num == 0) {
                                                 html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
                                                 break;
                                             }
-                                            if (value.search('- True') > 0) {
+                                            var column_service_name = $('#overview th').eq(column_num).text()
+
+                                            service_results = data[column_service_name]
+                                            if (service_results['result'] == 'True') {
                                                 image_icon = 'glyphicon-ok';
                                                 image_color = 'green';
-                                                value_str = value.replace(' - True', '');
                                             }
-                                            else if (value.search('- False') > 0) {
+                                            else if (service_results['result'] == 'False') {
                                                 image_icon = 'glyphicon-remove';
                                                 image_color = 'red';
-                                                value_str = value.replace(' - False', '');
                                             }
                                             else {
                                                 image_icon = 'glyphicon-question-sign';
                                                 image_color = 'black';
-                                                value_str = value.replace(' - None', '');
                                             }
+                                            value_str = service_results['host_info']
                                             html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
                                             $(this).html(html_str);
                                     }
