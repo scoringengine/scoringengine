@@ -66,8 +66,9 @@
                                     var value = $(this).html();
                                     column_num = $(this).index();
                                     switch(index) {
+                                        // Current Score
                                         case 0:
-                                            // Current Score
+                                        case 1:
                                             if (column_num == 0) {
                                                 html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
@@ -81,8 +82,7 @@
                                                 $(this).html(html_str);
                                                 break;
                                             }
-                                            var column_service_name = $('#overview th').eq(column_num).text()
-
+                                            column_service_name = $('#overview th').eq(column_num).text()
                                             service_results = data[column_service_name]
                                             if (service_results['result'] == 'True') {
                                                 image_icon = 'glyphicon-ok';
