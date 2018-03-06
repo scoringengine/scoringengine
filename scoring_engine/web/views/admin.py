@@ -57,6 +57,7 @@ def settings():
         welcome_page_content = Setting.get_setting('welcome_page_content').value
         round_time_sleep = Setting.get_setting('round_time_sleep').value
         worker_refresh_time = Setting.get_setting('worker_refresh_time').value
+        blue_team_update_hostname = Setting.get_setting('blue_team_update_hostname').value
         blue_teams = Team.get_all_blue_teams()
         return render_template(
             'admin/settings.html',
@@ -64,7 +65,8 @@ def settings():
             round_time_sleep=round_time_sleep,
             worker_refresh_time=worker_refresh_time,
             about_page_content=about_page_content,
-            welcome_page_content=welcome_page_content
+            welcome_page_content=welcome_page_content,
+            blue_team_update_hostname=blue_team_update_hostname
         )
     else:
         return redirect(url_for('auth.unauthorized'))

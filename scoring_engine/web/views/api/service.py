@@ -59,6 +59,9 @@ def update_host():
             service = session.query(Service).get(int(request.form['pk']))
             if service:
                 if service.team == current_user.team and request.form['name'] == 'host':
+                    modify_hostname_setting = Setting.get_setting('blue_team_update_hostname').value
+                    if modify_hostname_setting != 'true':
+                        return jsonify({'error': 'Incorrect permissions'})
                     service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()
