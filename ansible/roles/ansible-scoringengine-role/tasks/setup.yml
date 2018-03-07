@@ -1,0 +1,76 @@
+---
+- name: "SETUP | Update repositories cache and install scoring_engine dependencies"
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - build-essential
+    - git
+    - libmysqlclient-dev
+    - python3.5
+    - python3.5-dev
+    - wget
+
+- name: "SETUP | Create engine user"
+  user:
+    name: engine
+    comment: "Scoring Engine"
+
+- name: "SETUP | Download pip"
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+
+- name: "SETUP | Install pip"
+  shell: python3.5 /tmp/get-pip.py
+
+- name: "SETUP | Install virtualenv"
+  pip:
+    name: virtualenv
+    executable: pip3.5
+
+- name: "SETUP | Configure virtualenv"
+  shell: virtualenv -p /usr/bin/python3.5 /home/engine/scoring_engine/env
+  become: true
+  become_user: engine
+  args:
+    creates: "/home/engine/scoring_engine/env/bin/python3.5"
+
+- name: "SETUP | Setup src directory"
+  git:
+    repo: "https://github.com/pwnbus/scoring_engine"
+    dest: /home/engine/scoring_engine/src
+  become: true
+  become_user: engine
+
+- name: "SETUP | Install scoring_engine python dependencies"
+  shell: /home/engine/scoring_engine/env/bin/pip3.5 install -e /home/engine/scoring_engine/src/
+  become: true
+  become_user: engine
+
+- name: "SETUP | Copy/Modify Configuration"
+  copy:
+    src: /home/engine/scoring_engine/src/engine.conf.inc
+    dest: /home/engine/scoring_engine/src/engine.conf
+    remote_src: true
+  become: true
+  become_user: engine
+
+- name: "SETUP | Create scoring_engine log directory"
+  file:
+    path: /var/log/scoring_engine
+    state: directory
+    owner: syslog
+    group: adm
+    mode: 0755
+
+- name: "SETUP | Copy rsyslog configuration"
+  copy:
+    src: /home/engine/scoring_engine/src/configs/rsyslog.conf
+    dest: /etc/rsyslog.d/10-scoring_engine.conf
+    remote_src: true
+
+- name: "SETUP | Restart rsyslog"
+  service:
+    name: rsyslog
+    state: restarted

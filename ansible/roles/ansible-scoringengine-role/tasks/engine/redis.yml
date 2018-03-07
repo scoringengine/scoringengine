@@ -1,0 +1,12 @@
+---
+- name: "ENGINE | REDIS | Install redis"
+  apt:
+    name: redis-server
+    update_cache: yes
+
+- name: "ENGINE | REDIS | Configure redis"
+  lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: 'bind'
+    line: 'bind 0.0.0.0'
+    state: present

@@ -1,0 +1,17 @@
+---
+- name: "ENGINE | SERVICE | Copy engine service configuration"
+  copy:
+    src: /home/engine/scoring_engine/src/configs/engine.service
+    dest: /etc/systemd/system/scoring_engine-engine.service
+    remote_src: true
+
+- name: "ENGINE | SERVICE | Populate DB"
+  shell: /home/engine/scoring_engine/env/bin/python3.5 /home/engine/scoring_engine/src/bin/populate_db
+  become: true
+  become_user: engine
+
+- name: "ENGINE | SERVICE | Enable engine service"
+  service:
+    name: scoring_engine-engine
+    enabled: yes
+    state: started

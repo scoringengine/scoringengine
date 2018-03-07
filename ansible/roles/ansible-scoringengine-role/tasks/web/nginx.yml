@@ -1,0 +1,63 @@
+---
+- name: "WEB | NGINX | Install OpenSSL Python Module"
+  pip:
+    name: pyOpenSSL
+    executable: pip3.5
+
+- name: "WEB | NGINX | Install nginx"
+  apt:
+    name: "nginx"
+    update_cache: yes
+
+- name: "WEB | NGINX | Create nginx ssl directory"
+  file:
+    path: /etc/nginx/ssl/
+    state: directory
+    mode: 0755
+
+- name: "WEB | NGINX | Generate RSA Key"
+  command: openssl genrsa \
+    -out "/etc/nginx/ssl/server.key" 2048
+  args:
+    creates: "/etc/nginx/ssl/server.key"
+
+- name: "WEB | NGINX | Generate CSR"
+  command: openssl req \
+    -new \
+    -subj '/C=US/ST=CA/L=New York/O=ScoringEngine/CN=scoring_engine'
+    -key "/etc/nginx/ssl/server.key" \
+    -out "/etc/nginx/ssl/server.csr"
+  args:
+    creates: "/etc/nginx/ssl/server.csr"
+
+- name: "WEB | NGINX | Generate Self-signed Certificate"
+  command: openssl req \
+    -x509 \
+    -days 1825 \
+    -key "/etc/nginx/ssl/server.key" \
+    -in "/etc/nginx/ssl/server.csr" \
+    -out "/etc/nginx/ssl/server.crt"
+  args:
+    creates: "/etc/nginx/ssl/server.crt"
+
+- name: "WEB | NGINX | Copy nginx configuration file"
+  copy:
+    src: /home/engine/scoring_engine/src/configs/nginx.conf
+    dest: /etc/nginx/sites-available/scoring_engine.conf
+    remote_src: true
+
+- name: "WEB | NGINX | Copy nginx scoring_engine site configuration"
+  file:
+    src: /etc/nginx/sites-available/scoring_engine.conf
+    dest: /etc/nginx/sites-enabled/scoring_engine.conf
+    state: link
+
+- name: "WEB | NGINX | Remove default site configuration"
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: "WEB | NGINX | Restart nginx"
+  service:
+    name: nginx
+    state: restarted
