@@ -1,0 +1,33 @@
+---
+- name: "WEB | MYSQL | Install MySQL Python Module"
+  pip:
+    name: mysqlclient
+    executable: pip3.5
+
+- name: "WEB | MYSQL | Install MySQL Server"
+  apt:
+    name: mysql-server
+    update_cache: yes
+
+- name: "WEB | MYSQL | Configure MySQL to listen on 0.0.0.0"
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: 'bind-address'
+    line: 'bind-address = 0.0.0.0'
+
+- name: "WEB | MYSQL | Restart MySQL"
+  service:
+    name: mysql
+    state: restarted
+
+- name: "WEB | MYSQL | Create scoring_engine database"
+  mysql_db:
+    name: scoring_engine
+    state: present
+
+- name: "WEB | MYSQL | Create scoring_engine database user"
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_pass }}"
+    priv: 'scoring_engine.*:ALL'
+    state: present

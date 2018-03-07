@@ -1,0 +1,15 @@
+---
+- include: setup.yml
+
+# Web
+- include: web/mysql.yml
+- include: web/nginx.yml
+- include: web/service.yml
+
+# Engine
+- include: engine/redis.yml
+- include: engine/service.yml
+
+# Worker
+- include: worker/service.yml
+- include: worker/checks.yml

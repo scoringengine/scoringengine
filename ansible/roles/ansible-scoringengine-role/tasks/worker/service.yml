@@ -1,0 +1,12 @@
+---
+- name: "WORKER | SERVICE | Copy worker service configuration"
+  copy:
+    src: /home/engine/scoring_engine/src/configs/worker.service
+    dest: /etc/systemd/system/scoring_engine-worker.service
+    remote_src: true
+
+- name: "WORKER | SERVICE | Enable engine service"
+  service:
+    name: scoring_engine-worker
+    enabled: yes
+    state: started

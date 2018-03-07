@@ -1,0 +1,39 @@
+---
+- name: "WORKER | SERVICE | Install check apt dependencies"
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - curl
+    - dnsutils
+    - ldap-utils
+    - medusa
+
+- name: "WORKER | SERVICES | Install check pip dependencies"
+  shell: /home/engine/scoring_engine/env/bin/pip3.5 install {{ item }}
+  with_items:
+    - paramiko
+    - pysmb
+    - requests
+
+- name: "WORKER | SERVICES | Install custom smtp check"
+  copy:
+    src: /home/engine/scoring_engine/src/scoring_engine/engine/checks/bin/smtp_check
+    dest: /usr/bin/smtp_check
+    remote_src: true
+
+- name: "WORKER | SERVICES | Install custom smtps check"
+  copy:
+    src: /home/engine/scoring_engine/src/scoring_engine/engine/checks/bin/smtps_check
+    dest: /usr/bin/smtps_check
+    remote_src: true
+
+- name: "WORKER | SERVICES | Set smtp_check executable"
+  file:
+    path: /usr/bin/smtp_check
+    mode: "u+x,g-x,o-x"
+
+- name: "WORKER | SERVICES | Set smtps_check executable"
+  file:
+    path: /usr/bin/smtps_check
+    mode: "u+x,g-x,o-x"
