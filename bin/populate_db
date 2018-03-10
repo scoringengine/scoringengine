@@ -138,6 +138,16 @@ for num in range(1, num_teams + 1):
     session.add(environment)
     services.append(service)
 
+    print("\t\tCreating MSSQL Service")
+    service = Service(name='MSSQL', team=team, check_name='MSSQLCheck', host='testbed_mssql', port=1433, points=100)
+    session.add(Account(username='sa', password='yourStrong(!)Password', service=service))
+    environment = Environment(service=service, matching_regex='Microsoft SQL Server 2017')
+    session.add(Property(environment=environment, name='database', value='master'))
+    session.add(Property(environment=environment, name='command', value='SELECT @@version;'))
+    session.add(service)
+    session.add(environment)
+    services.append(service)
+
     print("\t\tCreating FTP Service")
     service = Service(name='FTP', team=team, check_name='FTPCheck', host='testbed_ftp', port=21, points=150)
     session.add(Account(username='ttesterson', password='testpass', service=service))

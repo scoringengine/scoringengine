@@ -4,6 +4,7 @@ USER root
 
 RUN \
   apt-get update && \
+  apt-get install -y apt-transport-https && \
   apt-get install -y curl && \
   apt-get install -y mysql-client
 
@@ -18,6 +19,14 @@ RUN pip install pysmb
 
 # DNS Check
 RUN apt-get install -y dnsutils
+
+# MSSQL Check
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+RUN curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
+RUN apt-get update 
+RUN ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+RUN locale-gen
 
 COPY bin/worker /app/bin/worker
 
