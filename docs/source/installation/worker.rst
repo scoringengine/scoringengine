@@ -46,7 +46,7 @@ Install dependencies for DNS check
   apt-get install -y dnsutils
 
 Install dependencies for HTTP/HTTPS check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get install -y curl
@@ -76,10 +76,16 @@ Install dependencies for Elasticsearch check
   pip install requests
 
 Install dependencies for SMB check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   pip install pysmb
+
+Install dependencies for RDP check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  apt-get install freerdp-x11
 
 Install dependencies for SMTP/SMTPS check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
