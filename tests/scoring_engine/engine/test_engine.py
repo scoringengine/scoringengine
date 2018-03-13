@@ -13,6 +13,7 @@ from scoring_engine.engine.checks.mssql import MSSQLCheck
 from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
 from scoring_engine.engine.checks.pop3 import POP3Check
 from scoring_engine.engine.checks.pop3s import POP3SCheck
+from scoring_engine.engine.checks.rdp import RDPCheck
 from scoring_engine.engine.checks.imap import IMAPCheck
 from scoring_engine.engine.checks.imaps import IMAPSCheck
 from scoring_engine.engine.checks.smtp import SMTPCheck
@@ -60,6 +61,7 @@ class TestEngine(UnitTest):
             ElasticsearchCheck,
             LDAPCheck,
             SMBCheck,
+            RDPCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 

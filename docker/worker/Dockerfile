@@ -26,10 +26,13 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 #RUN curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
 # Package Repo for Debian 8 (Docker Hub Python Image)
 RUN echo "deb [arch=amd64] https://packages.microsoft.com/debian/8/prod jessie main" >> /etc/apt/sources.list.d/msprod.list
-RUN apt-get update 
+RUN apt-get update
 RUN ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 RUN locale-gen
+
+# RDP Check
+RUN apt-get install -y freerdp-x11
 
 COPY bin/worker /app/bin/worker
 
