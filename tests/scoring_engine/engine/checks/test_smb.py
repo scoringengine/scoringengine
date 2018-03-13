@@ -5,7 +5,6 @@ from tests.scoring_engine.engine.checks.check_test import CheckTest
 
 class TestSMBCheck(CheckTest):
     check_name = 'SMBCheck'
-    required_properties = ['share', 'file', 'hash']
     properties = {
         'share': 'ScoringShare',
         'file': 'flag.txt',

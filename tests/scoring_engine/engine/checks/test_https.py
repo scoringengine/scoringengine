@@ -3,7 +3,6 @@ from tests.scoring_engine.engine.checks.check_test import CheckTest
 
 class TestHTTPSCheck(CheckTest):
     check_name = 'HTTPSCheck'
-    required_properties = ['useragent', 'vhost', 'uri']
     properties = {
         'useragent': 'testagent',
         'vhost': 'www.example.com',
