@@ -13,4 +13,4 @@ class TestFTPCheck(CheckTest):
         'testuser': 'testpass'
     }
 
-    cmd = CHECKS_BIN_PATH + "/ftp_check '127.0.0.1' 100 'testuser' 'testpass' '/adir/textfile.txt' 'Sample contents'"
+    cmd = CHECKS_BIN_PATH + "/ftp_check '127.0.0.1' 1234 'testuser' 'testpass' '/adir/textfile.txt' 'Sample contents'"

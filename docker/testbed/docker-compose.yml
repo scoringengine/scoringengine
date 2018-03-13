@@ -27,6 +27,13 @@ services:
       - MYSQL_PASSWORD=CHANGEME
     # ports:
     #   - 3306:3306
+  testbed_mssql:
+    image: microsoft/mssql-server-linux:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong(!)Password
+    # ports:
+    #   - 1433:1433
   testbed_ftp:
     build:
       context: .

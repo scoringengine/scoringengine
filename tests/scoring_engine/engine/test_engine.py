@@ -9,6 +9,7 @@ from scoring_engine.engine.checks.ftp import FTPCheck
 from scoring_engine.engine.checks.http import HTTPCheck
 from scoring_engine.engine.checks.https import HTTPSCheck
 from scoring_engine.engine.checks.mysql import MYSQLCheck
+from scoring_engine.engine.checks.mssql import MSSQLCheck
 from scoring_engine.engine.checks.postgresql import POSTGRESQLCheck
 from scoring_engine.engine.checks.pop3 import POP3Check
 from scoring_engine.engine.checks.pop3s import POP3SCheck
@@ -47,6 +48,7 @@ class TestEngine(UnitTest):
             HTTPCheck,
             HTTPSCheck,
             MYSQLCheck,
+            MSSQLCheck,
             POSTGRESQLCheck,
             POP3Check,
             POP3SCheck,

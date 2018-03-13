@@ -9,4 +9,4 @@ class TestElasticsearchCheck(CheckTest):
         'index': 'events',
         'doc_type': 'message'
     }
-    cmd = CHECKS_BIN_PATH + "/elasticsearch_check '127.0.0.1' 100 'events' 'message'"
+    cmd = CHECKS_BIN_PATH + "/elasticsearch_check '127.0.0.1' 1234 'events' 'message'"
