@@ -9,4 +9,4 @@ class TestIMAPSCheck(CheckTest):
     accounts = {
         'testuser': 'passtest'
     }
-    cmd = "medusa -s -R 1 -h '127.0.0.1' -n 100 -u 'testuser@test.com' -p 'passtest' -M imap -m AUTH:LOGIN"
+    cmd = "medusa -s -R 1 -h '127.0.0.1' -n 1234 -u 'testuser@test.com' -p 'passtest' -M imap -m AUTH:LOGIN"
