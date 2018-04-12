@@ -37,7 +37,7 @@ Setup src directory
 ^^^^^^^^^^^^^^^^^^^
 ::
 
-  git clone https://github.com/pwnbus/scoring_engine /home/engine/scoring_engine/src
+  git clone https://github.com/scoringengine/scoringengine /home/engine/scoring_engine/src
 
 Install scoring_engine src python dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
