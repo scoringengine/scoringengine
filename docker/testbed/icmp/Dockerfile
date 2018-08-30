@@ -1,3 +1,3 @@
 FROM ubuntu:latest
 
-CMD ["/sbin/init", "3"]
+CMD ["tail", "-f", "/dev/null"]
