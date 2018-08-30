@@ -14,10 +14,10 @@ config = {
     'version': version,
     'install_requires': [
         'bcrypt==3.1.3',
-        'celery==4.0.2',
+        'celery==4.1.1',
         'configparser==3.5.0',
-        'Flask==0.12',
-        'Flask-Caching==1.3.3',
+        'Flask==0.12.4',
+        'Flask-Caching==1.4.0',
         'Flask-Login==0.4.0',
         'Flask-SQLAlchemy==2.2',
         'Flask-WTF==0.14.2',
