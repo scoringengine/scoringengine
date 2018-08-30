@@ -1,5 +1,5 @@
 from scoring_engine.celery_app import celery_app
-from billiard.exceptions import SoftTimeLimitExceeded
+from celery.exceptions import SoftTimeLimitExceeded
 import subprocess
 
 from scoring_engine.logger import logger
