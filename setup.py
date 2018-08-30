@@ -14,7 +14,7 @@ config = {
     'version': version,
     'install_requires': [
         'bcrypt==3.1.3',
-        'celery==4.0.2',
+        'celery==4.2.1',
         'configparser==3.5.0',
         'Flask==0.12',
         'Flask-Caching==1.3.3',
