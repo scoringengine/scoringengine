@@ -11,8 +11,8 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 script:
-  - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
   - flake8 --ignore E501 --exclude *__init__.py ./
+  - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
 after_script:
   - >
       if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then \
