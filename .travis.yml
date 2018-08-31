@@ -25,6 +25,6 @@ script:
   - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
 after_success:
   - |
-    if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
       ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
     fi
