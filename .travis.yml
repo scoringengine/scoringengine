@@ -6,23 +6,25 @@ services:
   - redis-server
   - docker
 branches:
-  # Restrict push builds to only master
+  # Restrict non PR builds
   only:
   - master
 before_install:
   # Fail immediately on any error
   - set -e
-install:
-  - pip install -e .
-  - pip install -r tests/requirements.txt
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+#install:
+  #- pip install -e .
+  #- pip install -r tests/requirements.txt
+#before_script:
+  #- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  #- chmod +x ./cc-test-reporter
+  #- ./cc-test-reporter before-build
 script:
-  - flake8 --ignore E501 --exclude *__init__.py ./
-  - make build-testbed
-  - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
+  - docker-compose -f tests/docker-compose.yml -p scoringengine build
+  - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
+  - docker run -it scoringengine_tester bash -c "/app/cc-test-reporter before-build"
+  - docker run -it scoringengine_tester bash -c "flake8 --ignore E501 --exclude *__init__.py ./"
+  - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
 after_success:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - docker run -it scoringengine_tester bash -c "/app/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
   if: type = push
