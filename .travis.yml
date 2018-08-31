@@ -8,15 +8,22 @@ branches:
 before_install:
   # Fail immediately on any error
   - set -e
-script:
-  - echo $TRAVIS_PULL_REQUEST
+install:
+  # Build containers
   - docker-compose -f tests/docker-compose.yml -p scoringengine build
+before_script:
+  # Start up resources needed for tests
   - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
-  - docker run -it scoringengine_tester bash -c "/app/cc-test-reporter before-build"
+  # Prep codeclimate reporting
+  - docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter before-build"
+script:
+  # Check for pep8 compliance
   - docker run -it scoringengine_tester bash -c "flake8 --ignore E501 --exclude *__init__.py ./"
+  # Run unit tests
   - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
 after_success:
+  # Push results to code climate
   - |
     if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      docker run -it scoringengine_tester bash -c "/app/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+      docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
     fi
