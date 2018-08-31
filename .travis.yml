@@ -6,7 +6,7 @@ services:
   - redis-server
   - docker
 branches:
-  # Restrict non PR builds
+  # Restrict push builds to only master
   only:
   - master
 before_install:
@@ -26,5 +26,7 @@ script:
   - docker run -it scoringengine_tester bash -c "flake8 --ignore E501 --exclude *__init__.py ./"
   - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
 after_success:
-  - docker run -it scoringengine_tester bash -c "/app/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
-  if: type = push
+  - |
+    if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      docker run -it scoringengine_tester bash -c "/app/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+    fi
