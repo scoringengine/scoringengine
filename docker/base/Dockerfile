@@ -12,6 +12,8 @@ COPY scoring_engine /app/scoring_engine
 
 WORKDIR /app
 
+RUN chown -R engine:engine /app
+
 RUN pip install -e .
 
 USER engine

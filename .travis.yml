@@ -1,9 +1,5 @@
 sudo: required
-language: python
-python:
-  - '3.5'
 services:
-  - redis-server
   - docker
 branches:
   # Restrict push builds to only master
@@ -13,18 +9,21 @@ before_install:
   # Fail immediately on any error
   - set -e
 install:
-  - pip install -e .
-  - pip install -r tests/requirements.txt
+  # Build containers
+  - docker-compose -f tests/docker-compose.yml -p scoringengine build
 before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+  # Start up resources needed for tests
+  - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
+  # Prep codeclimate reporting
+  - docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter before-build"
 script:
-  - flake8 --ignore E501 --exclude *__init__.py ./
-  - make build-testbed
-  - py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests
+  # Check for pep8 compliance
+  - docker run -it scoringengine_tester bash -c "flake8 --ignore E501 --exclude *__init__.py ./"
+  # Run unit tests
+  - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
 after_success:
+  # Push results to code climate
   - |
     if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+      docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
     fi
