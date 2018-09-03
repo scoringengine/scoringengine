@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 
+import os
+import sys
+
 from scoring_engine.engine.engine import Engine
+
+# In order to handle docker-compose usability
+# we have a check to see if the EXAMPLE environment
+# variable is true. If it is, we don't
+# want the engine to run
+if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
+    print("EXAMPLE environment variable is true, so skipping running the engine.")
+    sys.exit(0)
 
 engine = Engine()
 engine.run()

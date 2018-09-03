@@ -27,6 +27,11 @@ Log in with any of the following logins at http://localhost:
 * team2user2:testpass
 * redteamuser:testpass
 
+We also provide the ability to run it in an example mode. This means only the web ui runs, and the database is be prepopulated with example data. Set the EXAMPLE environment variable to true:
+```
+EXAMPLE=true docker-compose up
+```
+
 Documentation
 -------------
 [https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/)

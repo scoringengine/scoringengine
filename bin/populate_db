@@ -5,6 +5,7 @@ from random import randint
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 import optparse
+import os
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.team import Team
@@ -25,6 +26,14 @@ parser.add_option('--overwrite-db', action="store_true", default=False)
 parser.add_option('--example', action="store_true", default=False)
 
 options, arguments = parser.parse_args()
+
+# In order to handle docker-compose usability
+# we have a check to see if the EXAMPLE environment
+# variable is true. If it is, we want to populate
+# the db with example data
+if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
+    options.overwrite_db = True
+    options.example = True
 
 if not options.overwrite_db:
     try:

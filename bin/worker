@@ -1,4 +1,14 @@
 #!/usr/bin/env sh
 
+# In order to handle docker-compose usability
+# we have a check to see if the EXAMPLE environment
+# variable is true. If it is, we don't
+# want the worker to run
+
+if [ "$EXAMPLE" = "true" ]; then
+  echo "EXAMPLE environment variable is true, so skipping running the worker."
+  exit 0
+fi
+
 BASEDIR=$(dirname "$0")
 celery --workdir=$BASEDIR/../scoring_engine/engine -A execute_command worker -l warn
