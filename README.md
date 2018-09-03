@@ -18,6 +18,17 @@ Run in this directory:
 docker-compose build
 docker-compose up
 ```
+
+If you want to delete the database before starting, set the OVERWRITE_DB environment variable:
+```
+OVERWRITE_DB=true docker-compose up
+```
+
+We also provide the ability to run it in an example mode. This means only the web ui runs, and the database is be prepopulated with example data. Set the EXAMPLE environment variable to true:
+```
+EXAMPLE=true docker-compose up
+```
+
 The app will be running at [http://localhost](http://localhost)
 
 Log in with any of the following logins at http://localhost:
@@ -26,11 +37,6 @@ Log in with any of the following logins at http://localhost:
 * team2user1:testpass
 * team2user2:testpass
 * redteamuser:testpass
-
-We also provide the ability to run it in an example mode. This means only the web ui runs, and the database is be prepopulated with example data. Set the EXAMPLE environment variable to true:
-```
-EXAMPLE=true docker-compose up
-```
 
 Documentation
 -------------

@@ -35,6 +35,11 @@ if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
     options.overwrite_db = True
     options.example = True
 
+# If the OVERWRITE_DB environment variable is set
+# we want to delete any previous data in the db
+if 'OVERWRITE_DB' in os.environ and os.environ['OVERWRITE_DB'].lower() == 'true':
+    options.overwrite_db = os.environ['OVERWRITE_DB'] == 'true'
+
 if not options.overwrite_db:
     try:
         session.query(User).get(1)

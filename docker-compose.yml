@@ -56,6 +56,7 @@ services:
     restart: on-failure
     environment:
       - EXAMPLE
+      - OVERWRITE_DB
   engine:
     build:
       context: .
