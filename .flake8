@@ -1,0 +1,7 @@
+[flake8]
+exclude =
+  .flake8
+  .git
+  *__init__.py
+ignore =
+  E501  # ignore line length

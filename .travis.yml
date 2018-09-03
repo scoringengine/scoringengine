@@ -18,7 +18,7 @@ before_script:
   - docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter before-build"
 script:
   # Check for pep8 compliance
-  - docker run -it scoringengine_tester bash -c "flake8 --ignore E501 --exclude *__init__.py ./"
+  - docker run -it scoringengine_tester bash -c "flake8 --config .flake8 ./"
   # Run unit tests
   - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
 after_success:
