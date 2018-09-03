@@ -12,18 +12,20 @@ install:
   # Build containers
   - docker-compose -f tests/docker-compose.yml -p scoringengine build
 before_script:
+  # Prep codeclimate reporting
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /usr/bin/cc-test-reporter
+  - chmod +x /usr/bin/cc-test-reporter
+  - /usr/bin/cc-test-reporter before-build
   # Start up resources needed for tests
   - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
-  # Prep codeclimate reporting
-  - docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter before-build"
 script:
   # Check for pep8 compliance
-  - docker run -it scoringengine_tester bash -c "flake8 --config .flake8 ./"
+  - docker run -it -v $TRAVIS_BUILD_DIR/artifacts:/app/artifacts scoringengine_tester bash -c "flake8 --config .flake8 ./"
   # Run unit tests
-  - docker run -it scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:coverage.xml tests"
+  - docker run -it -v $TRAVIS_BUILD_DIR/artifacts:/app/artifacts scoringengine_tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
 after_success:
   # Push results to code climate
   - |
     if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-      docker run -it scoringengine_tester bash -c "/usr/bin/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+      cd $TRAVIS_BUILD_DIR/artifacts && /usr/bin/cc-test-reporter after-build --prefix $TRAVIS_BUILD_DIR --exit-code $TRAVIS_TEST_RESULT
     fi
