@@ -14,7 +14,3 @@ services:
       dockerfile: ./docker/tester/Dockerfile
     depends_on:
       - base
-    volumes:
-      - tester:/app
-volumes:
-  tester:

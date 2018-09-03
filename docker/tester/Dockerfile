@@ -10,5 +10,3 @@ RUN curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest
 RUN chmod +x /usr/bin/cc-test-reporter
 
 COPY .flake8 /app/.flake8
-
-USER engine
