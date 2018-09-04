@@ -11,6 +11,19 @@ TestBed Environment
 
 This command will build, stop any pre-existing scoring engine containers, and start a new environment. As part of the environment, multiple containers will be used as part of the testbed environment.
 
+Environment Variables
+---------------------
+We use certain environment variables to control the functionality of certain docker containers.
+
+:OVERWRITE_DB: If set to true, the database will be deleted and then recreated during startup.
+:EXAMPLE: If set to true, the database is populated with sample db, and the engine and worker containers will be paused. This is useful for doing development on the web app.
+
+You can set each environment variable before each command executed, for example:
+::
+
+  EXAMPLE=true make rebuild-new
+
+
 Production Environment
 ----------------------
 
