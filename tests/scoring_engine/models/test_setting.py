@@ -21,3 +21,11 @@ class TestSetting(UnitTest):
         self.session.add(setting_new)
         self.session.commit()
         assert Setting.get_setting('test_setting').value == 'updated example'
+
+    def test_boolean_value(self):
+        setting = Setting(name='test_setting', value=True)
+        assert setting.name == 'test_setting'
+        assert setting.value is True
+        self.session.add(setting)
+        self.session.commit()
+        assert setting.value is True
