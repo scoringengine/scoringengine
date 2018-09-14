@@ -176,14 +176,14 @@ class Engine(object):
                         environment = self.session.query(Environment).get(task.result['environment_id'])
                         if task.result['errored_out']:
                             result = False
-                            reason = 'Task Timed Out'
+                            reason = 'Check Timed Out'
                         else:
                             if re.search(environment.matching_regex, task.result['output']):
                                 result = True
-                                reason = "Successful Content Match"
+                                reason = "Check Finished Successfully"
                             else:
                                 result = False
-                                reason = 'Unsuccessful Content Match'
+                                reason = 'Check Received Incorrect Content'
 
                         if environment.service.team.name not in teams:
                             teams[environment.service.team.name] = {

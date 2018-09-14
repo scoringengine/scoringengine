@@ -312,18 +312,18 @@ if options.example:
         round_obj = Round(number=num_round)
         for service in services:
             # print("\t\tCreating check for " + str(service.id))
-            output = ""
+            output = ''
             if randint(0, 1) == 1:
                 result = True
-                reason = 'Successful Content Match'
-                output = "Some random output of a command"
+                reason = 'Check Finished Successfully'
+                output = 'Some random output of a command'
             else:
                 result = False
-                output = "Errored output"
+                output = 'Errored output'
                 if randint(0, 1) == 1:
-                    reason = 'Job Timed Out'
+                    reason = 'Check Timed Out'
                 else:
-                    reason = 'Unsuccessful Content Match'
+                    reason = 'Check Received Incorrect Content'
 
             command = 'ping -c 1 127.0.0.1'
             check = Check(round=round_obj, service=service)
