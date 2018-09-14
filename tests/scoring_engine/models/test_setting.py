@@ -31,6 +31,14 @@ class TestSetting(UnitTest):
         self.session.commit()
         assert setting.value is True
 
+    def test_boolean_value_negative(self):
+        setting = Setting(name='test_setting', value=False)
+        assert setting.name == 'test_setting'
+        assert setting.value is False
+        self.session.add(setting)
+        self.session.commit()
+        assert setting.value is False
+
     def test_boolean_value_advanced(self):
         setting = Setting(name='test_setting', value=True)
         assert setting.name == 'test_setting'
