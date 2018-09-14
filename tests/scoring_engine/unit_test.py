@@ -6,6 +6,7 @@ from scoring_engine.models.setting import Setting
 class UnitTest(object):
     def setup(self):
         self.session = session
+        Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
         self.create_default_settings()
 
