@@ -19,6 +19,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, engine
 from scoring_engine.config import config
+from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 
 
 parser = optparse.OptionParser()
@@ -315,15 +316,15 @@ if options.example:
             output = ''
             if randint(0, 1) == 1:
                 result = True
-                reason = 'Check Finished Successfully'
+                reason = CHECK_SUCCESS_TEXT
                 output = 'Some random output of a command'
             else:
                 result = False
                 output = 'Errored output'
                 if randint(0, 1) == 1:
-                    reason = 'Check Timed Out'
+                    reason = CHECK_FAILURE_TEXT
                 else:
-                    reason = 'Check Received Incorrect Content'
+                    reason = CHECK_TIMED_OUT_TEXT
 
             command = 'ping -c 1 127.0.0.1'
             check = Check(round=round_obj, service=service)
