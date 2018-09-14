@@ -54,6 +54,9 @@ services:
     healthcheck:
       test: ["CMD", "exit", "1"]
     restart: on-failure
+    environment:
+      - EXAMPLE
+      - OVERWRITE_DB
   engine:
     build:
       context: .
@@ -63,6 +66,8 @@ services:
       - redis
       - bootstrap
     restart: on-failure
+    environment:
+      - EXAMPLE
   worker:
     build:
       context: .
@@ -71,6 +76,8 @@ services:
       - base
       - redis
     restart: on-failure
+    environment:
+      - EXAMPLE
   flask:
     build:
       context: .
