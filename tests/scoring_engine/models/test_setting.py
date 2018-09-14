@@ -10,6 +10,7 @@ class TestSetting(UnitTest):
         assert setting.id is None
         assert setting.name == 'test_setting'
         assert setting.value == 'test value example'
+        assert setting._value_type == 'String'
         self.session.add(setting)
         self.session.commit()
         assert setting.id is not None
@@ -29,3 +30,14 @@ class TestSetting(UnitTest):
         self.session.add(setting)
         self.session.commit()
         assert setting.value is True
+
+    def test_boolean_value_advanced(self):
+        setting = Setting(name='test_setting', value=True)
+        assert setting.name == 'test_setting'
+        assert setting.value is True
+        self.session.add(setting)
+        self.session.commit()
+        setting.value = 'somevalue'
+        assert setting.value == 'somevalue'
+        self.session.add(setting)
+        self.session.commit()
