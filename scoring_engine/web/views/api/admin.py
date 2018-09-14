@@ -190,6 +190,22 @@ def admin_update_worker_refresh_time():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_blueteam_edit_hostname', methods=['POST'])
+@login_required
+def admin_update_blueteam_edit_hostname():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('blue_team_update_hostname')
+        if setting.value == 'true':
+            setting.value = 'false'
+        else:
+            setting.value = 'true'
+        session.add(setting)
+        session.commit()
+        flash('Setting Successfully Updated.', 'success')
+        return redirect(url_for('admin.settings'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/admin/get_round_progress')
 @login_required
 def get_check_progress_total():

@@ -8,12 +8,33 @@
   <h4>Settings</h4>
   <div class="row">
     <div style="padding-top: 30px;">
+      <form method="POST" action="{{ url_for('api.admin_update_blueteam_edit_hostname') }}" role="form">
+        <div class="form-group row">
+          <div class="col-xs-3">
+            <label for="ex1" class="pull-right" style="padding-top: 7px;">Blue Team Modify Hostname</label>
+          </div>
+          <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+            <div class="btn-group btn-toggle">
+              {% if blue_team_update_hostname == 'true' %}
+                  <button class="btn btn-primary active">ON</button>
+                  <button class="btn btn-default">OFF</button>
+              {% else %}
+                  <button class="btn btn-default">ON</button>
+                  <button class="btn btn-primary active">OFF</button>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-xs-4">
+            <span class="help-block" style="margin-top: 0px;">Determines if blue teams can modify the ip/host of a service.</span>
+          </div>
+        </div>
+      </form>
       <form method="POST" action="{{ url_for('api.admin_update_round_time_sleep') }}" role="form">
         <div class="form-group row">
           <div class="col-xs-3">
             <label for="ex1" class="pull-right" style="padding-top: 7px;">Round Sleep Time</label>
           </div>
-          <div class="col-xs-2" style="padding-top: 5px;">
+          <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
             <div class="input-group input-group-md">
               <input class="form-control" id="round_time_sleep" name="round_time_sleep" placeholder="Insert Round Sleep Value Here" value="{{ round_time_sleep|safe }}"required />
               <div class="input-group-btn">
@@ -31,7 +52,7 @@
           <div class="col-xs-3">
             <label for="ex1" class="pull-right" style="padding-top: 7px;">Worker Refresh Time</label>
           </div>
-          <div class="col-xs-2" style="padding-top: 5px;">
+          <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
             <div class="input-group input-group-md">
               <input class="form-control" id="worker_refresh_time" name="worker_refresh_time" placeholder="Insert Worker Refresh Time Here" value="{{ worker_refresh_time|safe }}"required />
               <div class="input-group-btn">
@@ -49,7 +70,7 @@
           <div class="col-xs-3">
             <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
           </div>
-          <div class="col-xs-2" style="padding-top: 5px;">
+          <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
             <div class="input-group input-group-md">
               <textarea class="form-control" rows="12" style="width: 525px;" id="welcome_page_content" name="welcome_page_content" placeholder="Insert Welcome Page Content Here" required>{{ welcome_page_content|safe }}</textarea>
               <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
@@ -63,7 +84,7 @@
           <div class="col-xs-3">
             <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
           </div>
-          <div class="col-xs-2" style="padding-top: 5px;">
+          <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
             <div class="input-group input-group-md">
               <textarea class="form-control" rows="8" style="width: 525px;" id="about_page_content" name="about_page_content" placeholder="Insert About Page Content Here" required>{{ about_page_content|safe }}</textarea>
               <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>

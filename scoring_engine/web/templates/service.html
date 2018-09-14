@@ -70,7 +70,11 @@
               <h4>Host:</h4>
             </td>
             <td>
-              <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
+              {% if modify_hostname_setting == 'true' %}
+                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
+              {% else %}
+                {{service.host}}
+              {% endif %}
             </td>
           </tr>
           <tr>
