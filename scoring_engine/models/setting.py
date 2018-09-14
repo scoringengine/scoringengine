@@ -13,8 +13,8 @@ class Setting(Base):
 
     def __init__(self, *args, **kwargs):
         self.name = kwargs['name']
-        self._value_type = self.map_value_type(kwargs['value'])
-        self._value_text = self.convert_value_type(kwargs['value'])
+        self._value_text = str(kwargs['value'])
+        self.value = kwargs['value']
         super(Base, self).__init__()
 
     def map_value_type(self, value):
@@ -23,20 +23,23 @@ class Setting(Base):
         else:
             return 'String'
 
-    def convert_value_type(self, value):
+    def convert_value_type(self):
         if self._value_type == 'Boolean':
-            return bool(value)
+            if self._value_text == 'False':
+                return False
+            else:
+                return True
         else:
-            return str(value)
+            return self._value_text
 
     @property
     def value(self):
-        return self.convert_value_type(self._value_text)
+        return self.convert_value_type()
 
     @value.setter
     def value(self, value):
         self._value_type = self.map_value_type(value)
-        self._value_text = self.convert_value_type(value)
+        self._value_text = str(value)
 
     @staticmethod
     def get_setting(name):
