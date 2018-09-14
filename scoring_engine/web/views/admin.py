@@ -78,7 +78,8 @@ def permissions():
         return render_template(
             'admin/permissions.html',
             blue_teams=blue_teams,
-            blue_team_update_hostname=Setting.get_setting('blue_team_update_hostname').value
+            blue_team_update_hostname=Setting.get_setting('blue_team_update_hostname').value,
+            overview_show_round_info=Setting.get_setting('overview_show_round_info').value
         )
     else:
         return redirect(url_for('auth.unauthorized'))

@@ -7,6 +7,7 @@ from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
+from scoring_engine.models.setting import Setting
 
 from . import mod
 
@@ -23,6 +24,8 @@ def get_table_columns():
 @mod.route('/api/overview/get_round_data')
 @cache.memoize()
 def overview_get_round_data():
+    if Setting.get_setting('overview_show_round_info').value is False:
+        return jsonify({'status': 'Unauthorized'})
     round_obj = session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
         round_start = round_obj.local_round_start

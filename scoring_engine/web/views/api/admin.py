@@ -206,6 +206,22 @@ def admin_update_blueteam_edit_hostname():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_overview_show_round_info', methods=['POST'])
+@login_required
+def admin_update_overview_show_round_info():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('overview_show_round_info')
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
+        flash('Setting Successfully Updated.', 'success')
+        return redirect(url_for('admin.permissions'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/admin/get_round_progress')
 @login_required
 def get_check_progress_total():
