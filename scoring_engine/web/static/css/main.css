@@ -116,3 +116,7 @@ a.editable-click {
 .middle-page {
     max-width: 95%;
 }
+
+.settings_middle_column {
+  width: 18%;
+}

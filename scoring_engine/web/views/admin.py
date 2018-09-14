@@ -75,6 +75,10 @@ def settings():
 def permissions():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
-        return render_template('admin/permissions.html', blue_teams=blue_teams)
+        return render_template(
+            'admin/permissions.html',
+            blue_teams=blue_teams,
+            blue_team_update_hostname=Setting.get_setting('blue_team_update_hostname').value
+        )
     else:
         return redirect(url_for('auth.unauthorized'))
