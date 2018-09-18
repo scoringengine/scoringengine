@@ -23,4 +23,8 @@ class UnitTest(object):
         self.session.add(round_time_sleep_setting)
         worker_refresh_time_setting = Setting(name='worker_refresh_time', value=30)
         self.session.add(worker_refresh_time_setting)
+        blue_team_update_hostname_setting = Setting(name='blue_team_update_hostname', value=True)
+        session.add(blue_team_update_hostname_setting)
+        overview_show_round_info_setting = Setting(name='overview_show_round_info', value=True)
+        session.add(overview_show_round_info_setting)
         self.session.commit()
