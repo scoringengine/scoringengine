@@ -25,6 +25,13 @@
             }
         });
     }
+    $(document).ready(function() {
+        // Populate the round number and timestamp
+        refreshheader();
+        setInterval(function(){
+            refreshheader()
+        }, 30000);
+    });
   </script>
   {% endif %}
   <div class="row">
@@ -33,19 +40,11 @@
     <div id='hint'>Hover over status icon to get host:ip information</div>
     <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a href="{{ url_for('api.overview_data') }}">Here</a></div>
     <script>
-
-
         $(document).ready(function() {
             // Disable datatables error reporting
             $.fn.dataTable.ext.errMode = 'none';
 
-            // Populate our header
-            refreshheader();
-            setInterval(function(){
-                refreshheader()
-            }, 30000);
-
-            // Populate our table
+            // Populate our service results table
             $.ajax({
                 cache: false,
                 url: '/api/overview/get_columns',
