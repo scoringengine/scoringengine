@@ -115,6 +115,7 @@ class Engine(object):
             logger.info("Running engine for unlimited rounds")
         else:
             logger.info("Running engine for {0} round(s)".format(self.total_rounds))
+
         while not self.is_last_round():
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
@@ -242,3 +243,5 @@ class Engine(object):
                 round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
                 logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
                 self.sleep(round_time_sleep)
+
+        logger.info("Engine finished running")
