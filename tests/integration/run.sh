@@ -14,6 +14,10 @@ wait_for_container()
 }
 
 
+# Stop any previous containers from other parts of testing
+echo "Stopping any previous containers"
+docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine down -v --remove-orphans
+
 # Build and start the necessary containers
 echo "Building required container environment"
 docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine build
