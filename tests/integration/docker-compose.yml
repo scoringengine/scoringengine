@@ -15,4 +15,15 @@ services:
       - bootstrap
     restart: "no"
     environment:
-      - ENGINE_NUM_ROUNDS=1
+      - ENGINE_NUM_ROUNDS=5
+  base:
+    build:
+      context: .
+      dockerfile: ./docker/base/Dockerfile
+    image: base:latest
+  tester:
+    build:
+      context: .
+      dockerfile: ./docker/tester/Dockerfile
+    depends_on:
+      - base
