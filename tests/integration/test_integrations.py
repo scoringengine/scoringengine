@@ -6,7 +6,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.db import session
 
 NUM_TESTBED_SERVICES = 10
-NUM_OVERALL_ROUNDS = 5
+NUM_OVERALL_ROUNDS = 10
 SERVICE_TOTAL_POINTS_PER_ROUND = 1025
 
 

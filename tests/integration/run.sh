@@ -38,7 +38,7 @@ echo "Sleeping for 20 seconds for the engine to start up"
 sleep 20
 
 # Wait for engine to finish running
-wait_for_container "scoringengine_engine_1" 15
+wait_for_container "scoringengine_engine_1" 30
 
 # Run integration tests against live testbed db
 echo "Running integration tests"

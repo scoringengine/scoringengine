@@ -15,7 +15,7 @@ services:
       - bootstrap
     restart: "no"
     environment:
-      - ENGINE_NUM_ROUNDS=5
+      - ENGINE_NUM_ROUNDS=10
   base:
     build:
       context: .
