@@ -2,8 +2,8 @@ FROM ubuntu:latest
 
 RUN \
   apt-get update && \
-  apt-get install -y openjdk-8-jre wget && \
-  wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.2.deb && \
+  apt-get install -y openjdk-8-jre curl && \
+  curl -s -L https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.2.deb -o elasticsearch-6.1.2.deb && \
   dpkg -i elasticsearch-6.1.2.deb
 
 EXPOSE 9200
