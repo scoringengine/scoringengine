@@ -5,10 +5,9 @@ wait_for_container()
 {
   CONTAINER_NAME=$1
   SLEEP_AMOUNT=$2
-  echo "Waiting for $CONTAINER_NAME container to finish"
   while [ "`docker inspect -f {{.State.Running}} $CONTAINER_NAME`" == "true" ]
   do
-    echo "Not finished....sleeping for $SLEEP_AMOUNT seconds"
+    echo "$CONTAINER_NAME is not finished yet....sleeping for $SLEEP_AMOUNT seconds"
     sleep $SLEEP_AMOUNT
   done
 }
