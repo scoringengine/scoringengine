@@ -22,10 +22,10 @@ def pytest_configure(config):
     # else, we load our normal tests
     if config.getoption("--integration"):
         collect_ignore[:] = ["scoring_engine"]
-        local_config_location = 'integration/engine.conf'
+        local_config_location = 'integration/engine.conf.inc'
     else:
         collect_ignore[:] = ["integration"]
-        local_config_location = 'scoring_engine/engine.conf'
+        local_config_location = 'scoring_engine/engine.conf.inc'
     # This is so that we can override (mock) the config
     # variable, so that we can tell it to load our custom
     # unit test based config file

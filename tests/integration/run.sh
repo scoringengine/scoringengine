@@ -15,8 +15,9 @@ wait_for_container()
 
 
 # Build and start the necessary containers
-echo "Building and starting up required container environment"
+echo "Building required container environment"
 docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine build
+echo "Starting up required container environment"
 docker-compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine up -d
 
 # Wait for the bootstrap container to be done (meaning DB is setup)
@@ -26,6 +27,7 @@ wait_for_container "scoringengine_bootstrap_1" 5
 echo "Modifying some settings on the fly"
 docker run -it --network=scoringengine_default scoringengine_tester bash -c "python /app/tests/integration/update_settings.py"
 
+# Wait for engine to finish running
 wait_for_container "scoringengine_engine_1" 10
 
 # Run integration tests against live testbed db
