@@ -4,6 +4,10 @@ import os
 
 CHECKS_BIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'checks/bin')
 
+CHECK_SUCCESS_TEXT = 'Check Finished Successfully'
+CHECK_FAILURE_TEXT = 'Check Received Incorrect Content'
+CHECK_TIMED_OUT_TEXT = 'Check Timed Out'
+
 
 class BasicCheck(object):
     def __init__(self, environment):
