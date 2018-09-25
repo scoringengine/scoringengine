@@ -4,7 +4,7 @@ import pytest
 
 class TestWebUI(object):
     def get_page(self, page):
-        return requests.get('http://127.0.0.1' + page)
+        return requests.get('http://nginx' + page)
 
     pages = [
         {
