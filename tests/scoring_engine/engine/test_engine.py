@@ -107,5 +107,19 @@ class TestEngine(UnitTest):
         check_obj = engine.check_name_to_obj("Garbage Check")
         assert check_obj is None
 
+    def test_is_last_round_unlimited(self):
+        engine = Engine()
+        assert engine.is_last_round() is False
+
+    def test_is_last_round_true(self):
+        engine = Engine()
+        engine.last_round = True
+        assert engine.is_last_round() is True
+
+    def test_is_last_round_restricted(self):
+        engine = Engine(total_rounds=1)
+        engine.rounds_run = 1
+        assert engine.is_last_round() is True
+
     # todo figure out how to test the remaining functionality of engine
     # where we're waiting for the worker queues to finish and everything

@@ -8,6 +8,7 @@ from scoring_engine.db import session
 from scoring_engine.cache_helper import update_overview_data, update_services_data, update_service_data
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 
 from . import mod
 
@@ -59,6 +60,9 @@ def update_host():
             service = session.query(Service).get(int(request.form['pk']))
             if service:
                 if service.team == current_user.team and request.form['name'] == 'host':
+                    modify_hostname_setting = Setting.get_setting('blue_team_update_hostname').value
+                    if modify_hostname_setting is not True:
+                        return jsonify({'error': 'Incorrect permissions'})
                     service.host = html.escape(request.form['value'])
                     session.add(service)
                     session.commit()

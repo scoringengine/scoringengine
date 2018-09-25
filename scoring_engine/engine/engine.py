@@ -100,7 +100,7 @@ class Engine(object):
             pass
 
     def is_last_round(self):
-        return (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0)
+        return self.last_round or (self.rounds_run == self.total_rounds and self.total_rounds != 0)
 
     def all_pending_tasks(self, tasks):
         pending_tasks = []
@@ -112,7 +112,12 @@ class Engine(object):
         return pending_tasks
 
     def run(self):
-        while (not self.last_round) and (self.rounds_run < self.total_rounds or self.total_rounds == 0):
+        if self.total_rounds == 0:
+            logger.info("Running engine for unlimited rounds")
+        else:
+            logger.info("Running engine for {0} round(s)".format(self.total_rounds))
+
+        while not self.is_last_round():
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
             self.round_running = True
@@ -235,7 +240,9 @@ class Engine(object):
 
             self.round_running = False
 
-            if not self.last_round:
+            if not self.is_last_round():
                 round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
                 logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
                 self.sleep(round_time_sleep)
+
+        logger.info("Engine finished running")
