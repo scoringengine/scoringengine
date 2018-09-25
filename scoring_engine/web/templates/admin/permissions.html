@@ -1,0 +1,27 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Permissions{% endblock %}
+{% block admincontent %}
+  <h4>Permissions</h4>
+  <div class="row" style="padding-top: 10px;">
+    <h5>Blue Team</h5>
+    <form method="POST" action="{{ url_for('api.admin_update_blueteam_edit_hostname') }}" role="form">
+      <div class="form-group row">
+        <div class="col-xs-4">
+          <label for="ex1" class="pull-right" style="padding-top: 7px;">Modify Service Hostname</label>
+        </div>
+        <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+          <div class="btn-group btn-toggle">
+            {% if blue_team_update_hostname == true %}
+                <button class="btn btn-primary active">ON</button>
+            {% else %}
+                <button class="btn btn-danger">OFF</button>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-xs-4">
+          <span class="help-block" style="margin-top: 0px;">Determines if blue teams can modify the ip/host of a service.</span>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
