@@ -31,6 +31,7 @@ script:
       -v artifacts:/app/artifacts
       scoringengine_tester bash -c
     "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+  - ./tests/integration/run.sh
 after_script:
   # Push results to code climate
   - docker run -it
