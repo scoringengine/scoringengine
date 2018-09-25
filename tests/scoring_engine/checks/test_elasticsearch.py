@@ -1,6 +1,6 @@
 from scoring_engine.engine.basic_check import CHECKS_BIN_PATH
 
-from tests.scoring_engine.engine.checks.check_test import CheckTest
+from tests.scoring_engine.checks.check_test import CheckTest
 
 
 class TestElasticsearchCheck(CheckTest):
