@@ -92,6 +92,16 @@
                                                 }
                                             }
                                             break;
+                                        case 2:
+                                            // Up and down services ratio
+                                            if (column_num == 0) {
+                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                $(this).html(html_str);
+                                            } else {
+                                                html_str = `${value}`
+                                                $(this).html(html_str);
+                                            }
+                                            break;
                                         default:
                                             // Service Name
                                             if (column_num == 0) {
