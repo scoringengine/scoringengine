@@ -1,0 +1,29 @@
+---
+version: '3'
+services:
+  # We redefine engine service so we can
+  # override the restart value, we don't
+  # want the engine restarting if we're only
+  # telling it to run a few rounds
+  engine:
+    build:
+      context: .
+      dockerfile: ./docker/engine/Dockerfile
+    depends_on:
+      - base
+      - redis
+      - bootstrap
+    restart: "no"
+    environment:
+      - ENGINE_NUM_ROUNDS=10
+  base:
+    build:
+      context: .
+      dockerfile: ./docker/base/Dockerfile
+    image: base:latest
+  tester:
+    build:
+      context: .
+      dockerfile: ./docker/tester/Dockerfile
+    depends_on:
+      - base
