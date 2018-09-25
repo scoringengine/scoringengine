@@ -43,3 +43,4 @@ htmlcov
 engine.conf
 bin/custom_env
 docs/build
+scoring_engine.egg-info
