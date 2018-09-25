@@ -8,13 +8,14 @@ timezone = US/Eastern
 debug = False
 
 [DB]
-uri = sqlite:////tmp/test_engine.db
+# MySQL
+uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 
 [CACHE]
 # Set to null to disable caching
-cache_type = null
+cache_type = redis
 
 [REDIS]
-host = 127.0.0.1
+host = redis
 port = 6379
-password = testpass
+password =

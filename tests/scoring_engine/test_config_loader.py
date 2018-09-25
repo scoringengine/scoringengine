@@ -4,13 +4,13 @@ from scoring_engine.config_loader import ConfigLoader
 class TestConfigLoader(object):
 
     def setup(self):
-        self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf")
+        self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf.inc")
 
     def test_web_debug(self):
         assert self.config.web_debug is False
 
     def test_checks_location(self):
-        assert self.config.checks_location == "scoring_engine/engine/checks"
+        assert self.config.checks_location == "scoring_engine/checks"
 
     def test_round_time_sleep(self):
         assert self.config.round_time_sleep == 180

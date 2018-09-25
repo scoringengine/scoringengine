@@ -403,4 +403,6 @@ round_time_sleep_setting = Setting(name='round_time_sleep', value=config.round_t
 session.add(round_time_sleep_setting)
 worker_refresh_time_setting = Setting(name='worker_refresh_time', value=config.worker_refresh_time)
 session.add(worker_refresh_time_setting)
+blue_team_update_hostname_setting = Setting(name='blue_team_update_hostname', value=True)
+session.add(blue_team_update_hostname_setting)
 session.commit()

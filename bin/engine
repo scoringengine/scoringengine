@@ -13,5 +13,11 @@ if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
     print("EXAMPLE environment variable is true, so skipping running the engine.")
     sys.exit(0)
 
-engine = Engine()
+# If set to 0, there is no max number of rounds
+# default is 0
+total_rounds = 0
+if 'ENGINE_NUM_ROUNDS' in os.environ:
+    total_rounds = int(os.environ['ENGINE_NUM_ROUNDS'])
+
+engine = Engine(total_rounds=total_rounds)
 engine.run()
