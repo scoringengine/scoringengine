@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.5
 
 RUN \
   mkdir /app && \
@@ -11,6 +11,8 @@ COPY docker/engine.conf.inc /app/engine.conf
 COPY scoring_engine /app/scoring_engine
 
 WORKDIR /app
+
+RUN chown -R engine:engine /app
 
 RUN pip install -e .
 

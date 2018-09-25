@@ -18,6 +18,7 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
 
@@ -176,14 +177,14 @@ class Engine(object):
                         environment = self.session.query(Environment).get(task.result['environment_id'])
                         if task.result['errored_out']:
                             result = False
-                            reason = 'Task Timed Out'
+                            reason = CHECK_TIMED_OUT_TEXT
                         else:
                             if re.search(environment.matching_regex, task.result['output']):
                                 result = True
-                                reason = "Successful Content Match"
+                                reason = CHECK_SUCCESS_TEXT
                             else:
                                 result = False
-                                reason = 'Unsuccessful Content Match'
+                                reason = CHECK_FAILURE_TEXT
 
                         if environment.service.team.name not in teams:
                             teams[environment.service.team.name] = {

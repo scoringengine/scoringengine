@@ -92,8 +92,8 @@ Install dependencies for MSSQL check
 ::
 
   apt-get install -y apt-transport-https
-  curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-  curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
+  curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+  curl -s https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
   apt-get update
   ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen

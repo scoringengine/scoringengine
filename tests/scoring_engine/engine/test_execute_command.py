@@ -1,6 +1,6 @@
 import mock
 
-from billiard.exceptions import SoftTimeLimitExceeded
+from celery.exceptions import SoftTimeLimitExceeded
 
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command

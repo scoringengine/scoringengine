@@ -1,0 +1,16 @@
+---
+version: '3'
+services:
+  redis:
+    image: "redis:latest"
+  base:
+    build:
+      context: ../
+      dockerfile: ./docker/base/Dockerfile
+    image: base:latest
+  tester:
+    build:
+      context: ../
+      dockerfile: ./docker/tester/Dockerfile
+    depends_on:
+      - base

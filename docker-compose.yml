@@ -14,17 +14,12 @@ services:
     # ports:
     #   - 6379:6379
   mysql:
-    image: mysql:latest
+    image: mysql:5
     environment:
       - MYSQL_ROOT_PASSWORD=CHANGEME
       - MYSQL_DATABASE=scoring_engine
       - MYSQL_USER=se_user
       - MYSQL_PASSWORD=CHANGEME
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pCHANGEME"]
-      interval: 30s
-      timeout: 3s
-      retries: 10
     restart: on-failure
     volumes:
       - mysql:/var/lib/mysql
@@ -59,6 +54,9 @@ services:
     healthcheck:
       test: ["CMD", "exit", "1"]
     restart: on-failure
+    environment:
+      - EXAMPLE
+      - OVERWRITE_DB
   engine:
     build:
       context: .
@@ -68,6 +66,8 @@ services:
       - redis
       - bootstrap
     restart: on-failure
+    environment:
+      - EXAMPLE
   worker:
     build:
       context: .
@@ -76,6 +76,8 @@ services:
       - base
       - redis
     restart: on-failure
+    environment:
+      - EXAMPLE
   flask:
     build:
       context: .

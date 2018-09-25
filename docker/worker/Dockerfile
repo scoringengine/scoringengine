@@ -21,11 +21,11 @@ RUN pip install pysmb
 RUN apt-get install -y dnsutils
 
 # MSSQL Check
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+RUN curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 # Package Repo for Ubuntu 16.04
-#RUN curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
-# Package Repo for Debian 8 (Docker Hub Python Image)
-RUN echo "deb [arch=amd64] https://packages.microsoft.com/debian/8/prod jessie main" >> /etc/apt/sources.list.d/msprod.list
+#RUN curl -s https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
+# Package Repo for Debian 9 (Docker Hub Python Image)
+RUN echo "deb [arch=amd64] https://packages.microsoft.com/debian/9/prod "stretch" main" >> /etc/apt/sources.list.d/msprod.list
 RUN apt-get update
 RUN ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
