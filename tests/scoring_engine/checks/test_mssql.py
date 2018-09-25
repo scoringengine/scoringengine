@@ -1,4 +1,4 @@
-from tests.scoring_engine.engine.checks.check_test import CheckTest
+from tests.scoring_engine.checks.check_test import CheckTest
 
 
 class TestMSSQLCheck(CheckTest):
