@@ -11,6 +11,8 @@ services:
     restart: on-failure
     volumes:
       - redis:/data
+    networks:
+      - default
     # ports:
     #   - 6379:6379
   mysql:
@@ -23,6 +25,8 @@ services:
     restart: on-failure
     volumes:
       - mysql:/var/lib/mysql
+    networks:
+      - default
     # ports:
     #   - 3306:3306
   nginx:
@@ -32,13 +36,15 @@ services:
     depends_on:
       - flask
     ports:
-      - "80:80"
+      - 80:80
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost"]
       interval: 30s
       timeout: 3s
       retries: 10
     restart: on-failure
+    networks:
+      - default
   base:
     build:
       context: .
@@ -54,6 +60,8 @@ services:
     healthcheck:
       test: ["CMD", "exit", "1"]
     restart: on-failure
+    networks:
+      - default
     environment:
       - EXAMPLE
       - OVERWRITE_DB
@@ -66,6 +74,8 @@ services:
       - redis
       - bootstrap
     restart: on-failure
+    networks:
+      - default
     environment:
       - EXAMPLE
   worker:
@@ -76,6 +86,8 @@ services:
       - base
       - redis
     restart: on-failure
+    networks:
+      - default
     environment:
       - EXAMPLE
   flask:
@@ -91,7 +103,12 @@ services:
       timeout: 3s
       retries: 10
     restart: on-failure
+    networks:
+      - default
 
 volumes:
   redis:
   mysql:
+
+networks:
+  default:
