@@ -14,6 +14,8 @@ services:
       - redis
       - bootstrap
     restart: "no"
+    networks:
+      - default
     environment:
       - ENGINE_NUM_ROUNDS=10
   base:
@@ -27,3 +29,8 @@ services:
       dockerfile: ./docker/tester/Dockerfile
     depends_on:
       - base
+    networks:
+      - default
+
+networks:
+  default:

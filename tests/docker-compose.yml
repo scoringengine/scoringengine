@@ -3,6 +3,8 @@ version: '3'
 services:
   redis:
     image: "redis:latest"
+    networks:
+      - default
   base:
     build:
       context: ../
@@ -14,3 +16,8 @@ services:
       dockerfile: ./docker/tester/Dockerfile
     depends_on:
       - base
+    networks:
+      - default
+
+networks:
+  default:
