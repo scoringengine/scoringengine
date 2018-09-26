@@ -5,10 +5,14 @@ services:
     build:
       context: .
       dockerfile: ./docker/testbed/icmp/Dockerfile
+    networks:
+      - default
   testbed_web:
     build:
       context: .
       dockerfile: ./docker/testbed/web/Dockerfile
+    networks:
+      - default
     # ports:
     #   - 80:80
     #   - 443:443
@@ -16,6 +20,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/testbed/ssh/Dockerfile
+    networks:
+      - default
     # ports:
     #   - 22:22
   testbed_mysql:
@@ -25,6 +31,8 @@ services:
       - MYSQL_DATABASE=randomdb
       - MYSQL_USER=user1
       - MYSQL_PASSWORD=CHANGEME
+    networks:
+      - default
     # ports:
     #   - 3306:3306
   testbed_mssql:
@@ -32,24 +40,32 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=yourStrong(!)Password
+    networks:
+      - default
     # ports:
     #   - 1433:1433
   testbed_ftp:
     build:
       context: .
       dockerfile: ./docker/testbed/ftp/Dockerfile
+    networks:
+      - default
     # ports:
     #   - 21:21
   testbed_elasticsearch:
     build:
       context: .
       dockerfile: ./docker/testbed/elasticsearch/Dockerfile
+    networks:
+      - default
     # ports:
     #   - 9200:9200
   testbed_smb:
     build:
       context: .
       dockerfile: ./docker/testbed/smb/Dockerfile
+    networks:
+      - default
     # ports:
       # - 139:139
       # - 445:445
@@ -57,6 +73,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/testbed/dns/Dockerfile
+    networks:
+      - default
     # ports:
       # - 53:53/udp
       # - 53:53
+
+networks:
+  default:
