@@ -67,11 +67,22 @@ def overview_get_data():
     if len(blue_teams) > 0:
         current_score_row_data = {'': 'Current Score'}
         current_place_row_data = {'': 'Current Place'}
+        current_up_down_row_data = {'': 'Up/Down Ratio'}
         for blue_team in blue_teams:
             current_score_row_data[blue_team.name] = blue_team.current_score
             current_place_row_data[blue_team.name] = blue_team.place
+            num_up_services = 0
+            num_down_services = 0
+            for service in blue_team.services:
+                service_result = service.last_check_result()
+                if service_result is True:
+                    num_up_services += 1
+                elif service_result is False:
+                    num_down_services += 1
+            current_up_down_row_data[blue_team.name] = "{0}/{1}".format(num_up_services, num_down_services)
         data.append(current_score_row_data)
         data.append(current_place_row_data)
+        data.append(current_up_down_row_data)
 
         for service in blue_teams[0].services:
             service_row_data = {'': service.name}
