@@ -79,7 +79,7 @@ def overview_get_data():
                     num_up_services += 1
                 elif service_result is False:
                     num_down_services += 1
-            current_up_down_row_data[blue_team.name] = "{0}/{1}".format(num_up_services, num_down_services)
+            current_up_down_row_data[blue_team.name] = "{0} / {1}".format(num_up_services, num_down_services)
         data.append(current_score_row_data)
         data.append(current_place_row_data)
         data.append(current_up_down_row_data)
