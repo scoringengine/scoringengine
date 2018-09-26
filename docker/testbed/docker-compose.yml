@@ -60,3 +60,9 @@ services:
     # ports:
       # - 53:53/udp
       # - 53:53
+  testbed_rdp:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/rdp/Dockerfile
+    # ports:
+      # - 3389:3389

@@ -13,6 +13,7 @@ Implemented Checks
 .. include:: checks/pop3.rst
 .. include:: checks/postgresql.rst
 .. include:: checks/smb.rst
+.. include:: checks/rdp.rst
 .. include:: checks/smtp.rst
 .. include:: checks/ssh.rst
 .. include:: checks/vnc.rst

@@ -21,6 +21,7 @@ from scoring_engine.checks.smtps import SMTPSCheck
 from scoring_engine.checks.vnc import VNCCheck
 from scoring_engine.checks.elasticsearch import ElasticsearchCheck
 from scoring_engine.checks.ldap import LDAPCheck
+from scoring_engine.checks.rdp import RDPCheck
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -60,6 +61,7 @@ class TestEngine(UnitTest):
             ElasticsearchCheck,
             LDAPCheck,
             SMBCheck,
+            RDPCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 

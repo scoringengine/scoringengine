@@ -31,6 +31,9 @@ RUN ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 RUN locale-gen
 
+# RDP Check
+RUN apt-get install -y freerdp-x11
+
 COPY bin/worker /app/bin/worker
 
 USER engine
