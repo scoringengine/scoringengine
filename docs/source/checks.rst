@@ -12,6 +12,7 @@ Implemented Checks
 .. include:: checks/mysql.rst
 .. include:: checks/pop3.rst
 .. include:: checks/postgresql.rst
+.. include:: checks/rdp.rst
 .. include:: checks/smb.rst
 .. include:: checks/smtp.rst
 .. include:: checks/ssh.rst
