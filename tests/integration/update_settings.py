@@ -16,7 +16,7 @@ session.add(round_time_sleep_setting)
 
 worker_refresh_time_setting = Setting.get_setting('worker_refresh_time')
 # Only wait 1 second for polling in progress checks
-worker_refresh_time_setting.value = '1'
+worker_refresh_time_setting.value = '3'
 session.add(worker_refresh_time_setting)
 
 session.commit()
