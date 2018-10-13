@@ -38,4 +38,4 @@ COPY bin/worker /app/bin/worker
 
 USER engine
 
-CMD ["./wait-for-port.sh", "redis:6379", "/bin/sh", "/app/bin/worker"]
+CMD ["./wait-for-port.sh", "redis:6379", "sh", "/app/bin/worker"]

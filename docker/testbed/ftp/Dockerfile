@@ -18,4 +18,4 @@ RUN \
 
 EXPOSE 21
 
-CMD ["/usr/sbin/vsftpd"]
+CMD /usr/sbin/vsftpd
