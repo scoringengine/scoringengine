@@ -9,4 +9,4 @@ RUN \
 EXPOSE 9200
 
 USER elasticsearch
-CMD /usr/share/elasticsearch/bin/elasticsearch -Enetwork.host=0.0.0.0
+CMD ["/usr/share/elasticsearch/bin/elasticsearch", "-Enetwork.host=0.0.0.0"]
