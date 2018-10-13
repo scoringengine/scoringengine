@@ -2,9 +2,9 @@
 
 set -e
 
-host="$1"
-port="$2"
-shift
+hostport=(${1//:/ })
+host=${hostport[0]}
+port=${hostport[1]}
 shift
 cmd="$@"
 
