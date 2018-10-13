@@ -20,6 +20,9 @@ RUN pip install pysmb
 # DNS Check
 RUN apt-get install -y dnsutils
 
+# Postgresql Check
+RUN apt-get install -y postgresql-client
+
 # MSSQL Check
 RUN curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 # Package Repo for Ubuntu 16.04
