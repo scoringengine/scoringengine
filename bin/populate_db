@@ -214,7 +214,7 @@ for num in range(1, num_teams + 1):
     services.append(service)
 
     print("\t\tCreating POSTGRESQL Service")
-    service = Service(name='Postgresql', team=team, check_name='POSTGRESQLCheck', host='testbed_postgresql', port=5432, points=100)
+    service = Service(name='PostgreSQL', team=team, check_name='POSTGRESQLCheck', host='testbed_postgresql', port=5432, points=100)
     session.add(Account(username='bender', password='1234pass', service=service))
     session.add(Account(username='dscott', password='password1', service=service))
     session.add(Account(username='ttesterson', password='somepass', service=service))
