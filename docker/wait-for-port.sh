@@ -6,7 +6,7 @@ hostport=(${1//:/ })
 host=${hostport[0]}
 port=${hostport[1]}
 shift
-cmd="$@"
+cmd=("$@")
 
 until (echo > /dev/tcp/$host/$port) >/dev/null 2>&1
 do
@@ -15,4 +15,4 @@ do
 done
 
 >&2 echo "$host:$port is ready...starting container"
-exec $cmd
+exec "${cmd[@]}"
