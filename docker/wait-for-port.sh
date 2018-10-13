@@ -8,7 +8,7 @@ shift
 shift
 cmd="$@"
 
-until nc -z $host $port > /dev/null 2>&1
+until (echo > /dev/tcp/$host/$port) >/dev/null 2>&1
 do
   >&2 echo "$host:$port is still not ready yet...sleeping 15 seconds"
   sleep 15
