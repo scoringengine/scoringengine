@@ -39,9 +39,9 @@ sleep 20
 # Wait for engine to finish running
 wait_for_container "scoringengine_engine_1" 30
 
-# Sleep for a bit so MySQL will catch up
-echo "Sleeping for 20 seconds for MySQL to catch up"
-sleep 20
+# Sleep for a bit so next MySQL call will return all results
+echo "Sleeping for 5 seconds for MySQL to catch up"
+sleep 5
 
 # Run integration tests against live testbed db
 echo "Running integration tests"
