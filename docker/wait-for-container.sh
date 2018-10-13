@@ -6,7 +6,7 @@ host="$1"
 shift
 cmd="$@"
 
-while ping $host -c 1 > /dev/null 2>&1;
+while ping $host -c 1 > /dev/null 2>&1
 do
   >&2 echo "$host container is still running...sleeping 15 seconds"
   sleep 15
