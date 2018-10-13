@@ -5,7 +5,7 @@ RUN \
   useradd -m engine
 
 COPY docker/wait-for-container.sh /app
-COPY docker/wait-for-it.sh /app
+COPY docker/wait-for-port.sh /app
 COPY setup.py /app/setup.py
 COPY docker/engine.conf.inc /app/engine.conf
 COPY scoring_engine /app/scoring_engine
