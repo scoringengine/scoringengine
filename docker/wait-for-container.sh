@@ -12,5 +12,5 @@ do
   sleep 15
 done
 
->&2 echo "$host container is finished...Starting container"
+>&2 echo "$host container is finished...starting container"
 exec $cmd
