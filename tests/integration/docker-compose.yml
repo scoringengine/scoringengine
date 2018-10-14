@@ -1,6 +1,19 @@
 ---
 version: '3'
 services:
+  base:
+    build:
+      context: .
+      dockerfile: ./docker/base/Dockerfile
+    image: base:latest
+  tester:
+    build:
+      context: .
+      dockerfile: ./docker/tester/Dockerfile
+    depends_on:
+      - base
+    networks:
+      - default
   # We redefine engine service so we can
   # override the restart value, we don't
   # want the engine restarting if we're only
@@ -18,19 +31,23 @@ services:
       - default
     environment:
       - ENGINE_NUM_ROUNDS=10
-  base:
+  # We redefine bootstrap so we can modify the
+  # round refresh timers, so we aren't waiting around
+  # for no reason
+  bootstrap:
     build:
       context: .
-      dockerfile: ./docker/base/Dockerfile
-    image: base:latest
-  tester:
-    build:
-      context: .
-      dockerfile: ./docker/tester/Dockerfile
+      dockerfile: ./docker/bootstrap/Dockerfile
     depends_on:
       - base
+      - mysql
+    restart: on-failure
     networks:
       - default
+    environment:
+      - SCORINGENGINE_ROUND_TIME_SLEEP=3
+      - SCORINGENGINE_WORKER_REFRESH_TIME=3
+
 
 networks:
   default:

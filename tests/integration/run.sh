@@ -27,10 +27,6 @@ make run-integration
 # Wait for the bootstrap container to be done (meaning DB is setup)
 wait_for_container "scoringengine_bootstrap_1" 10
 
-# Modify some settings on the fly so we don't have to wait so long
-echo "Modifying some settings on the fly"
-docker run -it --network=scoringengine_default scoringengine_tester bash -c "python /app/tests/integration/update_settings.py"
-
 # Sleep for a bit so that the engine has time to start up
 # so that we can detect when it stops running
 echo "Sleeping for 20 seconds for the engine to start up"
