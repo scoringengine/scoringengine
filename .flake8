@@ -3,6 +3,5 @@ exclude =
   .flake8
   .git
   *__init__.py
-  tests/integration/update_settings.py
 ignore =
   E501  # ignore line length
