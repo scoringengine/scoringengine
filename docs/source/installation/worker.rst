@@ -70,7 +70,7 @@ Install dependencies for LDAP check
   apt-get install -y ldap-utils
 
 Install dependencies for Postgresql check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get install -y postgresql-client
