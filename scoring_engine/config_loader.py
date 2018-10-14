@@ -22,7 +22,7 @@ class ConfigLoader(object):
         )
 
         self.round_time_sleep = self.parse_sources(
-            'round_sleep_time',
+            'round_time_sleep',
             int(self.parser['GENERAL']['round_time_sleep']),
             'int'
         )
