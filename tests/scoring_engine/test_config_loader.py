@@ -6,8 +6,7 @@ from scoring_engine.config_loader import ConfigLoader
 class TestConfigLoader(object):
 
     def setup(self):
-        self.tests_config_location = "../tests/scoring_engine/engine.conf.inc"
-        self.config = ConfigLoader(location=self.tests_config_location)
+        self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf.inc")
 
     def test_web_debug(self):
         assert self.config.web_debug is False
