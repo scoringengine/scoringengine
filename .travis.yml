@@ -37,12 +37,12 @@ after_script:
   # only if a non PR and branch is master
   - |
     if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-      docker run -it
-        -v artifacts:/app/artifacts
-        -e GIT_BRANCH=$TRAVIS_BRANCH
-        -e GIT_COMMIT_SHA=$TRAVIS_COMMIT
-        -e GIT_COMMITTED_AT=$(git log -1 --pretty=tformat:%ct $TRAVIS_COMMIT)
-        -e CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID
-        scoringengine_tester bash -c
+      docker run -it \
+        -v artifacts:/app/artifacts \
+        -e GIT_BRANCH=$TRAVIS_BRANCH \
+        -e GIT_COMMIT_SHA=$TRAVIS_COMMIT \
+        -e GIT_COMMITTED_AT=$(git log -1 --pretty=tformat:%ct $TRAVIS_COMMIT) \
+        -e CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID \
+        scoringengine_tester bash -c \
       "cp artifacts/coverage.xml ./ && /usr/bin/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
     fi
