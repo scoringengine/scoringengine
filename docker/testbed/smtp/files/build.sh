@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo "127.0.0.1 mail.testbed.com" >> /etc/hosts
-
 postconf -e myhostname=mail.testbed.com
 postconf -e mydestination=mail.testbed.com
 postconf -F '*/*/chroot = n'
