@@ -11,7 +11,6 @@ RUN \
   openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -utf8 -sha512 -subj "/CN=mail.testbed.com" -keyout /etc/postfix/ssl/server.key -out /etc/postfix/ssl/server.crt
 
 ADD docker/testbed/smtp/files/build.sh /tmp/build.sh
-ADD docker/testbed/smtp/files/supervisord.conf /etc/supervisor/supervisord.conf
 
 RUN /tmp/build.sh
 
