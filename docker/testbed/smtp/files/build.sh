@@ -17,8 +17,14 @@ mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
 EOF
 
 # Create accounts
-echo "testpass" | saslpasswd2 -p -c -u mail.testbed.com ttesterson
-echo "redfred" | saslpasswd2 -p -c -u mail.testbed.com rpeterson
+USER_CREDENTIALS=( "ttesterson:testpass"
+        "rpeterson:somepass" )
+for creds in "${USER_CREDENTIALS[@]}" ; do
+    USERNAME="${creds%%:*}"
+    PASSWORD="${creds##*:}"
+    useradd $USERNAME
+    echo $PASSWORD | saslpasswd2 -p -c -u mail.testbed.com $USERNAME
+done
 
 chown postfix.sasl /etc/sasldb2
 
