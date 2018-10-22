@@ -16,3 +16,6 @@ ADD docker/testbed/smtp/files/supervisord.conf /etc/supervisor/supervisord.conf
 RUN /tmp/build.sh
 
 CMD /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+EXPOSE 25
+EXPOSE 587
