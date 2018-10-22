@@ -8,8 +8,8 @@ def send_email(username, password, fromuser, touser, subject, body, email_server
     try:
         message = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (fromuser, touser, subject, body)
         server = smtplib.SMTP(email_server, int(port))
-        server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(username, password)
         server.sendmail(fromuser, touser, message)
         server.close()
@@ -18,6 +18,7 @@ def send_email(username, password, fromuser, touser, subject, body, email_server
     except Exception as e:
         print('Failed to send email, received exception{0}\n'.format(e))
         exit(1)
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 9:
