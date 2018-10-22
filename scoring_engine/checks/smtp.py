@@ -2,7 +2,7 @@ from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
 
 class SMTPCheck(BasicCheck):
-    required_properties = ['fromuser', 'touser', 'subject', 'body']
+    required_properties = ['touser', 'subject', 'body']
     CMD = CHECKS_BIN_PATH + '/smtp_check {0} {1} {2} {3} {4} {5} {6} {7}'
 
     def command_format(self, properties):
@@ -10,7 +10,7 @@ class SMTPCheck(BasicCheck):
         return (
             account.username,
             account.password,
-            properties['fromuser'],
+            account.username,
             properties['touser'],
             properties['subject'],
             properties['body'],

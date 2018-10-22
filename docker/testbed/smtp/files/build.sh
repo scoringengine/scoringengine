@@ -3,6 +3,7 @@
 echo "127.0.0.1 mail.testbed.com" >> /etc/hosts
 
 postconf -e myhostname=mail.testbed.com
+postconf -e mydestination=mail.testbed.com
 postconf -F '*/*/chroot = n'
 
 postconf -e broken_sasl_auth_clients=yes
@@ -17,6 +18,7 @@ EOF
 
 # Create accounts
 echo "testpass" | saslpasswd2 -p -c -u mail.testbed.com ttesterson
+echo "redfred" | saslpasswd2 -p -c -u mail.testbed.com rpeterson
 
 chown postfix.sasl /etc/sasldb2
 
