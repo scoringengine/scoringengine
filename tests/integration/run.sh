@@ -42,3 +42,7 @@ sleep 5
 # Run integration tests against live testbed db
 echo "Running integration tests"
 docker run -it --network=scoringengine_default scoringengine_tester bash -c "py.test --integration tests"
+
+# Clean up container environment
+echo "Cleaning up container environment"
+make stop-integration
