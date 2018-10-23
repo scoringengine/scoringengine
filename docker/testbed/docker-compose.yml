@@ -67,8 +67,8 @@ services:
     networks:
       - default
     # ports:
-      # - 139:139
-      # - 445:445
+    #   - 139:139
+    #   - 445:445
   testbed_dns:
     build:
       context: .
@@ -76,8 +76,8 @@ services:
     networks:
       - default
     # ports:
-      # - 53:53/udp
-      # - 53:53
+    #   - 53:53/udp
+    #   - 53:53
   testbed_postgresql:
     build:
       context: .
@@ -86,6 +86,15 @@ services:
       - default
     # ports:
     #   - 5432:5432
+  testbed_smtp:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/smtp/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 25:25
+    #   - 587:587
 
 networks:
   default:

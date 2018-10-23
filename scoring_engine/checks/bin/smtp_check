@@ -18,6 +18,7 @@ def send_email(username, password, fromuser, touser, subject, body, email_server
         print('Failed to send email, received exception{0}\n'.format(e))
         exit(1)
 
+
 if __name__ == '__main__':
     if len(sys.argv) != 9:
         print('Error: Not enough parameters passed. Need 8 parameters.')
