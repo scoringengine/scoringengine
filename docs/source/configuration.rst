@@ -22,6 +22,8 @@ Manual
 
 Config Keys
 -----------
+.. note:: Each of these config keys can be expressed via environment variables (and take precendence over the values defined in the file). IE: To define round_time_sleep, I'd set SCORINGENGINE_ROUND_TIME_SLEEP=3.
+
 General
 ^^^^^^^
 checks_location
