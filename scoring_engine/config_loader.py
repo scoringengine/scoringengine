@@ -64,6 +64,12 @@ class ConfigLoader(object):
             self.parser['REDIS']['password']
         )
 
+        self.worker_num_concurrent_tasks = self.parse_sources(
+            'worker_num_concurrent_tasks',
+            int(self.parser['WORKER']['num_concurrent_tasks']),
+            'int'
+        )
+
     def parse_sources(self, key_name, default_value, obj_type='str'):
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
