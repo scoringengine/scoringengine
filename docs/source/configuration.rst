@@ -45,6 +45,16 @@ DB
 uri
   - The full database uri
 
+WORKER
+^^^^^^
+num_concurrent_tasks
+  - The number of concurrent tasks the worker will run. Set to -1 to default to number of processors.
+
+CACHE
+^^^^^
+cache_type
+  - The type of storage for the cache. Set to null to disable caching
+
 REDIS
 ^^^^^
 host

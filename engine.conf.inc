@@ -15,6 +15,11 @@ uri = sqlite:////tmp/engine.db
 # Postgresql
 #uri = postgresql://user:password@host/database
 
+[WORKER]
+# Set to -1 to use default number of processors for tasks
+# else, set to number of concurrent tasks
+num_concurrent_tasks = -1
+
 [CACHE]
 # Set to null to disable caching
 cache_type = redis

@@ -15,6 +15,9 @@ uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 # Set to null to disable caching
 cache_type = redis
 
+[WORKER]
+num_concurrent_tasks = -1
+
 [REDIS]
 host = redis
 port = 6379
