@@ -1,5 +1,5 @@
 FROM base:latest
 
-CMD ["./wait-for-container.sh", "bootstrap", "python", "scoring_engine/web/run.py"]
+CMD ["./wait-for-container.sh", "bootstrap", "/app/bin/web"]
 
 EXPOSE 5000

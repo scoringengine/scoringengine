@@ -31,7 +31,7 @@ Web UI
 ^^^^^^
 ::
 
-  python scoring_engine/web/run.py
+  python bin/web
 
 Then, access `localhost:5000 <http:localhost:5000>`_
 
