@@ -14,6 +14,9 @@ uri = sqlite:////tmp/test_engine.db
 # Set to null to disable caching
 cache_type = null
 
+[WORKER]
+num_concurrent_tasks = 4
+
 [REDIS]
 host = 127.0.0.1
 port = 6379
