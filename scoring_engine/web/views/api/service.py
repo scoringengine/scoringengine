@@ -75,3 +75,24 @@ def update_host():
                     update_service_data(service.id)
                     return jsonify({'status': 'Updated Service Information'})
     return jsonify({'error': 'Incorrect permissions'})
+
+
+@mod.route('/api/service/update_port', methods=['POST'])
+@login_required
+def update_port():
+    if current_user.is_blue_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            service = session.query(Service).get(int(request.form['pk']))
+            if service:
+                if service.team == current_user.team and request.form['name'] == 'port':
+                    modify_port_setting = Setting.get_setting('blue_team_update_port').value
+                    if modify_port_setting is not True:
+                        return jsonify({'error': 'Incorrect permissions'})
+                    service.port = int(html.escape(request.form['value']))
+                    session.add(service)
+                    session.commit()
+                    update_overview_data()
+                    update_services_data(service.team.id)
+                    update_service_data(service.id)
+                    return jsonify({'status': 'Updated Service Information'})
+    return jsonify({'error': 'Incorrect permissions'})

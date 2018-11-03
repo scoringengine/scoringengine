@@ -23,6 +23,7 @@ def service(id):
     if service is None or not current_user.team == service.team:
         return redirect(url_for('auth.unauthorized'))
     modify_hostname_setting = Setting.get_setting('blue_team_update_hostname').value
+    modify_port_setting = Setting.get_setting('blue_team_update_port').value
     modify_account_usernames_setting = Setting.get_setting('blue_team_update_account_usernames').value
     modify_account_passwords_setting = Setting.get_setting('blue_team_update_account_passwords').value
 
@@ -31,6 +32,7 @@ def service(id):
         id=id,
         service=service,
         modify_hostname_setting=modify_hostname_setting,
+        modify_port_setting=modify_port_setting,
         modify_account_passwords_setting=modify_account_passwords_setting,
         modify_account_usernames_setting=modify_account_usernames_setting
     )

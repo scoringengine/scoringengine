@@ -82,7 +82,11 @@
               <h4>Port:</h4>
             </td>
             <td>
-              {{service.port}}
+              {% if modify_port_setting == true %}
+                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
+              {% else %}
+                {{service.port}}
+              {% endif %}
             </td>
           </tr>
         </tbody>
