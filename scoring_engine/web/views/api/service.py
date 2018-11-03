@@ -41,9 +41,13 @@ def update_service_account_info():
             if current_user.team == account.service.team or current_user.is_white_team:
                 if account:
                     if request.form['name'] == 'username':
-                        account.username = html.escape(request.form['value'])
+                        modify_usernames_setting = Setting.get_setting('blue_team_update_account_usernames')
+                        if modify_usernames_setting.value is True:
+                            account.username = html.escape(request.form['value'])
                     elif request.form['name'] == 'password':
-                        account.password = html.escape(request.form['value'])
+                        modify_password_setting = Setting.get_setting('blue_team_update_account_passwords')
+                        if modify_password_setting.value is True:
+                            account.password = html.escape(request.form['value'])
                     session.add(account)
                     session.commit()
                     return jsonify({'status': 'Updated Account Information'})
