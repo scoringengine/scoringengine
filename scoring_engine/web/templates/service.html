@@ -82,7 +82,11 @@
               <h4>Port:</h4>
             </td>
             <td>
-              {{service.port}}
+              {% if modify_port_setting == true %}
+                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
+              {% else %}
+                {{service.port}}
+              {% endif %}
             </td>
           </tr>
         </tbody>
@@ -99,8 +103,19 @@
           <tbody>
             {% for account in service.accounts %}
               <tr>
-                <td width="30%">{{account.username}}</td>
-                <td width="70%"><a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
+                <td width="30%">
+                {% if modify_account_usernames_setting == true %}
+                  <a href="#" class="editable-textfield username" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
+                {% else %}
+                  {{account.username}}
+                {% endif %}
+                </td>
+                <td width="70%">
+                {% if modify_account_passwords_setting == true %}
+                  <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
+                {% else %}
+                  **********
+                {% endif %}
               </tr>
               {% endfor %}
           </tbody>

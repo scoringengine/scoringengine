@@ -201,7 +201,51 @@ def admin_update_blueteam_edit_hostname():
             setting.value = True
         session.add(setting)
         session.commit()
-        flash('Setting Successfully Updated.', 'success')
+        return redirect(url_for('admin.permissions'))
+    return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/update_blueteam_edit_port', methods=['POST'])
+@login_required
+def admin_update_blueteam_edit_port():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('blue_team_update_port')
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
+        return redirect(url_for('admin.permissions'))
+    return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/update_blueteam_edit_account_usernames', methods=['POST'])
+@login_required
+def admin_update_blueteam_edit_account_usernames():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('blue_team_update_account_usernames')
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
+        return redirect(url_for('admin.permissions'))
+    return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/update_blueteam_edit_account_passwords', methods=['POST'])
+@login_required
+def admin_update_blueteam_edit_account_passwords():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('blue_team_update_account_passwords')
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
         return redirect(url_for('admin.permissions'))
     return {'status': 'Unauthorized'}, 403
 

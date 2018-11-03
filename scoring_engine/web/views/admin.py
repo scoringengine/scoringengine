@@ -78,7 +78,10 @@ def permissions():
         return render_template(
             'admin/permissions.html',
             blue_teams=blue_teams,
-            blue_team_update_hostname=Setting.get_setting('blue_team_update_hostname').value
+            blue_team_update_hostname=Setting.get_setting('blue_team_update_hostname').value,
+            blue_team_update_port=Setting.get_setting('blue_team_update_port').value,
+            blue_team_update_account_usernames=Setting.get_setting('blue_team_update_account_usernames').value,
+            blue_team_update_account_passwords=Setting.get_setting('blue_team_update_account_passwords').value,
         )
     else:
         return redirect(url_for('auth.unauthorized'))
