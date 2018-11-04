@@ -37,6 +37,7 @@ services:
       - flask
     ports:
       - 80:80
+      - 443:443
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost"]
       interval: 30s
