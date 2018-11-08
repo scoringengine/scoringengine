@@ -351,7 +351,7 @@ about_content = '''
 
 welcome_content = '''
 <div class="row">
-    <h1 class="text-center">Diamond</h1>
+    <h1 class="text-center">Diamond Sponsors</h1>
 </div>
 <div class="row">
     <div class="card">
@@ -365,7 +365,7 @@ welcome_content = '''
     </div>
 </div>
 <div class="row">
-    <h1 class="text-center">Platinum</h1>
+    <h1 class="text-center">Platinum Sponsors</h1>
 </div>
 <div class="row">
     <div class="card">
@@ -379,7 +379,7 @@ welcome_content = '''
     </div>
 </div>
 <div class="row">
-    <h1 class="text-center">Gold</h1>
+    <h1 class="text-center">Gold Sponsors</h1>
 </div>
 <div class="row">
     <div class="card">
