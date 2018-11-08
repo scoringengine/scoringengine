@@ -4,29 +4,29 @@ import pytest
 
 class TestWebUI(object):
     def get_page(self, page):
-        return requests.get('http://nginx' + page)
+        return requests.get('https://nginx/{0}'.format(page), verify=False)
 
     pages = [
         {
-            'page': '/',
+            'page': '',
             'matching_text': 'Diamond',
         },
         {
-            'page': '/scoreboard',
+            'page': 'scoreboard',
         },
         {
-            'page': '/login',
+            'page': 'login',
             'matching_text': 'Please sign in',
         },
         {
-            'page': '/about',
+            'page': 'about',
             'matching_text': 'Use the following credentials to login',
         },
         {
-            'page': '/overview',
+            'page': 'overview',
         },
         {
-            'page': '/api/overview/data'
+            'page': 'api/overview/data'
         }
     ]
 
