@@ -90,6 +90,7 @@ Install dependencies for SMB check
 Install dependencies for RDP check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
+
   apt-get install -y freerdp-x11
 
 Install dependencies for MSSQL check
