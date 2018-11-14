@@ -29,17 +29,17 @@ parser.add_option('--example', action="store_true", default=False)
 options, arguments = parser.parse_args()
 
 # In order to handle docker-compose usability
-# we have a check to see if the EXAMPLE environment
+# we have a check to see if the SCORINGENGINE_EXAMPLE environment
 # variable is true. If it is, we want to populate
 # the db with example data
-if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
+if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE'].lower() == 'true':
     options.overwrite_db = True
     options.example = True
 
-# If the OVERWRITE_DB environment variable is set
+# If the SCORINGENGINE_OVERWRITE_DB environment variable is set
 # we want to delete any previous data in the db
-if 'OVERWRITE_DB' in os.environ and os.environ['OVERWRITE_DB'].lower() == 'true':
-    options.overwrite_db = os.environ['OVERWRITE_DB'] == 'true'
+if 'SCORINGENGINE_OVERWRITE_DB' in os.environ and os.environ['SCORINGENGINE_OVERWRITE_DB'].lower() == 'true':
+    options.overwrite_db = os.environ['SCORINGENGINE_OVERWRITE_DB'] == 'true'
 
 if not options.overwrite_db:
     try:
