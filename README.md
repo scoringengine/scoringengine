@@ -19,14 +19,14 @@ docker-compose build
 docker-compose up
 ```
 
-If you want to delete the database before starting, set the OVERWRITE_DB environment variable:
+If you want to delete the database before starting, set the SCORINGENGINE_OVERWRITE_DB environment variable:
 ```
-OVERWRITE_DB=true docker-compose up
+SCORINGENGINE_OVERWRITE_DB=true docker-compose up
 ```
 
-We also provide the ability to run it in an 'example' mode. This means only the web ui runs, and the database is prepopulated with example data. Set the EXAMPLE environment variable to true:
+We also provide the ability to run it in an 'example' mode. This means only the web ui runs, and the database is prepopulated with example data. Set the SCORINGENGINE_EXAMPLE environment variable to true:
 ```
-EXAMPLE=true docker-compose up
+SCORINGENGINE_EXAMPLE=true docker-compose up
 ```
 
 The app will be running at [http://localhost](http://localhost)

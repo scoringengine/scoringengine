@@ -6,18 +6,18 @@ import sys
 from scoring_engine.engine.engine import Engine
 
 # In order to handle docker-compose usability
-# we have a check to see if the EXAMPLE environment
+# we have a check to see if the SCORINGENGINE_EXAMPLE environment
 # variable is true. If it is, we don't
 # want the engine to run
-if 'EXAMPLE' in os.environ and os.environ['EXAMPLE'].lower() == 'true':
-    print("EXAMPLE environment variable is true, so skipping running the engine.")
+if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE'].lower() == 'true':
+    print("SCORINGENGINE_EXAMPLE environment variable is true, so skipping running the engine.")
     sys.exit(0)
 
 # If set to 0, there is no max number of rounds
 # default is 0
 total_rounds = 0
-if 'ENGINE_NUM_ROUNDS' in os.environ:
-    total_rounds = int(os.environ['ENGINE_NUM_ROUNDS'])
+if 'SCORINGENGINE_NUM_ROUNDS' in os.environ:
+    total_rounds = int(os.environ['SCORINGENGINE_NUM_ROUNDS'])
 
 engine = Engine(total_rounds=total_rounds)
 engine.run()

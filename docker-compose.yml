@@ -64,8 +64,8 @@ services:
     networks:
       - default
     environment:
-      - EXAMPLE
-      - OVERWRITE_DB
+      - SCORINGENGINE_EXAMPLE
+      - SCORINGENGINE_OVERWRITE_DB
   engine:
     build:
       context: .
@@ -78,7 +78,7 @@ services:
     networks:
       - default
     environment:
-      - EXAMPLE
+      - SCORINGENGINE_EXAMPLE
   worker:
     build:
       context: .
@@ -90,7 +90,7 @@ services:
     networks:
       - default
     environment:
-      - EXAMPLE
+      - SCORINGENGINE_EXAMPLE
   flask:
     build:
       context: .
