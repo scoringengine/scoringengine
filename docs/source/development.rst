@@ -1,29 +1,34 @@
 Development
 ***********
 
-.. note:: Currently we support python 3 with `virtual environments <http://docs.python-guide.org/en/latest/dev/virtualenvs/#lower-level-virtualenv>`_
+.. note:: Currently we support 2 ways of working on the Scoring Engine. You can either use the existing `Docker environment <installation/docker.html>`_, or you can run each service locally using python 3. If you choose to do your development locally, we recommend using `virtual environments. <http://docs.python-guide.org/en/latest/dev/virtualenvs/#lower-level-virtualenv>`_
 
-Setup Configuration
--------------------
+
+Initial Setup
+-------------
+These steps are for if you want to do your development locally and run each service locally as well.
+
+Create Config File
+^^^^^^^^^^^^^^^^^^
 ::
 
   cp engine.conf.inc engine.conf
   sed -i '' 's/debug = False/debug = True/g' engine.conf
 
-.. note:: If the debug config value is set to True, the web ui will automatically reload on changes to files, and will tell the web ui to listen only on localhost with port 5000
+.. hint:: If debug is set to True, the web ui will automatically reload on changes to local file modifications, which can help speed up development.
 
-Install Development Dependencies
---------------------------------
+Install Required Dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  pip install -r tests/requirements.txt
-
+  pip install -r requirements.txt
 
 Populate Sample DB
-------------------
+^^^^^^^^^^^^^^^^^^
 ::
 
   python bin/populate_db --example --overwrite-db
+
 
 Run Services
 ------------
@@ -35,18 +40,27 @@ Web UI
 
 Then, access `localhost:5000 <http:localhost:5000>`_
 
-Credentials:
+.. list-table:: Credentials
+   :header-rows: 1
 
-* whiteteamuser:testpass
-* team1user1:testpass
-* team2user1:testpass
-* team2user2:testpass
-* redteamuser:testpass
+   * - Username
+     - Password
+   * - whiteteamuser
+     - testpass
+   * - redteamuser
+     - testpass
+   * - team1user1
+     - testpass
+   * - team2user1
+     - testpass
+   * - team2user2
+     - testpass
 
 .. note:: The engine and worker do NOT need to be running in order to run the web UI.
 
 Engine
 ^^^^^^
+Both the engine and worker services require a redis server to be running. Redis can be easily setup by using the existing docker environment.
 ::
 
   python bin/engine
@@ -63,8 +77,30 @@ We use the `pytest <https://docs.pytest.org/en/latest/>`_ testing framework.
 
 .. note:: The tests use a separate db (sqlite in memory), so don't worry about corrupting a production db when running the tests.
 
+First, we need to install the dependencies required for testing.
 ::
 
-  py.test tests
+  pip install -r tests/requirements.txt
+
+Next, we run our tests
+::
+
+  pytest tests
 
 .. hint:: Instead of specifying the tests directory, you can specify specific file(s) to run: *pytest tests/scoring_engine/test_config.py*
+
+Modifying Documentation
+-----------------------
+We use `sphinx <http://www.sphinx-doc.org/en/master/>`_ to build the documentation.
+
+First, we need to install the dependencies required for documentation.
+::
+
+  pip install -r docs/requirements.txt
+
+Next, we build our documentation in html format.
+::
+
+  cd docs
+  make html
+  open build/html/index.html
