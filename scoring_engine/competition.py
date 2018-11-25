@@ -39,12 +39,48 @@ class Competition(dict):
 
     def verify_user_data(user, team_name):
         # Verify user username
-        assert 'username' in user, "'{0}' user must have a 'username' field".format(team_name)
-        assert type(user['username']) is str, "'{0}' user username must a string".format(team_name)
+        assert 'username' in user, "{0} user must have a 'username' field".format(team_name)
+        assert type(user['username']) is str, "{0} user username must a string".format(team_name)
 
         # Verify user password
-        assert 'password' in user, "Team1 user must have a 'password' field"
-        assert type(user['password']) is str, "'{0}' user password must a string".format(team['name'])
+        assert 'password' in user, "{0} user must have a 'password' field".format(team_name)
+        assert type(user['password']) is str, "{0} user password must a string".format(team_name)
 
     def verify_service_data(service, team_name):
+        # Verify service name
+        assert 'name' in service, "{0} service must have a 'name' field".format(team_name)
+        assert type(service['name']) is str, "{0} service 'name' must be a string".format(team_name)
+
+        # Verify service check_name
+        assert 'check_name' in service, "{0} {1} service must have a 'check_name' field".format(team_name, service['name'])
+        assert type(service['check_name']) is str, "{0} {1} service 'check_name' field must be a string".format(team_name, service['name'])
+        # todo: verify the check_name maps correctly to real check
+
+        # Verify service host
+        assert 'host' in service, "{0} {1} service must have a 'host' field".format(team_name, service['name'])
+        assert type(service['host']) is str, "{0} {1} service 'host' field must be a string".format(team_name, service['name'])
+
+        # Verify service port
+        assert 'port' in service, "{0} {1} service must have a 'port' field".format(team_name, service['name'])
+        assert type(service['port']) is int, "{0} {1} service 'port' field must be an integer".format(team_name, service['name'])
+
+        # Verify service points
+        assert 'points' in service, "{0} {1} service must have a 'points' field".format(team_name, service['name'])
+        assert type(service['points']) is int, "{0} {1} service 'points' field must be an integer".format(team_name, service['name'])
+
+        if 'accounts' in service:
+            assert type(service['accounts']) is list, "{0} {1} service 'accounts' field must be an array".format(team_name, service['name'])
+            for account in service['accounts']:
+                Competition.verify_account_data(account, team_name, service['name'])
+
+        Competition.verify_environment_data(environment, team_name, service['name'])
+
+    def verify_account_data(account, team_name, service_name):
+        # verify username field and it's a string
+        # verify password field and it's a string
         pass
+
+    def verify_environment_data(environment, team_name, service_name):
+        # verify has matching_regex field and it's either a string or a regex
+        # verify has properties field and it's an array
+        # pass
