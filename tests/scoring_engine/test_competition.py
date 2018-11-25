@@ -15,6 +15,9 @@ class CompetitionDataTest(object):
                             'username': 'team1user1',
                             'password': 'testpass'
                         }
+                    ],
+                    'services': [
+
                     ]
                 },
             ]
@@ -62,6 +65,14 @@ class TestTeamsData(CompetitionDataTest):
     def test_users_bad_type(self):
         self.setup['teams'][0]['users'] = 'a string'
         self.verify_error("'Team1' 'users' field must be an array")
+
+    def test_team_no_services(self):
+        del self.setup['teams'][0]['services']
+        self.verify_error("'Team1' must have a 'services' field")
+
+    def test_team_bad_services_type(self):
+        self.setup['teams'][0]['services'] = 'a string'
+        self.verify_error("'Team1' 'services' field must be an array")
 
 
 class TestUsersData(CompetitionDataTest):
