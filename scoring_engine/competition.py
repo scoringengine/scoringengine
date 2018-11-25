@@ -12,8 +12,6 @@ class Competition(dict):
     def __init__(self, data):
         self.available_checks = Engine.load_check_files(config.checks_location)
         self.verify_data(data)
-        Competition.verify_data(data)
-        return Competition(data)
 
     def verify_data(self, data):
         # verify teams is in project root
@@ -86,12 +84,20 @@ class Competition(dict):
             for account in service['accounts']:
                 self.verify_account_data(account, team_name, service['name'])
 
-        self.verify_environment_data(environment, team_name, service['name'])
+        # Verify service environments
+        assert 'environments' in service, "{0} {1} service must have a 'environments' field".format(team_name, service['name'])
+        assert type(service['environments']) is list, "{0} {1} service 'environments' field must be an array".format(team_name, service['name'])
+        for environment in service['environments']:
+            self.verify_environment_data(environment, team_name, service['name'])
 
     def verify_account_data(self, account, team_name, service_name):
-        # verify username field and it's a string
-        # verify password field and it's a string
-        pass
+        # Verify account username
+        assert 'username' in account, "{0} {1} account must have a 'username' field".format(team_name, service_name)
+        assert type(account['username']) is str, "{0} {1} account 'username' field must be a string".format(team_name, service_name)
+
+        # Verify account password
+        assert 'password' in account, "{0} {1} account must have a 'password' field".format(team_name, service_name)
+        assert type(account['password']) is str, "{0} {1} account 'password' field must be a string".format(team_name, service_name)
 
     def verify_environment_data(self, environment, team_name, service_name):
         # verify has matching_regex field and it's either a string or a regex

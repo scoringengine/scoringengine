@@ -177,12 +177,31 @@ class TestServiceData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['accounts'] = 'a string'
         self.verify_error("Team1 SSH service 'accounts' field must be an array")
 
-# class TestAccountData(CompetitionDataTest):
-#     def test_no_username(self):
-#     def test_bad_username_type(self):
-#     def test_no_password(self):
-#     def test_bad_password_type(self):
-#         self.setup['teams'][0]['']
+    def test_no_environments(self):
+        del self.setup['teams'][0]['services'][0]['environments']
+        self.verify_error("Team1 SSH service must have a 'environments' field")
+
+    def test_bad_environments_type(self):
+        self.setup['teams'][0]['services'][0]['environments'] = 'a string'
+        self.verify_error("Team1 SSH service 'environments' field must be an array")
+
+
+class TestAccountData(CompetitionDataTest):
+    def test_no_username(self):
+        del self.setup['teams'][0]['services'][0]['accounts'][0]['username']
+        self.verify_error("Team1 SSH account must have a 'username' field")
+
+    def test_bad_username_type(self):
+        self.setup['teams'][0]['services'][0]['accounts'][0]['username'] = []
+        self.verify_error("Team1 SSH account 'username' field must be a string")
+
+    def test_no_password(self):
+        del self.setup['teams'][0]['services'][0]['accounts'][0]['password']
+        self.verify_error("Team1 SSH account must have a 'password' field")
+
+    def test_bad_password_type(self):
+        self.setup['teams'][0]['services'][0]['accounts'][0]['password'] = []
+        self.verify_error("Team1 SSH account 'password' field must be a string")
 
 # # class TestEnvironmentData(CompetitionDataTest):
 
