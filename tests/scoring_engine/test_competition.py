@@ -57,7 +57,7 @@ class CompetitionDataTest(object):
 
     def verify_error(self, error_message):
         with pytest.raises(AssertionError) as error:
-            Competition.verify_data(self.setup)
+            Competition(self.setup)
         assert error_message == str(error.value)
 
 
@@ -145,9 +145,9 @@ class TestServiceData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['check_name'] = []
         self.verify_error("Team1 SSH service 'check_name' field must be a string")
 
-    # def test_bad_check_name_value(self):
-    #     self.setup['teams'][0]['services'][0]['check_name'] = 'SomeCheck'
-    #     self.verify_error("Team1 SSH service check_name must match the classname of a check defined in scoring_engine/checks/")
+    def test_bad_check_name_value(self):
+        self.setup['teams'][0]['services'][0]['check_name'] = 'SomeCheck'
+        self.verify_error("Team1 SSH Incorrect 'check_name' field, must match the classname of a check defined in scoring_engine/checks")
 
     def test_no_host(self):
         del self.setup['teams'][0]['services'][0]['host']
