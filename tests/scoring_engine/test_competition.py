@@ -213,12 +213,38 @@ class TestEnvironmentData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['environments'][0]['matching_regex'] = []
         self.verify_error("Team1 SSH environment 'matching_regex' field must be a string")
 
-    def test_no_properties(self):
-        del self.setup['teams'][0]['services'][0]['environments'][0]['properties']
-        self.verify_error("Team1 SSH environment must have a 'properties' field")
-
     def test_bad_properties_type(self):
         self.setup['teams'][0]['services'][0]['environments'][0]['properties'] = 'a string'
         self.verify_error("Team1 SSH environment 'properties' field must be an array")
 
-# class TestPropertyData(CompetitionDataTest):
+
+class TestPropertyData(CompetitionDataTest):
+    def test_no_name(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]['name']
+        self.verify_error("Team1 SSH property must have a 'name' field")
+
+    def test_bad_name_type(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]['name'] = []
+        self.verify_error("Team1 SSH property 'name' field must be a string")
+
+    def test_no_value(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]['value']
+        self.verify_error("Team1 SSH property must have a 'value' field")
+
+    def test_bad_value_type(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]['value'] = []
+        self.verify_error("Team1 SSH property 'value' field must be a string")
+
+    def test_bad_name_value(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]['name'] = 'someproperty'
+        self.verify_error("Team1 SSH SSHCheck does not require the property 'someproperty'")
+
+    def test_all_required_properties(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['properties'][0]
+        self.verify_error("Team1 SSH service does not define the 'commands' property")
+
+
+class TestGoodSetup(CompetitionDataTest):
+    # This verifies that the good setup is parseable
+    def test_good_setup_parses(self):
+        Competition(self.setup)

@@ -61,11 +61,11 @@ class Competition(dict):
         assert 'check_name' in service, "{0} {1} service must have a 'check_name' field".format(team_name, service['name'])
         assert type(service['check_name']) is str, "{0} {1} service 'check_name' field must be a string".format(team_name, service['name'])
         # Verify check_name maps correctly to a real check source code class
-        found_check = False
+        found_check = None
         for available_check in self.available_checks:
             if service['check_name'] == available_check.__name__:
-                found_check = True
-        assert found_check is True, "{0} {1} Incorrect 'check_name' field, must match the classname of a check defined in {2}".format(team_name, service['name'], config.checks_location)
+                found_check = available_check
+        assert found_check is not None, "{0} {1} Incorrect 'check_name' field, must match the classname of a check defined in {2}".format(team_name, service['name'], config.checks_location)
 
         # Verify service host
         assert 'host' in service, "{0} {1} service must have a 'host' field".format(team_name, service['name'])
@@ -88,7 +88,7 @@ class Competition(dict):
         assert 'environments' in service, "{0} {1} service must have a 'environments' field".format(team_name, service['name'])
         assert type(service['environments']) is list, "{0} {1} service 'environments' field must be an array".format(team_name, service['name'])
         for environment in service['environments']:
-            self.verify_environment_data(environment, team_name, service['name'])
+            self.verify_environment_data(environment, team_name, service['name'], found_check)
 
     def verify_account_data(self, account, team_name, service_name):
         # Verify account username
@@ -99,16 +99,30 @@ class Competition(dict):
         assert 'password' in account, "{0} {1} account must have a 'password' field".format(team_name, service_name)
         assert type(account['password']) is str, "{0} {1} account 'password' field must be a string".format(team_name, service_name)
 
-    def verify_environment_data(self, environment, team_name, service_name):
+    def verify_environment_data(self, environment, team_name, service_name, found_check_source):
         # Verify environment matching_regex
         assert 'matching_regex' in environment, "{0} {1} environment must have a 'matching_regex' field".format(team_name, service_name)
         assert type(environment['matching_regex']) is str, "{0} {1} environment 'matching_regex' field must be a string".format(team_name, service_name)
 
         # Verify environment properties
-        assert 'properties' in environment, "{0} {1} environment must have a 'properties' field".format(team_name, service_name)
-        assert type(environment['properties']) is list, "{0} {1} environment 'properties' field must be an array".format(team_name, service_name)
-        for property_obj in environment['properties']:
-            self.verify_property_data(property_obj, team_name, service_name)
+        if 'properties' in environment:
+            assert type(environment['properties']) is list, "{0} {1} environment 'properties' field must be an array".format(team_name, service_name)
+            for property_obj in environment['properties']:
+                self.verify_property_data(property_obj, team_name, service_name, found_check_source)
+            # Verify that all properties the check source code requires, is listed
+            for required_property_key in found_check_source.required_properties:
+                matched_key = False
+                for defined_property in environment['properties']:
+                    if required_property_key in defined_property['name']:
+                        matched_key = True
+                assert matched_key is True, "{0} {1} service does not define the '{2}' property".format(team_name, service_name, required_property_key)
 
-    def verify_property_data(self, property_obj, team_name, service_name):
-        pass
+    def verify_property_data(self, property_obj, team_name, service_name, found_check_source):
+        # Verify property name
+        assert 'name' in property_obj, "{0} {1} property must have a 'name' field".format(team_name, service_name)
+        assert type(property_obj['name']) is str, "{0} {1} property 'name' field must be a string".format(team_name, service_name)
+
+        # Verify property value
+        assert 'value' in property_obj, "{0} {1} property must have a 'value' field".format(team_name, service_name)
+        assert type(property_obj['value']) is str, "{0} {1} property 'value' field must be a string".format(team_name, service_name)
+        assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
