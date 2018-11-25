@@ -203,6 +203,22 @@ class TestAccountData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['accounts'][0]['password'] = []
         self.verify_error("Team1 SSH account 'password' field must be a string")
 
-# # class TestEnvironmentData(CompetitionDataTest):
 
-# # class TestPropertyData(CompetitionDataTest):
+class TestEnvironmentData(CompetitionDataTest):
+    def test_no_matching_regex(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['matching_regex']
+        self.verify_error("Team1 SSH environment must have a 'matching_regex' field")
+
+    def test_bad_matching_regex_type(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['matching_regex'] = []
+        self.verify_error("Team1 SSH environment 'matching_regex' field must be a string")
+
+    def test_no_properties(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['properties']
+        self.verify_error("Team1 SSH environment must have a 'properties' field")
+
+    def test_bad_properties_type(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['properties'] = 'a string'
+        self.verify_error("Team1 SSH environment 'properties' field must be an array")
+
+# class TestPropertyData(CompetitionDataTest):

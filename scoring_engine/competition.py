@@ -100,6 +100,15 @@ class Competition(dict):
         assert type(account['password']) is str, "{0} {1} account 'password' field must be a string".format(team_name, service_name)
 
     def verify_environment_data(self, environment, team_name, service_name):
-        # verify has matching_regex field and it's either a string or a regex
-        # verify has properties field and it's an array
+        # Verify environment matching_regex
+        assert 'matching_regex' in environment, "{0} {1} environment must have a 'matching_regex' field".format(team_name, service_name)
+        assert type(environment['matching_regex']) is str, "{0} {1} environment 'matching_regex' field must be a string".format(team_name, service_name)
+
+        # Verify environment properties
+        assert 'properties' in environment, "{0} {1} environment must have a 'properties' field".format(team_name, service_name)
+        assert type(environment['properties']) is list, "{0} {1} environment 'properties' field must be an array".format(team_name, service_name)
+        for property_obj in environment['properties']:
+            self.verify_property_data(property_obj, team_name, service_name)
+
+    def verify_property_data(self, property_obj, team_name, service_name):
         pass
