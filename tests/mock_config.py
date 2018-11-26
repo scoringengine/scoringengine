@@ -8,7 +8,3 @@ class MockConfig(object):
     @property
     def config(self):
         return ConfigLoader(self.file_location)
-
-    @property
-    def checks_location(self):
-        return 'scoring_engine/checks'
