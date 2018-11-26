@@ -8,17 +8,14 @@ import optparse
 import os
 
 from scoring_engine.models.base import Base
-from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
-from scoring_engine.models.account import Account
-from scoring_engine.models.environment import Environment
-from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, engine
 from scoring_engine.config import config
+from scoring_engine.competition import Competition
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 
 
@@ -54,271 +51,88 @@ print("Setting up DB")
 Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
-useragents = [
-    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-    'Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
-    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)',
-    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1094) AppleWebKit/537.77.4 (KHTML like Gecko) Version/7.0.5 Safari/537.77.4',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1094) AppleWebKit/537.78.2 (KHTML like Gecko) Version/7.0.6 Safari/537.78.2',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1010) AppleWebKit/600.1.8 (KHTML like Gecko) Version/8.0 Safari/600.1.8',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 1068) AppleWebKit/534.59.10 (KHTML like Gecko) Version/5.1.9 Safari/534.59.10',
-]
+competition_json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_competition.json")
+sample_competition_str = open(competition_json_file, 'r').read()
+competition = Competition.parse_json_str(sample_competition_str)
+competition.save(session)
 
-services = []
 
-print("Creating models and writing them to DB")
-num_teams = 10
-num_rounds = randint(20, 50)
-print("\tNum Blue Teams: " + str(num_teams))
-print()
 
-print("Creating White Team")
-white_team = Team(name="White Team", color="White")
-session.add(white_team)
-user = User(username="whiteteamuser", password="testpass", team=white_team)
-session.add(user)
 
-print("Creating Red Team")
-red_team = Team(name="Red Team", color="Red")
-session.add(red_team)
-user = User(username="redteamuser", password="testpass", team=red_team)
-session.add(user)
-session.commit()
+# print("\t\tCreating RDP Service")
+# service = Service(name="RDP", team=team, check_name="RDPCheck", host='testbed_rdp', port=3389, points=100)
+# environment = Environment(service=service, matching_regex='SUCCESS$')
+# session.add(Account(username='ttesterson', password='test', service=service))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-print("Creating Blue Teams and Services")
-for num in range(1, num_teams + 1):
+# print("\t\tCreating LDAP Service")
+# service = Service(name='LDAP', team=team, check_name='LDAPCheck', host='testbed_ldap', port=389, points=50)
+# session.add(Account(username='ttesterson', password='testpass', service=service))
+# session.add(Account(username='rpeterson', password='otherpass', service=service))
+# environment = Environment(service=service, matching_regex='^result: 0 Success')
+# session.add(Property(environment=environment, name='domain', value='example.com'))
+# session.add(Property(environment=environment, name='base_dn', value='dc=example,dc=com'))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    print("\tCreating Team " + str(num))
-    team = Team(name="Team" + str(num), color="Blue")
-    session.add(team)
+# print("\t\tCreating POP3 Service")
+# service = Service(name='POP3', team=team, check_name='POP3Check', host='127.0.0.1', port=110, points=100)
+# session.add(Account(username='testuser', password='testpass', service=service))
+# environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+# session.add(Property(environment=environment, name='domain', value='test.com'))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    for user_num in range(1, 3):
-        username = "team" + str(num) + "user" + str(user_num)
-        print("\t\tCreating User " + username)
-        user = User(username=username, password="testpass", team=team)
-        session.add(user)
+# print("\t\tCreating POP3S Service")
+# service = Service(name='POP3S', team=team, check_name='POP3SCheck', host='127.0.0.1', port=110, points=100)
+# session.add(Account(username='testuser', password='testpass', service=service))
+# environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+# session.add(Property(environment=environment, name='domain', value='test.com'))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    print("\t\tCreating ICMP Service")
-    service = Service(name="ICMP", team=team, check_name="ICMPCheck", host="testbed_icmp", points=25)
-    session.add(Environment(service=service, matching_regex='1 packets transmitted, 1 received'))
-    session.add(service)
-    services.append(service)
+# print("\t\tCreating IMAP Service")
+# service = Service(name='IMAP', team=team, check_name='IMAPCheck', host='127.0.0.1', port=143, points=100)
+# session.add(Account(username='testuser', password='testpass', service=service))
+# environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+# session.add(Property(environment=environment, name='domain', value='test.com'))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    print("\t\tCreating SSH Service")
-    service = Service(name='SSH', team=team, check_name='SSHCheck', host='testbed_ssh', port=22, points=150)
-    session.add(service)
-    session.add(Account(username='ttesterson', password='testpass', service=service))
-    session.add(Account(username='rpeterson', password='otherpass', service=service))
-    environment = Environment(service=service, matching_regex='^SUCCESS')
-    session.add(environment)
-    # The commands property supports multiple commands, separated by ';'
-    session.add(Property(environment=environment, name='commands', value='id;ls -l /home'))
-    environment = Environment(service=service, matching_regex='PID')
-    session.add(environment)
-    session.add(Property(environment=environment, name='commands', value='ps'))
-    services.append(service)
+# print("\t\tCreating IMAPS Service")
+# service = Service(name='IMAPS', team=team, check_name='IMAPSCheck', host='127.0.0.1', port=143, points=100)
+# session.add(Account(username='testuser', password='testpass', service=service))
+# environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+# session.add(Property(environment=environment, name='domain', value='test.com'))
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    print("\t\tCreating HTTP Service")
-    service = Service(name='HTTP', team=team, check_name='HTTPCheck', host='testbed_web', port=80, points=100)
-    for useragent in useragents:
-        environment = Environment(service=service, matching_regex='Thank you for using nginx')
-        session.add(Property(environment=environment, name='useragent', value=useragent))
-        session.add(Property(environment=environment, name='vhost', value='testbed_web'))
-        session.add(Property(environment=environment, name='uri', value='/'))
-        session.add(environment)
-        session.add(service)
-    services.append(service)
+# print("\t\tCreating VNC Service")
+# service = Service(name='VNC', team=team, check_name='VNCCheck', host='127.0.0.1', port=5900, points=100)
+# # BLANK for no username required
+# session.add(Account(username='BLANK', password='testpass', service=service))
+# environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
+# session.add(service)
+# session.add(environment)
+# services.append(service)
 
-    print("\t\tCreating HTTPS Service")
-    service = Service(name='HTTPS', team=team, check_name='HTTPSCheck', host='testbed_web', port=443, points=100)
-    for useragent in useragents:
-        environment = Environment(service=service, matching_regex='Thank you for using nginx')
-        session.add(Property(environment=environment, name='useragent', value=useragent))
-        session.add(Property(environment=environment, name='vhost', value='testbed_web'))
-        session.add(Property(environment=environment, name='uri', value='/'))
-        session.add(environment)
-        session.add(service)
-    services.append(service)
-
-    print("\t\tCreating MYSQL Service")
-    service = Service(name='MySQL', team=team, check_name='MYSQLCheck', host='testbed_mysql', port=3306, points=100)
-    session.add(Account(username='user1', password='CHANGEME', service=service))
-    environment = Environment(service=service, matching_regex='USER_PRIVILEGES')
-    session.add(Property(environment=environment, name='database', value='information_schema'))
-    session.add(Property(environment=environment, name='command', value='show tables;'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating MSSQL Service")
-    service = Service(name='MSSQL', team=team, check_name='MSSQLCheck', host='testbed_mssql', port=1433, points=100)
-    session.add(Account(username='sa', password='yourStrong(!)Password', service=service))
-    environment = Environment(service=service, matching_regex='Microsoft SQL Server 2017')
-    session.add(Property(environment=environment, name='database', value='master'))
-    session.add(Property(environment=environment, name='command', value='SELECT @@version;'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating FTP Service")
-    service = Service(name='FTP', team=team, check_name='FTPCheck', host='testbed_ftp', port=21, points=150)
-    session.add(Account(username='ttesterson', password='testpass', service=service))
-    session.add(Account(username='rpeterson', password='otherpass', service=service))
-    environment = Environment(service=service, matching_regex='^SUCCESS')
-    # We use double slashes in the filename to represent the absolute path
-    session.add(Property(environment=environment, name='remotefilepath', value='/ftp_files/testfile.txt'))
-    session.add(Property(environment=environment, name='filecontents', value='Sample file contents'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating Elasticsearch Service")
-    service = Service(name='Elasticsearch', team=team, check_name='ElasticsearchCheck', host='testbed_elasticsearch', port=9200, points=100)
-    environment = Environment(service=service, matching_regex='^SUCCESS')
-    session.add(Property(environment=environment, name='index', value='messages'))
-    session.add(Property(environment=environment, name='doc_type', value='sample_message'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating SMB Service")
-    service = Service(name="SMB", team=team, check_name="SMBCheck", host='testbed_smb', port=445, points=100)
-    environment = Environment(service=service, matching_regex='^SUCCESS')
-    session.add(Property(environment=environment, name='share', value='ScoredShare'))
-    session.add(Property(environment=environment, name='file', value='flag.txt'))
-    # SHA256 hash of file
-    session.add(Property(environment=environment, name='hash', value='3ac8347c1130bd1ffe9078f99be6cb690baedd9e5552de0f7140c0daded7e1fa'))
-    session.add(Account(username='ttesterson', password='test', service=service))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating DNS Service")
-    service = Service(name="DNS", team=team, check_name="DNSCheck", host="testbed_dns", port=53, points=100)
-    environment = Environment(service=service, matching_regex='status: NOERROR')
-    session.add(environment)
-    session.add(Property(environment=environment, name='qtype', value='A'))
-    session.add(Property(environment=environment, name='domain', value='www.team.scoringengine'))
-    environment_quad = Environment(service=service, matching_regex='status: NOERROR')
-    session.add(environment_quad)
-    session.add(Property(environment=environment_quad, name='qtype', value='AAAA'))
-    session.add(Property(environment=environment_quad, name='domain', value='www.team.scoringengine'))
-    environment_anotherhost = Environment(service=service, matching_regex='status: NOERROR')
-    session.add(environment_anotherhost)
-    session.add(Property(environment=environment_anotherhost, name='qtype', value='A'))
-    session.add(Property(environment=environment_anotherhost, name='domain', value='anotherhost.team.scoringengine'))
-    session.add(service)
-    services.append(service)
-
-    print("\t\tCreating POSTGRESQL Service")
-    service = Service(name='PostgreSQL', team=team, check_name='POSTGRESQLCheck', host='testbed_postgresql', port=5432, points=100)
-    session.add(Account(username='bender', password='1234pass', service=service))
-    session.add(Account(username='dscott', password='password1', service=service))
-    session.add(Account(username='ttesterson', password='somepass', service=service))
-    environment = Environment(service=service, matching_regex='You are connected to database')
-    session.add(Property(environment=environment, name='database', value='testdb'))
-    session.add(Property(environment=environment, name='command', value='\conninfo'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating SMTP Service")
-    service = Service(name='SMTP', team=team, check_name='SMTPCheck', host='testbed_smtp', port=25, points=100)
-    session.add(Account(username='ttesterson@mail.testbed.com', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='Successfully sent email')
-    session.add(Property(environment=environment, name='touser', value='rpeterson@mail.testbed.com'))
-    session.add(Property(environment=environment, name='subject', value='A scoring engine test subject!'))
-    session.add(Property(environment=environment, name='body', value='This is the body of the email'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    print("\t\tCreating SMTPS Service")
-    service = Service(name='SMTPS', team=team, check_name='SMTPSCheck', host='testbed_smtp', port=587, points=100)
-    session.add(Account(username='ttesterson@mail.testbed.com', password='testpass', service=service))
-    environment = Environment(service=service, matching_regex='Successfully sent email')
-    session.add(Property(environment=environment, name='touser', value='rpeterson@mail.testbed.com'))
-    session.add(Property(environment=environment, name='subject', value='A scoring engine test subject!'))
-    session.add(Property(environment=environment, name='body', value='This is the body of the email'))
-    session.add(service)
-    session.add(environment)
-    services.append(service)
-
-    # print("\t\tCreating RDP Service")
-    # service = Service(name="RDP", team=team, check_name="RDPCheck", host='testbed_rdp', port=3389, points=100)
-    # environment = Environment(service=service, matching_regex='SUCCESS$')
-    # session.add(Account(username='ttesterson', password='test', service=service))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating LDAP Service")
-    # service = Service(name='LDAP', team=team, check_name='LDAPCheck', host='testbed_ldap', port=389, points=50)
-    # session.add(Account(username='ttesterson', password='testpass', service=service))
-    # session.add(Account(username='rpeterson', password='otherpass', service=service))
-    # environment = Environment(service=service, matching_regex='^result: 0 Success')
-    # session.add(Property(environment=environment, name='domain', value='example.com'))
-    # session.add(Property(environment=environment, name='base_dn', value='dc=example,dc=com'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating POP3 Service")
-    # service = Service(name='POP3', team=team, check_name='POP3Check', host='127.0.0.1', port=110, points=100)
-    # session.add(Account(username='testuser', password='testpass', service=service))
-    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    # session.add(Property(environment=environment, name='domain', value='test.com'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating POP3S Service")
-    # service = Service(name='POP3S', team=team, check_name='POP3SCheck', host='127.0.0.1', port=110, points=100)
-    # session.add(Account(username='testuser', password='testpass', service=service))
-    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    # session.add(Property(environment=environment, name='domain', value='test.com'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating IMAP Service")
-    # service = Service(name='IMAP', team=team, check_name='IMAPCheck', host='127.0.0.1', port=143, points=100)
-    # session.add(Account(username='testuser', password='testpass', service=service))
-    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    # session.add(Property(environment=environment, name='domain', value='test.com'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating IMAPS Service")
-    # service = Service(name='IMAPS', team=team, check_name='IMAPSCheck', host='127.0.0.1', port=143, points=100)
-    # session.add(Account(username='testuser', password='testpass', service=service))
-    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    # session.add(Property(environment=environment, name='domain', value='test.com'))
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-    # print("\t\tCreating VNC Service")
-    # service = Service(name='VNC', team=team, check_name='VNCCheck', host='127.0.0.1', port=5900, points=100)
-    # # BLANK for no username required
-    # session.add(Account(username='BLANK', password='testpass', service=service))
-    # environment = Environment(service=service, matching_regex='ACCOUNT FOUND')
-    # session.add(service)
-    # session.add(environment)
-    # services.append(service)
-
-session.commit()
+# session.commit()
 
 
 if options.example:
+    num_rounds = randint(20, 50)
     print("Creating " + str(num_rounds) + " rounds")
     for num_round in range(1, num_rounds + 1):
         print("\tCreating round " + str(num_round))
         round_obj = Round(number=num_round)
+        services = session.query(Service).all()
         for service in services:
             # print("\t\tCreating check for " + str(service.id))
             output = ''

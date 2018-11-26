@@ -1,0 +1,462 @@
+{
+    "teams": [
+        {
+            "name": "WhiteTeam",
+            "color": "White",
+            "users": [
+                {
+                    "username": "whiteteamuser",
+                    "password": "testpass"
+                }
+            ]
+        },
+        {
+            "name": "RedTeam",
+            "color": "Red",
+            "users": [
+                {
+                    "username": "redteamuser",
+                    "password": "testpass"
+                }
+            ]
+        },
+        // Essentially the next blue teams are copy/pastes of team 1's definition
+        {
+            "name": "Team1",
+            "color": "Blue",
+            "users": [
+                {
+                    "username": "team1user1",
+                    "password": "testpass"
+                }
+            ],
+            "services": [
+                {
+                    "name": "ICMP",
+                    "check_name": "ICMPCheck",
+                    "host": "testbed_icmp",
+                    "port": 0,
+                    "points": 25,
+                    "environments": [
+                        {
+                            "matching_regex": "1 packets transmitted, 1 received"
+                        }
+                    ]
+                },
+                {
+                    "name": "SSH",
+                    "check_name": "SSHCheck",
+                    "host": "testbed_ssh",
+                    "port": 22,
+                    "points": 150,
+                    "accounts": [
+                        {
+                            "username": "ttesterson",
+                            "password": "testpass"
+                        },
+                        {
+                            "username": "rpeterson",
+                            "password": "otherpass"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "^SUCCESS",
+                            "properties": [
+                                {
+                                    "name": "commands",
+                                    "value": "id;ls -l /home"
+                                }
+                            ]
+                        },
+                        {
+                            "matching_regex": "PID",
+                            "properties": [
+                                {
+                                    "name": "commands",
+                                    "value": "ps"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "HTTP",
+                    "check_name": "HTTPCheck",
+                    "host": "testbed_web",
+                    "port": 80,
+                    "points": 100,
+                    "environments": [
+                        {
+                            "matching_regex": "Thank you for using nginx",
+                            "properties": [
+                                {
+                                    "name": "useragent",
+                                    "value": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
+                                },
+                                {
+                                    "name": "vhost",
+                                    "value": "testbed_web"
+                                },
+                                {
+                                    "name": "uri",
+                                    "value": "/"
+                                }
+                            ]
+                        },
+                        {
+                            "matching_regex": "Thank you for using nginx",
+                            "properties": [
+                                {
+                                    "name": "useragent",
+                                    "value": "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16"
+                                },
+                                {
+                                    "name": "vhost",
+                                    "value": "testbed_web"
+                                },
+                                {
+                                    "name": "uri",
+                                    "value": "/"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "HTTPS",
+                    "check_name": "HTTPSCheck",
+                    "host": "testbed_web",
+                    "port": 443,
+                    "points": 100,
+                    "environments": [
+                        {
+                            "matching_regex": "Thank you for using nginx",
+                            "properties": [
+                                {
+                                    "name": "useragent",
+                                    "value": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)"
+                                },
+                                {
+                                    "name": "vhost",
+                                    "value": "testbed_web"
+                                },
+                                {
+                                    "name": "uri",
+                                    "value": "/"
+                                }
+                            ]
+                        },
+                        {
+                            "matching_regex": "Thank you for using nginx",
+                            "properties": [
+                                {
+                                    "name": "useragent",
+                                    "value": "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16"
+                                },
+                                {
+                                    "name": "vhost",
+                                    "value": "testbed_web"
+                                },
+                                {
+                                    "name": "uri",
+                                    "value": "/"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "MySQL",
+                    "check_name": "MYSQLCheck",
+                    "host": "testbed_mysql",
+                    "port": 3306,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "user1",
+                            "password": "CHANGEME"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "USER_PRIVILEGES",
+                            "properties": [
+                                {
+                                    "name": "database",
+                                    "value": "information_schema"
+                                },
+                                {
+                                    "name": "command",
+                                    "value": "show tables;"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "MSSQL",
+                    "check_name": "MSSQLCheck",
+                    "host": "testbed_mssql",
+                    "port": 1433,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "sa",
+                            "password": "yourStrong(!)Password"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "Microsoft SQL Server 2017",
+                            "properties": [
+                                {
+                                    "name": "database",
+                                    "value": "master"
+                                },
+                                {
+                                    "name": "command",
+                                    "value": "SELECT @@version;"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "FTP",
+                    "check_name": "FTPCheck",
+                    "host": "testbed_ftp",
+                    "port": 21,
+                    "points": 150,
+                    "accounts": [
+                        {
+                            "username": "ttesterson",
+                            "password": "testpass"
+                        },
+                        {
+                            "username": "rpeterson",
+                            "password": "otherpass"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "^SUCCESS",
+                            "properties": [
+                                {
+                                    "name": "remotefilepath",
+                                    "value": "/ftp_files/testfile.txt"
+                                },
+                                {
+                                    "name": "filecontents",
+                                    "value": "Sample file contents"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Elasticsearch",
+                    "check_name": "ElasticsearchCheck",
+                    "host": "testbed_elasticsearch",
+                    "port": 9200,
+                    "points": 100,
+                    "environments": [
+                        {
+                            "matching_regex": "^SUCCESS",
+                            "properties": [
+                                {
+                                    "name": "index",
+                                    "value": "messages"
+                                },
+                                {
+                                    "name": "doc_type",
+                                    "value": "sample_message"
+                                },
+                            ]
+                        },
+                    ]
+                },
+                {
+                    "name": "SMB",
+                    "check_name": "SMBCheck",
+                    "host": "testbed_smb",
+                    "port": 445,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "ttesterson",
+                            "password": "test"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "^SUCCESS",
+                            "properties": [
+                                {
+                                    "name": "share",
+                                    "value": "ScoredShare"
+                                },
+                                {
+                                    "name": "file",
+                                    "value": "flag.txt"
+                                },
+                                {
+                                    "name": "hash", // SHA256 hash of file
+                                    "value": "3ac8347c1130bd1ffe9078f99be6cb690baedd9e5552de0f7140c0daded7e1fa"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "DNS",
+                    "check_name": "DNSCheck",
+                    "host": "testbed_dns",
+                    "port": 53,
+                    "points": 100,
+                    "environments": [
+                        {
+                            "matching_regex": "status: NOERROR",
+                            "properties": [
+                                {
+                                    "name": "qtype",
+                                    "value": "A"
+                                },
+                                {
+                                    "name": "domain",
+                                    "value": "www.team.scoringengine"
+                                }
+                            ]
+                        },
+                        {
+                            "matching_regex": "status: NOERROR",
+                            "properties": [
+                                {
+                                    "name": "qtype",
+                                    "value": "AAAA"
+                                },
+                                {
+                                    "name": "domain",
+                                    "value": "www.team.scoringengine"
+                                }
+                            ]
+                        },
+                        {
+                            "matching_regex": "status: NOERROR",
+                            "properties": [
+                                {
+                                    "name": "qtype",
+                                    "value": "A"
+                                },
+                                {
+                                    "name": "domain",
+                                    "value": "anotherhost.team.scoringengine"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "PostgreSQL",
+                    "check_name": "POSTGRESQLCheck",
+                    "host": "testbed_postgresql",
+                    "port": 5432,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "bender",
+                            "password": "1234pass"
+                        },
+                        {
+                            "username": "dscott",
+                            "password": "password1"
+                        },
+                        {
+                            "username": "ttesterson",
+                            "password": "somepass"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "You are connected to database",
+                            "properties": [
+                                {
+                                    "name": "database",
+                                    "value": "testdb"
+                                },
+                                {
+                                    "name": "command",
+                                    "value": "\\conninfo"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "SMTP",
+                    "check_name": "SMTPCheck",
+                    "host": "testbed_smtp",
+                    "port": 25,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "ttesterson@mail.testbed.com",
+                            "password": "testpass"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "Successfully sent email",
+                            "properties": [
+                                {
+                                    "name": "touser",
+                                    "value": "rpeterson@mail.testbed.com"
+                                },
+                                {
+                                    "name": "subject",
+                                    "value": "A scoring engine test subject!"
+                                },
+                                {
+                                    "name": "body",
+                                    "value": "This is the body of the email"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "SMTPS",
+                    "check_name": "SMTPSCheck",
+                    "host": "testbed_smtp",
+                    "port": 25,
+                    "points": 100,
+                    "accounts": [
+                        {
+                            "username": "ttesterson@mail.testbed.com",
+                            "password": "testpass"
+                        }
+                    ],
+                    "environments": [
+                        {
+                            "matching_regex": "Successfully sent email",
+                            "properties": [
+                                {
+                                    "name": "touser",
+                                    "value": "rpeterson@mail.testbed.com"
+                                },
+                                {
+                                    "name": "subject",
+                                    "value": "A scoring engine test subject!"
+                                },
+                                {
+                                    "name": "body",
+                                    "value": "This is the body of the email"
+                                }
+                            ]
+                        }
+                    ]
+                },
+            ]
+        }
+    ]
+}
