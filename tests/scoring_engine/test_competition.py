@@ -155,6 +155,10 @@ class TestUserData(CompetitionDataTest):
         self.setup['teams'][0]['users'][0]['username'] = []
         self.verify_error("Team1 user username must a string")
 
+    def test_duplicate_users(self):
+        self.setup['teams'][0]['users'].append({'username': 'team1user1', 'password': 'somepassword'})
+        self.verify_error("Multiple Users with the same username: 'team1user1'")
+
 
 class TestServiceData(CompetitionDataTest):
     def test_no_name(self):

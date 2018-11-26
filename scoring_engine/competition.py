@@ -29,6 +29,13 @@ class Competition(dict):
         for team in data['teams']:
             self.verify_team_data(team)
 
+        # Verify there are no duplicate user usernames on any of the teams
+        usernames = []
+        for team in data['teams']:
+            for user in team['users']:
+                assert user['username'] not in usernames, "Multiple Users with the same username: '{0}'".format(user['username'])
+                usernames.append(user['username'])
+
     def verify_team_data(self, team):
         # Verify team name
         assert 'name' in team, "team must have a 'name' field"
