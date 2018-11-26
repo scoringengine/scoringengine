@@ -1,6 +1,6 @@
 import hjson
 
-from scoring_engine import config
+from scoring_engine.config import config
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.team import Team
