@@ -1,10 +1,14 @@
 import pytest
 
 from scoring_engine.competition import Competition
+from scoring_engine.models.team import Team
+
+from tests.scoring_engine.unit_test import UnitTest
 
 
-class CompetitionDataTest(object):
+class CompetitionDataTest(UnitTest):
     def setup(self):
+        super(CompetitionDataTest, self).setup()
         self.setup = {
             'teams': [
                 {
@@ -27,6 +31,10 @@ class CompetitionDataTest(object):
                                 {
                                     'username': 'ttesterson',
                                     'password': 'testpass'
+                                },
+                                {
+                                    'username': 'rpeterson',
+                                    'password': 'redfred'
                                 }
                             ],
                             'environments': [
@@ -49,6 +57,26 @@ class CompetitionDataTest(object):
                                     ]
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    'name': 'WhiteTeam',
+                    'color': 'White',
+                    'users': [
+                        {
+                            'username': 'whiteteamuser',
+                            'password': 'testpass'
+                        }
+                    ]
+                },
+                {
+                    'name': 'RedTeam',
+                    'color': 'Red',
+                    'users': [
+                        {
+                            'username': 'redteamuser',
+                            'password': 'testpass'
                         }
                     ]
                 },
@@ -245,6 +273,45 @@ class TestPropertyData(CompetitionDataTest):
 
 
 class TestGoodSetup(CompetitionDataTest):
-    # This verifies that the good setup is parseable
-    def test_good_setup_parses(self):
-        Competition(self.setup)
+    # Test to make sure we can parse a good json correctly
+    # and can write all the things to the db
+    def setup(self):
+        super(TestGoodSetup, self).setup()
+        competition = Competition(self.setup)
+        competition.save(self.session)
+        self.blue_teams = Team.get_all_blue_teams()
+        self.blue_team = self.blue_teams[0]
+        self.service = self.blue_team.services[0]
+        self.account = self.service.accounts[0]
+        self.environment = self.service.environments[0]
+        self.property = self.environment.properties[0]
+
+    def test_teams(self):
+        assert len(self.session.query(Team).all()) == 3
+        assert len(self.blue_teams) == 1
+
+    def test_blue_team(self):
+        assert self.blue_team.name == 'Team1'
+        assert len(self.blue_team.users) == 1
+        assert len(self.blue_team.services) == 1
+
+    def test_service(self):
+        assert self.service.name == 'SSH'
+        assert self.service.check_name == 'SSHCheck'
+        assert self.service.host == '127.0.0.1'
+        assert self.service.port == 22
+        assert self.service.points == 150
+        assert len(self.service.accounts) == 2
+        assert len(self.service.environments) == 2
+
+    def test_account(self):
+        assert self.account.username == 'ttesterson'
+        assert self.account.password == 'testpass'
+
+    def test_environment(self):
+        assert self.environment.matching_regex == '^SUCCESS'
+        assert len(self.environment.properties) == 1
+
+    def test_property(self):
+        assert self.property.name == 'commands'
+        assert self.property.value == 'id;ls -l'

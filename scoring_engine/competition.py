@@ -3,6 +3,13 @@ import hjson
 from scoring_engine import config
 from scoring_engine.engine.engine import Engine
 
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+from scoring_engine.models.service import Service
+from scoring_engine.models.account import Account
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.property import Property
+
 
 class Competition(dict):
     def parse_json_str(json_str):
@@ -12,6 +19,7 @@ class Competition(dict):
     def __init__(self, data):
         self.available_checks = Engine.load_check_files(config.checks_location)
         self.verify_data(data)
+        super(Competition, self).__init__(data)
 
     def verify_data(self, data):
         # verify teams is in project root
@@ -37,11 +45,12 @@ class Competition(dict):
         for user in team['users']:
             self.verify_user_data(user, team['name'])
 
-        # Verify team services
-        assert 'services' in team, "'{0}' must have a 'services' field".format(team['name'])
-        assert type(team['services']) is list, "'{0}' 'services' field must be an array".format(team['name'])
-        for service in team['services']:
-            self.verify_service_data(service, team['name'])
+        # Verify team services if blue team
+        if team['color'] == 'Blue':
+            assert 'services' in team, "'{0}' must have a 'services' field".format(team['name'])
+            assert type(team['services']) is list, "'{0}' 'services' field must be an array".format(team['name'])
+            for service in team['services']:
+                self.verify_service_data(service, team['name'])
 
     def verify_user_data(self, user, team_name):
         # Verify user username
@@ -126,3 +135,31 @@ class Competition(dict):
         assert 'value' in property_obj, "{0} {1} property must have a 'value' field".format(team_name, service_name)
         assert type(property_obj['value']) is str, "{0} {1} property 'value' field must be a string".format(team_name, service_name)
         assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
+
+    def save(self, db_session):
+        for team_dict in self['teams']:
+            team_obj = Team(name=team_dict['name'], color=team_dict['color'])
+            db_session.add(team_obj)
+            for user_dict in team_dict['users']:
+                db_session.add(User(username=user_dict['username'], password=user_dict['password'], team=team_obj))
+            if 'services' in team_dict:
+                for service_dict in team_dict['services']:
+                    service_obj = Service(
+                        name=service_dict['name'],
+                        team=team_obj,
+                        check_name=service_dict['check_name'],
+                        host=service_dict['host'],
+                        port=service_dict['port'],
+                        points=service_dict['points']
+                    )
+                    db_session.add(service_obj)
+                    if 'accounts' in service_dict:
+                        for account_dict in service_dict['accounts']:
+                            db_session.add(Account(username=account_dict['username'], password=account_dict['password'], service=service_obj))
+                    for environment_dict in service_dict['environments']:
+                        environment_obj = Environment(service=service_obj, matching_regex=environment_dict['matching_regex'])
+                        db_session.add(environment_obj)
+                        if 'properties' in environment_dict:
+                            for property_dict in environment_dict['properties']:
+                                db_session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
+            db_session.commit()
