@@ -51,7 +51,7 @@ print("Setting up DB")
 Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
-competition_json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_competition.json")
+competition_json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.json")
 sample_competition_str = open(competition_json_file, 'r').read()
 competition = Competition.parse_json_str(sample_competition_str)
 competition.save(session)
