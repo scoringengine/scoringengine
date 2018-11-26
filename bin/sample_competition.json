@@ -456,6 +456,174 @@
                         }
                     ]
                 },
+                // // Commented out because we don't have testbed containers yet
+                // // but these services should work, so feel free to uncomment
+                // // for a real competition
+                // {
+                //     "name": "RDP",
+                //     "check_name": "RDPCheck",
+                //     "host": "testbed_rdp",
+                //     "port": 3389,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             "username": "ttesterson",
+                //             "password": "test"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "SUCCESS$",
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "LDAP",
+                //     "check_name": "LDAPCheck",
+                //     "host": "testbed_ldap",
+                //     "port": 389,
+                //     "points": 50,
+                //     "accounts": [
+                //         {
+                //             "username": "ttesterson",
+                //             "password": "testpass"
+                //         },
+                //         {
+                //             "username": "rpeterson",
+                //             "password": "otherpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "^result: 0 Success",
+                //             "properties": [
+                //                 {
+                //                     "name": "domain",
+                //                     "value": "example.com"
+                //                 },
+                //                 {
+                //                     "name": "base_dn",
+                //                     "value": "dc=example,dc=com"
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "POP3",
+                //     "check_name": "POP3Check",
+                //     "host": "testbed_pop3",
+                //     "port": 110,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             "username": "testuser",
+                //             "password": "testpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "ACCOUNT FOUND",
+                //             "properties": [
+                //                 {
+                //                     "name": "domain",
+                //                     "value": "test.com"
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "POP3S",
+                //     "check_name": "POP3SCheck",
+                //     "host": "testbed_pop3",
+                //     "port": 110,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             "username": "testuser",
+                //             "password": "testpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "ACCOUNT FOUND",
+                //             "properties": [
+                //                 {
+                //                     "name": "domain",
+                //                     "value": "test.com"
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "IMAP",
+                //     "check_name": "IMAPCheck",
+                //     "host": "testbed_imap",
+                //     "port": 143,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             "username": "testuser",
+                //             "password": "testpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "ACCOUNT FOUND",
+                //             "properties": [
+                //                 {
+                //                     "name": "domain",
+                //                     "value": "test.com"
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "IMAPS",
+                //     "check_name": "IMAPSCheck",
+                //     "host": "testbed_imap",
+                //     "port": 143,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             "username": "testuser",
+                //             "password": "testpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "ACCOUNT FOUND",
+                //             "properties": [
+                //                 {
+                //                     "name": "domain",
+                //                     "value": "test.com"
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+                // {
+                //     "name": "VNC",
+                //     "check_name": "VNCCheck",
+                //     "host": "testbed_vnc",
+                //     "port": 5900,
+                //     "points": 100,
+                //     "accounts": [
+                //         {
+                //             // BLANK for no username required
+                //             "username": "BLANK",
+                //             "password": "testpass"
+                //         }
+                //     ],
+                //     "environments": [
+                //         {
+                //             "matching_regex": "ACCOUNT FOUND",
+                //         }
+                //     ]
+                // }
             ]
         }
     ]
