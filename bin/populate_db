@@ -7,13 +7,12 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 import optparse
 import os
 
-from scoring_engine.models.base import Base
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import session, engine
+from scoring_engine.db import session, init_db, delete_db
 from scoring_engine.config import config
 from scoring_engine.competition import Competition
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
@@ -48,8 +47,8 @@ if not options.overwrite_db:
         print("Database doesn't exist yet...")
 
 print("Setting up DB")
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
+delete_db(session)
+init_db(session)
 
 competition_json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.json")
 sample_competition_str = open(competition_json_file, 'r').read()

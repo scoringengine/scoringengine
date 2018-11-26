@@ -1,7 +1,7 @@
 import pytest
 
-from scoring_engine.competition import Competition
 from scoring_engine.models.team import Team
+from scoring_engine.competition import Competition
 
 from tests.scoring_engine.unit_test import UnitTest
 
