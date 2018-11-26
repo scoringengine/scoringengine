@@ -9,7 +9,6 @@ import time
 from functools import partial
 
 from scoring_engine.config import config
-from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
@@ -21,6 +20,7 @@ from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
+from scoring_engine.db import session
 
 
 def engine_sigint_handler(signum, frame, engine):
