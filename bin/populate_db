@@ -59,9 +59,11 @@ about_content = '''
 <h4>Use the following credentials to login</h4>
 <ul>
     <li>whiteteamuser:testpass</li>
+    <li>redteamuser:testpass</li>
     <li>team1user1:testpass</li>
     <li>team2user1:testpass</li>
-    <li>redteamuser:testpass</li>
+    <li>...</li>
+    <li>team10user1:testpass</li>
 </ul>'''
 
 welcome_content = '''
