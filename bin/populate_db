@@ -56,34 +56,6 @@ sample_competition_str = open(competition_json_file, 'r').read()
 competition = Competition.parse_json_str(sample_competition_str)
 competition.save(session)
 
-if options.example:
-    num_rounds = randint(20, 50)
-    print("Creating " + str(num_rounds) + " rounds")
-    for num_round in range(1, num_rounds + 1):
-        print("\tCreating round " + str(num_round))
-        round_obj = Round(number=num_round)
-        services = session.query(Service).all()
-        for service in services:
-            # print("\t\tCreating check for " + str(service.id))
-            output = ''
-            if randint(0, 1) == 1:
-                result = True
-                reason = CHECK_SUCCESS_TEXT
-                output = 'Some random output of a command'
-            else:
-                result = False
-                output = 'Errored output'
-                if randint(0, 1) == 1:
-                    reason = CHECK_FAILURE_TEXT
-                else:
-                    reason = CHECK_TIMED_OUT_TEXT
-
-            command = 'ping -c 1 127.0.0.1'
-            check = Check(round=round_obj, service=service)
-            check.finished(result, reason, output, command)
-            session.add(check)
-    session.commit()
-
 about_content = '''
 <h4>Use the following credentials to login</h4>
 <ul>
@@ -149,3 +121,29 @@ session.add(Setting(name='blue_team_update_port', value=True))
 session.add(Setting(name='blue_team_update_account_usernames', value=True))
 session.add(Setting(name='blue_team_update_account_passwords', value=True))
 session.commit()
+
+if options.example:
+    num_rounds = randint(20, 50)
+    print("Simulating " + str(num_rounds) + " rounds")
+    for num_round in range(1, num_rounds + 1):
+        round_obj = Round(number=num_round)
+        services = session.query(Service).all()
+        for service in services:
+            output = ''
+            if randint(0, 1) == 1:
+                result = True
+                reason = CHECK_SUCCESS_TEXT
+                output = 'Some random output of a command'
+            else:
+                result = False
+                output = 'Errored output'
+                if randint(0, 1) == 1:
+                    reason = CHECK_FAILURE_TEXT
+                else:
+                    reason = CHECK_TIMED_OUT_TEXT
+
+            command = 'ping -c 1 127.0.0.1'
+            check = Check(round=round_obj, service=service)
+            check.finished(result, reason, output, command)
+            session.add(check)
+    session.commit()
