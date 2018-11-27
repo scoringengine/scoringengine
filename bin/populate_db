@@ -50,9 +50,9 @@ print("Setting up DB")
 delete_db(session)
 init_db(session)
 
-competition_json_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.json")
-sample_competition_str = open(competition_json_file, 'r').read()
-competition = Competition.parse_json_str(sample_competition_str)
+competition_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.yaml")
+sample_competition_str = open(competition_config_file, 'r').read()
+competition = Competition.parse_yaml_str(sample_competition_str)
 competition.save(session)
 
 about_content = '''

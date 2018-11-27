@@ -1,4 +1,4 @@
-import hjson
+import yaml
 
 from scoring_engine.config import config
 from scoring_engine.engine.engine import Engine
@@ -12,8 +12,8 @@ from scoring_engine.models.property import Property
 
 
 class Competition(dict):
-    def parse_json_str(json_str):
-        data = hjson.loads(json_str)
+    def parse_yaml_str(input_str):
+        data = yaml.safe_load(input_str)
         return Competition(data)
 
     def __init__(self, data):
