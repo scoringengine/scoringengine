@@ -32,7 +32,7 @@ Setup scoring engine teams and services
 ::
 
   su engine
-  vi /home/engine/scoring_engine/src/bin/populate_db
+  vi /home/engine/scoring_engine/src/bin/competition.yaml
   source /home/engine/scoring_engine/env/bin/activate
   /home/engine/scoring_engine/src/bin/populate_db
 

@@ -22,9 +22,10 @@ config = {
         'Flask-SQLAlchemy==2.2',
         'Flask-WTF==0.14.2',
         'mysqlclient==1.3.12',
+        'pynsive==0.2.7',
+        'PyYAML==3.13',
         'redis==2.10.5',
-        'shellescape==3.4.1',
-        'pynsive==0.2.7'
+        'shellescape==3.4.1'
     ],
     'packages': ['scoring_engine'],
     'scripts': [],

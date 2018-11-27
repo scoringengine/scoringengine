@@ -9,7 +9,6 @@ import time
 from functools import partial
 
 from scoring_engine.config import config
-from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
@@ -21,6 +20,7 @@ from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
+from scoring_engine.db import session
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -74,8 +74,15 @@ class Engine(object):
 
     def load_checks(self):
         logger.debug("Loading checks source from " + str(self.checks_location))
-        checks_location_module_str = self.checks_location.replace('/', '.')
+        loaded_checks = Engine.load_check_files(self.checks_location)
+        for loaded_check in loaded_checks:
+            logger.debug(" Found " + loaded_check.__name__)
+            self.add_check(loaded_check)
+
+    def load_check_files(checks_location):
+        checks_location_module_str = checks_location.replace('/', '.')
         found_check_modules = pynsive.list_modules(checks_location_module_str)
+        found_checks = []
         for found_module in found_check_modules:
             module_obj = pynsive.import_module(found_module)
             for name, arg in inspect.getmembers(module_obj):
@@ -83,8 +90,8 @@ class Engine(object):
                     continue
                 elif not name.endswith('Check'):
                     continue
-                logger.debug(" Found " + arg.__name__)
-                self.add_check(arg)
+                found_checks.append(arg)
+        return found_checks
 
     def check_name_to_obj(self, check_name):
         for check in self.checks:

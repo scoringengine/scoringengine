@@ -3,6 +3,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from scoring_engine.config import config
+from scoring_engine.models.base import Base
+
+
+def delete_db(session):
+    Base.metadata.drop_all(session.bind)
+
+
+def init_db(session):
+    Base.metadata.create_all(session.bind)
 
 
 isolation_level = "READ COMMITTED"
@@ -11,9 +20,7 @@ if 'sqlite' in config.db_uri:
     # so we have to manually set it to something else
     isolation_level = "READ UNCOMMITTED"
 
-engine = create_engine(config.db_uri, isolation_level=isolation_level)
-
-session = scoped_session(sessionmaker(bind=engine))
+session = scoped_session(sessionmaker(bind=create_engine(config.db_uri, isolation_level=isolation_level)))
 
 db_salt = bcrypt.gensalt()
 

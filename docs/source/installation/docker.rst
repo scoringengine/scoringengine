@@ -27,7 +27,7 @@ You can set each environment variable before each command executed, for example:
 Production Environment
 ----------------------
 
-Modify the bin/populate_db script to configure the engine according to your competition environment. Then, run the following make command to build, and run the scoring engine.
+Modify the bin/competition.yaml file to configure the engine according to your competition environment. Then, run the following make command to build, and run the scoring engine.
 
 .. warning:: This will delete the previous database, exclude the 'new' part from the command to not rebuild the db.
 
