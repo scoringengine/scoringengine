@@ -118,9 +118,9 @@ class Competition(dict):
         assert type(account['password']) is str, "{0} {1} account 'password' field must be a string".format(team_name, service_name)
 
     def verify_environment_data(self, environment, team_name, service_name, found_check_source):
-        # Verify environment matching_regex
-        assert 'matching_regex' in environment, "{0} {1} environment must have a 'matching_regex' field".format(team_name, service_name)
-        assert type(environment['matching_regex']) is str, "{0} {1} environment 'matching_regex' field must be a string".format(team_name, service_name)
+        # Verify environment matching_content
+        assert 'matching_content' in environment, "{0} {1} environment must have a 'matching_content' field".format(team_name, service_name)
+        assert type(environment['matching_content']) is str, "{0} {1} environment 'matching_content' field must be a string".format(team_name, service_name)
 
         # Verify environment properties
         if 'properties' in environment:
@@ -169,7 +169,7 @@ class Competition(dict):
                         for account_dict in service_dict['accounts']:
                             db_session.add(Account(username=account_dict['username'], password=account_dict['password'], service=service_obj))
                     for environment_dict in service_dict['environments']:
-                        environment_obj = Environment(service=service_obj, matching_regex=environment_dict['matching_regex'])
+                        environment_obj = Environment(service=service_obj, matching_content=environment_dict['matching_content'])
                         db_session.add(environment_obj)
                         if 'properties' in environment_dict:
                             for property_dict in environment_dict['properties']:

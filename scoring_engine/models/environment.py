@@ -10,4 +10,4 @@ class Environment(Base):
     service_id = Column(Integer, ForeignKey('services.id'))
     service = relationship("Service")
     properties = relationship('Property', back_populates="environment")
-    matching_regex = Column(Text, nullable=False)
+    matching_content = Column(Text, nullable=False)

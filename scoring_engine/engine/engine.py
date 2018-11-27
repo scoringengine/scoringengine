@@ -191,7 +191,7 @@ class Engine(object):
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
                         else:
-                            if re.search(environment.matching_regex, task.result['output']):
+                            if re.search(environment.matching_content, task.result['output']):
                                 result = True
                                 reason = CHECK_SUCCESS_TEXT
                             else:

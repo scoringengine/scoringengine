@@ -13,7 +13,7 @@ class TestBasicCheck(UnitTest):
     def setup(self):
         super(TestBasicCheck, self).setup()
         self.service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1')
-        self.environment = Environment(matching_regex='*', service=self.service)
+        self.environment = Environment(matching_content='*', service=self.service)
 
     def test_init(self):
         check = BasicCheck(self.environment)
