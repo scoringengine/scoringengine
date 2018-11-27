@@ -15,6 +15,7 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, init_db, delete_db
 from scoring_engine.config import config
 from scoring_engine.competition import Competition
+from scoring_engine.logger import logger
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 
 
@@ -40,13 +41,13 @@ if 'SCORINGENGINE_OVERWRITE_DB' in os.environ and os.environ['SCORINGENGINE_OVER
 if not options.overwrite_db:
     try:
         session.query(User).get(1)
-        print("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
+        logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
     except (OperationalError, ProgrammingError):
         # Database doesn't exist, so continuing on to setup script
-        print("Database doesn't exist yet...")
+        logger.debug("Database doesn't exist yet...")
 
-print("Setting up DB")
+logger.info("Setting up DB")
 delete_db(session)
 init_db(session)
 
@@ -111,7 +112,7 @@ welcome_content = '''
 </div>
 '''
 
-print("Creating the default Settings")
+logger.info("Creating the default Settings")
 about_page_setting = Setting(name='about_page_content', value=about_content)
 session.add(about_page_setting)
 session.add(Setting(name='welcome_page_content', value=welcome_content))
@@ -125,7 +126,7 @@ session.commit()
 
 if options.example:
     num_rounds = randint(20, 50)
-    print("Simulating " + str(num_rounds) + " rounds")
+    logger.info("Simulating " + str(num_rounds) + " rounds")
     for num_round in range(1, num_rounds + 1):
         round_obj = Round(number=num_round)
         services = session.query(Service).all()

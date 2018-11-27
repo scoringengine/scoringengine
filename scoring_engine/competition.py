@@ -10,6 +10,8 @@ from scoring_engine.models.account import Account
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 
+from scoring_engine.logger import logger
+
 
 class Competition(dict):
     def parse_yaml_str(input_str):
@@ -145,15 +147,15 @@ class Competition(dict):
 
     def save(self, db_session):
         for team_dict in self['teams']:
-            print("Creating {0} Team: {1}".format(team_dict['color'], team_dict['name']))
+            logger.info("Creating {0} Team: {1}".format(team_dict['color'], team_dict['name']))
             team_obj = Team(name=team_dict['name'], color=team_dict['color'])
             db_session.add(team_obj)
             for user_dict in team_dict['users']:
-                print("\tCreating User {0}:{1}".format(user_dict['username'], user_dict['password']))
+                logger.info("\tCreating User {0}:{1}".format(user_dict['username'], user_dict['password']))
                 db_session.add(User(username=user_dict['username'], password=user_dict['password'], team=team_obj))
             if 'services' in team_dict:
                 for service_dict in team_dict['services']:
-                    print("\tCreating {0} Service".format(service_dict['name']))
+                    logger.info("\tCreating {0} Service".format(service_dict['name']))
                     service_obj = Service(
                         name=service_dict['name'],
                         team=team_obj,
