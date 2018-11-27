@@ -13,6 +13,9 @@ run-testbed:
 run-integration:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) up -d
 
+run-integration-tests:
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run tester bash -c "py.test --integration tests"
+
 build:
 	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) build
 
