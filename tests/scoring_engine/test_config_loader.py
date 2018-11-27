@@ -44,9 +44,17 @@ class TestConfigLoader(object):
     def test_parse_sources_bool(self):
         assert self.config.parse_sources('testname', False, 'bool') is False
 
-    def test_parse_sources_bool_environment(self):
-        os.environ["SCORINGENGINE_ROUND_SLEEP_TIME"] = "1"
-        assert self.config.parse_sources('round_sleep_time', '1234', 'int') == 1
-
     def test_worker_num_concurrent_tasks(self):
         assert self.config.worker_num_concurrent_tasks == 4
+
+    def test_parse_sources_int_environment(self):
+        os.environ["SCORINGENGINE_ROUND_SLEEP_TIME"] = '1'
+        assert self.config.parse_sources('round_sleep_time', '1234', 'int') == 1
+
+    def test_parse_sources_bool_environment(self):
+        os.environ["SCORINGENGINE_WEB_DEBUG"] = 'True'
+        assert self.config.parse_sources('web_debug', True, 'bool') is True
+
+    def test_parse_sources_str_environment(self):
+        os.environ["SCORINGENGINE_REDIS_HOST"] = '127.0.0.1'
+        assert self.config.parse_sources('redis_host', '1.2.3.4') == '127.0.0.1'
