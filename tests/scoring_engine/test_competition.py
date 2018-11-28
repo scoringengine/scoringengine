@@ -89,6 +89,21 @@ class CompetitionDataTest(UnitTest):
         assert error_message == str(error.value)
 
 
+class TestYAMLParse(CompetitionDataTest):
+    def test_parse_yaml_str(self):
+        yaml_str = """
+---
+teams:
+- name: WhiteTeam
+  color: White
+  users:
+  - username: whiteteamuser
+    password: testpass
+        """
+        competition = Competition.parse_yaml_str(yaml_str)
+        assert len(competition['teams']) == 1
+
+
 class TestRootData(CompetitionDataTest):
     def test_no_teams(self):
         del self.setup['teams']

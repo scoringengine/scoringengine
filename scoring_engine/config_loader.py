@@ -10,8 +10,8 @@ class ConfigLoader(object):
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
 
-        self.web_debug = self.parse_sources(
-            'web_debug',
+        self.debug = self.parse_sources(
+            'debug',
             self.parser['OPTIONS']['debug'].lower() == 'true',
             'bool'
         )
@@ -76,7 +76,7 @@ class ConfigLoader(object):
             if obj_type.lower() == 'int':
                 return int(os.environ[environment_key])
             elif obj_type.lower() == 'bool':
-                return bool(os.environ[environment_key])
+                return os.environ[environment_key].lower() == 'true'
             else:
                 return os.environ[environment_key]
         else:

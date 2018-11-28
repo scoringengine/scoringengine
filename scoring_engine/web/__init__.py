@@ -8,10 +8,10 @@ from scoring_engine.config import config
 
 app = Flask(__name__)
 
-app.config.update(DEBUG=config.web_debug)
+app.config.update(DEBUG=config.debug)
 app.secret_key = os.urandom(128)
 
-if not config.web_debug:
+if not config.debug:
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
 
