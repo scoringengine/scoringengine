@@ -27,7 +27,7 @@ Populate Sample DB
 ^^^^^^^^^^^^^^^^^^
 ::
 
-  python bin/populate_db --example --overwrite-db
+  python bin/setup --example --overwrite-db
 
 
 Run Services
