@@ -40,6 +40,7 @@ class TestVersion(UnitTest):
         if 'scoring_engine.config' in sys.modules:
             del sys.modules['scoring_engine.config']
         from scoring_engine.config import config
+        assert getattr(config, 'debug', None) is not None
 
     def test_normal_version(self):
         # Verify it's a X.X.X
