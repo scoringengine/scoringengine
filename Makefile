@@ -3,18 +3,19 @@ TESTBED_DOCKER := docker/testbed/docker-compose.yml
 INTEGRATION_DOCKER := tests/integration/docker-compose.yml
 PROJECT_NAME := scoringengine
 
+GIT_HASH=$(shell git rev-parse --short HEAD)
 
 run:
-	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
+	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
 
 run-testbed:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
+	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
 
 run-integration:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) up -d
+	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) up -d
 
 run-integration-tests:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run tester bash -c "py.test --integration tests"
+	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run tester bash -c "py.test --integration tests"
 
 build:
 	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) build

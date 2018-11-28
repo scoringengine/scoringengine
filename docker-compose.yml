@@ -66,6 +66,7 @@ services:
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_OVERWRITE_DB
+      - SCORINGENGINE_VERSION
   engine:
     build:
       context: .
@@ -79,6 +80,7 @@ services:
       - default
     environment:
       - SCORINGENGINE_EXAMPLE
+      - SCORINGENGINE_VERSION
   worker:
     build:
       context: .
@@ -91,6 +93,7 @@ services:
       - default
     environment:
       - SCORINGENGINE_EXAMPLE
+      - SCORINGENGINE_VERSION
   flask:
     build:
       context: .
@@ -106,6 +109,8 @@ services:
     restart: on-failure
     networks:
       - default
+    environment:
+      - SCORINGENGINE_VERSION
 
 volumes:
   redis:
