@@ -16,6 +16,7 @@ from scoring_engine.db import session, init_db, delete_db
 from scoring_engine.config import config
 from scoring_engine.competition import Competition
 from scoring_engine.logger import logger
+from scoring_engine.version import version
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
 
 
@@ -37,6 +38,8 @@ if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE']
 # we want to delete any previous data in the db
 if 'SCORINGENGINE_OVERWRITE_DB' in os.environ and os.environ['SCORINGENGINE_OVERWRITE_DB'].lower() == 'true':
     options.overwrite_db = os.environ['SCORINGENGINE_OVERWRITE_DB'] == 'true'
+
+logger.info("Starting Database Initialize v.{0}".format(version))
 
 if not options.overwrite_db:
     try:
