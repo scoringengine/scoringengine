@@ -6,6 +6,10 @@ import sys
 from scoring_engine.celery_app import celery_app
 from scoring_engine.config import config
 
+from scoring_engine.version import version
+from scoring_engine.logger import logger
+
+
 if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE'].lower() == 'true':
     print("SCORINGENGINE_EXAMPLE environment variable is true, so skipping running the worker.")
     sys.exit(0)
@@ -21,4 +25,5 @@ celery_args = [
 if config.worker_num_concurrent_tasks != -1:
     celery_args.append('--concurrency={0}'.format(config.worker_num_concurrent_tasks))
 
+logger.info("Starting Worker v.{0}".format(version))
 celery_app.start(argv=celery_args)

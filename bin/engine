@@ -5,6 +5,10 @@ import sys
 
 from scoring_engine.engine.engine import Engine
 
+from scoring_engine.version import version
+from scoring_engine.logger import logger
+
+
 # In order to handle docker-compose usability
 # we have a check to see if the SCORINGENGINE_EXAMPLE environment
 # variable is true. If it is, we don't
@@ -20,4 +24,5 @@ if 'SCORINGENGINE_NUM_ROUNDS' in os.environ:
     total_rounds = int(os.environ['SCORINGENGINE_NUM_ROUNDS'])
 
 engine = Engine(total_rounds=total_rounds)
+logger.info("Starting Engine v.{0}".format(version))
 engine.run()

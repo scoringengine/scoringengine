@@ -3,7 +3,12 @@
 
 from scoring_engine.web import app as application
 
+from scoring_engine.version import version
+from scoring_engine.logger import logger
+
+
 if __name__ == '__main__':
+    logger.info("Starting Web v.{0}".format(version))
     if application.debug:
         application.run()
     else:
