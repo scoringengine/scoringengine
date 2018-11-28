@@ -90,14 +90,14 @@
                     <table class="table table-striped table-bordered table-compact" style="clear: both">
                         <thead>
                           <tr>
-                            <th>Matching Regex</th>
+                            <th>Matching Content</th>
                             <th>Properties</th>
                           </tr>
                         </thead>
                         <tbody>
                             {% for environment in service.environments %}
                                     <tr>
-                                        <td width="40%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}" data-title="Enter Matching Regex" data-url="{{url_for('api.admin_update_environment')}}" data-name='matching_content'>{{environment.matching_content}}</a></td>
+                                        <td width="40%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}" data-title="Enter Matching Content" data-url="{{url_for('api.admin_update_environment')}}" data-name='matching_content'>{{environment.matching_content}}</a></td>
                                         <td>
                                             {% if environment.properties %}
                                             <table class="table table-striped table-bordered table-compact" style="clear: both">
