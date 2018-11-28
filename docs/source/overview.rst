@@ -41,3 +41,5 @@ Putting it all together
   - The `Engine` sleeps for some time
   - The second `Round` starts
   - ...
+
+.. include:: screenshots.rst
