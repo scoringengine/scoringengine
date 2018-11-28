@@ -28,3 +28,16 @@ The web application provides a graphical view of the Competition. This includes 
 External Resources
 ^^^^^^^^^^^^^^^^^^
 We currently use `MySQL <https://www.mysql.com/products/community/>`_ as the database, and `Redis <https://redis.io/>`_ as the data store for tasks while they are getting scheduled.
+
+Putting it all together
+^^^^^^^^^^^^^^^^^^^^^^^
+  - The `Engine` starts
+  - The first `Round` starts
+  - The `Engine` tasks `Checks` out to the `Workers`
+  - The `Workers` execute the `Checks` and return the output to the `Engine`
+  - The `Engine` waits for all `Checks` to finish
+  - The `Engine` determines the results of each `Check`, and saves the results to the DB
+  - The `Engine` ends the `Round`
+  - The `Engine` sleeps for some time
+  - The second `Round` starts
+  - ...
