@@ -7,16 +7,18 @@
 {% block content %}
 <div class="container md-page">
     <div class="row">
-        <canvas id="pointsByTeamBar" width="1000px" height="400px"></canvas>
+        <canvas id="pointsByTeamBar" width="1000px" height="300px"></canvas>
     </div>
     <hr>
     <div class="row">
-        <canvas id="teamLine" width="1000px" height="400px"></canvas>
+        <canvas id="teamLine" width="1000px" height="300px"></canvas>
     </div>
     <script>
         var myBarChart = new Chart(document.getElementById("pointsByTeamBar"), {
             type: 'bar',
             options: {
+                maintainAspectRatio: true,
+                responsive: true,
                 legend: {
                     display: false
                 },
