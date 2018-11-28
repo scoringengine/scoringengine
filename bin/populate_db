@@ -39,7 +39,7 @@ if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE']
 if 'SCORINGENGINE_OVERWRITE_DB' in os.environ and os.environ['SCORINGENGINE_OVERWRITE_DB'].lower() == 'true':
     options.overwrite_db = os.environ['SCORINGENGINE_OVERWRITE_DB'] == 'true'
 
-logger.info("Starting Database Initialize v.{0}".format(version))
+logger.info("Starting Setup v.{0}".format(version))
 
 if not options.overwrite_db:
     try:
