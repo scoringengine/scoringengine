@@ -1,52 +1,52 @@
 {% extends 'admin/adminbase.html' %}
 {% block title %}Admin - Permissions{% endblock %}
+
+{% block header %}Permissions{% endblock %}
+
 {% block admincontent %}
-  <h3>Permissions</h3>
-  <div class="row" style="padding-top: 10px;">
-    <div class="container">
-      <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">Blue Teams</div>
-            <ul class="list-group">
-              <li class="list-group-item">
-                <form id="modify_service_hostname_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_hostname') }}" role="form">
-                  Modify Service Hostname/IP
-                  <div class="permission-switch pull-right">
-                    <input id="modify_service_hostname" type="checkbox" onchange="$('#modify_service_hostname_form').submit();" {{ 'checked' if blue_team_update_hostname == true }}/>
-                    <label for="modify_service_hostname" class="label-success"></label>
-                  </div>
-                </form>
-              </li>
-              <li class="list-group-item">
-                <form id="modify_service_port_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_port') }}" role="form">
-                  Modify Service Port
-                  <div class="permission-switch pull-right">
-                    <input id="modify_service_port" type="checkbox" onchange="$('#modify_service_port_form').submit();" {{ 'checked' if blue_team_update_port == true }}/>
-                    <label for="modify_service_port" class="label-success"></label>
-                  </div>
-                </form>
-              </li>
-              <li class="list-group-item">
-                <form id="modify_service_account_usernames_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_usernames') }}" role="form">
-                  Modify Service Account Usernames
-                  <div class="permission-switch pull-right">
-                    <input id="modify_service_account_usernames" type="checkbox" onchange="$('#modify_service_account_usernames_form').submit();" {{ 'checked' if blue_team_update_account_usernames == true }}/>
-                    <label for="modify_service_account_usernames" class="label-success"></label>
-                  </div>
-                </form>
-              </li>
-              <li class="list-group-item">
-                <form id="modify_service_account_passwords_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_passwords') }}" role="form">
-                  Modify Service Account Passwords
-                  <div class="permission-switch pull-right">
-                    <input id="modify_service_account_passwords" type="checkbox" onchange="$('#modify_service_account_passwords_form').submit();" {{ 'checked' if blue_team_update_account_passwords == true }}/>
-                    <label for="modify_service_account_passwords" class="label-success"></label>
-                  </div>
-                </form>
-              </li>
-            </ul>
-          </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-heading">Blue Teams</div>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <form id="modify_service_hostname_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_hostname') }}" role="form">
+                Modify Service Hostname/IP
+                <div class="permission-switch pull-right">
+                  <input id="modify_service_hostname" type="checkbox" onchange="$('#modify_service_hostname_form').submit();" {{ 'checked' if blue_team_update_hostname == true }}/>
+                  <label for="modify_service_hostname" class="label-success"></label>
+                </div>
+              </form>
+            </li>
+            <li class="list-group-item">
+              <form id="modify_service_port_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_port') }}" role="form">
+                Modify Service Port
+                <div class="permission-switch pull-right">
+                  <input id="modify_service_port" type="checkbox" onchange="$('#modify_service_port_form').submit();" {{ 'checked' if blue_team_update_port == true }}/>
+                  <label for="modify_service_port" class="label-success"></label>
+                </div>
+              </form>
+            </li>
+            <li class="list-group-item">
+              <form id="modify_service_account_usernames_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_usernames') }}" role="form">
+                Modify Service Account Usernames
+                <div class="permission-switch pull-right">
+                  <input id="modify_service_account_usernames" type="checkbox" onchange="$('#modify_service_account_usernames_form').submit();" {{ 'checked' if blue_team_update_account_usernames == true }}/>
+                  <label for="modify_service_account_usernames" class="label-success"></label>
+                </div>
+              </form>
+            </li>
+            <li class="list-group-item">
+              <form id="modify_service_account_passwords_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_passwords') }}" role="form">
+                Modify Service Account Passwords
+                <div class="permission-switch pull-right">
+                  <input id="modify_service_account_passwords" type="checkbox" onchange="$('#modify_service_account_passwords_form').submit();" {{ 'checked' if blue_team_update_account_passwords == true }}/>
+                  <label for="modify_service_account_passwords" class="label-success"></label>
+                </div>
+              </form>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
