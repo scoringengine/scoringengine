@@ -14,15 +14,16 @@ The general idea of the ScoringEngine is broken up into 3 separate processes, En
 
 Engine
 ^^^^^^
-The engine is responsible for tasking the checks for teams during each round, and determining/saving their results to the database. This process runs for the entirety of the competition, and will sleep for a certain amount of time before starting on to the next round.
+The engine is responsible for tasking `Checks` that are used to verify network services each round, and determining/saving their results to the database. This process runs for the entire competition, and will sleep for a certain amount of time before starting on to the next round.
 
 Worker
 ^^^^^^
-The worker connects to Redis and waits for checks to get tasked. Once it receives the check, it executes the command and returns the output back to Redis.
+The worker connects to Redis and waits for `Checks` to get tasked in order to run them against . Once it receives a
+`Check`, it executes the command and sends the output back to the Engine.
 
 Web
 ^^^
-The web application provides a graphical view of the Competition. This includes things like a bar graph of all team's scores as well as a table of the current round results.  This can also be used to configure the properties of services.
+The web application provides a graphical view of the Competition. This includes things like a bar graph of all team's scores as well as a table of the current round's results.  This can also be used to configure the properties of each service per team.
 
 External Resources
 ^^^^^^^^^^^^^^^^^^
