@@ -52,8 +52,8 @@ class TestConfigLoader(object):
         assert self.config.parse_sources('round_sleep_time', '1234', 'int') == 1
 
     def test_parse_sources_bool_environment(self):
-        os.environ["SCORINGENGINE_WEB_DEBUG"] = 'True'
-        assert self.config.parse_sources('debug', True, 'bool') is True
+        os.environ["SCORINGENGINE_DEBUG"] = 'False'
+        assert self.config.parse_sources('debug', True, 'bool') is False
 
     def test_parse_sources_str_environment(self):
         os.environ["SCORINGENGINE_REDIS_HOST"] = '127.0.0.1'

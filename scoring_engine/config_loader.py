@@ -76,7 +76,7 @@ class ConfigLoader(object):
             if obj_type.lower() == 'int':
                 return int(os.environ[environment_key])
             elif obj_type.lower() == 'bool':
-                return bool(os.environ[environment_key])
+                return os.environ[environment_key].lower() == 'true'
             else:
                 return os.environ[environment_key]
         else:
