@@ -21,7 +21,7 @@ Install Required Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  pip install -r requirements.txt
+  pip install -e .
 
 Populate Sample DB
 ^^^^^^^^^^^^^^^^^^
