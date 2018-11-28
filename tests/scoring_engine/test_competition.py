@@ -39,7 +39,7 @@ class CompetitionDataTest(UnitTest):
                             ],
                             'environments': [
                                 {
-                                    'matching_regex': '^SUCCESS',
+                                    'matching_content': '^SUCCESS',
                                     'properties': [
                                         {
                                             'name': 'commands',
@@ -48,7 +48,7 @@ class CompetitionDataTest(UnitTest):
                                     ]
                                 },
                                 {
-                                    'matching_regex': 'PID',
+                                    'matching_content': 'PID',
                                     'properties': [
                                         {
                                             'name': 'commands',
@@ -237,13 +237,13 @@ class TestAccountData(CompetitionDataTest):
 
 
 class TestEnvironmentData(CompetitionDataTest):
-    def test_no_matching_regex(self):
-        del self.setup['teams'][0]['services'][0]['environments'][0]['matching_regex']
-        self.verify_error("Team1 SSH environment must have a 'matching_regex' field")
+    def test_no_matching_content(self):
+        del self.setup['teams'][0]['services'][0]['environments'][0]['matching_content']
+        self.verify_error("Team1 SSH environment must have a 'matching_content' field")
 
-    def test_bad_matching_regex_type(self):
-        self.setup['teams'][0]['services'][0]['environments'][0]['matching_regex'] = []
-        self.verify_error("Team1 SSH environment 'matching_regex' field must be a string")
+    def test_bad_matching_content_type(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['matching_content'] = []
+        self.verify_error("Team1 SSH environment 'matching_content' field must be a string")
 
     def test_bad_properties_type(self):
         self.setup['teams'][0]['services'][0]['environments'][0]['properties'] = 'a string'
@@ -313,7 +313,7 @@ class TestGoodSetup(CompetitionDataTest):
         assert self.account.password == 'testpass'
 
     def test_environment(self):
-        assert self.environment.matching_regex == '^SUCCESS'
+        assert self.environment.matching_content == '^SUCCESS'
         assert len(self.environment.properties) == 1
 
     def test_property(self):

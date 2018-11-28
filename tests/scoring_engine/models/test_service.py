@@ -115,11 +115,11 @@ class TestService(UnitTest):
 
     def test_environments(self):
         service = generate_sample_model_tree('Service', self.session)
-        environment_1 = Environment(service=service, matching_regex='*')
+        environment_1 = Environment(service=service, matching_content='*')
         self.session.add(environment_1)
-        environment_2 = Environment(service=service, matching_regex='*')
+        environment_2 = Environment(service=service, matching_content='*')
         self.session.add(environment_2)
-        environment_3 = Environment(service=service, matching_regex='*')
+        environment_3 = Environment(service=service, matching_content='*')
         self.session.add(environment_3)
         self.session.commit()
         assert service.environments == [environment_1, environment_2, environment_3]

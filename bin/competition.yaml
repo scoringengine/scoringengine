@@ -22,7 +22,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -34,11 +34,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -48,7 +48,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -56,7 +56,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -70,7 +70,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -78,7 +78,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -95,7 +95,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -110,7 +110,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -127,7 +127,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -139,7 +139,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -154,7 +154,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -169,19 +169,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -200,7 +200,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -215,7 +215,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -232,7 +232,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -252,7 +252,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -264,7 +264,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -280,7 +280,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -290,7 +290,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -303,7 +303,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -316,7 +316,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -329,7 +329,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -345,7 +345,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -357,11 +357,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -371,7 +371,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -379,7 +379,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -393,7 +393,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -401,7 +401,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -418,7 +418,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -433,7 +433,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -450,7 +450,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -462,7 +462,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -477,7 +477,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -492,19 +492,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -523,7 +523,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -538,7 +538,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -555,7 +555,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -575,7 +575,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -587,7 +587,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -603,7 +603,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -613,7 +613,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -626,7 +626,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -639,7 +639,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -652,7 +652,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -668,7 +668,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -680,11 +680,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -694,7 +694,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -702,7 +702,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -716,7 +716,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -724,7 +724,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -741,7 +741,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -756,7 +756,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -773,7 +773,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -785,7 +785,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -800,7 +800,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -815,19 +815,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -846,7 +846,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -861,7 +861,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -878,7 +878,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -898,7 +898,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -910,7 +910,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -926,7 +926,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -936,7 +936,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -949,7 +949,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -962,7 +962,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -975,7 +975,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -991,7 +991,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -1003,11 +1003,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -1017,7 +1017,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1025,7 +1025,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1039,7 +1039,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1047,7 +1047,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1064,7 +1064,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -1079,7 +1079,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -1096,7 +1096,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -1108,7 +1108,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -1123,7 +1123,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -1138,19 +1138,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -1169,7 +1169,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -1184,7 +1184,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1201,7 +1201,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1221,7 +1221,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -1233,7 +1233,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -1249,7 +1249,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -1259,7 +1259,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1272,7 +1272,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1285,7 +1285,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1298,7 +1298,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1314,7 +1314,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -1326,11 +1326,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -1340,7 +1340,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1348,7 +1348,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1362,7 +1362,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1370,7 +1370,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1387,7 +1387,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -1402,7 +1402,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -1419,7 +1419,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -1431,7 +1431,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -1446,7 +1446,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -1461,19 +1461,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -1492,7 +1492,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -1507,7 +1507,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1524,7 +1524,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1544,7 +1544,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -1556,7 +1556,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -1572,7 +1572,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -1582,7 +1582,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1595,7 +1595,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1608,7 +1608,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1621,7 +1621,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1637,7 +1637,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -1649,11 +1649,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -1663,7 +1663,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1671,7 +1671,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1685,7 +1685,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1693,7 +1693,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -1710,7 +1710,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -1725,7 +1725,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -1742,7 +1742,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -1754,7 +1754,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -1769,7 +1769,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -1784,19 +1784,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -1815,7 +1815,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -1830,7 +1830,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1847,7 +1847,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -1867,7 +1867,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -1879,7 +1879,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -1895,7 +1895,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -1905,7 +1905,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1918,7 +1918,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1931,7 +1931,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1944,7 +1944,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -1960,7 +1960,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -1972,11 +1972,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -1986,7 +1986,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -1994,7 +1994,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2008,7 +2008,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2016,7 +2016,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2033,7 +2033,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -2048,7 +2048,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -2065,7 +2065,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -2077,7 +2077,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -2092,7 +2092,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -2107,19 +2107,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -2138,7 +2138,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -2153,7 +2153,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2170,7 +2170,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2190,7 +2190,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -2202,7 +2202,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -2218,7 +2218,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -2228,7 +2228,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2241,7 +2241,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2254,7 +2254,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2267,7 +2267,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2283,7 +2283,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -2295,11 +2295,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -2309,7 +2309,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2317,7 +2317,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2331,7 +2331,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2339,7 +2339,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2356,7 +2356,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -2371,7 +2371,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -2388,7 +2388,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -2400,7 +2400,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -2415,7 +2415,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -2430,19 +2430,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -2461,7 +2461,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -2476,7 +2476,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2493,7 +2493,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2513,7 +2513,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -2525,7 +2525,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -2541,7 +2541,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -2551,7 +2551,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2564,7 +2564,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2577,7 +2577,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2590,7 +2590,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2606,7 +2606,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -2618,11 +2618,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -2632,7 +2632,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2640,7 +2640,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2654,7 +2654,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2662,7 +2662,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2679,7 +2679,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -2694,7 +2694,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -2711,7 +2711,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -2723,7 +2723,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -2738,7 +2738,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -2753,19 +2753,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -2784,7 +2784,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -2799,7 +2799,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2816,7 +2816,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -2836,7 +2836,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -2848,7 +2848,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -2864,7 +2864,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -2874,7 +2874,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2887,7 +2887,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2900,7 +2900,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2913,7 +2913,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -2929,7 +2929,7 @@ teams:
     port: 0
     points: 25
     environments:
-    - matching_regex: 1 packets transmitted, 1 received
+    - matching_content: 1 packets transmitted, 1 received
   - name: SSH
     check_name: SSHCheck
     host: testbed_ssh
@@ -2941,11 +2941,11 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: commands
         value: id;ls -l /home
-    - matching_regex: PID
+    - matching_content: PID
       properties:
       - name: commands
         value: ps
@@ -2955,7 +2955,7 @@ teams:
     port: 80
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2963,7 +2963,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -2977,7 +2977,7 @@ teams:
     port: 443
     points: 100
     environments:
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
@@ -2985,7 +2985,7 @@ teams:
         value: testbed_web
       - name: uri
         value: "/"
-    - matching_regex: Thank you for using nginx
+    - matching_content: Thank you for using nginx
       properties:
       - name: useragent
         value: Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12 Version/12.16
@@ -3002,7 +3002,7 @@ teams:
     - username: user1
       password: CHANGEME
     environments:
-    - matching_regex: USER_PRIVILEGES
+    - matching_content: USER_PRIVILEGES
       properties:
       - name: database
         value: information_schema
@@ -3017,7 +3017,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_regex: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2017
       properties:
       - name: database
         value: master
@@ -3034,7 +3034,7 @@ teams:
     - username: rpeterson
       password: otherpass
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
@@ -3046,7 +3046,7 @@ teams:
     port: 9200
     points: 100
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: index
         value: messages
@@ -3061,7 +3061,7 @@ teams:
     - username: ttesterson
       password: test
     environments:
-    - matching_regex: "^SUCCESS"
+    - matching_content: "^SUCCESS"
       properties:
       - name: share
         value: ScoredShare
@@ -3076,19 +3076,19 @@ teams:
     port: 53
     points: 100
     environments:
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: AAAA
       - name: domain
         value: www.team.scoringengine
-    - matching_regex: 'status: NOERROR'
+    - matching_content: 'status: NOERROR'
       properties:
       - name: qtype
         value: A
@@ -3107,7 +3107,7 @@ teams:
     - username: ttesterson
       password: somepass
     environments:
-    - matching_regex: You are connected to database
+    - matching_content: You are connected to database
       properties:
       - name: database
         value: testdb
@@ -3122,7 +3122,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -3139,7 +3139,7 @@ teams:
     - username: ttesterson@mail.testbed.com
       password: testpass
     environments:
-    - matching_regex: Successfully sent email
+    - matching_content: Successfully sent email
       properties:
       - name: touser
         value: rpeterson@mail.testbed.com
@@ -3159,7 +3159,7 @@ teams:
   #   - username: ttesterson
   #     password: test
   #   environments:
-  #   - matching_regex: SUCCESS$
+  #   - matching_content: SUCCESS$
   # - name: LDAP
   #   check_name: LDAPCheck
   #   host: testbed_ldap
@@ -3171,7 +3171,7 @@ teams:
   #   - username: rpeterson
   #     password: otherpass
   #   environments:
-  #   - matching_regex: "^result: 0 Success"
+  #   - matching_content: "^result: 0 Success"
   #     properties:
   #     - name: domain
   #       value: example.com
@@ -3187,7 +3187,7 @@ teams:
   #   - username: BLANK
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   # - name: POP3
   #   check_name: POP3Check
   #   host: testbed_pop3
@@ -3197,7 +3197,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -3210,7 +3210,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -3223,7 +3223,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com
@@ -3236,7 +3236,7 @@ teams:
   #   - username: testuser
   #     password: testpass
   #   environments:
-  #   - matching_regex: ACCOUNT FOUND
+  #   - matching_content: ACCOUNT FOUND
   #     properties:
   #     - name: domain
   #       value: test.com

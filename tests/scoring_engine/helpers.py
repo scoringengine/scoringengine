@@ -50,7 +50,7 @@ def generate_sample_model_tree(model, session):
         return service
 
     # Environments
-    environment = Environment(service=service, matching_regex='*')
+    environment = Environment(service=service, matching_content='*')
     session.add(environment)
     session.commit()
     if model == 'Environment':

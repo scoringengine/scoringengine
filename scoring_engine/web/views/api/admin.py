@@ -30,8 +30,8 @@ def admin_update_environment():
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             environment = session.query(Environment).get(int(request.form['pk']))
             if environment:
-                if request.form['name'] == 'matching_regex':
-                    environment.matching_regex = html.escape(request.form['value'])
+                if request.form['name'] == 'matching_content':
+                    environment.matching_content = html.escape(request.form['value'])
                 session.add(environment)
                 session.commit()
                 return jsonify({'status': 'Updated Environment Information'})
