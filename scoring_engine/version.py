@@ -10,5 +10,5 @@ if 'SCORINGENGINE_VERSION' in os.environ:
     version = os.environ['SCORINGENGINE_VERSION']
 
 # If we're in debug mode, just say dev
-if config.web_debug is True:
+if config.debug is True:
     version += '-dev'

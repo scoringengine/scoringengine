@@ -10,8 +10,8 @@ class ConfigLoader(object):
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
 
-        self.web_debug = self.parse_sources(
-            'web_debug',
+        self.debug = self.parse_sources(
+            'debug',
             self.parser['OPTIONS']['debug'].lower() == 'true',
             'bool'
         )

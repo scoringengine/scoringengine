@@ -12,7 +12,7 @@ class MockConfigLoader():
         self.mock_keyname = True
 
     @property
-    def web_debug(self):
+    def debug(self):
         return True
 
 
@@ -23,7 +23,7 @@ class TestVersion(UnitTest):
         if 'SCORINGENGINE_VERSION' in os.environ:
             del os.environ['SCORINGENGINE_VERSION']
 
-    def enable_web_debug(self):
+    def enable_debug(self):
         if 'scoring_engine.config_loader' in sys.modules:
             del sys.modules['scoring_engine.config_loader']
         import scoring_engine.config_loader
@@ -44,15 +44,15 @@ class TestVersion(UnitTest):
         from scoring_engine.version import version
         assert version == 'testver'
 
-    def test_web_debug_version(self):
-        self.enable_web_debug()
+    def test_debug_version(self):
+        self.enable_debug()
         del sys.modules["scoring_engine.version"]
         from scoring_engine.version import version
         # Verify it's a X.X.X-dev
         assert re.search(r'([\d.]+-dev)', version).group(1) == version
 
-    def test_web_debug_env_version(self):
-        self.enable_web_debug()
+    def test_debug_env_version(self):
+        self.enable_debug()
         os.environ['SCORINGENGINE_VERSION'] = 'abcdefg'
         del sys.modules["scoring_engine.version"]
         from scoring_engine.version import version

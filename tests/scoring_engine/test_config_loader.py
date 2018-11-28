@@ -8,8 +8,8 @@ class TestConfigLoader(object):
     def setup(self):
         self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf.inc")
 
-    def test_web_debug(self):
-        assert self.config.web_debug is False
+    def test_debug(self):
+        assert self.config.debug is False
 
     def test_checks_location(self):
         assert self.config.checks_location == "scoring_engine/checks"
@@ -53,7 +53,7 @@ class TestConfigLoader(object):
 
     def test_parse_sources_bool_environment(self):
         os.environ["SCORINGENGINE_WEB_DEBUG"] = 'True'
-        assert self.config.parse_sources('web_debug', True, 'bool') is True
+        assert self.config.parse_sources('debug', True, 'bool') is True
 
     def test_parse_sources_str_environment(self):
         os.environ["SCORINGENGINE_REDIS_HOST"] = '127.0.0.1'
