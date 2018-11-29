@@ -25,5 +25,7 @@ celery_args = [
 if config.worker_num_concurrent_tasks != -1:
     celery_args.append('--concurrency={0}'.format(config.worker_num_concurrent_tasks))
 
-logger.info("Starting Worker v.{0}".format(version))
+celery_args.append('--queues={0}'.format(config.worker_queue))
+
+logger.info("Starting Worker v.{0} monitoring '{1}' queue".format(version, config.worker_queue))
 celery_app.start(argv=celery_args)

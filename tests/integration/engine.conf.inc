@@ -8,9 +8,8 @@ debug = False
 
 db_uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 
-# Set to -1 to use default number of processors for tasks
-# else, set to number of concurrent tasks
 worker_num_concurrent_tasks = -1
+worker_queue = main
 
 # Set to null to disable caching
 cache_type = redis

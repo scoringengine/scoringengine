@@ -9,9 +9,8 @@ debug = False
 # SQLite
 db_uri = sqlite:////tmp/test_engine.db
 
-# Set to -1 to use default number of processors for tasks
-# else, set to number of concurrent tasks
 worker_num_concurrent_tasks = 4
+worker_queue = main
 
 # Set to null to disable caching
 cache_type = null

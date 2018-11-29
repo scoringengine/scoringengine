@@ -33,6 +33,17 @@ class ConfigLoader(object):
             'int'
         )
 
+        self.worker_num_concurrent_tasks = self.parse_sources(
+            'worker_num_concurrent_tasks',
+            int(self.parser['OPTIONS']['worker_num_concurrent_tasks']),
+            'int'
+        )
+
+        self.worker_queue = self.parse_sources(
+            'worker_queue',
+            self.parser['OPTIONS']['worker_queue'],
+        )
+
         self.timezone = self.parse_sources(
             'timezone',
             self.parser['OPTIONS']['timezone']
@@ -62,12 +73,6 @@ class ConfigLoader(object):
         self.redis_password = self.parse_sources(
             'redis_password',
             self.parser['OPTIONS']['redis_password']
-        )
-
-        self.worker_num_concurrent_tasks = self.parse_sources(
-            'worker_num_concurrent_tasks',
-            int(self.parser['OPTIONS']['worker_num_concurrent_tasks']),
-            'int'
         )
 
     def parse_sources(self, key_name, default_value, obj_type='str'):

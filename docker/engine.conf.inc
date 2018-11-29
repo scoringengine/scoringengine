@@ -12,6 +12,11 @@ db_uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
 # else, set to number of concurrent tasks
 worker_num_concurrent_tasks = -1
 
+# default to main
+# but this allows you to have some workers
+# running certain work but not others
+worker_queue = main
+
 # Set to null to disable caching
 cache_type = redis
 

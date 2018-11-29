@@ -232,6 +232,10 @@ class TestServiceData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['environments'] = 'a string'
         self.verify_error("Team1 SSH service 'environments' field must be an array")
 
+    def test_bad_worker_queue(self):
+        self.setup['teams'][0]['services'][0]['worker_queue'] = []
+        self.verify_error("Team1 SSH service 'worker_queue' field must be a string")
+
 
 class TestAccountData(CompetitionDataTest):
     def test_no_username(self):
