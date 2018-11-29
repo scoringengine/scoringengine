@@ -89,6 +89,10 @@ class Competition(dict):
         assert 'host' in service, "{0} {1} service must have a 'host' field".format(team_name, service['name'])
         assert type(service['host']) is str, "{0} {1} service 'host' field must be a string".format(team_name, service['name'])
 
+        # Verify service worker_queue if it exists
+        if 'worker_queue' in service:
+            assert type(service['worker_queue']) is str, "{0} {1} service 'worker_queue' field must be a string".format(team_name, service['name'])
+
         # Verify service port
         assert 'port' in service, "{0} {1} service must have a 'port' field".format(team_name, service['name'])
         assert type(service['port']) is int, "{0} {1} service 'port' field must be an integer".format(team_name, service['name'])
@@ -164,6 +168,8 @@ class Competition(dict):
                         port=service_dict['port'],
                         points=service_dict['points']
                     )
+                    if 'worker_queue' in service_dict:
+                        service_obj.worker_queue = service_dict['worker_queue']
                     db_session.add(service_obj)
                     if 'accounts' in service_dict:
                         for account_dict in service_dict['accounts']:
