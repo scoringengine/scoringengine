@@ -47,6 +47,9 @@ class TestConfigLoader(object):
     def test_worker_num_concurrent_tasks(self):
         assert self.config.worker_num_concurrent_tasks == 4
 
+    def test_worker_queue(self):
+        assert self.config.worker_queue == 'main'
+
     def test_parse_sources_int_environment(self):
         os.environ["SCORINGENGINE_ROUND_SLEEP_TIME"] = '1'
         assert self.config.parse_sources('round_sleep_time', '1234', 'int') == 1

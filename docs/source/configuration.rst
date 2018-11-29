@@ -36,14 +36,16 @@ Configuration Keys
      - Amount of time (seconds) the engine sleeps between rounds
    * - worker_refresh_time
      - Amount of time (seconds) the engine will sleep for in-between polls of worker status
+   * - worker_num_concurrent_tasks
+     - The number of concurrent tasks the worker will run. Set to -1 to default to number of processors.
+   * - worker_queue
+     - The queue name for a worker to pull tasks from. This can be used to control which workers get which service checks. Default is 'main'
    * - timezone
      - Local timezone of the competition
    * - debug
      - Determines wether or not the engine should be run in debug mode (useful for development)
    * - db_uri
      - Database connection URI
-   * - worker_num_concurrent_tasks
-     - The number of concurrent tasks the worker will run. Set to -1 to default to number of processors.
    * - cache_type
      - The type of storage for the cache. Set to null to disable caching
    * - redis_host
