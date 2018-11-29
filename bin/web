@@ -9,10 +9,10 @@ from scoring_engine.logger import logger
 
 
 if __name__ == '__main__':
-    logger.info("Starting Web v.{0}".format(version))
-
     if not verify_db_ready(session):
         raise Exception("Database is not initialized, must run bin/setup")
+
+    logger.info("Starting Web v.{0}".format(version))
 
     if application.debug:
         application.run()
