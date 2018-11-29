@@ -23,7 +23,7 @@
             </div>
           </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-xs-6">
           <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps between rounds.</span>
         </div>
       </div>
@@ -41,38 +41,41 @@
             </div>
           </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col-xs-6">
           <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps iterations of checking for finished checks (also displays in the engine log).</span>
         </div>
       </div>
     </form>
+
+    <div class="col-xs-3">
+      <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
+    </div>
     <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
       <div class="form-group row">
-        <div class="col-xs-3">
-          <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
-        </div>
-        <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+        <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
           <div class="input-group input-group-md">
-            <textarea class="form-control" rows="12" style="width: 525px;" id="welcome_page_content" name="welcome_page_content" placeholder="Insert Welcome Page Content Here" required>{{ welcome_page_content|safe }}</textarea>
+            <textarea class="form-control" rows="12" style="width: 685px;" id="welcome_page_content" name="welcome_page_content" placeholder="Insert Welcome Page Content Here" required>{{ welcome_page_content|safe }}</textarea>
             <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
           </div>
           <button type="submit" class="btn btn-primary center-block">Save</button>
         </div>
       </div>
     </form>
+
+    <div class="col-xs-3">
+      <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
+    </div>
     <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
       <div class="form-group row" style="margin-bottom: 0px;">
-        <div class="col-xs-3">
-          <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
-        </div>
-        <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+        <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
           <div class="input-group input-group-md">
-            <textarea class="form-control" rows="8" style="width: 525px;" id="about_page_content" name="about_page_content" placeholder="Insert About Page Content Here" required>{{ about_page_content|safe }}</textarea>
+            <textarea class="form-control" rows="9" style="width: 685px;" id="about_page_content" name="about_page_content" placeholder="Insert About Page Content Here" required>{{ about_page_content|safe }}</textarea>
             <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>
           </div>
           <button type="submit" class="btn btn-primary center-block">Save</button>
         </div>
       </div>
     </form>
+
   </div>
 {% endblock %}
