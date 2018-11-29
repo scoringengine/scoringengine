@@ -13,7 +13,7 @@
 {% block admincontent %}
 
   <div class="card">
-    <h2 class="text-center">Update Password</h2>
+    <h4 class="text-center">Update Password</h4>
     <form method="POST" action="{{ url_for('api.admin_update_password') }}" role="form" class="form-signin">
       <div class="form-group">
         <select class="selectpicker" name="user_id" data-width="100%" id="userSelect">
@@ -30,7 +30,7 @@
   </div>
 
   <div class="card">
-    <h2 class="text-center">Add User</h2>
+    <h4 class="text-center">Add User</h4>
     <form method="POST" action="{{ url_for('api.admin_add_user') }}" role="form" class="form-signin">
       <div class="form-group">
         <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
@@ -50,7 +50,7 @@
   </div>
 
   <div class="card">
-    <h2 class="text-center">Add Team</h2>
+    <h4 class="text-center">Add Team</h4>
     <form method="POST" action="{{ url_for('api.admin_add_team') }}" role="form" class="form-signin">
       <div class="form-group">
         <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
