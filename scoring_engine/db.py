@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from scoring_engine.config import config
 from scoring_engine.models.base import Base
@@ -20,7 +20,7 @@ def verify_db_ready(session):
     try:
         from scoring_engine.models.user import User
         session.query(User).get(1)
-    except OperationalError:
+    except (OperationalError, ProgrammingError):
         ready = False
     return ready
 
