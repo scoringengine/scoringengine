@@ -2,17 +2,14 @@
 
 from random import randint
 
-from sqlalchemy.exc import OperationalError, ProgrammingError
-
 import optparse
 import os
 
-from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import session, init_db, delete_db
+from scoring_engine.db import session, init_db, delete_db, verify_db_ready
 from scoring_engine.config import config
 from scoring_engine.competition import Competition
 from scoring_engine.logger import logger
@@ -42,11 +39,10 @@ if 'SCORINGENGINE_OVERWRITE_DB' in os.environ and os.environ['SCORINGENGINE_OVER
 logger.info("Starting Setup v.{0}".format(version))
 
 if not options.overwrite_db:
-    try:
-        session.query(User).get(1)
+    if verify_db_ready(session):
         logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
-    except (OperationalError, ProgrammingError):
+    else:
         # Database doesn't exist, so continuing on to setup script
         logger.debug("Database doesn't exist yet...")
 

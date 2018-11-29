@@ -7,6 +7,7 @@ from scoring_engine.engine.engine import Engine
 
 from scoring_engine.version import version
 from scoring_engine.logger import logger
+from scoring_engine.db import session, verify_db_ready
 
 
 # In order to handle docker-compose usability
@@ -22,6 +23,9 @@ if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE']
 total_rounds = 0
 if 'SCORINGENGINE_NUM_ROUNDS' in os.environ:
     total_rounds = int(os.environ['SCORINGENGINE_NUM_ROUNDS'])
+
+if not verify_db_ready(session):
+    raise Exception("Database is not initialized, must run bin/setup")
 
 engine = Engine(total_rounds=total_rounds)
 logger.info("Starting Engine v.{0}".format(version))
