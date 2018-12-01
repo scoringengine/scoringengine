@@ -64,11 +64,17 @@ def admin_update_check():
         if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
             check = session.query(Check).get(int(request.form['pk']))
             if check:
+                modified_check = False
                 if request.form['name'] == 'check_value':
                     if request.form['value'] == '1':
                         check.result = True
                     elif request.form['value'] == '2':
                         check.result = False
+                    modified_check = True
+                elif request.form['name'] == 'check_reason':
+                    modified_check = True
+                    check.reason = request.form['value']
+                if modified_check:
                     session.add(check)
                     session.commit()
                     update_scoreboard_data()
