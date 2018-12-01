@@ -32,6 +32,21 @@ class TestService(UnitTest):
         assert service.check_name == "ICMP IPv4 Check"
         assert service.port == 0
         assert service.points == 100
+        assert service.worker_queue == 'main'
+
+    def test_basic_service_with_worker_queue(self):
+        team = generate_sample_model_tree('Team', self.session)
+        service = Service(name="Example Service", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1', worker_queue='somequeue')
+        self.session.add(service)
+        self.session.commit()
+        assert service.id is not None
+        assert service.name == "Example Service"
+        assert service.team == team
+        assert service.team_id == team.id
+        assert service.check_name == "ICMP IPv4 Check"
+        assert service.port == 0
+        assert service.points == 100
+        assert service.worker_queue == 'somequeue'
 
     def test_basic_service_with_points(self):
         team = generate_sample_model_tree('Team', self.session)

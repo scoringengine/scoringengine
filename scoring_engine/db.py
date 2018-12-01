@@ -1,6 +1,7 @@
 import bcrypt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from scoring_engine.config import config
 from scoring_engine.models.base import Base
@@ -12,6 +13,16 @@ def delete_db(session):
 
 def init_db(session):
     Base.metadata.create_all(session.bind)
+
+
+def verify_db_ready(session):
+    ready = True
+    try:
+        from scoring_engine.models.user import User
+        session.query(User).get(1)
+    except (OperationalError, ProgrammingError):
+        ready = False
+    return ready
 
 
 isolation_level = "READ COMMITTED"
