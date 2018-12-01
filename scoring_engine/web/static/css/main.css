@@ -165,3 +165,7 @@ a.editable-click {
     background: inherit;
     left: 20px;
 }
+
+.lefthand-nav {
+    width: 20%;
+}
