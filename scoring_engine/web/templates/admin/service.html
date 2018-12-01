@@ -53,37 +53,6 @@
     $(document).ready(function(){
         $('.password').text("************");
     });
-
-    // Add event listener for opening and closing details
-    $('#checks tbody').on('click', 'td.details-control', function () {
-      var tr = $(this).closest('tr');
-      var next_row = tr.next('tr');
-
-      if ( tr.hasClass('shown') ) {
-        next_row.hide();
-        tr.removeClass('shown');
-      }
-      else {
-        next_row.show();
-        tr.addClass('shown');
-      }
-    });
-
-    $(document).ready(function() {
-      // Disable datatables error reporting
-      $.fn.dataTable.ext.errMode = 'none';
-
-      var table = $('#checks')
-        .on('error.dt', function (e, settings, techNote, message) {
-          console.log('An error has been reported by DataTables: ', message);
-        })
-        .DataTable({
-          'paging': true,
-          'bFilter': false,
-          'bInfo': false,
-          "order": [[ 0, "desc" ]]
-        });
-    });
   </script>
 {% endblock %}
 
@@ -181,12 +150,42 @@
           <td width="20%">{{check.command}}</td>
           <td width="30%">{{check.local_completed_timestamp}}</td>
         </tr>
-        <tr style="display:none;">
-          <tr style="display:none;"><td colspan="6"><pre style="max-height: 350px; overflow: scroll;">{{check.output|safe}}</pre></td></tr>
-        </tr>
+        <tr style="display:none;"><td colspan="6"><pre style="max-height: 350px; min-height: 10px;">{{check.output|safe}}</pre></td></tr>
       {% endfor %}
       </tbody>
     </table>
+    <script>
+      // Add event listener for opening and closing details
+      $('#checks tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var next_row = tr.next('tr');
+
+        if ( tr.hasClass('shown') ) {
+          next_row.hide();
+          tr.removeClass('shown');
+        }
+        else {
+          next_row.show();
+          tr.addClass('shown');
+        }
+      });
+
+      $(document).ready(function() {
+        // Disable datatables error reporting
+        $.fn.dataTable.ext.errMode = 'none';
+
+        var table = $('#checks')
+          .on('error.dt', function (e, settings, techNote, message) {
+            console.log('An error has been reported by DataTables: ', message);
+          })
+          .DataTable({
+            'paging': true,
+            'bFilter': false,
+            'bInfo': false,
+            "order": [[0, "desc"]]
+          });
+      });
+  </script>
   {% else %}
     No Checks Found.
   {% endif %}
