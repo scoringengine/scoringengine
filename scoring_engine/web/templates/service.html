@@ -54,6 +54,22 @@
   $(document).ready(function(){
       $('.password').text("************");
   });
+
+  function togglePassword(num) {
+      var masked_div = document.getElementById("masked_password_" + num);
+      var show_div = document.getElementById("show_password_" + num);
+      var show_button = document.getElementById("bootstrap_reveal_password_" + num);
+      if (show_button.innerHTML == 'Show') {
+          masked_div.style.display = 'none';
+          show_div.style.display = 'inline-block';
+          show_button.innerHTML = "Hide";
+      }
+      else {
+          masked_div.style.display = 'inline-block';
+          show_div.style.display = 'none';
+          show_button.innerHTML = "Show";
+      }
+    }
 </script>
 <div class="container md-page">
   <div class="row">
@@ -114,7 +130,8 @@
                 {% if modify_account_passwords_setting == true %}
                   <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
                 {% else %}
-                  **********
+                  <a href="#" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
+                  <div id="masked_password_{{account.id}}" style="display: inline-block;">**********</div><div id="show_password_{{account.id}}" style="display: none;">{{account.password}}</div>
                 {% endif %}
               </tr>
               {% endfor %}
