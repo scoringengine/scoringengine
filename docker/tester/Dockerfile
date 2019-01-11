@@ -13,6 +13,12 @@ RUN \
 COPY bin /app/bin
 COPY .flake8 /app/.flake8
 
+# Set permissions for volume to be mounted
+RUN \
+  mkdir /app/artifacts && \
+  chown engine:engine /app/artifacts
+
 USER engine
 
 RUN pip install -r /app/tests/requirements.txt
+
