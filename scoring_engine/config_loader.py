@@ -10,8 +10,8 @@ class ConfigLoader(object):
         self.parser = configparser.ConfigParser()
         self.parser.read(config_location)
 
-        self.web_debug = self.parse_sources(
-            'web_debug',
+        self.debug = self.parse_sources(
+            'debug',
             self.parser['OPTIONS']['debug'].lower() == 'true',
             'bool'
         )
@@ -31,6 +31,17 @@ class ConfigLoader(object):
             'worker_refresh_time',
             int(self.parser['OPTIONS']['worker_refresh_time']),
             'int'
+        )
+
+        self.worker_num_concurrent_tasks = self.parse_sources(
+            'worker_num_concurrent_tasks',
+            int(self.parser['OPTIONS']['worker_num_concurrent_tasks']),
+            'int'
+        )
+
+        self.worker_queue = self.parse_sources(
+            'worker_queue',
+            self.parser['OPTIONS']['worker_queue'],
         )
 
         self.timezone = self.parse_sources(
@@ -64,19 +75,13 @@ class ConfigLoader(object):
             self.parser['OPTIONS']['redis_password']
         )
 
-        self.worker_num_concurrent_tasks = self.parse_sources(
-            'worker_num_concurrent_tasks',
-            int(self.parser['OPTIONS']['worker_num_concurrent_tasks']),
-            'int'
-        )
-
     def parse_sources(self, key_name, default_value, obj_type='str'):
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
             if obj_type.lower() == 'int':
                 return int(os.environ[environment_key])
             elif obj_type.lower() == 'bool':
-                return bool(os.environ[environment_key])
+                return os.environ[environment_key].lower() == 'true'
             else:
                 return os.environ[environment_key]
         else:

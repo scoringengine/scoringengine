@@ -89,6 +89,21 @@ class CompetitionDataTest(UnitTest):
         assert error_message == str(error.value)
 
 
+class TestYAMLParse(CompetitionDataTest):
+    def test_parse_yaml_str(self):
+        yaml_str = """
+---
+teams:
+- name: WhiteTeam
+  color: White
+  users:
+  - username: whiteteamuser
+    password: testpass
+        """
+        competition = Competition.parse_yaml_str(yaml_str)
+        assert len(competition['teams']) == 1
+
+
 class TestRootData(CompetitionDataTest):
     def test_no_teams(self):
         del self.setup['teams']
@@ -216,6 +231,10 @@ class TestServiceData(CompetitionDataTest):
     def test_bad_environments_type(self):
         self.setup['teams'][0]['services'][0]['environments'] = 'a string'
         self.verify_error("Team1 SSH service 'environments' field must be an array")
+
+    def test_bad_worker_queue(self):
+        self.setup['teams'][0]['services'][0]['worker_queue'] = []
+        self.verify_error("Team1 SSH service 'worker_queue' field must be a string")
 
 
 class TestAccountData(CompetitionDataTest):

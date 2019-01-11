@@ -41,6 +41,11 @@ class TestAdmin(WebTest):
         stats_resp = self.auth_and_get_path('/admin/manage')
         assert stats_resp.status_code == 200
 
+    def test_auth_required_admin_permissions(self):
+        self.verify_auth_required('/admin/permissions')
+        stats_resp = self.auth_and_get_path('/admin/permissions')
+        assert stats_resp.status_code == 200
+
     def test_auth_bad_auth_manage(self):
         self.unauthorized_admin_test('/admin/manage')
 

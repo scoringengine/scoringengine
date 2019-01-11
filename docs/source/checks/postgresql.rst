@@ -2,8 +2,14 @@ PostgreSQL
 ^^^^^^^^^^
 Logs into a postgresql server, selects a database, and executes a SQL command
 
-Uses Accounts
+`Uses Accounts`
 
 Custom Properties:
-  - database: The postgres database to use
-  - command: The SQL command that will get run
+
+.. list-table::
+   :widths: 25 50
+
+   * - database
+     - database to use before running command
+   * - command
+     - SQL command that will execute

@@ -9,129 +9,133 @@
     <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
+{% block header %}Users{% endblock %}
 {% block admincontent %}
-    <div class="card">
-      <h2 class="text-center">Update Password</h2>
-      <form method="POST" action="{{ url_for('api.admin_update_password') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <select class="selectpicker" name="user_id" data-width="100%" id="userSelect">
-            {% for user in users %}
-            <option value="{{ user[0] }}">{{ user[1] }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
-        </div>
-        <button type="submit" class="btn btn-primary center-block">Update Password</button>
-      </form>
-    </div>
-    <div class="card">
-      <h2 class="text-center">Add User</h2>
-      <form method="POST" action="{{ url_for('api.admin_add_user') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
-        </div>
-        <div class="form-group">
-          <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
-        </div>
-        <div class="form-group">
-          <select class="selectpicker" name="team_id" data-width="100%" id="team_id">
-            {% for team in teams %}
-            <option value="{{ team[0] }}">{{ team[1] }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary center-block">Add User</button>
-      </form>
-    </div>
-    <div class="card">
-      <h2 class="text-center">Add Team</h2>
-      <form method="POST" action="{{ url_for('api.admin_add_team') }}" role="form" class="form-signin">
-        <div class="form-group">
-          <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
-        </div>
-        <div class="form-group">
-          <select class="selectpicker" name="color" data-width="100%" id="teamSelect">
-            <option value="Red">Red</option>
-            <option value="White">White</option>
-            <option value="Blue">Blue</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary center-block">Add Team</button>
-      </form>
-    </div>
+
+  <div class="card">
+    <h4 class="text-center">Update Password</h4>
+    <form method="POST" action="{{ url_for('api.admin_update_password') }}" role="form" class="form-signin">
+      <div class="form-group">
+        <select class="selectpicker" name="user_id" data-width="100%" id="userSelect">
+          {% for user in users %}
+          <option value="{{ user[0] }}">{{ user[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Update Password</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h4 class="text-center">Add User</h4>
+    <form method="POST" action="{{ url_for('api.admin_add_user') }}" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
+      </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="team_id" data-width="100%" id="team_id">
+          {% for team in teams %}
+          <option value="{{ team[0] }}">{{ team[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add User</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h4 class="text-center">Add Team</h4>
+    <form method="POST" action="{{ url_for('api.admin_add_team') }}" role="form" class="form-signin">
+      <div class="form-group">
+        <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
+      </div>
+      <div class="form-group">
+        <select class="selectpicker" name="color" data-width="100%" id="teamSelect">
+          <option value="Red">Red</option>
+          <option value="White">White</option>
+          <option value="Blue">Blue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary center-block">Add Team</button>
+    </form>
+  </div>
+
   <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
     <thead>
-        <tr>
-            <th></th>
-            <th>Team Name</th>
-            <th>Color</th>
-        </tr>
+      <tr>
+        <th></th>
+        <th>Team Name</th>
+        <th>Color</th>
+      </tr>
     </thead>
   </table>
   <script>
     /* Formatting function for row details - modify as you need */
-    function format ( d ) {
-        var table = '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
-            '<tr>'+
-              '<th>Username</th>'+
-              '<th>Password</th>'+
-              '<th>Logged In</th>'+
-            '</tr><tbody>'
-        for (var key in d.users) {
-          table += '<tr><td>' + key + '</td><td>' + d.users[key][0] + '</td><td>' + d.users[key][1] + '</td></tr>'
-        }
-        table += '</tbody></table>'
-        return table;
+    function format (data) {
+      var table = '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
+        '<tr>'+
+        '<th>Username</th>'+
+        '<th>Password</th>'+
+        '<th>Logged In</th>'+
+        '</tr><tbody>'
+      for (var key in data.users) {
+        table += '<tr><td>' + key + '</td><td>' + data.users[key][0] + '</td><td>' + data.users[key][1] + '</td></tr>'
+      }
+      table += '</tbody></table>'
+      return table;
     }
 
     $(document).ready(function() {
-        // Disable datatables error reporting
-        $.fn.dataTable.ext.errMode = 'none';
+      // Disable datatables error reporting
+      $.fn.dataTable.ext.errMode = 'none';
 
-        var table = $('#users')
-            .on('error.dt', function (e, settings, techNote, message) {
-                console.log('An error has been reported by DataTables: ', message);
-            })
-            .DataTable( {
-                "ajax": {
-                    "url": "/api/admin/get_teams",
-                    "type": 'GET'
-                },
-                "columns": [
-                    {
-                        "className":      'details-control',
-                        "orderable":      false,
-                        "data":           null,
-                        "defaultContent": ''
-                    },
-                    { "data": "name" },
-                    { "data": "color" }
-                ],
-                'order': [[2, 'asc']],
-                'paging': false,
-                'bFilter': false,
-                'bInfo': false
-            });
+      var table = $('#users')
+        .on('error.dt', function (e, settings, techNote, message) {
+          console.log('An error has been reported by DataTables: ', message);
+        })
+        .DataTable( {
+          "ajax": {
+            "url": "/api/admin/get_teams",
+            "type": 'GET'
+          },
+          "columns": [
+            {
+              "className": 'details-control',
+              "orderable": false,
+              "data": null,
+              "defaultContent": ''
+            },
+            { "data": "name" },
+            { "data": "color" }
+          ],
+          'order': [[2, 'asc']],
+          'paging': false,
+          'bFilter': false,
+          'bInfo': false
+        });
 
-        // Add event listener for opening and closing details
-        $('#users tbody').on('click', 'td.details-control', function () {
-            var tr = $(this).closest('tr');
-            var row = table.row( tr );
+      // Add event listener for opening and closing details
+      $('#users tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row( tr );
 
-            if ( row.child.isShown() ) {
-                // This row is already open - close it
-                row.child.hide();
-                tr.removeClass('shown');
-            }
-            else {
-                // Open this row
-                row.child( format(row.data()) ).show();
-                tr.addClass('shown');
-            }
-        } );
-
-    } );
+        if ( row.child.isShown() ) {
+          // This row is already open - close it
+          row.child.hide();
+          tr.removeClass('shown');
+        }
+        else {
+          // Open this row
+          row.child( format(row.data()) ).show();
+          tr.addClass('shown');
+        }
+      });
+    });
   </script>
 {% endblock %}

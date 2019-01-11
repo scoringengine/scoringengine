@@ -142,7 +142,7 @@ class Engine(object):
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.delay(job)
+                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []
