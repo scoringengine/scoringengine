@@ -6,7 +6,8 @@ RUN \
   apt-get install -y \
     python3 \
     python3-pip \
-    libmysqlclient-dev && \
+    libmysqlclient-dev \
+    iputils-ping && \
   pip3 install virtualenv && \
   mkdir /app && \
   virtualenv -p `which python3` /venv
