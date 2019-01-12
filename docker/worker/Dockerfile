@@ -4,9 +4,16 @@ USER root
 
 RUN \
   apt-get update && \
-  apt-get install -y apt-transport-https && \
-  apt-get install -y curl && \
-  apt-get install -y mysql-client
+  apt-get install -y apt-transport-https
+
+# ICMP Check
+RUN apt-get install -y iputils-ping
+
+# HTTP/S Check
+RUN apt-get install -y curl
+
+# MySQL Check
+RUN apt-get install -y mysql-client
 
 # SSH Check
 RUN pip install paramiko
@@ -24,15 +31,19 @@ RUN apt-get install -y dnsutils
 RUN apt-get install -y postgresql-client
 
 # MSSQL Check
-RUN curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-# Package Repo for Ubuntu 16.04
-#RUN curl -s https://packages.microsoft.com/config/ubuntu/16.04/prod.list | tee /etc/apt/sources.list.d/msprod.list
-# Package Repo for Debian 9 (Docker Hub Python Image)
-RUN echo "deb [arch=amd64] https://packages.microsoft.com/debian/9/prod "stretch" main" >> /etc/apt/sources.list.d/msprod.list
-RUN apt-get update
-RUN ACCEPT_EULA=Y apt-get install -y locales mssql-tools unixodbc-dev
-RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-RUN locale-gen
+RUN \
+  curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+  # Package Repo for Ubuntu 16.04
+  curl -s https://packages.microsoft.com/config/ubuntu/18.04/prod.list | tee /etc/apt/sources.list.d/msprod.list && \
+  # Package Repo for Debian 9 (Docker Hub Python Image)
+  # echo "deb [arch=amd64] https://packages.microsoft.com/debian/9/prod "stretch" main" >> /etc/apt/sources.list.d/msprod.list && \
+  apt-get update && \
+  ACCEPT_EULA=Y apt-get install -y \
+    locales \
+    mssql-tools \
+    unixodbc-dev && \
+  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
+  locale-gen
 
 # RDP Check
 RUN apt-get install -y freerdp-x11
