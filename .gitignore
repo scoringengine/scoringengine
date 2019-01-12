@@ -1,3 +1,8 @@
+# IDE folders
+.vscode/
+.idea/
+# add any others here...
+
 # Common ignores
 *.pyc
 *.swp
