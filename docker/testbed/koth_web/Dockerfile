@@ -8,4 +8,4 @@ RUN \
 
 COPY docker/testbed/koth_web/files/http_server.conf /etc/nginx/conf.d/http_server.conf
 COPY docker/testbed/koth_web/files/https_server.conf /etc/nginx/conf.d/https_server.conf
-COPY docker/testbed/koth_web/files/ownership.html /var/www/html/ownership.html
+COPY docker/testbed/koth_web/files/ownership.html /usr/share/nginx/html/ownership.html
