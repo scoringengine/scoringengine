@@ -95,6 +95,15 @@ services:
     # ports:
     #   - 25:25
     #   - 587:587
+  testbed_koth_web:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/koth_web/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 80:80
+    #   - 443:443
 
 networks:
   default:
