@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+# A King of the Hill scoring engine check that checks an ownership page on a
+# webserver to find a team's ownership hash. The hash should be the last line
+# of the specified page.
+#
+# To install: pip install requests
+
+import sys
+import re
+import requests
+
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print('Usage: ' + sys.argv[0] + ' host port useragent vhost uri')
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+useragent = sys.argv[3]
+vhost = sys.argv[4]
+uri = sys.argv[5]
+
+# Get ownership page
+full_url = 'http://' + host + ':' + port + uri
+headers = {
+    'User-Agent': useragent,
+    'Host': vhost,
+}
+resp = requests.get(full_url, headers=headers)
+
+# Find and print hash
+body_lines = resp.text.split()
+if resp.status_code == 200 and len(body_lines) > 0:
+    print(resp.text.split()[-1])
+else:
+    print('DOWN_OR_NO_HASH')

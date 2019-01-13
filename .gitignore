@@ -23,3 +23,7 @@ scoring_engine.egg-info
 
 # Ignore implemented config file
 engine.conf
+
+# Ignore common IDE folders
+.idea/
+.vscode/
