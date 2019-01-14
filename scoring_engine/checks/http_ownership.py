@@ -2,7 +2,7 @@
 Example service configuration:
 - name: KOTH-HTTP
   check_name: HTTPCheck
-  host: testbed_koth_http
+  host: testbed_koth_web
   port: 80
   points: 25
   environments:
