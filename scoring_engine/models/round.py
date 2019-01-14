@@ -14,6 +14,7 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     checks = relationship("Check", back_populates="round")
+    ownership_checks = relationship('OwnershipRecord', back_populates='round')
     round_start = Column(DateTime, default=datetime.utcnow)
     round_end = Column(DateTime)
 
