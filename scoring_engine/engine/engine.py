@@ -118,6 +118,24 @@ class Engine(object):
                     pending_tasks.append(task_id)
         return pending_tasks
 
+    def run_check(self, service, check_class, job_ids):
+        # Get the environment to use
+        environment = random.choice(service.environments)
+
+        # Init a new check object
+        check_obj = check_class(environment)
+        command_str = check_obj.command()
+
+        # Add the check job to the queue
+        job = Job(environment_id=environment.id, command=command_str)
+        task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+        team_name = environment.service.team.name
+
+        # Track the job information
+        if team_name not in job_ids:
+            job_ids[team_name] = []
+        job_ids[team_name].append(task.id)
+
     def run(self):
         if self.total_rounds == 0:
             logger.info("Running engine for unlimited rounds")
@@ -133,20 +151,29 @@ class Engine(object):
             services = self.session.query(Service).all()[:]
             random.shuffle(services)
             task_ids = {}
+            koth_task_ids = {}
             for service in services:
+                # Get standard check for service
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
                     raise LookupError("Unable to map service to check code for " + str(service.check_name))
                 logger.debug("Adding " + service.team.name + ' - ' + service.name + " check to queue")
-                environment = random.choice(service.environments)
-                check_obj = check_class(environment)
-                command_str = check_obj.command()
-                job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
-                team_name = environment.service.team.name
-                if team_name not in task_ids:
-                    task_ids[team_name] = []
-                task_ids[team_name].append(task.id)
+
+                # Run the check
+                self.run_check(service, check_class, task_ids)
+
+                # Get ownership check for service if necessary
+                # TODO: allow koth service name regex to be configured/changed
+                if re.match(r'^KOTH-.*$', service.name):
+                    # Determine the ownership check name
+                    ownership_check_name = service.check_name.split('Check')[0] + 'OwnershipCheck'
+                    ownership_check_class = self.check_name_to_obj(ownership_check_name)
+                    if ownership_check_class is None:
+                        raise LookupError('Unable to map service to ownership check code for ' + str(service.check_name))
+                    logger.debug('Adding ' + service.team.name + ' - ' + service.name + ' check to queue')
+
+                    # Run the check
+                    self.run_check(service, ownership_check_class, koth_task_ids)
 
             # This array keeps track of all current round objects
             # incase we need to backout any changes to prevent
@@ -161,6 +188,7 @@ class Engine(object):
                 cleanup_items.append(latest_kb)
                 self.session.add(latest_kb)
                 self.session.commit()
+                # TODO: add koth task IDs to KB so the web app can show updates
 
                 pending_tasks = self.all_pending_tasks(task_ids)
                 while pending_tasks:
