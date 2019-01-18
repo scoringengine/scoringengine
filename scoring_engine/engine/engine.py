@@ -13,8 +13,10 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
+from scoring_engine.models.ownership_record import OwnershipRecord
 from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
@@ -190,14 +192,14 @@ class Engine(object):
                 self.session.commit()
                 # TODO: add koth task IDs to KB so the web app can show updates
 
-                pending_tasks = self.all_pending_tasks(task_ids)
+                pending_tasks = self.all_pending_tasks(task_ids) + self.all_pending_tasks(koth_task_ids)
                 while pending_tasks:
                     worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
                     waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
-                    pending_tasks = self.all_pending_tasks(task_ids)
+                    pending_tasks = self.all_pending_tasks(task_ids) + self.all_pending_tasks(koth_task_ids)
                 logger.info("All jobs have finished for this round")
 
                 logger.info("Determining check results and saving to db")
@@ -240,6 +242,38 @@ class Engine(object):
                         check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
                         finished_checks.append(check)
 
+                # Check results of ownership checks
+                for team_name, koth_task_ids in koth_task_ids.items():
+                    for koth_task_id in koth_task_ids:
+                        koth_task = execute_command.AsyncResult(koth_task_id)
+                        environment = self.session.query(Environment).get(task.result['environment_id'])
+
+                        # When the task errored out or no hash was found, the
+                        # ownership shouldn't change.
+                        if task.result['errored_out'] or not re.match(environment.matching_content, task.result['output']):
+                            # Get the team object that matches the team name.
+                            # This should only ever return one team object.
+                            owning_team_obj = self.session.query(Team).filter_by(name=team_name).first()
+
+                        # At this point, we know a hash was found. Now,
+                        # determine which team's hash it is
+                        else:
+                            hash = task.result['output']
+                            # Convert the hex hash to an RGB string in the form
+                            # of rgba(r, g, b, 1)
+                            rgb_string = 'rgba({red}, {green}, {blue}, 1)'.format(
+                                red=int(hash[0:2], 16),
+                                green=int(hash[2:4], 16),
+                                blue=int(hash[4:6], 16),
+                            )
+                            owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string)
+
+                        # Prepare the ownership record to be saved to the
+                        # database
+                        ownership_record = OwnershipRecord(service=environment.service, round=round_obj, owning_team=owning_team_obj)
+                        finished_checks.append(ownership_record)
+
+                # Save finished checks to the database
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
                     self.session.add(finished_check)
