@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+
+# A scoring engine check that connecs to SMB
+# and tries to read a file and verifies the hash
+#
+# To install: pip install -I "pysmb>=1.1,<1.2"
+
 import tempfile
 import argparse
 from smb.SMBConnection import SMBConnection
