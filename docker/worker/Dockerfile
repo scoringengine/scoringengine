@@ -16,13 +16,13 @@ RUN apt-get install -y curl
 RUN apt-get install -y mysql-client
 
 # SSH Check
-RUN pip install paramiko
+RUN pip install -I "paramiko>=2.4,<2.5"
 
 # Elasticsearch Check
-RUN pip install requests
+RUN pip install -I "requests>=2.21,<2.22"
 
 # SMB Check
-RUN pip install pysmb
+RUN pip install -I "pysmb>=1.1,<1.2"
 
 # DNS Check
 RUN apt-get install -y dnsutils

@@ -61,7 +61,7 @@ Install dependencies for SSH check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  pip install paramiko
+  source /home/engine/scoring_engine/bin/activate && pip install -I "paramiko>=2.4,<2.5"
 
 Install dependencies for LDAP check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,13 +79,13 @@ Install dependencies for Elasticsearch check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  pip install requests
+  source /home/engine/scoring_engine/bin/activate && pip install -I "requests>=2.21,<2.22"
 
 Install dependencies for SMB check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  pip install pysmb
+  source /home/engine/scoring_engine/bin/activate && pip install -I "pysmb>=1.1,<1.2"
 
 Install dependencies for RDP check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

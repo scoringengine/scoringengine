@@ -3,7 +3,7 @@
 # A scoring engine check that inserts a record
 # and verifies that the record exists in Elasticsearch
 #
-# To install: pip install requests
+# To install: pip install -I "requests>=2.21,<2.22"
 
 import sys
 import datetime

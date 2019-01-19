@@ -6,7 +6,7 @@
 # the state of the machine was changed via SSH
 # IE: Login, create a file, logout, login, verify file is still there, logout
 #
-# To install: pip install paramiko
+# To install: pip install -I "paramiko>=2.4,<2.5"
 
 import sys
 import paramiko
