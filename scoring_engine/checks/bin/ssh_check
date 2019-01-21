@@ -25,21 +25,24 @@ commands = sys.argv[5].split(';')
 
 
 def connect_and_execute(host, port, username, password, command):
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(
-        hostname=host,
-        port=port,
-        username=username,
-        password=password,
-        look_for_keys=False
-    )
-    client_stdin, client_stdout, client_stderr = client.exec_command(command)
-    stdout_output = client_stdout.readlines()
-    stderr_output = client_stderr.readlines()
-    client.close()
-    return ''.join(stdout_output), ''.join(stderr_output)
-
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(
+            hostname=host,
+            port=port,
+            username=username,
+            password=password,
+            look_for_keys=False
+        )
+        client_stdin, client_stdout, client_stderr = client.exec_command(command)
+        stdout_output = client_stdout.readlines()
+        stderr_output = client_stderr.readlines()
+        client.close()
+        return ''.join(stdout_output), ''.join(stderr_output)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
 
 last_command_output = ""
 for command in commands:
