@@ -152,6 +152,12 @@ class TestTeamsData(CompetitionDataTest):
         self.setup['teams'][0]['services'] = 'a string'
         self.verify_error("'Team1' 'services' field must be an array")
 
+    def test_team_duplicate_services_name(self):
+        self.setup['teams'][0]['services'][0]['name'] = 'Test'
+        self.setup['teams'][0]['services'].append(self.setup['teams'][0]['services'][0])
+        self.setup['teams'][0]['services'][1]['name'] = 'Test'
+        self.verify_error("Each team's service must have a unique name, found duplicates in 'Test' for team 'Team1'")
+
 
 class TestUserData(CompetitionDataTest):
     def test_no_username(self):

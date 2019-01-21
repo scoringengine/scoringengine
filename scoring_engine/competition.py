@@ -61,6 +61,12 @@ class Competition(dict):
             for service in team['services']:
                 self.verify_service_data(service, team['name'])
 
+            # Verify each team service must have unique names
+            team_service_names = []
+            for service in team['services']:
+                assert service['name'] not in team_service_names, "Each team's service must have a unique name, found duplicates in '{0}' for team '{1}'".format(service['name'], team['name'])
+                team_service_names.append(service['name'])
+
     def verify_user_data(self, user, team_name):
         # Verify user username
         assert 'username' in user, "{0} user must have a 'username' field".format(team_name)
