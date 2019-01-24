@@ -1,4 +1,5 @@
 import pytest
+import copy
 
 from scoring_engine.models.team import Team
 from scoring_engine.competition import Competition
@@ -154,9 +155,44 @@ class TestTeamsData(CompetitionDataTest):
 
     def test_team_duplicate_services_name(self):
         self.setup['teams'][0]['services'][0]['name'] = 'Test'
-        self.setup['teams'][0]['services'].append(self.setup['teams'][0]['services'][0])
-        self.setup['teams'][0]['services'][1]['name'] = 'Test'
+        new_service = copy.deepcopy(self.setup['teams'][0]['services'][0])
+        self.setup['teams'][0]['services'].append(new_service)
         self.verify_error("Each team's service must have a unique name, found duplicates in 'Test' for team 'Team1'")
+
+    def test_team_missing_service(self):
+        new_service = copy.deepcopy(self.setup['teams'][0]['services'][0])
+        new_service['name'] = 'Service2'
+        self.setup['teams'][0]['services'].append(new_service)
+
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        second_team['services'][0]['name'] = 'OtherService'
+        self.setup['teams'].append(second_team)
+        self.verify_error("Service 'SSH' not defined in team 'Team 2'")
+
+    def test_team_additional_service(self):
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        new_service = copy.deepcopy(second_team['services'][0])
+        new_service['name'] = 'Service2'
+        second_team['services'].append(new_service)
+        self.setup['teams'].append(second_team)
+        self.verify_error("Service 'Service2' for Team 'Team 2' not defined in other teams")
+
+    def test_team_different_service_check_name(self):
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        second_team['services'][0]['check_name'] = 'ICMPCheck'
+        second_team['services'][0]['environments'] = [{'matching_content': '^SUCCESS'}]
+        self.setup['teams'].append(second_team)
+        self.verify_error("Incorrect check_name for Service 'SSH' for Team 'Team 2'. Got: 'ICMPCheck' Expected: SSHCheck")
+
+    def test_team_different_service_points(self):
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        second_team['services'][0]['points'] = 5
+        self.setup['teams'].append(second_team)
+        self.verify_error("Incorrect points for Service 'SSH' for Team 'Team 2'. Got: 5 Expected: 150")
 
 
 class TestUserData(CompetitionDataTest):

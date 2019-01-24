@@ -20,6 +20,7 @@ class Competition(dict):
 
     def __init__(self, data):
         self.available_checks = Engine.load_check_files(config.checks_location)
+        self.required_services = None
         self.verify_data(data)
         super(Competition, self).__init__(data)
 
@@ -60,6 +61,33 @@ class Competition(dict):
             assert type(team['services']) is list, "'{0}' 'services' field must be an array".format(team['name'])
             for service in team['services']:
                 self.verify_service_data(service, team['name'])
+
+            if self.required_services is None:
+                self.required_services = []
+                for service in team['services']:
+                    self.required_services = team['services']
+
+            # Verify each required service is defined on this current team
+            for required_service in self.required_services:
+                # Find team_service by name
+                team_service = None
+                for tmp_service in team['services']:
+                    if tmp_service['name'] == required_service['name']:
+                        team_service = tmp_service
+
+                assert team_service is not None, "Service '{0}' not defined in team '{1}'".format(required_service['name'], team['name'])
+                assert team_service['name'] == required_service['name'], "Team '{0}' missing '{1}' Expecting '{2}'".format(team['name'], required_service['name'], team_service['name'])
+                assert team_service['check_name'] == required_service['check_name'], "Incorrect check_name for Service '{0}' for Team '{1}'. Got: '{2}' Expected: {3}".format(team_service['name'], team['name'], team_service['check_name'], required_service['check_name'])
+                assert team_service['points'] == required_service['points'], "Incorrect points for Service '{0}' for Team '{1}'. Got: {2} Expected: {3}".format(team_service['name'], team['name'], team_service['points'], required_service['points'])
+                assert len(team_service['environments']) == len(required_service['environments'])
+
+            # Verify there aren't services defined in the current team but not in others
+            for team_service in team['services']:
+                required_service = None
+                for tmp_service in self.required_services:
+                    if tmp_service['name'] == team_service['name']:
+                        required_service = tmp_service
+                assert required_service is not None, "Service '{0}' for Team '{1}' not defined in other teams".format(team_service['name'], team['name'])
 
             # Verify each team service must have unique names
             team_service_names = []
