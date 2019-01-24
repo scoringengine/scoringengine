@@ -179,6 +179,21 @@ class TestTeamsData(CompetitionDataTest):
         self.setup['teams'].append(second_team)
         self.verify_error("Service 'Service2' for Team 'Team 2' not defined in other teams")
 
+    def test_team_different_service_check_name(self):
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        second_team['services'][0]['check_name'] = 'ICMPCheck'
+        second_team['services'][0]['environments'] = [{'matching_content': '^SUCCESS'}]
+        self.setup['teams'].append(second_team)
+        self.verify_error("Incorrect check_name for Service 'SSH' for Team 'Team 2'. Got: 'ICMPCheck' Expected: SSHCheck")
+
+    def test_team_different_service_points(self):
+        second_team = copy.deepcopy(self.setup['teams'][0])
+        second_team['name'] = 'Team 2'
+        second_team['services'][0]['points'] = 5
+        self.setup['teams'].append(second_team)
+        self.verify_error("Incorrect points for Service 'SSH' for Team 'Team 2'. Got: 5 Expected: 150")
+
 
 class TestUserData(CompetitionDataTest):
     def test_no_username(self):

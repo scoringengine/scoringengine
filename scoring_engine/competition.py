@@ -77,8 +77,8 @@ class Competition(dict):
 
                 assert team_service is not None, "Service '{0}' not defined in team '{1}'".format(required_service['name'], team['name'])
                 assert team_service['name'] == required_service['name'], "Team '{0}' missing '{1}' Expecting '{2}'".format(team['name'], required_service['name'], team_service['name'])
-                assert team_service['check_name'] == required_service['check_name']
-                assert team_service['points'] == required_service['points']
+                assert team_service['check_name'] == required_service['check_name'], "Incorrect check_name for Service '{0}' for Team '{1}'. Got: '{2}' Expected: {3}".format(team_service['name'], team['name'], team_service['check_name'], required_service['check_name'])
+                assert team_service['points'] == required_service['points'], "Incorrect points for Service '{0}' for Team '{1}'. Got: {2} Expected: {3}".format(team_service['name'], team['name'], team_service['points'], required_service['points'])
                 assert len(team_service['environments']) == len(required_service['environments'])
 
             # Verify there aren't services defined in the current team but not in others
