@@ -46,7 +46,30 @@
             { "data": "running_tasks" },
             { "data": "completed_tasks" },
             { "data": "worker_queues" },
-            { "data": "services_running" },
+            {
+              "width": 170,
+              "orderable": false,
+              "data": "services_running",
+              "render": function( data ) {
+                var text = "";
+                if (typeof data === 'string'){
+                  text = data;
+                }
+                else {
+                  for (var key in data) {
+                    text += "" + key;
+                    if (typeof data[key] === 'string') {
+                      text += " - " + data[key];
+                    }
+                    else {
+                      text += " - " + data[key].join(', ');
+                    }
+                    text += "<br>";
+                  }
+                }
+                return text;
+              }
+            },
           ],
         });
       setInterval( function () {
@@ -54,5 +77,4 @@
       }, 10000 );
     } );
   </script>
-
 {% endblock %}

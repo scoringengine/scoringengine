@@ -444,26 +444,33 @@ def admin_get_worker_stats():
                         services_running[service.team.name] = []
                     services_running[service.team.name].append(service.name)
             # If all of the services are listed for this specific worker, let's just alias it as 'All'
-            if len(services_running) == len(all_services):
-                facts['services_running'] = ['All']
+            worker_services_total_running = 0
+            for team_name, team_services in services_running.items():
+                worker_services_total_running += len(team_services)
+            if worker_services_total_running == len(all_services):
+                facts['services_running'] = 'All'
             else:
+                facts['services_running'] = services_running
                 blue_teams = Team.get_all_blue_teams()
                 for blue_team in blue_teams:
                     if blue_team.name in services_running and len(blue_team.services) == len(services_running[blue_team.name]):
                         # Summarize it for each team if the worker runs all services
-                        facts['services_running'].append('{0} - (All)'.format(blue_team.name))
-                    elif blue_team.name in services_running:
-                        facts['services_running'].append('{0} - {1}'.format(blue_team.name, ', '.join(services_running[blue_team.name])))
+                        facts['services_running'][blue_team.name] = 'ALL'
 
+            # Instead of an empty string in the table, let's tell them None
+            if len(facts['services_running']) == 0:
+                facts['services_running'].append('None')
             # Clean up services_running
+
             finished_worker_facts['data'].append({
                 'worker_name': worker_name,
-                'services_running': ', '.join(facts['services_running']),
+                'services_running': facts['services_running'],
                 'num_threads': facts['num_threads'],
                 'completed_tasks': facts['completed_tasks'],
                 'running_tasks': facts['running_tasks'],
                 'worker_queues': ', '.join(facts['worker_queues'])
             })
+
         return jsonify(finished_worker_facts)
     else:
         return {'status': 'Unauthorized'}, 403
