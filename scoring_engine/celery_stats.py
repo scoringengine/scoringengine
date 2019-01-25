@@ -69,6 +69,6 @@ class CeleryStats():
                 'num_threads': facts['num_threads'],
                 'completed_tasks': facts['completed_tasks'],
                 'running_tasks': facts['running_tasks'],
-                'worker_queues': ', '.join(facts['worker_queues'])
+                'worker_queues': facts['worker_queues']
             })
         return finished_worker_facts

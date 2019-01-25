@@ -45,10 +45,18 @@
             { "data": "num_threads" },
             { "data": "running_tasks" },
             { "data": "completed_tasks" },
-            { "data": "worker_queues" },
+            {
+              "data": "worker_queues",
+              "render": function( data ) {
+                var text = "";
+                for (var key in data) {
+                   text += "" + data[key] + "<br>";
+                }
+                return text;
+              }
+            },
             {
               "width": 170,
-              "orderable": false,
               "data": "services_running",
               "render": function( data ) {
                 var text = "";
