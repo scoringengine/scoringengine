@@ -404,10 +404,12 @@ def admin_get_engine_stats():
 @login_required
 def admin_get_worker_stats():
     if current_user.is_white_team:
-        worker_stats = {
+        finished_worker_facts = {
             'data': []
         }
         worker_facts = {}
+
+        # Get which workers are assigned to which queues
         active_queues = celery_app.control.inspect().active_queues()
         for worker_name, queues in active_queues.items():
             queue_names = []
@@ -417,6 +419,7 @@ def admin_get_worker_stats():
                 'worker_queues': queue_names,
             }
 
+        # Get worker stats about completed tasks and such
         active_stats = celery_app.control.inspect().stats()
         for worker_name, stats in active_stats.items():
             completed_tasks = 0
@@ -425,22 +428,35 @@ def admin_get_worker_stats():
             worker_facts[worker_name]['completed_tasks'] = completed_tasks
             worker_facts[worker_name]['num_threads'] = stats['pool']['max-concurrency']
 
+        # Get worker stats about currently running tasks
         active_tasks_stats = celery_app.control.inspect().active()
         for worker_name, stats in active_tasks_stats.items():
             worker_facts[worker_name]['running_tasks'] = len(stats)
 
+        # Produce list of Service checks this worker will run
         all_services = session.query(Service).all()
         for worker_name, facts in worker_facts.items():
             facts['services_running'] = []
+            services_running = {}
             for service in all_services:
                 if service.worker_queue in facts['worker_queues']:
-                    facts['services_running'].append("{0} - {1}".format(service.team.name, service.name))
+                    if service.team.name not in services_running:
+                        services_running[service.team.name] = []
+                    services_running[service.team.name].append(service.name)
             # If all of the services are listed for this specific worker, let's just alias it as 'All'
-            if len(facts['services_running']) == len(all_services):
+            if len(services_running) == len(all_services):
                 facts['services_running'] = ['All']
+            else:
+                blue_teams = Team.get_all_blue_teams()
+                for blue_team in blue_teams:
+                    if blue_team.name in services_running and len(blue_team.services) == len(services_running[blue_team.name]):
+                        # Summarize it for each team if the worker runs all services
+                        facts['services_running'].append('{0} - (All)'.format(blue_team.name))
+                    elif blue_team.name in services_running:
+                        facts['services_running'].append('{0} - {1}'.format(blue_team.name, ', '.join(services_running[blue_team.name])))
 
-        for worker_name, facts in worker_facts.items():
-            worker_stats['data'].append({
+            # Clean up services_running
+            finished_worker_facts['data'].append({
                 'worker_name': worker_name,
                 'services_running': ', '.join(facts['services_running']),
                 'num_threads': facts['num_threads'],
@@ -448,6 +464,6 @@ def admin_get_worker_stats():
                 'running_tasks': facts['running_tasks'],
                 'worker_queues': ', '.join(facts['worker_queues'])
             })
-        return jsonify(worker_stats)
+        return jsonify(finished_worker_facts)
     else:
         return {'status': 'Unauthorized'}, 403
