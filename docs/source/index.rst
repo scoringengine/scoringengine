@@ -10,3 +10,4 @@ Table of Contents
   configuration
   checks
   development
+  create_new_check
