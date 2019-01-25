@@ -18,6 +18,8 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.cache_helper import update_scoreboard_data, update_overview_data, update_services_navbar, update_service_data, update_team_stats, update_services_data
 
+from scoring_engine.celery_app import celery_app
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import mod
@@ -394,5 +396,58 @@ def admin_get_engine_stats():
         engine_stats['num_failed_checks'] = session.query(Check).filter_by(result=False).count()
         engine_stats['total_checks'] = session.query(Check).count()
         return jsonify(engine_stats)
+    else:
+        return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/get_worker_stats')
+@login_required
+def admin_get_worker_stats():
+    if current_user.is_white_team:
+        worker_stats = {
+            'data': []
+        }
+        worker_facts = {}
+        active_queues = celery_app.control.inspect().active_queues()
+        for worker_name, queues in active_queues.items():
+            queue_names = []
+            for queue in queues:
+                queue_names.append(queue['name'])
+            worker_facts[worker_name] = {
+                'worker_queues': queue_names,
+            }
+
+        active_stats = celery_app.control.inspect().stats()
+        for worker_name, stats in active_stats.items():
+            completed_tasks = 0
+            if 'execute_command' in stats['total']:
+                completed_tasks = stats['total']['execute_command']
+            worker_facts[worker_name]['completed_tasks'] = completed_tasks
+            worker_facts[worker_name]['num_threads'] = stats['pool']['max-concurrency']
+
+        active_tasks_stats = celery_app.control.inspect().active()
+        for worker_name, stats in active_tasks_stats.items():
+            worker_facts[worker_name]['running_tasks'] = len(stats)
+
+        all_services = session.query(Service).all()
+        for worker_name, facts in worker_facts.items():
+            facts['services_running'] = []
+            for service in all_services:
+                if service.worker_queue in facts['worker_queues']:
+                    facts['services_running'].append("{0} - {1}".format(service.team.name, service.name))
+            # If all of the services are listed for this specific worker, let's just alias it as 'All'
+            if len(facts['services_running']) == len(all_services):
+                facts['services_running'] = ['All']
+
+        for worker_name, facts in worker_facts.items():
+            worker_stats['data'].append({
+                'worker_name': worker_name,
+                'services_running': ', '.join(facts['services_running']),
+                'num_threads': facts['num_threads'],
+                'completed_tasks': facts['completed_tasks'],
+                'running_tasks': facts['running_tasks'],
+                'worker_queues': ', '.join(facts['worker_queues'])
+            })
+        return jsonify(worker_stats)
     else:
         return {'status': 'Unauthorized'}, 403
