@@ -17,6 +17,7 @@ from scoring_engine.models.user import User
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.cache_helper import update_scoreboard_data, update_overview_data, update_services_navbar, update_service_data, update_team_stats, update_services_data
+from scoring_engine.celery_stats import CeleryStats
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -394,5 +395,15 @@ def admin_get_engine_stats():
         engine_stats['num_failed_checks'] = session.query(Check).filter_by(result=False).count()
         engine_stats['total_checks'] = session.query(Check).count()
         return jsonify(engine_stats)
+    else:
+        return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/get_worker_stats')
+@login_required
+def admin_get_worker_stats():
+    if current_user.is_white_team:
+        worker_stats = CeleryStats.get_worker_stats()
+        return jsonify(data=worker_stats)
     else:
         return {'status': 'Unauthorized'}, 403
