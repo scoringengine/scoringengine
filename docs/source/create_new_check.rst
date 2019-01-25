@@ -156,11 +156,11 @@ An example unit test for SSH looks like this (tests/scoring_engine/checks/test_s
 
 - **Line 1** - Since we're adding additional files, we want to use the dynamically created CHECKS_BIN_PATH variable.
 - **Line 3** - Import the CheckTest parent class which all check tests inherit from.
-- **Line 5** - Create the unit test class. The classname must start with 'Test'.
-- **Line 6** - This points to the classname of the check source code.
-- **Line 7-9** - Define an example set of properties the test will use.
-- **Line 10-12** - Define an example set of credentials the test will use.
-- **Line 13** - Define an expected command string to verify the check source code works as expected.
+- **Line 6** - Create the unit test class. The classname must start with 'Test'.
+- **Line 7** - This points to the classname of the check source code.
+- **Line 8-10** - Define an example set of properties the test will use.
+- **Line 11-13** - Define an example set of credentials the test will use.
+- **Line 14** - Define an expected command string to verify the check source code works as expected.
 
 
 Verify Unit Test
