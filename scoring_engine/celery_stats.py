@@ -12,6 +12,10 @@ class CeleryStats():
 
         # Get which workers are assigned to which queues
         active_queues = celery_app.control.inspect().active_queues()
+        # If we don't have any queues, we also have no workers
+        if active_queues is None:
+            return finished_worker_facts
+
         for worker_name, queues in active_queues.items():
             queue_names = []
             for queue in queues:
