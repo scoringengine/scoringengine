@@ -15,6 +15,12 @@ RUN apt-get install -y curl
 # MySQL Check
 RUN apt-get install -y mysql-client
 
+# LDAP Check
+RUN apt-get install -y ldap-utils
+
+# VNC Check
+RUN apt-get install -y medusa
+
 # SSH Check
 RUN pip install -I "cryptography>=2.4,<2.5"
 RUN pip install "paramiko>=2.4,<2.5"
