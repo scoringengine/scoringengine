@@ -64,7 +64,12 @@
               "render": function( data ) {
                 var text = "";
                 if (typeof data === 'string'){
-                  text = data;
+                  if (data == 'None'){
+                    text = 'None <span class="glyphicon glyphicon-info-sign" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
+                  }
+                  else{
+                    text = data;
+                  }
                 }
                 else {
                   for (var key in data) {
