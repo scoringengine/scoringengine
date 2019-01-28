@@ -65,7 +65,7 @@
                 var text = "";
                 if (typeof data === 'string'){
                   if (data == 'None'){
-                    text = 'None <span class="glyphicon glyphicon-info-sign" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
+                    text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
                   }
                   else{
                     text = data;
