@@ -1,0 +1,93 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Queue Stats{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block header %}Queue Stats{% endblock %}
+
+{% block admincontent %}
+  <div class="queue_stats">
+    <table id="queues" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th><div title="Name of Queue">Worker Queue Name</div></th>
+          <th><div title="List of the workers that are assigned to run checks for this service">Workers Assigned</div></th>
+          <th><div title="List of the services that are associated with this worker queue name">Services Associated</div></th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    $(document).ready(function() {
+      // Disable datatables error reporting
+      $.fn.dataTable.ext.errMode = 'none';
+
+      var table = $('#queues')
+        .on('error.dt', function (e, settings, techNote, message) {
+          console.log('An error has been reported by DataTables: ', message);
+        })
+        .DataTable({
+          'paging': false,
+          'bFilter': false,
+          'bInfo': false,
+          "ajax": "/api/admin/get_queue_stats",
+          "language": {
+            "emptyTable": "No queues are currently configured",
+          },
+          "columns": [
+            { "data": "name" },
+            {
+              "data": "workers",
+              "render": function( data ) {
+                var text = "";
+                if (data.length == 0) {
+                  text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="No workers are setup to run service checks from this queue. This will prevent the engine from working correctly."></span>';
+                }
+                else {
+                  for (var key in data) {
+                     text += "" + data[key] + "<br>";
+                  }
+                }
+                return text;
+              }
+            },
+            {
+              "width": 170,
+              "data": "services_running",
+              "render": function( data ) {
+                var text = "";
+                if (typeof data === 'string'){
+                  text = data;
+                }
+                else {
+                  for (var key in data) {
+                    text += "" + key;
+                    if (typeof data[key] === 'string') {
+                      text += " - " + data[key];
+                    }
+                    else {
+                      text += " - " + data[key].join(', ');
+                    }
+                    text += "<br>";
+                  }
+                }
+                return text;
+              }
+            },
+          ],
+        });
+      setInterval( function () {
+        table.ajax.reload();
+      }, 10000 );
+    } );
+  </script>
+
+
+
+{% endblock %}
