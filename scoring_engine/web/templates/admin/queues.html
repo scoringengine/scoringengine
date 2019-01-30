@@ -1,5 +1,5 @@
 {% extends 'admin/adminbase.html' %}
-{% block title %}Admin - Worker Stats{% endblock %}
+{% block title %}Admin - Queue Stats{% endblock %}
 
 {% block head %}
     {{ super() }}
@@ -7,19 +7,16 @@
     <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
     <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
 {% endblock %}
-{% block header %}Worker Stats{% endblock %}
+{% block header %}Queue Stats{% endblock %}
 
 {% block admincontent %}
-  <div class="worker_stats">
-    <table id="workers" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+  <div class="queue_stats">
+    <table id="queues" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
       <thead>
         <tr>
-          <th><div title="Name of Worker">Name</div></th>
-          <th><div title="Number of processes available">Processes</div></th>
-          <th><div title="Number of currently running checks">Running Checks</div></th>
-          <th><div title="Number of completed checks">Completed Checks</div></th>
-          <th><div title="Queues registered to for running service checks">Queue Names</div></th>
-          <th><div title="Services that the worker is registered to run">Enabled Services</div></th>
+          <th><div title="Name of Queue">Worker Queue Name</div></th>
+          <th><div title="List of the workers that are assigned to run checks for this service">Workers Assigned</div></th>
+          <th><div title="List of the services that are associated with this worker queue name">Services Associated</div></th>
         </tr>
       </thead>
       <tbody>
@@ -31,7 +28,7 @@
       // Disable datatables error reporting
       $.fn.dataTable.ext.errMode = 'none';
 
-      var table = $('#workers')
+      var table = $('#queues')
         .on('error.dt', function (e, settings, techNote, message) {
           console.log('An error has been reported by DataTables: ', message);
         })
@@ -39,21 +36,23 @@
           'paging': false,
           'bFilter': false,
           'bInfo': false,
-          "ajax": "/api/admin/get_worker_stats",
+          "ajax": "/api/admin/get_queue_stats",
           "language": {
-            "emptyTable": "No workers are currently connected",
+            "emptyTable": "No queues are currently configured",
           },
           "columns": [
-            { "data": "worker_name" },
-            { "data": "num_threads" },
-            { "data": "running_tasks" },
-            { "data": "completed_tasks" },
+            { "data": "name" },
             {
-              "data": "worker_queues",
+              "data": "workers",
               "render": function( data ) {
                 var text = "";
-                for (var key in data) {
-                   text += "" + data[key] + "<br>";
+                if (data.length == 0) {
+                  text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="No workers are setup to run service checks from this queue. This will prevent the engine from working correctly."></span>';
+                }
+                else {
+                  for (var key in data) {
+                     text += "" + data[key] + "<br>";
+                  }
                 }
                 return text;
               }
@@ -64,12 +63,7 @@
               "render": function( data ) {
                 var text = "";
                 if (typeof data === 'string'){
-                  if (data == 'None'){
-                    text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
-                  }
-                  else{
-                    text = data;
-                  }
+                  text = data;
                 }
                 else {
                   for (var key in data) {
@@ -93,4 +87,7 @@
       }, 10000 );
     } );
   </script>
+
+
+
 {% endblock %}

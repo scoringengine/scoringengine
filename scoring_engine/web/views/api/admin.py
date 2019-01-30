@@ -407,3 +407,13 @@ def admin_get_worker_stats():
         return jsonify(data=worker_stats)
     else:
         return {'status': 'Unauthorized'}, 403
+
+
+@mod.route('/api/admin/get_queue_stats')
+@login_required
+def admin_get_queue_stats():
+    if current_user.is_white_team:
+        queue_stats = CeleryStats.get_queue_stats()
+        return jsonify(data=queue_stats)
+    else:
+        return {'status': 'Unauthorized'}, 403
