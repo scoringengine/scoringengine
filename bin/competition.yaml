@@ -245,6 +245,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -252,8 +255,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -584,6 +585,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -591,8 +595,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -923,6 +925,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -930,8 +935,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -1262,6 +1265,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -1269,8 +1275,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -1601,6 +1605,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -1608,8 +1615,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -1940,6 +1945,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -1947,8 +1955,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -2279,6 +2285,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -2286,8 +2295,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -2618,6 +2625,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -2625,8 +2635,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -2957,6 +2965,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -2964,8 +2975,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
@@ -3296,6 +3305,9 @@ teams:
     host: testbed_wordpress
     port: 80
     points: 100
+    accounts:
+    - username: admin
+      password: testpassword1!
     environments:
     - matching_content: Welcome to WordPress!
       properties:
@@ -3303,8 +3315,6 @@ teams:
         value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
       - name: vhost
         value: www.example.com
-      - name: data
-        value: log=admin&pwd=testpassword1!
       - name: uri
         value: "/wp-login.php"
   # Commented out because we don't have testbed containers yet
