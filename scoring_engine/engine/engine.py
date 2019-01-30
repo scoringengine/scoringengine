@@ -86,7 +86,7 @@ class Engine(object):
         for found_module in found_check_modules:
             module_obj = pynsive.import_module(found_module)
             for name, arg in inspect.getmembers(module_obj):
-                if name == 'BasicCheck':
+                if name == 'BasicCheck' or name == 'HTTPPostCheck':
                     continue
                 elif not name.endswith('Check'):
                     continue
