@@ -268,7 +268,9 @@ class Engine(object):
                             )
 
                             owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string).first()
-                            logger.info(owning_team_obj)
+
+                        # Change the service's ownership
+                        environment.service.team = owning_team_obj
 
                         # Prepare the ownership record to be saved to the
                         # database
