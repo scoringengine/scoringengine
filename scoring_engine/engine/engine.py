@@ -267,7 +267,8 @@ class Engine(object):
                                 blue=int(hash[4:6], 16),
                             )
 
-                            owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string)
+                            owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string).first()
+                            logger.info(owning_team_obj)
 
                         # Prepare the ownership record to be saved to the
                         # database
