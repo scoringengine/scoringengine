@@ -246,11 +246,11 @@ class Engine(object):
                 for team_name, koth_task_ids in koth_task_ids.items():
                     for koth_task_id in koth_task_ids:
                         koth_task = execute_command.AsyncResult(koth_task_id)
-                        environment = self.session.query(Environment).get(task.result['environment_id'])
+                        environment = self.session.query(Environment).get(koth_task.result['environment_id'])
 
                         # When the task errored out or no hash was found, the
                         # ownership shouldn't change.
-                        if task.result['errored_out'] or not re.match(environment.matching_content, task.result['output']):
+                        if koth_task.result['errored_out'] or not re.match(environment.matching_content, koth_task.result['output']):
                             # Get the team object that matches the team name.
                             # This should only ever return one team object.
                             owning_team_obj = self.session.query(Team).filter_by(name=team_name).first()
@@ -258,7 +258,7 @@ class Engine(object):
                         # At this point, we know a hash was found. Now,
                         # determine which team's hash it is
                         else:
-                            hash = task.result['output']
+                            hash = koth_task.result['output']
                             # Convert the hex hash to an RGB string in the form
                             # of rgba(r, g, b, 1)
                             rgb_string = 'rgba({red}, {green}, {blue}, 1)'.format(
@@ -266,6 +266,7 @@ class Engine(object):
                                 green=int(hash[2:4], 16),
                                 blue=int(hash[4:6], 16),
                             )
+
                             owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string)
 
                         # Prepare the ownership record to be saved to the
