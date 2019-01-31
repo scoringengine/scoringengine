@@ -61,7 +61,7 @@
 {% block admincontent %}
 <table>
   <tr>
-    <td style="width: 300px;">
+    <td style="width: 250px; padding-right: 30px;">
       <h4>Host: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.admin_update_host')}}">{{service.host}}</a></h4>
       <h4>Port: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port Number" data-name="port" data-url="{{url_for('api.admin_update_port')}}">{{service.port}}</a></h4>
 
@@ -89,7 +89,9 @@
     </td>
     <td>
       <h4>Worker Queue Name</h4>
-        <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Worker Queue Name" data-name="worker_queue" data-url="{{url_for('api.admin_update_worker_queue')}}">{{service.worker_queue}}</a>
+      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Worker Queue Name" data-name="worker_queue" data-url="{{url_for('api.admin_update_worker_queue')}}">{{service.worker_queue}}</a>
+      <h4>Points</h4>
+      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Points per successful check" data-name="points" data-url="{{url_for('api.admin_update_points')}}">{{service.points}}</a>
     </td>
   </tr>
 </table>
