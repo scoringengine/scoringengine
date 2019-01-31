@@ -125,6 +125,21 @@ def admin_update_port():
     return jsonify({'error': 'Incorrect permissions'})
 
 
+@mod.route('/api/admin/update_worker_queue', methods=['POST'])
+@login_required
+def admin_update_worker_queue():
+    if current_user.is_white_team:
+        if 'name' in request.form and 'value' in request.form and 'pk' in request.form:
+            service = session.query(Service).get(int(request.form['pk']))
+            if service:
+                if request.form['name'] == 'worker_queue':
+                    service.worker_queue = request.form['value']
+                    session.add(service)
+                    session.commit()
+                    return jsonify({'status': 'Updated Service Information'})
+    return jsonify({'error': 'Incorrect permissions'})
+
+
 @mod.route('/api/admin/update_about_page_content', methods=['POST'])
 @login_required
 def admin_update_about_page_content():
