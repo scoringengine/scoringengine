@@ -15,6 +15,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.ownership_record import OwnershipRecord
 from scoring_engine.models.round import Round
+from scoring_engine.models.score import Score
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
@@ -293,6 +294,52 @@ class Engine(object):
                 for cleanup_item in cleanup_items:
                     try:
                         self.session.delete(cleanup_item)
+                        self.session.commit()
+                    except Exception:
+                        pass
+                sys.exit(1)
+
+            last_round_obj = self.session.query(Round).filter_by(number=self.rounds_run - 1).first()
+            cleanup_scores = []
+
+            # Calculate scores from round
+            try:
+                all_team_objs = session.query(Team).all()[:]
+                for team_obj in all_team_objs:
+
+                    # Retrieve a team's score from the previous round
+                    current_score_obj = self.session.query(Score).filter_by(
+                        round=last_round_obj, team=team_obj
+                    ).first()
+
+                    if current_score_obj:
+                        current_score = current_score_obj.score
+                    else:
+                        # If no score object was found, the current score for
+                        # the team is zero
+                        current_score = 0
+
+                    # Get all the services the team owns this round
+                    team_services = self.session.query(Service).filter_by(team=team_obj).all()
+                    for service in team_services:
+                        # Add points to the team's score if the service's check
+                        # passed
+                        if service.last_check_result():
+                            current_score += service.points
+
+                    # Save the team's score for this round
+                    round_score = Score(round=round_obj, team=team_obj, score=current_score)
+                    self.session.add(round_score)
+                    cleanup_scores.append(round_score)
+
+            except Exception as e:
+                # Clean up database, like what we're doing above.
+                logger.error('Error received while writing round scores to db')
+                logger.exception(e)
+                logger.error('Ending round and cleaning up the db')
+                for cleanup_score in cleanup_scores:
+                    try:
+                        self.session.delete(cleanup_score)
                         self.session.commit()
                     except Exception:
                         pass
