@@ -308,13 +308,16 @@ class Engine(object):
                 for team_obj in all_team_objs:
 
                     # Retrieve a team's score from the previous round
-                    if self.rounds_run == 0:
-                        current_score = 0
+                    current_score_obj = self.session.query(Score).filter_by(
+                        round=last_round_obj, team=team_obj
+                    ).first()
+
+                    if current_score_obj:
+                        current_score = current_score_obj.score
                     else:
-                        # Get the team's score from the previous round
-                        current_score = self.session.query(Score).filter_by(
-                            round=last_round_obj, team=team_obj
-                        ).first().score
+                        # If no score object was found, the current score for
+                        # the team is zero
+                        current_score = 0
 
                     # Get all the services the team owns this round
                     team_services = self.session.query(Service).filter_by(team=team_obj).all()
