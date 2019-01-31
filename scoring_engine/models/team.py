@@ -16,10 +16,15 @@ class Team(Base):
     users = relationship("User", back_populates="team")
     rgb_color = Column(String(30))
 
-    def __init__(self, name, color):
+    def __init__(self, name, color, rgb_color=None):
         self.name = name
         self.color = color
-        self.rgb_color = "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        # Let the team's RGB value be defined by the config file
+        # This is required for known ownership hashes when running KotH-style
+        if rgb_color is None:
+            self.rgb_color = "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        else:
+            self.rgb_color = 'rgba(%s, %s, %s, 1)' % (rgb_color[0], rgb_color[1], rgb_color[2])
 
     @property
     def current_score(self):

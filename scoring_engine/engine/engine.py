@@ -13,8 +13,10 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
+from scoring_engine.models.ownership_record import OwnershipRecord
 from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
@@ -118,6 +120,24 @@ class Engine(object):
                     pending_tasks.append(task_id)
         return pending_tasks
 
+    def run_check(self, service, check_class, job_ids):
+        # Get the environment to use
+        environment = random.choice(service.environments)
+
+        # Init a new check object
+        check_obj = check_class(environment)
+        command_str = check_obj.command()
+
+        # Add the check job to the queue
+        job = Job(environment_id=environment.id, command=command_str)
+        task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+        team_name = environment.service.team.name
+
+        # Track the job information
+        if team_name not in job_ids:
+            job_ids[team_name] = []
+        job_ids[team_name].append(task.id)
+
     def run(self):
         if self.total_rounds == 0:
             logger.info("Running engine for unlimited rounds")
@@ -133,20 +153,29 @@ class Engine(object):
             services = self.session.query(Service).all()[:]
             random.shuffle(services)
             task_ids = {}
+            koth_task_ids = {}
             for service in services:
+                # Get standard check for service
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
                     raise LookupError("Unable to map service to check code for " + str(service.check_name))
                 logger.debug("Adding " + service.team.name + ' - ' + service.name + " check to queue")
-                environment = random.choice(service.environments)
-                check_obj = check_class(environment)
-                command_str = check_obj.command()
-                job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
-                team_name = environment.service.team.name
-                if team_name not in task_ids:
-                    task_ids[team_name] = []
-                task_ids[team_name].append(task.id)
+
+                # Run the check
+                self.run_check(service, check_class, task_ids)
+
+                # Get ownership check for service if necessary
+                # TODO: allow koth service name regex to be configured/changed
+                if re.match(r'^KOTH-.*$', service.name):
+                    # Determine the ownership check name
+                    ownership_check_name = service.check_name.split('Check')[0] + 'OwnershipCheck'
+                    ownership_check_class = self.check_name_to_obj(ownership_check_name)
+                    if ownership_check_class is None:
+                        raise LookupError('Unable to map service to ownership check code for ' + str(service.check_name))
+                    logger.debug('Adding ' + service.team.name + ' - ' + service.name + ' check to queue')
+
+                    # Run the check
+                    self.run_check(service, ownership_check_class, koth_task_ids)
 
             # This array keeps track of all current round objects
             # incase we need to backout any changes to prevent
@@ -161,15 +190,16 @@ class Engine(object):
                 cleanup_items.append(latest_kb)
                 self.session.add(latest_kb)
                 self.session.commit()
+                # TODO: add koth task IDs to KB so the web app can show updates
 
-                pending_tasks = self.all_pending_tasks(task_ids)
+                pending_tasks = self.all_pending_tasks(task_ids) + self.all_pending_tasks(koth_task_ids)
                 while pending_tasks:
                     worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
                     waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
-                    pending_tasks = self.all_pending_tasks(task_ids)
+                    pending_tasks = self.all_pending_tasks(task_ids) + self.all_pending_tasks(koth_task_ids)
                 logger.info("All jobs have finished for this round")
 
                 logger.info("Determining check results and saving to db")
@@ -212,6 +242,42 @@ class Engine(object):
                         check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
                         finished_checks.append(check)
 
+                # Check results of ownership checks
+                for team_name, koth_task_ids in koth_task_ids.items():
+                    for koth_task_id in koth_task_ids:
+                        koth_task = execute_command.AsyncResult(koth_task_id)
+                        environment = self.session.query(Environment).get(koth_task.result['environment_id'])
+
+                        # When the task errored out or no hash was found, the
+                        # ownership shouldn't change.
+                        if koth_task.result['errored_out'] or not re.match(environment.matching_content, koth_task.result['output']):
+                            # Get the team object that matches the team name.
+                            # This should only ever return one team object.
+                            owning_team_obj = self.session.query(Team).filter_by(name=team_name).first()
+
+                        # At this point, we know a hash was found. Now,
+                        # determine which team's hash it is
+                        else:
+                            hash = koth_task.result['output']
+                            # Convert the hex hash to an RGB string in the form
+                            # of rgba(r, g, b, 1)
+                            rgb_string = 'rgba({red}, {green}, {blue}, 1)'.format(
+                                red=int(hash[0:2], 16),
+                                green=int(hash[2:4], 16),
+                                blue=int(hash[4:6], 16),
+                            )
+
+                            owning_team_obj = self.session.query(Team).filter_by(rgb_color=rgb_string).first()
+
+                        # Change the service's ownership
+                        environment.service.team = owning_team_obj
+
+                        # Prepare the ownership record to be saved to the
+                        # database
+                        ownership_record = OwnershipRecord(service=environment.service, round=round_obj, owning_team=owning_team_obj)
+                        finished_checks.append(ownership_record)
+
+                # Save finished checks to the database
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
                     self.session.add(finished_check)

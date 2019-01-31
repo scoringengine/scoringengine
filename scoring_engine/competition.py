@@ -152,7 +152,11 @@ class Competition(dict):
     def save(self, db_session):
         for team_dict in self['teams']:
             logger.info("Creating {0} Team: {1}".format(team_dict['color'], team_dict['name']))
-            team_obj = Team(name=team_dict['name'], color=team_dict['color'])
+            # Check if an RGB value was defined
+            if 'rgb_color' in team_dict:
+                team_obj = Team(name=team_dict['name'], color=team_dict['color'], rgb_color=team_dict['rgb_color'])
+            else:
+                team_obj = Team(name=team_dict['name'], color=team_dict['color'])
             db_session.add(team_obj)
             for user_dict in team_dict['users']:
                 logger.info("\tCreating User {0}:{1}".format(user_dict['username'], user_dict['password']))
