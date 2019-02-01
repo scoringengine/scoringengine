@@ -105,6 +105,7 @@ def overview_get_data():
                 service_row_data[blue_team.name] = service_data
             data.append(service_row_data)
 
+        # FIXME: jsonify this so it appears as json, not raw text
         return json.dumps({'columns': columns, 'data': data})
     else:
         return '{}'
