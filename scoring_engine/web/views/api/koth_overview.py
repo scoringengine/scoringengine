@@ -5,7 +5,7 @@ from scoring_engine.cache import cache
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
-from scoring_engine.models.team import Team
+from scoring_engine.web import log
 
 from . import mod
 
@@ -59,3 +59,32 @@ def koth_overview_data():
 @cache.memoize()
 def koth_overview_get_columns():
     return jsonify(columns=get_table_columns())
+
+
+@mod.route('/api/koth_overview/get_data')
+@cache.memoize()
+def koth_overview_get_data():
+    columns = get_table_columns()
+    data = []
+    rounds = Round.get_previous_rounds(ROUNDS_DISPLAYED)
+
+    if len(rounds) > 0:
+        services = session.query(Service).filter(Service.name.like('KOTH-%')).all()
+        for service in services:
+            service_row_data = {'': service.name}
+            for round in rounds:
+                service_text = service.host
+                if str(service.port) != '0':
+                    service_text += ':' + str(service.port)
+                service_data = {
+                    'result': str(service.check_result_for_round(round.number)),
+                    'host_info': service_text,
+                    'ownership': str(service.ownership_for_round(round.number)),
+                }
+                service_row_data[round.number] = service_data
+            data.append(service_row_data)
+
+        # FIXME: jsonify this so it appears as json, not raw text
+        return json.dumps({'columns': columns, 'data': data})
+    else:
+        return '{}'
