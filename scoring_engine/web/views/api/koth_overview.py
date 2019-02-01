@@ -53,3 +53,9 @@ def koth_overview_data():
             }
         round_data[round.number] = service_data
     return jsonify(round_data)
+
+
+@mod.route('/api/koth_overview/get_columns')
+@cache.memoize()
+def koth_overview_get_columns():
+    return jsonify(columns=get_table_columns())
