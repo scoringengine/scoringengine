@@ -10,8 +10,11 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
+ROUNDS_DISPLAYED = 3
+
+
 def get_table_columns():
-    rounds = Round.get_previous_rounds(3)
+    rounds = Round.get_previous_rounds(ROUNDS_DISPLAYED)
     columns = []
     columns.append({'title': '', 'data':''})
     for round in rounds:
@@ -35,9 +38,9 @@ def koth_overview_get_round_data():
 
 @mod.route('/api/koth_overview/data')
 @cache.memoize()
-def overview_data():
+def koth_overview_data():
     round_data = {}
-    rounds = Round.get_previous_rounds(3)
+    rounds = Round.get_previous_rounds(ROUNDS_DISPLAYED)
     for round in rounds:
         service_data = {}
         services = session.query(Service).filter(Service.name.like('KOTH-%')).all()
