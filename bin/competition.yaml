@@ -10,14 +10,14 @@ teams:
   users:
   - username: redteamuser
     password: testpass
-- name: Unowned
+- name: Team1
   color: Blue
   rgb_color:
   - 00
   - 00
   - 00
   users:
-  - username: unowneduser1
+  - username: team1user1
     password: testpass
   services:
   - name: KOTH-HTTP
@@ -28,18 +28,12 @@ teams:
     environments:
     - matching_content: "[A-F0-9a-f]{6}"  # Regex to match RGB hex string
       properties:
-      - name: useragent
-        value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
-      - name: vhost
-        value: testbed_koth_web
-      - name: uri
-        value: "/ownership.html"
-- name: Team1
-  color: Blue
-  users:
-  - username: team1user1
-    password: testpass
-  services:
+        - name: useragent
+          value: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)
+        - name: vhost
+          value: testbed_koth_web
+        - name: uri
+          value: "/ownership.html"
   - name: ICMP
     check_name: ICMPCheck
     host: testbed_icmp
