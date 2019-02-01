@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}KotH Overview{% endblock %}
+{% block head %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+{% endblock %}
+{% block content %}
+  <div class="container-fluid md-page">
+    <div class="row">
+      <h2 id="round_number" class="text-center"></h2>
+      <h4 id="round_start" class="text-center"></h4>
+    </div>
+    <div class="row">
+      <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      </table>
+      <div id='hint'>Hover over status icon to get host:port information</div>
+      <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a href="{{ url_for('api.koth_overview_data') }}">Here</a></div>
+      <script>
+          function refreshheader() {
+              $.ajax({
+                  cache: false,
+                  url: '/api/koth_overview/get_round_data',
+                  dataType: 'json',
+                  success: function(data) {
+                      $('#round_number').text("Round " + data.number);
+                      $('#round_start').text(data.round_start);
+                  }
+              });
+          }
+
+          $(document).ready(function() {
+              // Disable datatables error reporting
+              $.fn.dataTable.ext.errMode = 'none';
+
+              // Populate our header
+              refreshheader();
+              setInterval(function(){
+                  refreshheader()
+              }, 30000);
+
+              // Populate our table
+              $.ajax({
+                  cache: false,
+                  url: '/api/koth_overview/get_columns',
+                  dataType: 'json',
+                  success: function(data) {
+                      var table = $('#overview')
+                          .on('error.dt', function (e, settings, techNote, message) {
+                              console.log('An error has been reported by DataTables: ', message);
+                          })
+                          .DataTable({
+                              ajax: "/api/koth_overview/get_data",
+                              columns: data.columns,
+                              paging: false,
+                              bSort: false,
+                              info: false,
+                              searching: false,
+                              scrollX: true,
+                              columnDefs: [
+                                  { "width": "10%", "targets": 0 }
+                              ],
+                              'createdRow': function ( row, data, index ) {
+                                  $('td', row).each(function() {
+                                      var value = $(this).html();
+                                      column_num = $(this).index();
+                                      switch(index) {
+                                          // Current Score
+                                          case 0:
+                                              if (column_num == 0) {
+                                                  html_str = `<span style="font-weight:bold">${value}</span>`
+                                                  $(this).html(html_str);
+                                              } else {
+                                                  var html_str = parseFloat(`${value}`).toLocaleString();
+                                                  $(this).html(html_str);
+                                              }
+                                              break;
+                                          // Current Place
+                                          case 1:
+                                              if (column_num == 0) {
+                                                  html_str = `<span style="font-weight:bold">${value}</span>`
+                                                  $(this).html(html_str);
+                                                  // Add Some Ribbons
+                                              } else {
+                                                  if (value == 1) {
+                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>`);
+                                                  } else if (value == 2) {
+                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>`);
+                                                  } else if (value == 3) {
+                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
+                                                  }
+                                              }
+                                              break;
+                                          case 2:
+                                              // Up and down services ratio
+                                              if (column_num == 0) {
+                                                  html_str = `<span style="font-weight:bold">${value}</span>`
+                                                  $(this).html(html_str);
+                                              } else {
+                                                  html_str = `${value}`
+                                                  $(this).html(html_str);
+                                              }
+                                              break;
+                                          default:
+                                              // Service Name
+                                              if (column_num == 0) {
+                                                  html_str = `<span style="font-weight:bold">${value}</span>`
+                                                  $(this).html(html_str);
+                                                  break;
+                                              }
+                                              column_service_name = $('#overview th').eq(column_num).text()
+                                              service_results = data[column_service_name]
+                                              if (service_results['result'] == 'True') {
+                                                  image_icon = 'glyphicon-ok';
+                                                  image_color = 'green';
+                                              }
+                                              else if (service_results['result'] == 'False') {
+                                                  image_icon = 'glyphicon-remove';
+                                                  image_color = 'red';
+                                              }
+                                              else {
+                                                  image_icon = 'glyphicon-question-sign';
+                                                  image_color = 'black';
+                                              }
+                                              value_str = service_results['host_info']
+                                              html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
+                                              $(this).html(html_str);
+                                      }
+                                  })
+                              }
+                          });
+                      setInterval( function () {
+                          table.ajax.reload();
+                      }, 30000 );
+                  }
+              });
+          });
+      </script>
+    </div>
+  </div>
+{% endblock %}
