@@ -6,6 +6,7 @@ from scoring_engine.models.base import Base
 from scoring_engine.models.ownership_record import OwnershipRecord
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
+from re import match
 
 
 class Service(Base):
@@ -38,6 +39,12 @@ class Service(Base):
         round_obj = session.query(Round).filter(number=round_num).first()
         ownership_record = session.query(OwnershipRecord).filter(service=self, round=round_obj).first()
         return ownership_record.owning_team
+
+    def is_koth_service(self):
+        if match(r'^KOTH-.*$', self.name):
+            return True
+        else:
+            return False
 
     @property
     def checks_reversed(self):

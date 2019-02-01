@@ -167,7 +167,7 @@ class Engine(object):
 
                 # Get ownership check for service if necessary
                 # TODO: allow koth service name regex to be configured/changed
-                if re.match(r'^KOTH-.*$', service.name):
+                if service.is_koth_service():
                     # Determine the ownership check name
                     ownership_check_name = service.check_name.split('Check')[0] + 'OwnershipCheck'
                     ownership_check_class = self.check_name_to_obj(ownership_check_name)
