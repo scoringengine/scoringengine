@@ -46,12 +46,12 @@
                   url: '/api/koth_overview/get_columns',
                   dataType: 'json',
                   success: function(data) {
-                      var table = $('#overview')
+                      let table = $('#overview')
                           .on('error.dt', function (e, settings, techNote, message) {
                               console.log('An error has been reported by DataTables: ', message);
                           })
                           .DataTable({
-                              ajax: "/api/koth_overview/get_data",
+                              ajax: "/api/koth_overview/data",
                               columns: data.columns,
                               paging: false,
                               bSort: false,
@@ -61,72 +61,50 @@
                               columnDefs: [
                                   { "width": "10%", "targets": 0 }
                               ],
-                              'createdRow': function ( row, data, index ) {
+                              'createdRow': function ( row, data ) {
                                   $('td', row).each(function() {
-                                      var value = $(this).html();
-                                      column_num = $(this).index();
-                                      switch(index) {
-                                          // Current Score
-                                          case 0:
-                                              if (column_num == 0) {
-                                                  html_str = `<span style="font-weight:bold">${value}</span>`
-                                                  $(this).html(html_str);
-                                              } else {
-                                                  var html_str = parseFloat(`${value}`).toLocaleString();
-                                                  $(this).html(html_str);
-                                              }
-                                              break;
-                                          // Current Place
-                                          case 1:
-                                              if (column_num == 0) {
-                                                  html_str = `<span style="font-weight:bold">${value}</span>`
-                                                  $(this).html(html_str);
-                                                  // Add Some Ribbons
-                                              } else {
-                                                  if (value == 1) {
-                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>`);
-                                                  } else if (value == 2) {
-                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>`);
-                                                  } else if (value == 3) {
-                                                      $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
-                                                  }
-                                              }
-                                              break;
-                                          case 2:
-                                              // Up and down services ratio
-                                              if (column_num == 0) {
-                                                  html_str = `<span style="font-weight:bold">${value}</span>`
-                                                  $(this).html(html_str);
-                                              } else {
-                                                  html_str = `${value}`
-                                                  $(this).html(html_str);
-                                              }
-                                              break;
-                                          default:
-                                              // Service Name
-                                              if (column_num == 0) {
-                                                  html_str = `<span style="font-weight:bold">${value}</span>`
-                                                  $(this).html(html_str);
-                                                  break;
-                                              }
-                                              column_service_name = $('#overview th').eq(column_num).text()
-                                              service_results = data[column_service_name]
-                                              if (service_results['result'] == 'True') {
-                                                  image_icon = 'glyphicon-ok';
-                                                  image_color = 'green';
-                                              }
-                                              else if (service_results['result'] == 'False') {
-                                                  image_icon = 'glyphicon-remove';
-                                                  image_color = 'red';
-                                              }
-                                              else {
-                                                  image_icon = 'glyphicon-question-sign';
-                                                  image_color = 'black';
-                                              }
-                                              value_str = service_results['host_info']
-                                              html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
-                                              $(this).html(html_str);
+                                      // Variable declaration
+                                      let value = $(this).html();
+                                      let column_num = $(this).index();
+                                      let html_str;
+
+                                      // First column has service names
+                                      if(column_num === 0) {
+                                          html_str = `<span style="font-weight:bold">${value}</span>`;
+                                          $(this).html(html_str);
+                                          return;
                                       }
+
+                                      // Other columns have service results
+                                      let column_service_name = $('#overview th').eq(column_num).text();
+                                      let service_results = data[column_service_name];
+                                      let image_icon;
+                                      let image_color;
+
+                                      // Show an icon depending on if the service is up or down
+                                      if(service_results['result'] === 'True') {
+                                          // If the service is up, show a check mark
+                                          image_icon = 'glyphicon-ok';
+                                          image_color = 'green';
+                                      } else if(service_results['result'] === 'False') {
+                                          // If the service is down, show an X
+                                          image_icon = 'glyphicon-remove';
+                                          image_color = 'red';
+                                      } else {
+                                          // We have no idea what's going on, display a question mark
+                                          image_icon = 'glyphicon-question-sign';
+                                          image_color = 'black';
+                                      }
+
+                                      // Display the team who has ownership over the service
+                                      let ownership_str = service_results['ownership'];
+
+                                      // Show the host information in the tooltip
+                                      let value_str = service_results['host_info']
+
+                                      // Render complete cell
+                                      html_str = `<span class=glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
+                                      $(this).html(html_str);
                                   })
                               }
                           });
