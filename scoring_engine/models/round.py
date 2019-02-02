@@ -32,8 +32,7 @@ class Round(Base):
 
     @staticmethod
     def get_previous_rounds(num):
-        rounds = session.query(Round).order_by(Round.number.desc()).all()
-        return rounds[0:num]
+        return session.query(Round).order_by(Round.number.desc()).limit(num).all()
 
     @property
     def local_round_start(self):
