@@ -17,7 +17,7 @@ def get_table_columns():
     columns = []
     columns.append({'title': '', 'data':''})
     for round in rounds:
-        columns.append({'title': round.number, 'data': round.number})
+        columns.append({'title': round.number, 'data': 'Round {}'.format(round.number)})
     return columns
 
 
@@ -80,7 +80,8 @@ def koth_overview_get_data():
                     'host_info': service_text,
                     'ownership': str(service.ownership_for_round(round.number).name),
                 }
-                service_row_data[round.number] = service_data
+                round_string = 'Round {}'.format(round.number)
+                service_row_data[round_string] = service_data
             data.append(service_row_data)
 
         # FIXME: jsonify this so it appears as json, not raw text
