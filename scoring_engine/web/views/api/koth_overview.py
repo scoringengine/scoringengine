@@ -5,12 +5,11 @@ from scoring_engine.cache import cache
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
-from scoring_engine.web import log
 
 from . import mod
 
 
-ROUNDS_DISPLAYED = 3
+ROUNDS_DISPLAYED = 5
 
 
 def get_table_columns():
@@ -79,7 +78,7 @@ def koth_overview_get_data():
                 service_data = {
                     'result': str(service.check_result_for_round(round.number)),
                     'host_info': service_text,
-                    'ownership': str(service.ownership_for_round(round.number)),
+                    'ownership': str(service.ownership_for_round(round.number).name),
                 }
                 service_row_data[round.number] = service_data
             data.append(service_row_data)
