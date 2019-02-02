@@ -51,7 +51,7 @@
                               console.log('An error has been reported by DataTables: ', message);
                           })
                           .DataTable({
-                              ajax: "/api/koth_overview/data",
+                              ajax: "/api/koth_overview/get_data",
                               columns: data.columns,
                               paging: false,
                               bSort: false,
@@ -76,7 +76,7 @@
                                       }
 
                                       // Other columns have service results
-                                      let column_service_name = $('#overview th').eq(column_num).text();
+                                      let column_service_name = 'Round ' + $('#overview th').eq(column_num).text();
                                       let service_results = data[column_service_name];
                                       let image_icon;
                                       let image_color;
@@ -100,10 +100,10 @@
                                       let ownership_str = service_results['ownership'];
 
                                       // Show the host information in the tooltip
-                                      let value_str = service_results['host_info']
+                                      let value_str = service_results['host_info'];
 
                                       // Render complete cell
-                                      html_str = `<span class=glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
+                                      html_str = `<span class=glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}">${ownership_str}</span>`;
                                       $(this).html(html_str);
                                   })
                               }
