@@ -41,6 +41,10 @@ def overview_data():
     for team in teams:
         service_data = {}
         for service in team.services:
+            # Do not include KotH services in this listing
+            if service.is_koth_service():
+                continue
+
             service_data[service.name] = {
                 'passing': service.last_check_result(),
                 'host': service.host,
@@ -84,6 +88,10 @@ def overview_get_data():
         data.append(current_up_down_row_data)
 
         for service in blue_teams[0].services:
+            # Do not include KotH services in this listing
+            if service.is_koth_service():
+                continue
+
             service_row_data = {'': service.name}
             for blue_team in blue_teams:
                 service = session.query(Service).filter(Service.name == service.name).filter(Service.team == blue_team).first()
@@ -97,6 +105,7 @@ def overview_get_data():
                 service_row_data[blue_team.name] = service_data
             data.append(service_row_data)
 
+        # FIXME: jsonify this so it appears as json, not raw text
         return json.dumps({'columns': columns, 'data': data})
     else:
         return '{}'

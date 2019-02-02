@@ -26,6 +26,14 @@ class Round(Base):
         else:
             return round_obj.number
 
+    @staticmethod
+    def get_last_round():
+        return session.query(Round).order_by(Round.number.desc()).first()
+
+    @staticmethod
+    def get_previous_rounds(num):
+        return session.query(Round).order_by(Round.number.desc()).limit(num).all()
+
     @property
     def local_round_start(self):
         round_start_obj = pytz.timezone('UTC').localize(self.round_start)

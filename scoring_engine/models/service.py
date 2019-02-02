@@ -1,8 +1,12 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from copy import copy
+from scoring_engine.db import session
 from scoring_engine.models.base import Base
+from scoring_engine.models.ownership_record import OwnershipRecord
+from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
+from re import match
 
 
 class Service(Base):
@@ -30,6 +34,17 @@ class Service(Base):
         if not self.checks:
             return None
         return self.checks[-1].result
+
+    def ownership_for_round(self, round_num):
+        round_obj = session.query(Round).filter_by(number=round_num).first()
+        ownership_record = session.query(OwnershipRecord).filter_by(service=self, round=round_obj).first()
+        return ownership_record.owning_team
+
+    def is_koth_service(self):
+        if match(r'^KOTH-.*$', self.name):
+            return True
+        else:
+            return False
 
     @property
     def checks_reversed(self):
