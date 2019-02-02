@@ -15,7 +15,7 @@ if not config.debug:
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
 
-from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth, profile, api, about
+from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth, profile, api, about, koth_overview
 
 cache.init_app(app)
 
@@ -28,3 +28,4 @@ app.register_blueprint(auth.mod)
 app.register_blueprint(profile.mod)
 app.register_blueprint(api.mod)
 app.register_blueprint(about.mod)
+app.register_blueprint(koth_overview.mod)
