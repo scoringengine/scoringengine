@@ -36,9 +36,15 @@ class Service(Base):
         return self.checks[-1].result
 
     def ownership_for_round(self, round_num):
-        round_obj = session.query(Round).filter_by(number=round_num).first()
-        ownership_record = session.query(OwnershipRecord).filter_by(service=self, round=round_obj).first()
-        return ownership_record.owning_team
+        # Don't look through the database if we're checking for round zero
+        # because ownership records will not exist for round zero
+        if round_num == 0:
+            return self.team
+
+        else:
+            round_obj = session.query(Round).filter_by(number=round_num).first()
+            ownership_record = session.query(OwnershipRecord).filter_by(service=self, round=round_obj).first()
+            return ownership_record.owning_team
 
     def is_koth_service(self):
         if match(r'^KOTH-.*$', self.name):
