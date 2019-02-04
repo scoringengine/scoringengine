@@ -6,11 +6,9 @@
 
 import sys
 import ftplib
-import tempfile
-import os
 
-if len(sys.argv) != 6
-    print('Usage: ' + sys.argv[0] + ' host port username password remotefilepath')
+if len(sys.argv) != 6:
+    print('Usage: ' + sys.argv[0] + ' host port username password ownershipfilepath')
     sys.exit(1)
 
 host = sys.argv[1]
