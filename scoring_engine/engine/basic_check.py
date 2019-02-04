@@ -21,13 +21,17 @@ class BasicCheck(object):
     def get_environment_property_by_name(self, property_name):
         return [prop.value for prop in self.environment.properties if prop.name == property_name][0]
 
+    def environment_property_defined(self, property_name):
+        for prop in self.environment.properties:
+            if prop.name == property_name:
+                return True
+        return False
+
     def set_properties(self):
         self.properties = {}
-        for property in self.required_properties:
-           if property not in self.environment.properties:
-               raise LookupError('Required property "' + property + '" for ' + self.__class__.__name__ + ' not defined.')
-
         for required_property in self.required_properties:
+            if not self.environment_property_defined(required_property):
+                raise LookupError('Required property "' + required_property + '" for ' + self.__class__.__name__ + ' not defined.')
             self.properties[required_property] = self.get_environment_property_by_name(required_property)
 
     def command(self):
