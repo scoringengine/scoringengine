@@ -20,6 +20,21 @@ teams:
   - username: team1user1
     password: testpass
   services:
+  - name: KOTH-FTP
+    check_name: FTPCheck
+    host: testbed_koth_ftp
+    port: 21
+    points: 25
+    accounts:
+      - username: ttesterson
+        password: testpass
+    environments:
+      - matching_content: "^[A-F0-9-a-f]{6}$"  # Regex to match RGB hex string
+        properties:
+          - name: remotefilepath
+            value: "/ftp_files/ownership.txt"
+          - name: filecontents
+            value: Sample file contents
   - name: KOTH-HTTP
     check_name: HTTPCheck
     host: testbed_koth_web
