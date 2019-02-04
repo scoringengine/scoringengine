@@ -34,7 +34,10 @@ teams:
       - name: remotefilepath
         value: "/ftp_files/testfile.txt"
       - name: filecontents
-        value: Sample file contents
+        value: |
+          Sample file content
+          THIS IS NOT THE OWNERSHIP FILE!
+          000000
       - name: ownershipfilepath
         value: "/ftp_files/ownership.txt"
   - name: KOTH-HTTP
