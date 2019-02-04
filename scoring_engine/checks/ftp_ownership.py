@@ -25,7 +25,7 @@ class FTPOwnershipCheck(BasicCheck):
     which team has ownership over the service.
     """
     # Same required properties for a normal FTP check
-    required_properties = ['remotefilepath']
+    required_properties = ['remotefilepath', 'filecontents']
     # A separate script is used in order to find the file and parse the
     # contents for the ownership hash
     CMD = CHECKS_BIN_PATH + '/ftp_ownership_check {0} {1} {2} {3} {4}'

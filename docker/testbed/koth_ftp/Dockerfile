@@ -6,17 +6,18 @@ RUN \
 	echo "local_enable=YES" >> /etc/vsftpd.conf && \
 	echo "write_enable=YES" >> /etc/vsftpd.conf && \
 	echo "dirlist_enable=YES" >> /etc/vsftpd.conf && \
-	echo "chroot_local_user=YES" >> /etc/vsftpd.conf && \
+	echo "chroot_local_user=NO" >> /etc/vsftpd.conf && \
 	mkdir -p /var/run/vsftpd/empty && \
     useradd -m -s /bin/bash ttesterson && \
     useradd -m -s /bin/bash rpeterson && \
     echo 'ttesterson:testpass' | chpasswd && \
     echo 'rpeterson:otherpass' | chpasswd && \
     mkdir /ftp_files && \
-    echo 'canary' | tee -a > /ftp_files/testfile.txt && \
-    chmod 777 -R /ftp_files
+    echo 'canary' | tee -a > /ftp_files/testfile.txt
 
 COPY docker/testbed/koth_ftp/ownership.txt /ftp_files/ownership.txt
+
+RUN chmod 777 -R /ftp_files
 
 EXPOSE 21
 
