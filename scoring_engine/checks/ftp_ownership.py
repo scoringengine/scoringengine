@@ -13,6 +13,8 @@ Example service configuration:
     properties:
     - name: remotefilepath
       value: "/ftp_files/ownership.txt"
+    - name: filecontents
+      value: Sample file contents
 """
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
