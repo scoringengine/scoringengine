@@ -23,8 +23,9 @@ class BasicCheck(object):
 
     def set_properties(self):
         self.properties = {}
-        if len(self.environment.properties) != len(self.required_properties):
-            raise LookupError('Not correct amount of properties for ' + self.__class__.__name__ + ' defined. Requires: ' + str(self.required_properties))
+        for property in self.required_properties:
+           if property not in self.environment.properties:
+               raise LookupError('Required property "' + property + '" for ' + self.__class__.__name__ + ' not defined.')
 
         for required_property in self.required_properties:
             self.properties[required_property] = self.get_environment_property_by_name(required_property)
