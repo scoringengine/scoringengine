@@ -104,6 +104,13 @@ services:
     # ports:
     #   - 80:80
     #   - 443:443
-
+  testbed_koth_ftp:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/koth_ftp/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 21:21
 networks:
   default:
