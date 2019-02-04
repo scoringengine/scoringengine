@@ -86,7 +86,7 @@ class Engine(object):
         for found_module in found_check_modules:
             module_obj = pynsive.import_module(found_module)
             for name, arg in inspect.getmembers(module_obj):
-                if name == 'BasicCheck':
+                if name == 'BasicCheck' or name == 'HTTPPostCheck':
                     continue
                 elif not name.endswith('Check'):
                     continue
@@ -209,7 +209,9 @@ class Engine(object):
                             teams[environment.service.team.name]['Failed'].append(environment.service.name)
 
                         check = Check(service=environment.service, round=round_obj)
-                        check.finished(result=result, reason=reason, output=task.result['output'], command=task.result['command'])
+                        # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
+                        # which maxes at 2^32 (65536) characters
+                        check.finished(result=result, reason=reason, output=task.result['output'][:35000], command=task.result['command'])
                         finished_checks.append(check)
 
                 for finished_check in finished_checks:
