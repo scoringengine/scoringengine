@@ -9,12 +9,14 @@ Example service configuration:
   - username: ttesterson
     password: testpass
   environments:
-  - matching_content: "^[A-F0-9-a-f]{6}$"  # Regex to match RGB hex string
+  - matching_content: "^SUCCESS"
     properties:
     - name: remotefilepath
-      value: "/ftp_files/ownership.txt"
+      value: "/ftp_files/testfile.txt"
     - name: filecontents
-      value: Sample file contents
+      value: Sample file content
+    - name: ownershipfilepath
+      value: "/ftp_files/ownership.txt"
 """
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
