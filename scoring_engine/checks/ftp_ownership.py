@@ -9,9 +9,13 @@ Example service configuration:
   - username: ttesterson
     password: testpass
   environments:
-  - matching_content: "^[A-F0-9-a-f]{6}$"  # Regex to match RGB hex string
+  - matching_content: "^SUCCESS"
     properties:
     - name: remotefilepath
+      value: "/ftp_files/testfile.txt"
+    - name: filecontents
+      value: Sample file content
+    - name: ownershipfilepath
       value: "/ftp_files/ownership.txt"
 """
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
@@ -23,7 +27,7 @@ class FTPOwnershipCheck(BasicCheck):
     which team has ownership over the service.
     """
     # Same required properties for a normal FTP check
-    required_properties = ['remotefilepath']
+    required_properties = ['ownershipfilepath']
     # A separate script is used in order to find the file and parse the
     # contents for the ownership hash
     CMD = CHECKS_BIN_PATH + '/ftp_ownership_check {0} {1} {2} {3} {4}'
@@ -35,5 +39,5 @@ class FTPOwnershipCheck(BasicCheck):
             self.port,
             account.username,
             account.password,
-            properties['remotefilepath'],
+            properties['ownershipfilepath'],
         )

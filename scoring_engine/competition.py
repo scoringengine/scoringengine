@@ -147,7 +147,8 @@ class Competition(dict):
         # Verify property value
         assert 'value' in property_obj, "{0} {1} property must have a 'value' field".format(team_name, service_name)
         assert type(property_obj['value']) is str, "{0} {1} property 'value' field must be a string".format(team_name, service_name)
-        assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
+        # FIXME: why are we not allowing properties that aren't required by a check?
+        # assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
 
     def save(self, db_session):
         for team_dict in self['teams']:
