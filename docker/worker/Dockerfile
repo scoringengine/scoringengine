@@ -16,7 +16,8 @@ RUN apt-get install -y curl
 RUN apt-get install -y mysql-client
 
 # SSH Check
-RUN pip install paramiko
+RUN pip install -I "cryptography>=2.4,<2.5"
+RUN pip install "paramiko>=2.4,<2.5"
 
 # Elasticsearch Check
 RUN pip install requests

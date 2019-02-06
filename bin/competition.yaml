@@ -20,6 +20,21 @@ teams:
   - username: team1user1
     password: testpass
   services:
+  - name: KOTH-SSH
+    check_name: SSHCheck
+    host: testbed_koth_ssh
+    port: 22
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
+      - name: ownershipfilepath
+        value: ~/ownership.txt
   - name: KOTH-FTP
     check_name: FTPCheck
     host: testbed_koth_ftp
