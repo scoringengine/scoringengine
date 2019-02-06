@@ -10,6 +10,7 @@ Implemented Checks
 .. include:: checks/ldap.rst
 .. include:: checks/mssql.rst
 .. include:: checks/mysql.rst
+.. include:: checks/nfs.rst
 .. include:: checks/pop3.rst
 .. include:: checks/postgresql.rst
 .. include:: checks/rdp.rst

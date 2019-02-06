@@ -113,3 +113,9 @@ Install dependencies for SMTP/SMTPS check
   cp /home/engine/scoring_engine/src/scoring_engine/checks/bin/smtps_check /usr/bin/smtps_check
   chmod a+x /usr/bin/smtp_check
   chmod a+x /usr/bin/smtps_check
+
+Install dependencies for NFS check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  apt-get install -y libnfs-dev

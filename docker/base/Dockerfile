@@ -7,7 +7,8 @@ RUN \
     python3 \
     python3-pip \
     libmysqlclient-dev \
-    iputils-ping && \
+    iputils-ping \
+    libnfs-dev && \
   pip3 install virtualenv && \
   mkdir /app && \
   virtualenv -p `which python3` /venv
