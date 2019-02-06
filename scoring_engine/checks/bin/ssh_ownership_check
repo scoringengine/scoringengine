@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+# A King of the Hill scoring engine check that logs in and checks the contents
+# of an ownership file on the server to find a team's ownership hash. The hash
+# should be the last line of the specified file.
+#
+# To install: pip install paramiko
+
+import sys
+import paramiko
+
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print("Usage: " + sys.argv[0] + " host port username password ownershipfilepath")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+username = sys.argv[3]
+password = sys.argv[4]
+ownershipfilepath = sys.argv[5]
+
+# Configure client
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+# Connect to host
+client.connect(
+    hostname=host,
+    port=port,
+    username=username,
+    password=password,
+    look_for_keys=False,
+)
+
+# Check the file contents
+stdin, stdout, stderr = client.exec_command('cat ' + ownershipfilepath)
+file_contents = stdout.readlines()
+stderr_output = stderr.readlines()
+
+# SSH cleanup
+client.close()
+
+# Make sure there wasn't any errors
+if len(stderr_output) > 0:
+    print('DOWN_OR_NO_HASH')
+    sys.exit(1)
+
+# Print hash
+print(file_contents[-1])

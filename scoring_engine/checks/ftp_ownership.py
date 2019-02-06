@@ -26,7 +26,7 @@ class FTPOwnershipCheck(BasicCheck):
     An FTP check for King of the Hill competitions that is used to determine
     which team has ownership over the service.
     """
-    # Same required properties for a normal FTP check
+    # We only need to know where to find the ownership file
     required_properties = ['ownershipfilepath']
     # A separate script is used in order to find the file and parse the
     # contents for the ownership hash
