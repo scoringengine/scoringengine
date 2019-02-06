@@ -112,5 +112,11 @@ services:
       - default
     # ports:
     #   - 21:21
+  testbed_koth_ssh:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/koth_ssh/Dockerfile
+    networks:
+      - default
 networks:
   default:
