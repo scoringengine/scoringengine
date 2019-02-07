@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+# A check that logs into a Telnet server and runs a command out of a series of
+# commands. The check will log in to the Telnet server and run a single command
+# for each command in the list.
+
+import sys
+from telnetlib import Telnet
+
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print('Usgae: ' + sys.argv[0] + ' host port username password commands')
+    print("commands parameter supports multiple commands, use ';' as the delimiter")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+username = sys.argv[3]
+password = sys.argv[4]
+commands = sys.argv[5].split(';')
+
+
+def connect_and_execute(host, port, username, password, command):
+    # Test
+    # Log in to the telnet server
+    client = Telnet(host)
+    client.write(username.encode('ascii') + b'\n')
+    client.write(password.encode('ascii') + b'\n')
+    # Run the command
+    client.write(command)
+    # Try to read output
+    try:
+        output = client.read_all()
+    except EOFError as e:
+        return None, e
+
+    return output, None
+
+
+# Run all commands
+last_command_output = ''
+for command in commands:
+    command_output, command_error = connect_and_execute(host, port, username, password, command)
+    if command_error:
+        print('ERROR: Command ran unsuccessfully: ' + str(command))
+        print(command_error)
+        sys.exit(1)
+    last_command_output = command_output.rstrip()
+
+print('SUCCESS')
+print(last_command_output)
