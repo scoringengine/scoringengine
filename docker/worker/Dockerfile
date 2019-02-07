@@ -55,6 +55,10 @@ RUN \
 # RDP Check
 RUN apt-get install -y freerdp-x11
 
+# NFS Check
+RUN apt-get install -y libnfs-dev
+RUN pip install -I "libnfs==1.0.post4"
+
 COPY bin/worker /app/bin/worker
 
 USER engine

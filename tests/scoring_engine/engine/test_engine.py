@@ -23,6 +23,7 @@ from scoring_engine.checks.elasticsearch import ElasticsearchCheck
 from scoring_engine.checks.ldap import LDAPCheck
 from scoring_engine.checks.rdp import RDPCheck
 from scoring_engine.checks.wordpress import WordpressCheck
+from scoring_engine.checks.nfs import NFSCheck
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -64,6 +65,7 @@ class TestEngine(UnitTest):
             SMBCheck,
             RDPCheck,
             WordpressCheck,
+            NFSCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 
