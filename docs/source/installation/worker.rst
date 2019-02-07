@@ -119,3 +119,5 @@ Install dependencies for NFS check
 ::
 
   apt-get install -y libnfs-dev
+  source /home/engine/scoring_engine/env/bin/activate && pip install -I "libnfs==1.0.post4"
+
