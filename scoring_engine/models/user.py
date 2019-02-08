@@ -52,6 +52,13 @@ class User(Base, UserMixin):
     def get_username(self):
         return self.username
 
+    def check_password(self, password):
+        # this is due to some weird bug between rusty and I
+        # where his env was returning a str, and mine were bytes
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        return bcrypt.checkpw(password, self.password.encode('utf-8'))
+
     def update_password(self, password):
         self.password = User.generate_hash(password)
         return True
