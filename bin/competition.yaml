@@ -66,6 +66,20 @@ teams:
           value: testbed_koth_web
         - name: uri
           value: "/ownership.html"
+  - name: KOTH-Telnet
+    check_name: TelnetOwnershipCheck
+    host: testbed_koth_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id; ls -l /home
+      - name: ownershipfilepath
   - name: ICMP
     check_name: ICMPCheck
     host: testbed_icmp
