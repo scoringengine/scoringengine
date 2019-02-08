@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+# A King of the Hill scoring engine check that logs in via Telnet and checks
+# the contents of an ownership file to find a team's ownership hash. The hash
+# should be the last line of the specified file.
+
+import sys
+from telnetlib import Telnet
+
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print('Usgae: ' + sys.argv[0] + ' host port username password ownershipfilepath')
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+username = sys.argv[3]
+password = sys.argv[4]
+ownershipfilepath = sys.argv[5]
+
+# Log in to the Telnet server
+client = Telnet(host)
+
+# Send username
+client.read_until(b'login: ')
+client.write(username.encode('ascii') + b'\n')
+
+# Send password
+client.read_until(b'Password:')
+client.write(password.encode('ascii') + b'\n')
+
+# Wait for shell
+client.read_until(b'$ ')
+
+# Read the file contents
+command = 'cat ' + ownershipfilepath
+client.write(command.encode('ascii') + b'\n')
+output = client.read_until(b'$ ')
+
+print(output)
