@@ -38,7 +38,7 @@ services:
         - scoringengine/nginx
         - nginx:latest
     depends_on:
-      - flask
+      - web
     ports:
       - 80:80
       - 443:443
@@ -113,14 +113,14 @@ services:
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
-  flask:
-    image: scoringengine/flask
+  web:
+    image: scoringengine/web
     build:
       context: .
-      dockerfile: ./docker/flask/Dockerfile
+      dockerfile: ./docker/web/Dockerfile
       cache_from:
-        - scoringengine/flask
-        - flask:latest
+        - scoringengine/web
+        - web:latest
     depends_on:
       - base
       - mysql
