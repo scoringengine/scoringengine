@@ -17,4 +17,7 @@ RUN \
     echo 'rpeterson:otherpass' | chpasswd
 
 EXPOSE 23
-CMD ['tail', '-f', 'bootstrap.log']
+
+# I couldn't get xinetd to log, so this is just a command that will run
+# continuously so the container stays up. It's not ideal, but it works.
+CMD ['tail', '-f', '/var/log/bootstrap.log']
