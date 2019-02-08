@@ -11,9 +11,9 @@ from smb.SMBConnection import SMBConnection
 import hashlib
 
 
-def check_smb(host, port, share_name, file_name, username, password, hash_to_test):
+def check_smb(host, port, share_name, file_name, username, password, remote_name, hash_to_test):
     try:
-        conn = SMBConnection(username, password, 'name', 'lets_see_if_this_matters',
+        conn = SMBConnection(username, password, 'name', remote_name,
                              use_ntlm_v2=True, is_direct_tcp=True)
         conn.connect(host, int(port))
         shares = conn.listShares()
@@ -39,11 +39,12 @@ def main():
     parser.add_argument('--port', help='port to test', dest='port')
     parser.add_argument('--user', help='username', dest='user')
     parser.add_argument('--pass', help='password', dest='passw')
+    parser.add_argument('--remote-name', help='remote_name', dest='remote_name')
     parser.add_argument('--share', help='share name', dest='share')
     parser.add_argument('--file', help='file name', dest='file')
     parser.add_argument('--hash', help='hash for comparison of file to endpoint', dest='hash')
     args = parser.parse_args()
-    check_smb(args.host, args.port, args.share, args.file, args.user, args.passw, args.hash)
+    check_smb(args.host, args.port, args.share, args.file, args.user, args.passw, args.remote_name, args.hash)
 
 
 if __name__ == '__main__':

@@ -156,6 +156,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -508,6 +510,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -860,6 +864,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1212,6 +1218,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1564,6 +1572,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1916,6 +1926,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2268,6 +2280,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2620,6 +2634,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2972,6 +2988,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -3324,6 +3342,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
