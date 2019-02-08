@@ -77,6 +77,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: commands
+        value: id;ls -l /home
       - name: ownershipfilepath
         value: /home/ttesterson/ownership.txt
   - name: ICMP
