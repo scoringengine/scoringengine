@@ -290,6 +290,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -613,6 +626,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -936,6 +962,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1259,6 +1298,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1582,6 +1634,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1905,6 +1970,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -2228,6 +2306,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -2551,6 +2642,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -2874,6 +2978,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -3197,6 +3314,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Telnet
+    check_name: TelnetCheck
+    host: testbed_telnet
+    port: 23
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: commands
+        value: id;ls -l /home
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
