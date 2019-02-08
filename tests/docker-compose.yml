@@ -1,21 +1,18 @@
 ---
-version: '3'
+version: '3.7'
 services:
   redis:
     image: "redis:latest"
     networks:
       - default
-  base:
-    build:
-      context: ../
-      dockerfile: ./docker/base/Dockerfile
-    image: base:latest
   tester:
+    image: scoringengine/tester
     build:
       context: ../
       dockerfile: ./docker/tester/Dockerfile
-    depends_on:
-      - base
+      cache_from:
+        - scoringengine/tester
+        - tester:latest
     networks:
       - default
 
