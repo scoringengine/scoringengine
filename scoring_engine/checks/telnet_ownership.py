@@ -1,7 +1,7 @@
 """
 Example service configuration:
 - name: KOTH-Telnet
-  check_name: TelnetOwnershipCheck
+  check_name: TelnetCheck
   host: testbed_koth_telnet
   port: 23
   points: 25
