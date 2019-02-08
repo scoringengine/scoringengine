@@ -16,7 +16,7 @@ wait_for_container()
 # Stop any previous containers from other parts of testing
 echo "Stopping any previous containers"
 make stop-integration
-make rm-integration
+make clean-integration
 
 # Build and start the necessary containers
 echo "Building required container environment"

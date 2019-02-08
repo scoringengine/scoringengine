@@ -39,20 +39,20 @@ stop-testbed:
 stop-integration:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) stop
 
-## RM Commands
-.PHONY: rm rm-testbed rm-integration
-rm:
-	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
-rm-testbed:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
-rm-integration:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
+## Clean Commands
+.PHONY: clean clean-testbed clean-integration
+clean:
+	-docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
+clean-testbed:
+	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
+clean-integration:
+	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
 
 ## Rebuild Commands
 .PHONY: rebuild rebuild-new rebuild-testbed rebuild-testbed-new rebuild-integration rebuild-integration-new
 rebuild: build stop run
-rebuild-new: build stop rm run
+rebuild-new: build stop clean run
 rebuild-testbed: build-testbed stop-testbed run-testbed
-rebuild-testbed-new: build-testbed stop-testbed rm-testbed run-testbed
+rebuild-testbed-new: build-testbed stop-testbed clean-testbed run-testbed
 rebuild-integration: build-integration stop-integration run-integration
-rebuild-integration-new: build-integration stop-integration rm-integration run-integration
+rebuild-integration-new: build-integration stop-integration clean-integration run-integration
