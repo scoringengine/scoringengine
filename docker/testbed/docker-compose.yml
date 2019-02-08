@@ -126,5 +126,15 @@ services:
       dockerfile: ./docker/testbed/koth_ssh/Dockerfile
     networks:
       - default
+    # ports:
+    #   - 22:22
+  testbed_koth_telnet:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/koth_telnet/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 23:23
 networks:
   default:

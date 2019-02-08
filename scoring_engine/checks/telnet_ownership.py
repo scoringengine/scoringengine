@@ -1,6 +1,6 @@
 """
 Example service configuration:
-- name: Telnet
+- name: KOTH-Telnet
   check_name: TelnetCheck
   host: testbed_koth_telnet
   port: 23
@@ -11,9 +11,8 @@ Example service configuration:
   environments:
   - matching_content: "^SUCCESS"
     properties:
-    - name: commands
-      value: id; ls -l /home
     - name: ownershipfilepath
+      value: /home/ttesterson/ownership.txt
 """
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
