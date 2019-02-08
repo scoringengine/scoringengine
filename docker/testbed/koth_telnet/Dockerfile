@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     telnetd
 
 # Configure Telnet
-COPY docker/testbed/telnet/files/telnet /etc/xinetd.d/telnet
-COPY docker/testbed/telnet/files/startup.sh /startup.sh
+COPY docker/testbed/koth_telnet/files/telnet /etc/xinetd.d/telnet
+COPY docker/testbed/koth_telnet/files/startup.sh /startup.sh
 RUN service xinetd restart
 
 # Add test user
@@ -16,7 +16,7 @@ RUN \
     echo 'ttesterson:testpass' | chpasswd
 
 # Add ownership file
-COPY docker/testbed/telnet/files/ownership.txt /home/ttesterson/ownership.txt
+COPY docker/testbed/koth_telnet/files/ownership.txt /home/ttesterson/ownership.txt
 
 EXPOSE 23
 
