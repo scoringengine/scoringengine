@@ -156,6 +156,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -350,6 +352,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team2
   color: Blue
   users:
@@ -496,6 +510,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -690,6 +706,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team3
   color: Blue
   users:
@@ -836,6 +864,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1030,6 +1060,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team4
   color: Blue
   users:
@@ -1176,6 +1218,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1370,6 +1414,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team5
   color: Blue
   users:
@@ -1516,6 +1572,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -1710,6 +1768,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team6
   color: Blue
   users:
@@ -1856,6 +1926,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2050,6 +2122,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team7
   color: Blue
   users:
@@ -2196,6 +2280,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2390,6 +2476,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team8
   color: Blue
   users:
@@ -2536,6 +2634,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -2730,6 +2830,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team9
   color: Blue
   users:
@@ -2876,6 +2988,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -3070,6 +3184,18 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
 - name: Team10
   color: Blue
   users:
@@ -3216,6 +3342,8 @@ teams:
     environments:
     - matching_content: "^SUCCESS"
       properties:
+      - name: remote_name
+        value: COMPUTERNAME
       - name: share
         value: ScoredShare
       - name: file
@@ -3410,3 +3538,15 @@ teams:
   #     properties:
   #     - name: domain
   #       value: test.com
+  # - name: NFS
+  #   check_name: NFSCheck
+  #   host: 157.230.144.56
+  #   port: 0
+  #   points: 150
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: remotefilepath
+  #       value: "/var/nfs/general/testfile.txt"
+  #     - name: filecontents
+  #       value: Sample file contents
