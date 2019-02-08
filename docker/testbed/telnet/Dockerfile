@@ -16,5 +16,5 @@ RUN \
     echo 'ttesterson:testpass' | chpasswd && \
     echo 'rpeterson:otherpass' | chpasswd
 
-EXPOSE 21
+EXPOSE 23
 CMD ['tail', '-f', 'bootstrap.log']
