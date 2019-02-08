@@ -95,6 +95,14 @@ services:
     # ports:
     #   - 25:25
     #   - 587:587
+  testbed_telnet:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/telnet/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 23:23
   testbed_koth_web:
     build:
       context: .
