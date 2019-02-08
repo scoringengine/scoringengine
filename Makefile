@@ -2,6 +2,7 @@ MAIN_DOCKER := docker-compose.yml
 TESTBED_DOCKER := docker/testbed/docker-compose.yml
 INTEGRATION_DOCKER := tests/integration/docker-compose.yml
 PROJECT_NAME := scoringengine
+BUILD_MODE	:= build  ## Pass `pull` in order to pull images instead of building them
 
 GIT_HASH=$(shell git rev-parse --short HEAD)
 
@@ -24,20 +25,20 @@ run-integration-tests:
 ## Build Commands
 .PHONY: build build-testbed build-integration
 build:
-	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) build
+	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 build-testbed:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) build
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 build-integration:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) build
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 
 ## Stop Commands
 .PHONY: stop stop-testbed stop-integration
 stop:
-	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) stop
+	-docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) stop
 stop-testbed:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) stop
+	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) stop
 stop-integration:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) stop
+	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) stop
 
 ## Clean Commands
 .PHONY: clean clean-testbed clean-integration
