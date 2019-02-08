@@ -1,3 +1,3 @@
 #!/bin/bash
-service start xinetd
+service xinetd start
 tail -f /var/log/bootstrap.log

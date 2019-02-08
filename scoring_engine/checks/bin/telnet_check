@@ -28,7 +28,7 @@ def connect_and_execute(host, port, username, password, command):
     client.write(username.encode('ascii') + b'\n')
     client.write(password.encode('ascii') + b'\n')
     # Run the command
-    client.write(command)
+    client.write(command.encode('ascii'))
     # Try to read output
     try:
         output = client.read_all()
