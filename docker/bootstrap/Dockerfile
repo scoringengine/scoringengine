@@ -1,4 +1,4 @@
-FROM base:latest
+FROM scoringengine/base
 
 COPY bin/setup /app/bin/setup
 COPY bin/competition.yaml /app/bin/competition.yaml
