@@ -22,16 +22,34 @@ commands = sys.argv[5].split(';')
 
 
 def connect_and_execute(host, port, username, password, command):
-    # Test
-    # Log in to the telnet server
-    client = Telnet(host)
-    client.write(username.encode('ascii') + b'\n')
-    client.write(password.encode('ascii') + b'\n')
-    # Run the command
-    client.write(command.encode('ascii'))
-    # Try to read output
+    """
+    A simple function that executes a command on a server via Telnet.
+
+    Returns a tuple of the form (output, exception)
+    """
     try:
-        output = client.read_all()
+        # Log in to the telnet server
+        client = Telnet(host)
+
+        # Send username
+        client.read_until(b'login:')
+        client.write(username.encode('ascii') + b'\n')
+
+        # Send password
+        client.read_until(b'Password:')
+        client.write(password.encode('ascii') + b'\n')
+
+        # Wait for shell
+        output = client.read_until(b'$ ')
+
+        # Run the command
+        client.write(command.encode('ascii') + b'\n')
+        output += client.read_until(b'$ ')
+
+        # Log out
+        client.write('exit\n'.encode('ascii'))
+        output += client.read_all()
+
     except EOFError as e:
         return None, e
 
