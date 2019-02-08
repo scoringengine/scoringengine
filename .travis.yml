@@ -10,6 +10,11 @@ before_install:
   # Fail immediately on any error
   - set -e
 install:
+  # Install newer version of docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o docker-compose
+  - chmod +x docker-compose
+  - export PATH=./:$PATH
+  - docker-compose --version
   # Build containers
   - docker-compose -f tests/docker-compose.yml -p scoringengine build
 before_script:
