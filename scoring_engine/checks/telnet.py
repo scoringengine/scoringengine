@@ -17,7 +17,7 @@ Example service configuration:
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
 
-class TelnetChecK(BasicCheck):
+class TelnetCheck(BasicCheck):
     """
     A Telnet check that is used to verify the uptime and correct function of a
     Telnet service.
@@ -26,7 +26,7 @@ class TelnetChecK(BasicCheck):
     required_properties = ['commands']
     # A separate script is used in order to log into the service, run the
     # commands, and make sure there were no errors
-    CMD = CHECKS_BIN_PATH, '/telnet_check {0} {1} {2} {3} {4}'
+    CMD = CHECKS_BIN_PATH + '/telnet_check {0} {1} {2} {3} {4}'
 
     def command_format(self, properties):
         account = self.get_random_account()
