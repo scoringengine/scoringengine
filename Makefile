@@ -64,8 +64,8 @@ clean-integration:
 ## Rebuild Commands
 .PHONY: rebuild rebuild-new rebuild-tests rebuild-testbed rebuild-testbed-new rebuild-integration rebuild-integration-new
 rebuild: build stop run
-rebuild-tests: build-tests stop-tests run-tests
 rebuild-new: build stop clean run
+rebuild-tests: build-tests stop-tests run-tests
 rebuild-testbed: build-testbed stop-testbed run-testbed
 rebuild-testbed-new: build-testbed stop-testbed clean-testbed run-testbed
 rebuild-integration: build-integration stop-integration run-integration
