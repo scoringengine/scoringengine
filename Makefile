@@ -1,6 +1,7 @@
 MAIN_DOCKER := docker-compose.yml
 TESTBED_DOCKER := docker/testbed/docker-compose.yml
 INTEGRATION_DOCKER := tests/integration/docker-compose.yml
+TESTS_DOCKER:= tests/docker-compose.yml
 PROJECT_NAME := scoringengine
 BUILD_MODE	:= build  ## Pass `pull` in order to pull images instead of building them
 
@@ -12,9 +13,15 @@ all:
 	@grep '^[^#[:space:]^\.PHONY.*].*:' Makefile
 
 ## Run Commands
-.PHONY: run run-testbed run-integration run-integration-tests
+.PHONY: run run-tests run-testbed run-integration run-integration-tests
 run:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
+run-tests:
+	docker-compose -f $(TESTS_DOCKER) -p $(PROJECT_NAME) up -d
+	# Flake8 checks
+	docker run -it scoringengine/tester bash -c "flake8 --config .flake8 ./"
+	# Run unit tests
+	docker run -it -v artifacts:/app/artifacts scoringengine/tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
 run-testbed:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
 run-integration:
@@ -23,18 +30,22 @@ run-integration-tests:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run tester bash -c "py.test --integration tests"
 
 ## Build Commands
-.PHONY: build build-testbed build-integration
+.PHONY: build build-tests build-testbed build-integration
 build:
 	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
+build-tests:
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) tester redis
 build-testbed:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 build-integration:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 
 ## Stop Commands
-.PHONY: stop stop-testbed stop-integration
+.PHONY: stop stop-tests stop-testbed stop-integration
 stop:
 	-docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) stop
+stop-tests:
+	-docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) stop
 stop-testbed:
 	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) stop
 stop-integration:
@@ -50,8 +61,9 @@ clean-integration:
 	-docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) down -v --remove-orphans
 
 ## Rebuild Commands
-.PHONY: rebuild rebuild-new rebuild-testbed rebuild-testbed-new rebuild-integration rebuild-integration-new
+.PHONY: rebuild rebuild-new rebuild-tests rebuild-testbed rebuild-testbed-new rebuild-integration rebuild-integration-new
 rebuild: build stop run
+rebuild-tests: build-tests stop-tests run-tests
 rebuild-new: build stop clean run
 rebuild-testbed: build-testbed stop-testbed run-testbed
 rebuild-testbed-new: build-testbed stop-testbed clean-testbed run-testbed

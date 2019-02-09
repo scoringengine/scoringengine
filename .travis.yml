@@ -14,9 +14,8 @@ install:
   - curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o docker-compose
   - chmod +x docker-compose
   - export PATH=./:$PATH
-  - docker-compose --version
-  # Build containers
-  - docker-compose -f tests/docker-compose.yml -p scoringengine build
+  # Build containers needed for tests only
+  - make build-tests
 before_script:
   # Prep codeclimate reporting
   - docker run -it
@@ -26,17 +25,8 @@ before_script:
       -e CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID
       scoringengine/tester bash -c
     "/usr/bin/cc-test-reporter before-build"
-  # Start up resources needed for tests
-  - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
 script:
-  # Check for pep8 compliance
-  - docker run -it scoringengine/tester bash -c
-    "flake8 --config .flake8 ./"
-  # Run unit tests
-  - docker run -it
-      -v artifacts:/app/artifacts
-      scoringengine/tester bash -c
-    "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+  - make run-tests
   - ./tests/integration/run.sh
 after_script:
   # Push results to code climate
