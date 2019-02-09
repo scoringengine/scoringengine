@@ -7,11 +7,11 @@ Example service configuration:
   accounts:
   - username: ttesterson
     password: testpass
-  - username: rpeterson
-    password: otherpass
   environments:
   - matching_content: "^SUCCESS"
     properties:
+    - name: database
+      value: test
 """
 from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
 
