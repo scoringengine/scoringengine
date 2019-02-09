@@ -4,6 +4,7 @@ Example service configuration:
   check_name: MongoDBCheck
   host: testbed_mongodb
   port: 27017
+  points: 25
   accounts:
   - username: ttesterson
     password: testpass
