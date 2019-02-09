@@ -48,7 +48,7 @@ client = pymongo.MongoClient(conn_str)
 db = client[database]
 
 # Attempt to read the check document from the database
-check = db.test.find_one(attempt_id)
+check = db.attempts.find_one(attempt_id)
 
 # Verify that the pseudorandom value is correct
 if check['value'] == value:
