@@ -318,6 +318,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -654,6 +667,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -990,6 +1016,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1326,6 +1365,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1662,6 +1714,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -1998,6 +2063,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -2334,6 +2412,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -2670,6 +2761,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -3006,6 +3110,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition
@@ -3342,6 +3459,19 @@ teams:
       properties:
       - name: commands
         value: id;ls -l /home
+  - name: MongoDB
+    check_name: MongoDBCheck
+    host: testbed_mongodb
+    port: 27017
+    points: 25
+    accounts:
+    - username: ttesterson
+      password: testpass
+    environments:
+    - matching_content: "^SUCCESS"
+      properties:
+      - name: database
+        value: test
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition

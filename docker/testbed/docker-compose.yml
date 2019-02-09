@@ -103,6 +103,14 @@ services:
       - default
     # ports:
     #   - 23:23
+  testbed_mongodb:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/mongodb/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 27017:27017
   testbed_koth_web:
     build:
       context: .
