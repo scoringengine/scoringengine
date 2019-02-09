@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+# A King of the Hill scoring engine check that logs in to a MongoDB server and
+# retrieves a document from the "ownership" collection on the specified
+# database. The document should be the only one in the collection containing
+# the element {"type": "current-owner"}, and the hash should be in the "hash"
+# element. An example valid document is shown below.
+#
+# {
+#   "type": "current-owner",
+#   "hash": "000000"
+# }
+#
+# To install: pip install pymongo
+
+import sys
+import pymongo
+import random
+import string
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print('Usage: ' + sys.argv[0] + " host port username password database")
+    sys.exit(1)
+
+database = sys.argv[5]
+conn_str = 'mongodb://{username}:{password}@{host}:{port}'.format(
+    username=sys.argv[3],
+    password=sys.argv[4],
+    host=sys.argv[1],
+    port=sys.argv[2],
+)
+
+# Connect to database
+client = pymongo.MongoClient(conn_str)
+db = client[database]
+
+# Read the ownership document
+record = db.ownership.find_one({'type': 'current-owner'})
+
+# Find the hash
+try:
+    print(record['hash'])
+except Exception:
+    print('DOWN_OR_NO_HASH')
