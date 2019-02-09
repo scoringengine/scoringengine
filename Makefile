@@ -34,6 +34,7 @@ run-integration-tests:
 build:
 	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
 build-tests:
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) base
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) tester redis
 build-testbed:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
