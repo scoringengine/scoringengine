@@ -1,4 +1,4 @@
-FROM base:latest
+FROM scoringengine/base
 
 COPY tests /app/tests
 

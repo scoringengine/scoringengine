@@ -10,8 +10,12 @@ before_install:
   # Fail immediately on any error
   - set -e
 install:
-  # Build containers
-  - docker-compose -f tests/docker-compose.yml -p scoringengine build
+  # Install newer version of docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o docker-compose
+  - chmod +x docker-compose
+  - export PATH=./:$PATH
+  # Build containers needed for tests only
+  - make build-tests
 before_script:
   # Prep codeclimate reporting
   - docker run -it
@@ -19,19 +23,10 @@ before_script:
       -e GIT_COMMIT_SHA=$TRAVIS_COMMIT
       -e GIT_COMMITTED_AT=$(git log -1 --pretty=tformat:%ct $TRAVIS_COMMIT)
       -e CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID
-      scoringengine_tester bash -c
+      scoringengine/tester bash -c
     "/usr/bin/cc-test-reporter before-build"
-  # Start up resources needed for tests
-  - docker-compose -f tests/docker-compose.yml -p scoringengine up -d
 script:
-  # Check for pep8 compliance
-  - docker run -it scoringengine_tester bash -c
-    "flake8 --config .flake8 ./"
-  # Run unit tests
-  - docker run -it
-      -v artifacts:/app/artifacts
-      scoringengine_tester bash -c
-    "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+  - make run-tests
   - ./tests/integration/run.sh
 after_script:
   # Push results to code climate
@@ -44,6 +39,6 @@ after_script:
         -e GIT_COMMIT_SHA=$TRAVIS_COMMIT \
         -e GIT_COMMITTED_AT=$(git log -1 --pretty=tformat:%ct $TRAVIS_COMMIT) \
         -e CC_TEST_REPORTER_ID=$CC_TEST_REPORTER_ID \
-        scoringengine_tester bash -c \
+        scoringengine/tester bash -c \
       "cp artifacts/coverage.xml ./ && /usr/bin/cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
     fi

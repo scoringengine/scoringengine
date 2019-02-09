@@ -1,4 +1,4 @@
-FROM base:latest
+FROM scoringengine/base
 
 COPY bin/engine /app/bin/engine
 

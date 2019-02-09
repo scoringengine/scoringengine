@@ -1,17 +1,14 @@
 ---
-version: '3'
+version: '3.7'
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./docker/base/Dockerfile
-    image: base:latest
   tester:
+    image: scoringengine/tester
     build:
       context: .
       dockerfile: ./docker/tester/Dockerfile
-    depends_on:
-      - base
+      cache_from:
+        - scoringengine/tester
+        - tester:latest
     networks:
       - default
   # We redefine engine service so we can
@@ -19,31 +16,13 @@ services:
   # want the engine restarting if we're only
   # telling it to run a few rounds
   engine:
-    build:
-      context: .
-      dockerfile: ./docker/engine/Dockerfile
-    depends_on:
-      - base
-      - redis
-      - bootstrap
     restart: "no"
-    networks:
-      - default
     environment:
       - SCORINGENGINE_NUM_ROUNDS=10
   # We redefine bootstrap so we can modify the
   # round refresh timers, so we aren't waiting around
   # for no reason
   bootstrap:
-    build:
-      context: .
-      dockerfile: ./docker/bootstrap/Dockerfile
-    depends_on:
-      - base
-      - mysql
-    restart: on-failure
-    networks:
-      - default
     environment:
       - SCORINGENGINE_ROUND_TIME_SLEEP=3
       - SCORINGENGINE_WORKER_REFRESH_TIME=3

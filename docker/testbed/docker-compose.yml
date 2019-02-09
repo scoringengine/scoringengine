@@ -1,5 +1,5 @@
 ---
-version: '3'
+version: '3.7'
 services:
   testbed_icmp:
     build:
@@ -106,7 +106,7 @@ services:
     #   - 80:80
     environment:
       WORDPRESS_DB_HOST: testbed_wordpress_mysql
-      WORDPRESS_DB_USER: wordpressuser 
+      WORDPRESS_DB_USER: wordpressuser
       WORDPRESS_DB_PASSWORD: wordpresspass
       WORDPRESS_DB_NAME: wordpress
   testbed_wordpress_mysql:
