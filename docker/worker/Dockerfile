@@ -49,6 +49,9 @@ RUN \
 # RDP Check
 RUN apt-get install -y freerdp-x11
 
+# MongoDB Check
+RUN pip install pymongo
+
 COPY bin/worker /app/bin/worker
 
 USER engine

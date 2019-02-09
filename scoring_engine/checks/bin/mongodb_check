@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+# A scoring engine check that logs into a MongoDB server and performs a read
+# and write to ensure the server is working properly. Once the check connects
+# to the server, it will generate a pseudorandom value and and insert a
+# document containing the value into a collection called "attempts" on a
+# specified database. Then, the check logs out, reconnects, queries for the
+# document, and verifies that the value in the document is the expected
+# pseudorandom value.
+#
+# To install: pip install pymongo
+
+import sys
+import pymongo
+import random
+import string
+
+# Parse arguments
+if len(sys.argv) != 6:
+    print('Usage: ' + sys.argv[0] + " host port username password database")
+    sys.exit(1)
+
+database = sys.argv[5]
+conn_str = 'mongodb://{username}:{password}@{host}:{port}'.format(
+    username=sys.argv[3],
+    password=sys.argv[4],
+    host=sys.argv[1],
+    port=sys.argv[2],
+)
+
+# Connect to database
+client = pymongo.MongoClient(conn_str)
+db = client[database]
+
+# Generate check document
+value = ''.join([random.choice(string.ascii_letters) for n in range(32)])
+attempt = {
+    'creator': 'scoringengine',
+    'value': value,
+}
+
+# Insert document into database
+attempt_id = db.attempts.insert_one(attempt).inserted_id
+
+# Log out and log back in
+client.close()
+client = pymongo.MongoClient(conn_str)
+db = client[database]
+
+# Attempt to read the check document from the database
+check = db.test.find_one(attempt_id)
+
+# Verify that the pseudorandom value is correct
+if check['value'] == value:
+    print('SUCCESS')
+else:
+    print('FAILURE')
