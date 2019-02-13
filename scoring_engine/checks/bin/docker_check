@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+#
+# Built for https://github.com/scoringengine/scoringengine
+#
+# Author: Micah Martin (knif3)
+#
+
+import sys
+import time
+import docker
+
+
+def has_container_run(client, name):
+    '''Given a container name, check if that container has run before
+
+    Args:
+        client (DockerClient): The docker client to check on
+        name (str): The name of the container to check for
+    Returns:
+        bool: Whether or not the container has run before
+    '''
+    try:
+        for cont in client.containers.list(all=True):
+            if cont.name == name:
+                # Make sure that the image has started before
+                state = cont.attrs.get('State', {})
+                if state and state.get('StartedAt', False):
+                    return True
+                return False
+    except docker.errors.APIError as E:
+        print("[!] DOCKER ERROR: {}".format(E))
+    return False
+
+
+def main():
+    if len(sys.argv) != 4:
+        print("Usage: {} host port image:tag".format(sys.argv[0]))
+        quit()
+
+    host = sys.argv[1]
+    port = sys.argv[2]
+    container_name = sys.argv[3]
+    # Make sure we are given a valid image and tag
+    if ":" not in container_name:
+        print("docker image missing tag!")
+        print("Usage: {} host port image:tag".format(sys.argv[0]))
+        return False
+
+    # Build the url
+    url = "tcp://{}:{}".format(host, port)
+
+    try:
+        client = docker.DockerClient(base_url=url)
+        client.info()
+        print("[+] Connected to docker instance: {}".format(url))
+    except Exception as E:
+        print("[-] Failed to connect to docker instance: {}".format(url))
+        print("[!] DOCKER ERROR: {}".format(E))
+        return False
+    
+    # Pull the new image
+    try:
+        image = client.images.pull(container_name)
+        print("[+] Pulled image:", image.tags[0])
+    except Exception as E:
+        print("[-] Failed to pull image:", container_name)
+        print("[!] DOCKER ERROR: {}".format(E))
+        return False
+
+    try:
+        container = client.containers.run(container_name, detach=True, auto_remove=False)
+        print("[+] '{}' started as '{}'".format(container_name, container.name))
+        print("[*] Sleeping for 3 seconds until startup is finished")
+        time.sleep(3)
+    except Exception as E:
+        print("[-] Failed to run", container_name)
+        print("[!] DOCKER ERROR: {}".format(E))
+        return False
+
+    if has_container_run(client, container.name):
+        print("[+] '{}' has run successfully".format(container.name))
+    else:
+        print("[!]", container.name, "failed to run")
+        return False
+
+    try:
+        container.remove(force=True)
+        print("[+] Deleted", container.name)
+    except docker.errors.APIError as E:
+        print("[-] Failed to delete", container.name)
+        print("[!] DOCKER ERROR: {}".format(E))
+        return False
+    
+    try:
+        client.images.remove(container_name, force=False)
+        print("[+] Deleted", container_name)
+    except docker.errors.APIError as E:
+        print("[-] Failed to delete", container_name)
+        print("[!] DOCKER ERROR: {}".format(E))
+        return False
+
+    return True
+
+if __name__ == '__main__':
+    if main():
+        print("[+] SUCCESS: The check has completed successfully")
+    else:
+        print("[!] FAIL: The scoring check failed to complete")
