@@ -59,6 +59,9 @@ RUN apt-get install -y freerdp-x11
 RUN apt-get install -y libnfs-dev
 RUN pip install -I "libnfs==1.0.post4"
 
+# Docker Check
+RUN pip install docker
+
 COPY bin/worker /app/bin/worker
 
 USER engine

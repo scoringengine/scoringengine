@@ -3445,6 +3445,16 @@ teams:
         value: www.example.com
       - name: uri
         value: "/wp-login.php"
+  - name: Docker API
+    check_name: DockerAPICheck
+    host: testbed_docker
+    port: 2375
+    points: 100
+    environments:
+    - matching_content: SUCCESS
+      properties:
+      - name: docker_image
+        value: 'hello-world:latest'
   # Commented out because we don't have testbed containers yet
   # but these services should work, so feel free to uncomment
   # for a real competition

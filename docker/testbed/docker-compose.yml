@@ -121,6 +121,16 @@ services:
       - default
     volumes:
       - ./docker/testbed/wordpress/wordpress.sql:/docker-entrypoint-initdb.d/wordpress.sql
+  testbed_docker:
+    build:
+      context: .
+      dockerfile: './docker/testbed/docker/Dockerfile'
+    #ports:
+    #  - "127.0.0.1:2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+
 
 networks:
   default:
