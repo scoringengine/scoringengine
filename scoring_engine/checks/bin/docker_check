@@ -92,12 +92,11 @@ def main():
         return False
     
     try:
-        client.images.remove(container_name, force=False)
+        client.images.remove(container_name, force=True)
         print("[+] Deleted", container_name)
     except docker.errors.APIError as E:
         print("[-] Failed to delete", container_name)
         print("[!] DOCKER ERROR: {}".format(E))
-        return False
 
     return True
 
