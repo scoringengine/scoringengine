@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+
+# A scoring engine check that logs into OpenVPN briefly
+
+import sys
+import subprocess
+import random
+import time
+import os
+
+if len(sys.argv) != 6:
+    print("Usage: " + sys.argv[0] + " host port username password ca")
+    print("throw the whole ca cert used by the vpn server into the last" +
+          "parameter")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+username = sys.argv[3]
+password = sys.argv[4]
+ca = sys.argv[5]
+checkUid = True
+while checkUid:
+    # used to make sure different instances of the client don't step on each
+    # other
+    uid = str(random.randint(100, 999))
+    checkUid = False
+    # verify uid isn't in use by another instance
+    for file in os.listdir("/tmp"):
+        if uid in file:
+            checkUid = True
+
+# since we can't upload config files, write it out
+configPointer = open("/tmp/config-" + uid + ".ovpn", "w")
+configPointer.write("dev tun" + uid + "\ntls-client\nclient\n")
+clientPort = random.randint(1000, 3000)
+configPointer.write("port " + str(clientPort) + "\n")
+hostLine = "remote " + host + " " + port + " udp\n"
+configPointer.write(hostLine)
+configPointer.write("auth-user-pass /tmp/auth-" + uid + ".txt\n")
+configPointer.write("remote-cert-tls server\n")
+configPointer.write("script-security 2\nup /tmp/up-" + uid + ".sh\n")
+configPointer.write("<ca>\n-----BEGIN CERTIFICATE-----\n")
+configPointer.write(ca + "\n")
+configPointer.write("-----END CERTIFICATE-----\n</ca>\n")
+configPointer.close()
+
+credsPointer = open("/tmp/auth-" + uid + ".txt", "w")
+credsPointer.write(username + "\n")
+credsPointer.write(password)
+credsPointer.close()
+
+shellPointer = open("/tmp/up-" + uid + ".sh", "w")
+shellPointer.write("#!/bin/sh\n")
+shellPointer.write("PID=$(ps aux | grep " + uid + " | grep -v grep" +
+                   " | cut -d ' ' -f8)\n")
+shellPointer.write("sleep 10\n")
+shellPointer.write("kill $PID")
+shellPointer.close()
+subprocess.call(["/bin/chmod", "+x", "/tmp/up-" + uid + ".sh"])
+
+# actually do the check
+try:
+    vpn_call = subprocess.Popen(["/usr/bin/sudo", "/usr/sbin/openvpn",
+                                "/tmp/config-" + uid + ".ovpn"],
+                                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    time.sleep(10)
+    tunnel_check = subprocess.check_output("/sbin/ip addr | grep tun" + uid,
+                                           shell=True)
+except subprocess.CalledProcessError as e:
+    output = vpn_call.communicate()[0]
+    print("Error! Code: " + e.returncode + "\nVPN output: " + output)
+finally:
+    subprocess.call(["/bin/rm", "/tmp/config-" + uid + ".ovpn"],
+                    stdout=subprocess.DEVNULL)
+    subprocess.call(["/bin/rm", "/tmp/auth-" + uid + ".txt"],
+                    stdout=subprocess.DEVNULL)
+    subprocess.call(["/bin/rm", "/tmp/up-" + uid + ".sh"],
+                    stdout=subprocess.DEVNULL)
+if len(tunnel_check) > 0:
+    print("SUCCESS")
