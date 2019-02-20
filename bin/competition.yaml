@@ -189,6 +189,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -553,6 +567,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -917,6 +945,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -1281,6 +1323,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -1645,6 +1701,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -2009,6 +2079,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -2373,6 +2457,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -2737,6 +2835,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -3101,6 +3213,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
@@ -3465,6 +3591,20 @@ teams:
         value: A
       - name: domain
         value: anotherhost.team.scoringengine
+  - name: OpenVPN
+    check_name: OpenVPNCheck
+    host: testbed_openvpn
+    port: 1194
+    points: 100
+    accounts:
+    - username: test
+      password: test
+    environments:
+    - matching_content: "^SUCCESS"
+      properties: 
+      - name: ca
+        # I'm so sorry, openvpn needs the ca cert for login via the client
+        value: MIIDSzCCAjOgAwIBAgIUNf7YivHK0rWciIy1HsNNx/tGDt4wDQYJKoZIhvcNAQELBQAwFjEUMBIGA1UEAwwLRWFzeS1SU0EgQ0EwHhcNMTkwMjE1MDI0NzUyWhcNMjkwMjEyMDI0NzUyWjAWMRQwEgYDVQQDDAtFYXN5LVJTQSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKCNXjK+4bIikgmGoGZHWRmLoJRxPoBkuy2U1jkaADBrfg4b3CgLP/OV4PGv1SmCvvLMuvdwKjA9JnYgtbEWLYyOi/Kxssjm5nLpJbx6KBZOvRjVzoKO0ljNh5nAXDiOyR+2PBUgp7A3PImM4R05m5pi+jd8+WbrQ8nfNQ5o9bFX26WpvWHo7gTxT8u+e6nL25U6TUYrPuTbw2/PGylaOVlEZTFhDO1GgxUUuPAwAmloQSoAbSNTI6Ch2mE8c3/dyyf4E1m6x7ves2cV44KQv8wTkLi1vQlhILmsjyH5oxlZARFl/hWXo6EBodLKVtVu8lWfNO4Le3qBYOijGfZQEB0CAwEAAaOBkDCBjTAdBgNVHQ4EFgQUG7NBOgwKvoAHZpwodZ45wVhpuUIwUQYDVR0jBEowSIAUG7NBOgwKvoAHZpwodZ45wVhpuUKhGqQYMBYxFDASBgNVBAMMC0Vhc3ktUlNBIENBghQ1/tiK8crStZyIjLUew03H+0YO3jAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAXvwmtRzcLhdtJoNlK8Cc+BxjK9mgURgh4qt8BMP28CMfKw36xXWgxsbi4g5v08ohn+GrBikPmicL5p/V5yo6cC63Q0uI04k2k+jlC8PRXheyhQjYwSF6Ua18gAyXInR1GZ7t5l2OOBP5MWLGJxpLE8Xp1yn7v0kyAMXA3hOICi1BdS844ZVWhwiasm+BE7lybdtf15sAdYGmAjrrKwtCOlJSJrzOZLThUUlgGlwK2PAdeyYTkoQGyY3cKTfmsujTzyLsHKvqk7RPbKelvSfx1XEf1lH34305N8VSJQVc2UhNlaTS6YWJOyYVHPUsAqq8fJF4aZRd87VnhtOev3rKaA==
   - name: PostgreSQL
     check_name: POSTGRESQLCheck
     host: testbed_postgresql
