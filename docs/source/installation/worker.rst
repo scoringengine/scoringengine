@@ -63,6 +63,12 @@ Install dependencies for SSH check
 
   source /home/engine/scoring_engine/env/bin/activate && pip install -I "cryptography>=2.4,<2.5" && pip install "paramiko>=2.4,<2.5"
 
+Install dependencies for winrm check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  pip install pywinrm
+
 Install dependencies for LDAP check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
