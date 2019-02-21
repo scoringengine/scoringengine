@@ -109,7 +109,7 @@
                                 "data": null,
                                 "orderable": false,
                                 "render": function( data ) {
-                                    var last_ten_checks = ''
+                                    var last_ten_checks = '<div align="right">'
                                     for (var index in data.last_ten_checks) {
                                         if ( data.last_ten_checks[index] == true ) {
                                             last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
@@ -118,7 +118,7 @@
                                         last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
                                         }
                                     }
-                                    return last_ten_checks;
+                                    return '</div>' + last_ten_checks;
                                 }
                             },
                         ],
