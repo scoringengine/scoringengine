@@ -14,11 +14,15 @@ if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE']
     print("SCORINGENGINE_EXAMPLE environment variable is true, so skipping running the worker.")
     sys.exit(0)
 
+celery_log_level = "error"
+if config.debug is True:
+  celery_log_level = "info"
+
 workdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../scoring_engine/engine')
 celery_args = [
     'celery',
     '--workdir={0}'.format(workdir),
-    '--loglevel=info',
+    '--loglevel={0}'.format(celery_log_level),
     'worker',
 ]
 

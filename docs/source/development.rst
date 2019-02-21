@@ -15,7 +15,7 @@ Create Config File
   cp engine.conf.inc engine.conf
   sed -i '' 's/debug = False/debug = True/g' engine.conf
 
-.. hint:: If debug is set to True, the web ui will automatically reload on changes to local file modifications, which can help speed up development.
+.. hint:: If debug is set to True, the web ui will automatically reload on changes to local file modifications, which can help speed up development. This config setting will also tell the worker to output all check output to stdout.
 
 Install Required Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
