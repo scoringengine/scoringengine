@@ -78,6 +78,15 @@ services:
     # ports:
     #   - 53:53/udp
     #   - 53:53
+  testbed_openvpn:
+    build:
+      context: .
+      dockerfile: ./docker/testbed/openvpn/Dockerfile
+    networks:
+      - default
+    # ports:
+    #   - 1194:1194/udp
+    privileged: true
   testbed_postgresql:
     build:
       context: .

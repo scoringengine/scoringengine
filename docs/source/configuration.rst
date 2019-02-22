@@ -43,7 +43,7 @@ Configuration Keys
    * - timezone
      - Local timezone of the competition
    * - debug
-     - Determines wether or not the engine should be run in debug mode (useful for development)
+     - Determines wether or not the engine should be run in debug mode (useful for development). The worker will also display output from all checks.
    * - db_uri
      - Database connection URI
    * - cache_type
