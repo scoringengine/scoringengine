@@ -64,9 +64,12 @@ RUN pip install docker
 
 # OpenVPN Check
 RUN apt-get install -y openvpn iproute2 sudo
+COPY docker/worker/sudoers /etc/sudoers
+
+# Docker Check
+RUN pip install docker
 
 COPY bin/worker /app/bin/worker
-COPY docker/worker/sudoers /etc/sudoers
 
 USER engine
 

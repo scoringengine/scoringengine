@@ -26,6 +26,7 @@ from scoring_engine.checks.wordpress import WordpressCheck
 from scoring_engine.checks.nfs import NFSCheck
 from scoring_engine.checks.docker import DockerAPICheck
 from scoring_engine.checks.openvpn import OpenVPNCheck
+from scoring_engine.checks.docker import DockerAPICheck
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -70,6 +71,7 @@ class TestEngine(UnitTest):
             NFSCheck,
             DockerAPICheck
             OpenVPNCheck,
+            DockerAPICheck
         ]
         assert set(engine.checks) == set(expected_checks)
 
