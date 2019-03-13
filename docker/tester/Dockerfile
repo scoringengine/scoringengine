@@ -7,6 +7,7 @@ USER root
 RUN \
   apt-get update && \
   apt-get install -y curl && \
+  rm -rf /var/lib/apt/lists/* && \
   curl -s -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 -o /usr/bin/cc-test-reporter && \
   chmod +x /usr/bin/cc-test-reporter
 

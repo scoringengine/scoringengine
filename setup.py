@@ -24,7 +24,7 @@ config = {
         'mysqlclient==1.3.12',
         'pynsive==0.2.7',
         'PyYAML==4.2b4',
-        'redis==2.10.5',
+        'redis==3.2',
         'shellescape==3.4.1'
     ],
     'packages': ['scoring_engine'],
