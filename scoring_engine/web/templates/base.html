@@ -48,6 +48,9 @@
             {% if current_user.is_blue_team %}
               <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
             {% endif %}
+            {% if current_user.is_red_team %}
+              <li class="navbar-item {% if request.path == '/pwnboard' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('pwnboard.home') }}">Pwnboard</a></li>
+            {% endif %}
             {% if current_user.is_white_team %}
             <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"  href="{{ url_for('admin.status') }}">Admin</a></li>
             {% endif %}

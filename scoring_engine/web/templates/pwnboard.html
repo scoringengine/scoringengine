@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Overview{% endblock %}
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha256-4iQZ6BVL4qNKlQ27TExEhBN1HFPvAvAMbFavKKosSWQ=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="container-fluid md-page">
+  <div class="row">
+    <div class="col-xs-2">
+        <div class="form-group">
+          <select class="form-control" id="red_user_select">
+            <option>All</option>
+            {% for user in red_users %}
+            <option>{{ user.username }}</option>
+            {% endfor %}
+            <option>whiteteamuser</option>
+          </select>
+        </div>
+    </div>
+  </div>
+  <div class="row">
+    <table id="pwnboard" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Service</th>
+                {% for team in blue_teams %}
+                <th>{{ team.name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    </table>
+  </div>
+</div>
+<script>
+    $(document).ready(function() {
+        var table = $('#pwnboard').DataTable( {
+            "ajax": "/api/pwnboard/data",
+            "columns": [
+                {
+                    "data": "Service",
+                },
+                {% for team in blue_teams %}
+                {
+                    "data": "{{ team.name }}",
+                    "render": function ( data, type, row, meta ) {
+                        var output = '<ol class="list-unstyled"><li><a class="text-primary" href="/pwnboard/service/' + data.id + '">' + data.host + '</a></li>'
+
+                        // Only do all this if we've seen the host
+                        if (data.timestamp) {
+                            // User
+                            if (data.user) {
+                                output += '<li><span class="label label-primary">' + data.user + '</span></li>';
+                            }
+
+                            // Agent
+                            if (data.agent) {
+                                output += '<li><span class="label label-info">' + data.agent + '</span></li>';
+                            }
+
+                            // Last Seen
+                            var time = moment(data.timestamp).fromNow();
+
+                            if (moment().diff(moment(data.timestamp), 'minutes') < 5) {
+                                output += '<li><span class="label label-success">' + time + '</span></li>';
+                            } else if (moment().diff(moment(data.timestamp), 'minutes') < 10) {
+                                output += '<li><span class="label label-warning">' + time + '</span></li>';
+                            } else {
+                                output += '<li><span class="label label-danger">' + time + '</span></li>';
+                            }
+                        } else {
+                            output += '<li><span class="label label-default">Never Seen</span></li>';
+                        }
+
+                        output += '</ol>'
+                        return output;
+                    }
+                },
+                {% endfor %}
+            ],
+            "info": false,
+            "paging": false,
+            "scrollX": true,
+        } );
+
+        $('#red_user_select').on('change', function() {
+            var value = $(this).val();
+            if (value == 'All') {
+                table.ajax.url( '/api/pwnboard/data' ).load();
+            } else {
+                table.ajax.url( '/api/pwnboard/data/' + value ).load();
+            }
+        });
+    } );
+</script>
+{% endblock %}

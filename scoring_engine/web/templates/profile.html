@@ -25,6 +25,14 @@
         <button type="submit" class="btn btn-primary center-block">Update Password</button>
       </form>
     </div>
+    <div class="card">
+      <h2 class="text-center">API Token</h2>
+      <form onsubmit="return false;">
+        <div class="form-group">
+          <input type="text" class="form-control" name="api_token" id="api_token" value="{{current_user.token}}" readonly>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
