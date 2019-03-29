@@ -3,6 +3,6 @@ username=$1
 password=$2
 host=$3
 port=$4
-xfreerdp --ignore-certificate --authonly -u $username -p $password $host:$port
+xfreerdp /auth-only /cert-ignore /u:$username /p:$password /v:$host:$port
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo SUCCESS
