@@ -32,14 +32,14 @@ run-integration-tests:
 ## Build Commands
 .PHONY: build build-tests build-testbed build-integration
 build:
-	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
+	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) --parallel
 build-tests:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) base
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) tester redis
 build-testbed:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) --parallel
 build-integration:
-	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE)
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) --parallel
 
 ## Stop Commands
 .PHONY: stop stop-tests stop-testbed stop-integration
