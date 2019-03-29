@@ -64,6 +64,17 @@
 
         var myLineChart = new Chart(document.getElementById("teamLine"), {
             type: 'line',
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 10
+                        }
+
+                    }]
+                }
+            }
         });
 
         (function updateLineGraph() {
