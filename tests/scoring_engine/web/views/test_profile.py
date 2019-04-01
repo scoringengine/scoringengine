@@ -8,6 +8,5 @@ class TestProfile(WebTest):
 
     def test_home_with_auth(self):
         self.create_default_user()
-        self.client.login('testuser', 'testpass')
         resp = self.auth_and_get_path('/profile')
         assert resp.status_code == 200

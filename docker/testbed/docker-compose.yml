@@ -104,32 +104,32 @@ services:
     # ports:
     #   - 25:25
     #   - 587:587
-  testbed_wordpress:
-    image: wordpress
-    restart: always
-    depends_on:
-      - testbed_wordpress_mysql
-    networks:
-      - default
-    # ports:
-    #   - 80:80
-    environment:
-      WORDPRESS_DB_HOST: testbed_wordpress_mysql
-      WORDPRESS_DB_USER: wordpressuser
-      WORDPRESS_DB_PASSWORD: wordpresspass
-      WORDPRESS_DB_NAME: wordpress
-  testbed_wordpress_mysql:
-    image: mysql:5
-    restart: always
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpressuser
-      MYSQL_PASSWORD: wordpresspass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    networks:
-      - default
-    volumes:
-      - ./docker/testbed/wordpress/wordpress.sql:/docker-entrypoint-initdb.d/wordpress.sql
+  # testbed_wordpress:
+  #   image: wordpress
+  #   restart: always
+  #   depends_on:
+  #     - testbed_wordpress_mysql
+  #   networks:
+  #     - default
+  #   # ports:
+  #   #   - 80:80
+  #   environment:
+  #     WORDPRESS_DB_HOST: testbed_wordpress_mysql
+  #     WORDPRESS_DB_USER: wordpressuser
+  #     WORDPRESS_DB_PASSWORD: wordpresspass
+  #     WORDPRESS_DB_NAME: wordpress
+  # testbed_wordpress_mysql:
+  #   image: mysql:5
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: wordpress
+  #     MYSQL_USER: wordpressuser
+  #     MYSQL_PASSWORD: wordpresspass
+  #     MYSQL_RANDOM_ROOT_PASSWORD: '1'
+  #   networks:
+  #     - default
+  #   volumes:
+  #     - ./docker/testbed/wordpress/wordpress.sql:/docker-entrypoint-initdb.d/wordpress.sql
 
 networks:
   default:
