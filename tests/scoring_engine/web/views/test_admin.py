@@ -18,7 +18,7 @@ class TestAdmin(WebTest):
         user = User(username="testuser_red", password="testpass_red", team=red_team)
         self.session.add(user)
         self.session.commit()
-        self.client.login('testuser_red', 'testpass_red')
+        self.login('testuser_red', 'testpass_red')
         resp = self.client.get(path)
         assert resp.status_code == 302
         assert 'unauthorized' in str(resp.data)
