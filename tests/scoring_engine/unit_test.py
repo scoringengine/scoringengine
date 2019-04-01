@@ -11,7 +11,7 @@ class UnitTest(object):
 
     def teardown(self):
         delete_db(self.session)
-        self.session.close_all()
+        self.session.remove()
 
     def create_default_settings(self):
         self.session.add(Setting(name='about_page_content', value='example content value'))
