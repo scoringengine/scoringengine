@@ -35,40 +35,51 @@
     {% endfor %}
 
     {% if "admin" in request.path %}
-    <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">
+    <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
+    <!-- <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">-->
     {% else %}
     <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
     {% endif %}
-      <div class="navbar-inner">
-        <a class="navbar-brand" href="/">Scoring Engine</a>
-        <ul class="nav navbar-nav">
-          <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
-          <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
-          {% if current_user.is_authenticated %}
-            {% if current_user.is_blue_team %}
-              <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">Scoring Engine</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="">
+          <ul class="nav navbar-nav">
+            <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
+            <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
+            {% if current_user.is_authenticated %}
+              {% if current_user.is_blue_team %}
+                <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
+              {% endif %}
+              {% if current_user.is_white_team %}
+              <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"  href="{{ url_for('admin.status') }}">Admin</a></li>
+              {% endif %}
             {% endif %}
-            {% if current_user.is_white_team %}
-            <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"  href="{{ url_for('admin.status') }}">Admin</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            {% if not current_user.is_authenticated %}
+            <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
+            {% else %}
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{ current_user.get_username }} <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
+                <li class="divider"></li>
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+              </ul>
+            </li>
             {% endif %}
-          {% endif %}
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          {% if not current_user.is_authenticated %}
-          <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('auth.login') }}">Login</a></li>
-          {% else %}
-          <li class="dropdown">
-            <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{ current_user.get_username }} <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
-              <li class="divider"></li>
-              <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-            </ul>
-          </li>
-          {% endif %}
-          <li class="navbar-item"><a class="nav-link pull-right"  href="{{ url_for('about.about') }}">About</a></li>
-        </ul>
-      </div>
+            <li class="navbar-item"><a href="{{ url_for('about.about') }}">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div><!--/.container-fluid -->
     </nav>
     {% block content %}
     {% endblock %}
