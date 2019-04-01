@@ -63,9 +63,9 @@ class Engine(object):
 
     def shutdown(self):
         if self.round_running:
-            logger.warn("Shutting down after this round...")
+            logger.warning("Shutting down after this round...")
         else:
-            logger.warn("Shutting down now.")
+            logger.warning("Shutting down now.")
         self.last_round = True
 
     def add_check(self, check_obj):
