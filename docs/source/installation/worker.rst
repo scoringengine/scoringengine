@@ -121,3 +121,11 @@ Install dependencies for NFS check
   apt-get install -y libnfs-dev
   source /home/engine/scoring_engine/env/bin/activate && pip install -I "libnfs==1.0.post4"
 
+
+Install dependencies for OpenVPN check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  apt-get install -y openvpn iproute2 sudo
+  cp /home/engine/scoring_engine/src/docker/worker/sudoers /etc/sudoers
+
