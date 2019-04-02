@@ -16,7 +16,7 @@ Environment Variables
 We use certain environment variables to control the functionality of certain docker containers.
 
 :SCORINGENGINE_OVERWRITE_DB: If set to true, the database will be deleted and then recreated during startup.
-:SCORINGENGINE_EXAMPLE: If set to true, the database is populated with sample db, and the engine and worker containers will be paused. This is useful for doing development on the web app.
+:SCORINGENGINE_EXAMPLE: If set to true, the database is populated with sample db, and the engine container will be paused. This is useful for doing development on the web app.
 
 You can set each environment variable before each command executed, for example:
 ::

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import sys
 
 from scoring_engine.celery_app import celery_app
 from scoring_engine.config import config
@@ -9,14 +8,9 @@ from scoring_engine.config import config
 from scoring_engine.version import version
 from scoring_engine.logger import logger
 
-
-if 'SCORINGENGINE_EXAMPLE' in os.environ and os.environ['SCORINGENGINE_EXAMPLE'].lower() == 'true':
-    print("SCORINGENGINE_EXAMPLE environment variable is true, so skipping running the worker.")
-    sys.exit(0)
-
 celery_log_level = "error"
 if config.debug is True:
-  celery_log_level = "info"
+    celery_log_level = "info"
 
 workdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../scoring_engine/engine')
 celery_args = [

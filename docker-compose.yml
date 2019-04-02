@@ -111,7 +111,6 @@ services:
     networks:
       - default
     environment:
-      - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
     privileged: true
   web:
