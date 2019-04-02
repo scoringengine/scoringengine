@@ -18,7 +18,7 @@ services:
   engine:
     restart: "no"
     environment:
-      - SCORINGENGINE_NUM_ROUNDS=10
+      - SCORINGENGINE_NUM_ROUNDS=5
   # We redefine bootstrap so we can modify the
   # round refresh timers, so we aren't waiting around
   # for no reason
