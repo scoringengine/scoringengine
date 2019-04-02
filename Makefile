@@ -70,3 +70,7 @@ rebuild-testbed: build-testbed stop-testbed run-testbed
 rebuild-testbed-new: build-testbed stop-testbed clean-testbed run-testbed
 rebuild-integration: build-integration stop-integration run-integration
 rebuild-integration-new: build-integration stop-integration clean-integration run-integration
+
+.PHONY: integration-get-round
+integration-get-round:
+	docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run --no-deps engine bash -c "python -c 'from scoring_engine.models.round import Round; print(\"(Round {0})\".format(Round.get_last_round_num()))'"
