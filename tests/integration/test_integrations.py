@@ -7,13 +7,14 @@ from scoring_engine.db import session
 
 NUM_TESTBED_SERVICES = 14
 NUM_OVERALL_ROUNDS = 5
+NUM_OVERALL_TEAMS = 5
 SERVICE_TOTAL_POINTS_PER_ROUND = 1425
 
 
 class TestIntegration(object):
     def test_overall(self):
         blue_teams = Team.get_all_blue_teams()
-        assert len(blue_teams) == 10, \
+        assert len(blue_teams) == NUM_OVERALL_TEAMS, \
             "Incorrect number of blue teams"
 
     def test_round_num(self):
