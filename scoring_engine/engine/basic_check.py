@@ -2,7 +2,7 @@ import random
 import shellescape
 import os
 
-CHECKS_BIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../checks/bin')
+CHECKS_BIN_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../checks/bin'))
 
 CHECK_SUCCESS_TEXT = 'Check Finished Successfully'
 CHECK_FAILURE_TEXT = 'Check Received Incorrect Content'
