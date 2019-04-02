@@ -107,7 +107,7 @@ services:
     depends_on:
       - base
       - redis
-    restart: on-failure
+    restart: unless-stopped
     networks:
       - default
     environment:
