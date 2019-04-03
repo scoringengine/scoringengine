@@ -4,6 +4,7 @@
     {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/clipboard.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block content %}
@@ -124,18 +125,41 @@
                                                 image_color = 'black';
                                             }
                                             value_str = service_results['host_info']
-                                            html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}" title="${value_str}"></span>`;
+                                            html_str = `<span class="glyphicon ${image_icon} status" data-clipboard-text="${value_str}" data-toggle="tooltip" style="color:${image_color}"></span>`;
                                             $(this).html(html_str);
                                     }
                                 })
                             }
+                        })
+                        .on( 'draw', function () {
+                            // Tooltip on click
+                            $('span[data-toggle="tooltip"]').tooltip({
+                                animated: 'fade',
+                                placement: 'top',
+                                title: 'Copied!',
+                                trigger: 'click'
+                            });
+
+                            // Fade out tooltip
+                            $('span[data-toggle="tooltip"]').click(function () {
+                                setTimeout(function () {
+                                    $('.tooltip').fadeOut('slow');
+                                }, 500);
+
+                            });
                         });
                     setInterval( function () {
                         table.ajax.reload();
                     }, 30000 );
                 }
             });
+
+            // Copy on click
+            var clipboard = new ClipboardJS('.status');
         });
+    </script>
+    <script>
+      var clipboard = new ClipboardJS('.status');
     </script>
   </div>
 </div>
