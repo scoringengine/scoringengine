@@ -17,6 +17,7 @@ services:
     #   - 6379:6379
   mysql:
     image: mysql:5
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       - MYSQL_ROOT_PASSWORD=CHANGEME
       - MYSQL_DATABASE=scoring_engine

@@ -1,11 +1,14 @@
 import json
 from flask import jsonify
+from sqlalchemy import func
 
 from scoring_engine.cache import cache
 from scoring_engine.db import session
-from scoring_engine.models.service import Service
+from scoring_engine.models.pwnboard import Pwnboard
 from scoring_engine.models.round import Round
+from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 
 from . import mod
 
@@ -67,9 +70,11 @@ def overview_get_data():
         current_score_row_data = {'': 'Current Score'}
         current_place_row_data = {'': 'Current Place'}
         current_up_down_row_data = {'': 'Up/Down Ratio'}
+        red_team_score = {'': 'Red Team Score'}  # Red Team Score
         for blue_team in blue_teams:
             current_score_row_data[blue_team.name] = blue_team.current_score
             current_place_row_data[blue_team.name] = blue_team.place
+            red_team_score[blue_team.name] = 0  # Red Team Score
             num_up_services = 0
             num_down_services = 0
             for service in blue_team.services:
@@ -78,10 +83,34 @@ def overview_get_data():
                     num_up_services += 1
                 elif service_result is False:
                     num_down_services += 1
+                # Red Team Score
+                year = func.extract('year', Pwnboard.timestamp).label('year')
+                month = func.extract('month', Pwnboard.timestamp).label('month')
+                day = func.extract('day', Pwnboard.timestamp).label('day')
+                hour = func.extract('hour', Pwnboard.timestamp).label('hour')
+                session.query(func.count(Pwnboard.id))\
+                    .join(User)\
+                    .filter(Pwnboard.service == service)\
+                    .group_by(Pwnboard.user, year, month, day, hour)\
+                    .count()
+                red_team_score[blue_team.name] += session.query(func.min(Pwnboard.timestamp).label('timestamp'),
+                                                                func.count(Pwnboard.timestamp))\
+                    .join(User)\
+                    .filter(Pwnboard.service == service)\
+                    .group_by(User, func.date_format(Pwnboard.timestamp, "%Y-%m-%d %H"))\
+                    .count()
+                '''
+                red_team_score[blue_team.name] += session.query(Pwnboard) \
+                    .filter(Pwnboard.service == service) \
+                    .group_by(func.year(Pwnboard.timestamp), func.month(Pwnboard.timestamp),
+                              func.day(Pwnboard.timestamp), func.hour(Pwnboard.timestamp)) \
+                    .count()
+                '''
             current_up_down_row_data[blue_team.name] = "{0} / {1}".format(num_up_services, num_down_services)
         data.append(current_score_row_data)
         data.append(current_place_row_data)
         data.append(current_up_down_row_data)
+        data.append(red_team_score)  # Red Team Score
 
         for service in blue_teams[0].services:
             service_row_data = {'': service.name}

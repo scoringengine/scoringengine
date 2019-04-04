@@ -1,4 +1,5 @@
 import bcrypt
+import secrets
 
 from flask_login import UserMixin
 
@@ -6,8 +7,9 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
+from scoring_engine.models.team import Team
 
-from scoring_engine.db import db_salt
+from scoring_engine.db import db_salt, session
 
 
 class User(Base, UserMixin):
@@ -15,6 +17,7 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(50), nullable=False, unique=True)
     password = Column(Text, nullable=False)
+    token = Column(String(64))
     authenticated = Column(Boolean, default=False)
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship('Team', back_populates='users')
@@ -22,6 +25,7 @@ class User(Base, UserMixin):
     def __init__(self, username, password, team=None):
         self.username = username
         self.update_password(password)
+        self.token = secrets.token_hex(32)
         self.team = team
 
     @property
@@ -62,6 +66,10 @@ class User(Base, UserMixin):
     def update_password(self, password):
         self.password = User.generate_hash(password)
         return True
+
+    @staticmethod
+    def get_all_red_users():
+        return session.query(User).join(Team).filter(Team.color == 'Red').all()
 
     @staticmethod
     def generate_hash(password, salt=None):
