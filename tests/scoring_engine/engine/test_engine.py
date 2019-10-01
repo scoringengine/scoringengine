@@ -25,6 +25,7 @@ from scoring_engine.checks.rdp import RDPCheck
 from scoring_engine.checks.wordpress import WordpressCheck
 from scoring_engine.checks.nfs import NFSCheck
 from scoring_engine.checks.openvpn import OpenVPNCheck
+from scoring_engine.checks.telnet import TelnetCheck
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -68,6 +69,7 @@ class TestEngine(UnitTest):
             WordpressCheck,
             NFSCheck,
             OpenVPNCheck,
+            TelnetCheck,
         ]
         assert set(engine.checks) == set(expected_checks)
 

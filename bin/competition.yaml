@@ -378,6 +378,26 @@ teams:
   #       value: "/var/nfs/general/testfile.txt"
   #     - name: filecontents
   #       value: Sample file contents
+  # - name: Telnet
+  #   check_name: TelnetCheck
+  #   host: testbed_telnet
+  #   port: 23
+  #   timeout: 15
+  #   points: 100
+  #   accounts:
+  #   - username: ttesterson
+  #     password: testpass
+  #   - username: rpeterson
+  #     password: otherpass
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: id;ls -l /home
+  #   - matching_content: PID
+  #     properties:
+  #     - name: commands
+  #       value: ps
 - name: Team2
   color: Blue
   users:
@@ -746,6 +766,26 @@ teams:
   #       value: "/var/nfs/general/testfile.txt"
   #     - name: filecontents
   #       value: Sample file contents
+  # - name: Telnet
+  #   check_name: TelnetCheck
+  #   host: testbed_telnet
+  #   port: 23
+  #   timeout: 15
+  #   points: 100
+  #   accounts:
+  #   - username: ttesterson
+  #     password: testpass
+  #   - username: rpeterson
+  #     password: otherpass
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: id;ls -l /home
+  #   - matching_content: PID
+  #     properties:
+  #     - name: commands
+  #       value: ps
 - name: Team3
   color: Blue
   users:
@@ -1114,6 +1154,26 @@ teams:
   #       value: "/var/nfs/general/testfile.txt"
   #     - name: filecontents
   #       value: Sample file contents
+  # - name: Telnet
+  #   check_name: TelnetCheck
+  #   host: testbed_telnet
+  #   port: 23
+  #   timeout: 15
+  #   points: 100
+  #   accounts:
+  #   - username: ttesterson
+  #     password: testpass
+  #   - username: rpeterson
+  #     password: otherpass
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: id;ls -l /home
+  #   - matching_content: PID
+  #     properties:
+  #     - name: commands
+  #       value: ps
 - name: Team4
   color: Blue
   users:
@@ -1482,6 +1542,26 @@ teams:
   #       value: "/var/nfs/general/testfile.txt"
   #     - name: filecontents
   #       value: Sample file contents
+  # - name: Telnet
+  #   check_name: TelnetCheck
+  #   host: testbed_telnet
+  #   port: 23
+  #   timeout: 15
+  #   points: 100
+  #   accounts:
+  #   - username: ttesterson
+  #     password: testpass
+  #   - username: rpeterson
+  #     password: otherpass
+  #   environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: id;ls -l /home
+  #   - matching_content: PID
+  #     properties:
+  #     - name: commands
+  #       value: ps
 - name: Team5
   color: Blue
   users:

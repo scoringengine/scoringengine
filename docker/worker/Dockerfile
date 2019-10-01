@@ -59,6 +59,9 @@ RUN apt-get install -y freerdp-x11
 RUN apt-get install -y libnfs-dev
 RUN pip install -I "libnfs==1.0.post4"
 
+# Telnet Check
+RUN pip install -I "telnetlib3==1.0.1"
+
 # OpenVPN Check
 RUN apt-get install -y openvpn iproute2 sudo
 

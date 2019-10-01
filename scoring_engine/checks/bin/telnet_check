@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+# A scoring engine check that logs into telnet and runs a command
+#
+# To install: pip install -I "telnetlib3==1.0.1"
+
+import sys
+import telnetlib
+
+if len(sys.argv) != 7:
+    print("Usage: " + sys.argv[0] + " host port username password commands")
+    print("commands parameter supports multiple commands, use ';' as the delimeter")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+timeout = sys.argv[3]
+username = sys.argv[4]
+password = sys.argv[5]
+commands = sys.argv[6].split(';')
+
+
+def connect_and_execute(host, port, timeout, username, password, command):
+    try:
+        tn = telnetlib.Telnet(host=host, port=port, timeout=5)
+        tn.read_until(b"login: ")
+        tn.write(username.encode('ascii') + b"\n")
+        if password:
+            tn.read_until(b"Password: ")
+            tn.write(password.encode('ascii') + b"\n")
+
+        tn.write(b"{0}\n".format(command))
+        tn.write(b"exit\n")
+
+        return(tn.read_all().decode('ascii'))
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+
+
+last_command_output = ""
+for command in commands:
+    command_stdout = connect_and_execute(host, port, timeout, username, password, command)
+    last_command_output = command_stdout.rstrip()
+
+print("SUCCESS")
+print(last_command_output)
