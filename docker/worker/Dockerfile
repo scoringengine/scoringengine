@@ -72,4 +72,7 @@ COPY docker/worker/sudoers /etc/sudoers
 
 USER engine
 
+COPY scoring_engine /app/scoring_engine
+RUN pip install -e .
+
 CMD ["./wait-for-port.sh", "redis:6379", "/app/bin/worker"]

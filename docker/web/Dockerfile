@@ -12,6 +12,9 @@ USER engine
 
 COPY bin/web /app/bin/web
 
+COPY scoring_engine /app/scoring_engine
+RUN pip install -e .
+
 CMD ["./wait-for-container.sh", "bootstrap", "/app/bin/web"]
 
 EXPOSE 5000

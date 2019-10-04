@@ -1,7 +1,5 @@
 FROM scoringengine/base
 
-COPY tests /app/tests
-
 USER root
 
 RUN \
@@ -21,5 +19,8 @@ RUN \
 
 USER engine
 
+COPY scoring_engine /app/scoring_engine
+RUN pip install -e .
+COPY tests /app/tests
 RUN pip install -r /app/tests/requirements.txt
 
