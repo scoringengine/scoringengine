@@ -14,6 +14,7 @@ class Round(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer, nullable=False)
     checks = relationship("Check", back_populates="round")
+    scores = relationship("Score", back_populates="round")
     round_start = Column(DateTime, default=datetime.utcnow)
     round_end = Column(DateTime)
 
@@ -27,5 +28,7 @@ class Round(Base):
 
     @property
     def local_round_start(self):
-        round_start_obj = pytz.timezone('UTC').localize(self.round_start)
-        return round_start_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S')
+        round_start_obj = pytz.timezone("UTC").localize(self.round_start)
+        return round_start_obj.astimezone(pytz.timezone(config.timezone)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )

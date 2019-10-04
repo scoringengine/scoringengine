@@ -1,6 +1,8 @@
+from copy import copy
+
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from copy import copy
+
 from scoring_engine.models.base import Base
 from scoring_engine.models.team import Team
 
