@@ -17,7 +17,6 @@ COPY docker/wait-for-container.sh /app/wait-for-container.sh
 COPY docker/wait-for-port.sh /app/wait-for-port.sh
 COPY setup.py /app/setup.py
 COPY docker/engine.conf.inc /app/engine.conf
-COPY scoring_engine /app/scoring_engine
 
 WORKDIR /app
 
@@ -32,4 +31,13 @@ USER engine
 # Automatically source into python virtual environment
 ENV PATH=/venv/bin:$PATH
 
-RUN pip install -e .
+# Copy over files required for setup.py
+COPY scoring_engine/__init__.py /app/scoring_engine/__init__.py
+COPY scoring_engine/version.py /app/scoring_engine/version.py
+COPY scoring_engine/config.py /app/scoring_engine/config.py
+COPY scoring_engine/config_loader.py /app/scoring_engine/config_loader.py
+
+# Only install dependencies, don't install scoring engine
+# Credit goes to https://stackoverflow.com/a/53251585
+RUN python setup.py egg_info
+RUN pip install -r *.egg-info/requires.txt
