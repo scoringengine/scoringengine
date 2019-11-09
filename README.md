@@ -1,6 +1,9 @@
 [![Documentation Status](https://readthedocs.org/projects/scoringengine/badge/?version=latest)](https://scoringengine.readthedocs.io/en/latest/)
 [![Build Status](https://travis-ci.com/scoringengine/scoringengine.svg?branch=master)](https://travis-ci.com/scoringengine/scoringengine)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/3086b9e946c109140ac3/test_coverage)](https://codeclimate.com/github/scoringengine/scoringengine/test_coverage)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/scoringengine/scoringengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/scoringengine/scoringengine/alerts/)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/scoringengine/scoringengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/scoringengine/scoringengine/context:javascript)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/scoringengine/scoringengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/scoringengine/scoringengine/context:python)
 
 Scoring Engine
 ==============
