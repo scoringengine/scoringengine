@@ -19,6 +19,7 @@ def verify_db_ready(session):
     ready = True
     try:
         from scoring_engine.models.user import User
+
         session.query(User).get(1)
     except (OperationalError, ProgrammingError):
         ready = False
@@ -26,12 +27,21 @@ def verify_db_ready(session):
 
 
 isolation_level = "READ COMMITTED"
-if 'sqlite' in config.db_uri:
+if "sqlite" in config.db_uri:
     # sqlite db does not support transaction based statements
     # so we have to manually set it to something else
     isolation_level = "READ UNCOMMITTED"
 
-session = scoped_session(sessionmaker(bind=create_engine(config.db_uri, isolation_level=isolation_level)))
+session = scoped_session(
+    sessionmaker(
+        bind=create_engine(
+            config.db_uri,
+            isolation_level=isolation_level,
+            pool_size=10,
+            max_overflow=10,
+        )
+    )
+)
 
 db_salt = bcrypt.gensalt()
 
