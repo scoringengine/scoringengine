@@ -32,6 +32,7 @@ run-integration-tests:
 ## Build Commands
 .PHONY: build build-tests build-testbed build-integration
 build:
+	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) base
 	docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) --parallel
 build-tests:
 	docker-compose -f $(MAIN_DOCKER) -f $(TESTS_DOCKER) -p $(PROJECT_NAME) $(BUILD_MODE) base
