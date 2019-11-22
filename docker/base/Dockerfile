@@ -6,6 +6,7 @@ RUN \
   apt-get install -y \
     python3 \
     python3-pip \
+    libssl-dev \
     libmysqlclient-dev \
     iputils-ping && \
   rm -rf /var/lib/apt/lists/* && \
