@@ -9,6 +9,8 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.account import Account
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
+from scoring_engine.models.score import Score
+from scoring_engine.models.round import Round
 
 from scoring_engine.logger import logger
 
@@ -184,10 +186,14 @@ class Competition(dict):
         assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
 
     def save(self, db_session):
+        round_obj = Round(number=0)
+        db_session.add(round_obj)
         for team_dict in self['teams']:
             logger.info("Creating {0} Team: {1}".format(team_dict['color'], team_dict['name']))
             team_obj = Team(name=team_dict['name'], color=team_dict['color'])
             db_session.add(team_obj)
+            score_obj = Score(value=0, round_id=round_obj.id, team_id=team_obj.id)
+            db_session.add(score_obj)
             for user_dict in team_dict['users']:
                 logger.info("\tCreating User {0}:{1}".format(user_dict['username'], user_dict['password']))
                 db_session.add(User(username=user_dict['username'], password=user_dict['password'], team=team_obj))
