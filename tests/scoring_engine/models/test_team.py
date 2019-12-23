@@ -1,11 +1,9 @@
 import pytest
 
-from scoring_engine.engine import util
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
-from scoring_engine.models.round import Round
 
 from tests.scoring_engine.helpers import generate_sample_model_tree, populate_sample_data
 from tests.scoring_engine.unit_test import UnitTest
@@ -78,39 +76,30 @@ class TestTeam(UnitTest):
 
     def test_current_score(self):
         team = generate_sample_model_tree('Team', self.session)
-        round_obj = Round(number=1)
-        self.session.add(round_obj)
-        self.session.commit()
-
         service_1 = Service(name="Example Service 1", team=team, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
-        check_1 = Check(service=service_1, result=True, output='Good output', round=round_obj)
+        check_1 = Check(service=service_1, result=True, output='Good output')
         self.session.add(check_1)
         service_2 = Service(name="Example Service 2", team=team, check_name="SSH IPv4 Check", host='127.0.0.2')
         self.session.add(service_2)
-        check_2 = Check(service=service_2, result=True, output='Good output', round=round_obj)
+        check_2 = Check(service=service_2, result=True, output='Good output')
         self.session.add(check_2)
+        check_3 = Check(service=service_2, result=True, output='Good output')
+        self.session.add(check_3)
         service_3 = Service(name="Example Service 3", team=team, check_name="SSH IPv4 Check", host='127.0.0.3')
         self.session.add(service_3)
-        check_3 = Check(service=service_3, result=False, output='bad output', round=round_obj)
+        check_3 = Check(service=service_3, result=False, output='bad output')
         self.session.add(check_3)
         self.session.commit()
-        util.update_team_score(team.id, 1, 1, add=True)
-        assert team.current_score == 200
+        assert team.current_score == 300
 
     def test_place(self):
-        round_1 = Round(number=1)
-        round_2 = Round(number=2)
-        self.session.add(round_1)
-        self.session.add(round_2)
-        self.session.commit()
-
         team_1 = Team(name="Blue Team 1", color="Blue")
         self.session.add(team_1)
         service_1 = Service(name="Example Service 1", team=team_1, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
-        check_1 = Check(service=service_1, result=True, output='Good output', round=round_1)
-        check_2 = Check(service=service_1, result=True, output='Good output', round=round_2)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
         self.session.add(check_1)
         self.session.add(check_2)
         self.session.commit()
@@ -119,8 +108,8 @@ class TestTeam(UnitTest):
         self.session.add(team_2)
         service_1 = Service(name="Example Service 1", team=team_2, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
-        check_1 = Check(service=service_1, result=True, output='Good output', round=round_1)
-        check_2 = Check(service=service_1, result=True, output='Good output', round=round_2)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=True, output='Good output')
         self.session.add(check_1)
         self.session.add(check_2)
         self.session.commit()
@@ -129,16 +118,11 @@ class TestTeam(UnitTest):
         self.session.add(team_3)
         service_1 = Service(name="Example Service 1", team=team_3, check_name="ICMP IPv4 Check", host='127.0.0.1')
         self.session.add(service_1)
-        check_1 = Check(service=service_1, result=True, output='Good output', round=round_1)
-        check_2 = Check(service=service_1, result=False, output='Good output', round=round_2)
+        check_1 = Check(service=service_1, result=True, output='Good output')
+        check_2 = Check(service=service_1, result=False, output='Good output')
         self.session.add(check_1)
         self.session.add(check_2)
         self.session.commit()
-
-        util.update_team_score(team_1.id, 1, 2, add=True)
-        util.update_team_score(team_2.id, 1, 2, add=True)
-        util.update_team_score(team_3.id, 1, 2, add=True)
-
         assert team_1.place == 1
         assert team_2.place == 1
         assert team_3.place == 3

@@ -1,6 +1,5 @@
 import random
 
-from scoring_engine.engine import util
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
@@ -25,8 +24,6 @@ def populate_sample_data(session):
     check_2 = Check(service=service, result=False, output='Bad output', round=round_2)
     session.add(check_2)
     session.commit()
-
-    util.update_team_score(team.id, 0, 2, add=True)
     return team
 
 

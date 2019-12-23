@@ -4,8 +4,6 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.round import Round
-from scoring_engine.models.score import Score
-from scoring_engine.models.setting import Setting
 from scoring_engine.db import session
 
 
@@ -17,7 +15,6 @@ class Team(Base):
     services = relationship("Service", back_populates="team", lazy="joined")
     users = relationship("User", back_populates="team", lazy="joined")
     rgb_color = Column(String(30))
-    scores = relationship('Score', back_populates="team")
 
     def __init__(self, name, color):
         self.name = name
@@ -26,12 +23,10 @@ class Team(Base):
 
     @property
     def current_score(self):
-        score = session.query(Score.value).filter(Score.team_id == self.id).join(Score.round).order_by(Round.number.desc()).first()
-        if score is None:
-            return 0
-        else:
-            # It returns a tuple that we want to unwrap
-            return score[0]
+        total_score = 0
+        for service in self.services:
+            total_score += service.score_earned
+        return total_score
 
     @property
     def place(self):
@@ -58,35 +53,28 @@ class Team(Base):
         return self.color == 'Blue'
 
     def get_array_of_scores(self, max_round):
-        result = [0]  # Round 0 score will always be zero, change my mind
-        for score in self.scores:
-            if score.round.number <= max_round:
-                result.append(score.value)
-        result.sort()
-        return result
+        scores = [0]
+        overall_score = 0
+        for round_num in range(1, max_round + 1):
+            current_round_score = 0
+            for service in self.services:
+                if service.check_result_for_round(round_num) is True:
+                    current_round_score += service.points
 
-    def get_round_scores(self, round_num: int) -> int:
-        """Get the number of points a team earned during a specific round.
+            overall_score += current_round_score
+            scores.append(overall_score)
+        return scores
 
-        :param round_num: The number of the round to check.
-        :type round_num: int
-        :return: How many points the team earned during the specified round.
-        :rtype: int
-        """
-        # TestTeam.test_get_round_scores requires we raise this exception
-        if round_num > Round.get_last_round_num():
-            raise IndexError()
-
-        # Get the current score and the previous score so we can subtract the two
+    def get_round_scores(self, round_num):
+        if round_num == 0:
+            return 0
+        round_obj = session.query(Round).filter(Round.number == round_num).all()[0]
         round_score = 0
-        prev_round_score = 0
-        for score in self.scores:
-            if score.round.number == round_num:
-                round_score = score.value
-            elif score.round.number == round_num - 1:
-                prev_round_score = score.value
-
-        return round_score - prev_round_score
+        for check in round_obj.checks:
+            if check.service.team == self:
+                if check.result is True:
+                    round_score += check.service.points
+        return round_score
 
     @staticmethod
     def get_all_blue_teams():
@@ -120,17 +108,3 @@ class Team(Base):
         results['scores'] = scores
 
         return results
-
-    def queue_update(self):
-        """Queue a score update for this team.
-        """
-        teams_to_update = session.query(Setting).filter_by(name='teams_to_update').first()
-        team_list = teams_to_update.value
-
-        # Only add a preceeding comma if the list is not empty
-        if team_list != '':
-            team_list += ','
-
-        team_list += str(self.id)
-        teams_to_update.value = team_list
-        session.commit()
