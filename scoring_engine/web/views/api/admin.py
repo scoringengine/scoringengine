@@ -76,7 +76,6 @@ def admin_update_check():
                     modified_check = True
                     check.reason = request.form['value']
                 if modified_check:
-                    check.service.team.queue_update()
                     session.add(check)
                     session.commit()
                     update_scoreboard_data()
@@ -150,7 +149,6 @@ def admin_update_points():
             if service:
                 if request.form['name'] == 'points':
                     service.points = int(request.form['value'])
-                    service.team.queue_update()
                     session.add(service)
                     session.commit()
                     return jsonify({'status': 'Updated Service Information'})

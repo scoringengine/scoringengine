@@ -9,18 +9,15 @@ import time
 from functools import partial
 
 from scoring_engine.config import config
-from scoring_engine.models.check import Check
+from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
+from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
-from scoring_engine.models.score import Score
-from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.models.team import Team
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
-from scoring_engine.engine import util
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
 from scoring_engine.db import session
@@ -165,10 +162,6 @@ class Engine(object):
                 self.session.add(latest_kb)
                 self.session.commit()
 
-                # While waiting for jobs to finish, let's run any score updates that are
-                # needed
-                util.update_scores()
-
                 pending_tasks = self.all_pending_tasks(task_ids)
                 while pending_tasks:
                     worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
@@ -184,16 +177,6 @@ class Engine(object):
                 cleanup_items.append(round_obj)
                 self.session.add(round_obj)
                 self.session.commit()
-
-                # Initialize scores for this round based on each team's scores from the
-                # previous round
-                scores = {}
-                for team_obj in session.query(Team).all():
-                    scores[team_obj.id] = Score(
-                        value=team_obj.current_score,
-                        round=round_obj,
-                        team=team_obj,
-                    )
 
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
@@ -222,7 +205,6 @@ class Engine(object):
                             }
                         if result:
                             teams[environment.service.team.name]['Success'].append(environment.service.name)
-                            scores[environment.service.team.id].value += environment.service.points
                         else:
                             teams[environment.service.team.name]['Failed'].append(environment.service.name)
 
@@ -235,9 +217,6 @@ class Engine(object):
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
                     self.session.add(finished_check)
-                for score in scores.values():
-                    cleanup_items.append(score)
-                    self.session.add(score)
                 self.session.commit()
 
             except Exception as e:
