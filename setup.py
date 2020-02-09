@@ -21,12 +21,13 @@ config = {
         'Flask-Caching==1.4.0',
         'Flask-Login==0.4.0',
         'Flask-SQLAlchemy==2.2',
-        'Flask-WTF==0.14.2',
+        'Flask-WTF==0.14.3',
         'mysqlclient==1.3.12',
         'pynsive==0.2.7',
         'PyYAML==4.2b4',
         'redis==3.2',
-        'shellescape==3.4.1'
+        'shellescape==3.4.1',
+        'Werkzeug==0.16.1'
     ],
     'packages': ['scoring_engine'],
     'scripts': [],
