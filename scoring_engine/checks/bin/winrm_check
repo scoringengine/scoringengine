@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+# A scoring engine check that logs into winrm and runs a command
+# The check will login each time and run ONE command
+# The idea of running separate sessions is to verify
+# the state of the machine was changed via winrm
+# IE: Login, create a file, logout, login, verify file is still there, logout
+#
+# To install: pip install -I "pywinrm"
+
+import winrm
+import sys
+
+
+if len(sys.argv) != 5:
+    print("Usage: " + sys.argv[0] + " host username password commands")
+    print("commands parameter supports multiple commands, use ';' as the delimeter")
+    sys.exit(1)
+
+host = sys.argv[1]
+username = sys.argv[2]
+password = sys.argv[3]
+commands = sys.argv[4].split(';')
+
+
+def connect_and_execute(host, username, password, command):
+    try:
+        s = winrm.Session(host, auth=(username, password), transport='ntlm')
+        split = command.split(" ")
+        if len(split) == 1:
+            r = s.run_cmd(split[0], [])
+        else:
+            r = s.run_cmd(split[0], split[1:])
+        return_code = r.status_code
+        stdout_output = r.std_out.decode('utf-8')
+        stderr_output = r.std_err.decode('utf-8')
+        return return_code, ''.join(stdout_output), ''.join(stderr_output)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+
+last_command_output = ""
+for command in commands:
+    rc, command_stdout, command_stderr = connect_and_execute(host, username, password, command)
+    if rc != 0:
+        print("ERROR: Command ran unsuccessfully: " + str(command))
+        print(command_stderr)
+        sys.exit(1)
+    last_command_output = command_stdout.rstrip()
+
+print("SUCCESS")
+print(last_command_output)

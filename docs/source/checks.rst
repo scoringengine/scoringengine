@@ -18,3 +18,4 @@ Implemented Checks
 .. include:: checks/smtp.rst
 .. include:: checks/ssh.rst
 .. include:: checks/vnc.rst
+.. include:: checks/winrm.rst
