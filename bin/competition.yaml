@@ -256,6 +256,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: WinRM
+  #   check_name: WinRMCheck
+  #   host: testbed_winrm
+  #   port: 0
+  #   points: 100
+  #   accounts:
+  #   - username: tttesterson
+  #     password: testpass
+  #  environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: ipconfig /all;whoami
   # - name: Wordpress
   #   check_name: WordpressCheck
   #   host: testbed_wordpress
@@ -644,6 +657,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: WinRM
+  #   check_name: WinRMCheck
+  #   host: testbed_winrm
+  #   port: 0
+  #   points: 100
+  #   accounts:
+  #   - username: tttesterson
+  #     password: testpass
+  #  environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: ipconfig /all;whoami
   # - name: Wordpress
   #   check_name: WordpressCheck
   #   host: testbed_wordpress
@@ -1032,6 +1058,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: WinRM
+  #   check_name: WinRMCheck
+  #   host: testbed_winrm
+  #   port: 0
+  #   points: 100
+  #   accounts:
+  #   - username: tttesterson
+  #     password: testpass
+  #  environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: ipconfig /all;whoami
   # - name: Wordpress
   #   check_name: WordpressCheck
   #   host: testbed_wordpress
@@ -1420,6 +1459,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: WinRM
+  #   check_name: WinRMCheck
+  #   host: testbed_winrm
+  #   port: 0
+  #   points: 100
+  #   accounts:
+  #   - username: tttesterson
+  #     password: testpass
+  #  environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: ipconfig /all;whoami
   # - name: Wordpress
   #   check_name: WordpressCheck
   #   host: testbed_wordpress
@@ -1808,6 +1860,19 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: WinRM
+  #   check_name: WinRMCheck
+  #   host: testbed_winrm
+  #   port: 0
+  #   points: 100
+  #   accounts:
+  #   - username: tttesterson
+  #     password: testpass
+  #  environments:
+  #   - matching_content: "^SUCCESS"
+  #     properties:
+  #     - name: commands
+  #       value: ipconfig /all;whoami
   # - name: Wordpress
   #   check_name: WordpressCheck
   #   host: testbed_wordpress
