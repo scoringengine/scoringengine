@@ -22,8 +22,8 @@ RUN apt-get install -y ldap-utils
 RUN apt-get install -y medusa
 
 # SSH Check
-RUN pip install -I "cryptography>=2.4,<2.5"
-RUN pip install "paramiko>=2.4,<2.5"
+RUN pip install -I "cryptography>=3.4,<3.5"
+RUN pip install "paramiko>=2.7,<2.8"
 
 # WinRM Check
 RUN pip install -I "pywinrm>=0.4.1,<0.4.2"
