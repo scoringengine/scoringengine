@@ -54,6 +54,22 @@ class Service(Base):
 
     @property
     def score_earned(self):
+        # TODO - SLA Scoring
+        penalty = 0
+        points = 0
+        for check in self.checks:
+            # Increment penalty if result is false
+            if check.result is False:
+                penalty += .1
+                if penalty > .5:
+                    penalty = .5
+            else:
+                points += self.points * (1 - penalty)
+                penalty -= .1
+                if penalty < 0:
+                    penalty = 0
+        return points
+
         passed_checks = [check for check in self.checks if check.result is True]
         return len(passed_checks) * self.points
 
