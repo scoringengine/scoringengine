@@ -287,6 +287,22 @@ def admin_update_blueteam_edit_account_passwords():
     return {'status': 'Unauthorized'}, 403
 
 
+@mod.route('/api/admin/update_blueteam_view_check_output', methods=['POST'])
+@login_required
+def admin_update_blueteam_view_check_output():
+    if current_user.is_white_team:
+        setting = Setting.get_setting('blue_team_view_check_output')
+        print(setting.__dict__)
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
+        return redirect(url_for('admin.permissions'))
+    return {'status': 'Unauthorized'}, 403
+
+
 @mod.route('/api/admin/get_round_progress')
 @login_required
 def get_check_progress_total():

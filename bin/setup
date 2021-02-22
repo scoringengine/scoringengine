@@ -139,6 +139,7 @@ session.add(Setting(name='blue_team_update_hostname', value=True))
 session.add(Setting(name='blue_team_update_port', value=True))
 session.add(Setting(name='blue_team_update_account_usernames', value=True))
 session.add(Setting(name='blue_team_update_account_passwords', value=True))
+session.add(Setting(name='blue_team_view_check_output', value=True))
 session.commit()
 
 if options.example:
