@@ -9,6 +9,9 @@
 # Ignore VirtualEnv
 venv/*
 
+# Pyenv
+.python-version
+
 .cache
 .coverage
 htmlcov
