@@ -2,6 +2,7 @@ import bcrypt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.pool import NullPool
 
 from scoring_engine.config import config
 from scoring_engine.models.base import Base
@@ -31,7 +32,9 @@ if 'sqlite' in config.db_uri:
     # so we have to manually set it to something else
     isolation_level = "READ UNCOMMITTED"
 
-session = scoped_session(sessionmaker(bind=create_engine(config.db_uri, isolation_level=isolation_level)))
+session = scoped_session(sessionmaker(bind=create_engine(config.db_uri,
+                                                         isolation_level=isolation_level,
+                                                         poolclass=NullPool)))
 
 db_salt = bcrypt.gensalt()
 
