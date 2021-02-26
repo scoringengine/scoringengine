@@ -411,6 +411,13 @@ teams:
   #     properties:
   #     - name: commands
   #       value: ps
+  # - name: TCP
+  #   check_name: TCPCheck
+  #   host: testbed_tcp
+  #   port: 22
+  #   points: 25
+  #   environments:
+  #   - matching_content: "succeeded!$"
 - name: Team2
   color: Blue
   users:
@@ -812,6 +819,13 @@ teams:
   #     properties:
   #     - name: commands
   #       value: ps
+  # - name: TCP
+  #   check_name: TCPCheck
+  #   host: testbed_tcp
+  #   port: 22
+  #   points: 25
+  #   environments:
+  #   - matching_content: "succeeded!$"
 - name: Team3
   color: Blue
   users:
@@ -1213,6 +1227,13 @@ teams:
   #     properties:
   #     - name: commands
   #       value: ps
+  # - name: TCP
+  #   check_name: TCPCheck
+  #   host: testbed_tcp
+  #   port: 22
+  #   points: 25
+  #   environments:
+  #   - matching_content: "succeeded!$"
 - name: Team4
   color: Blue
   users:
@@ -1614,6 +1635,13 @@ teams:
   #     properties:
   #     - name: commands
   #       value: ps
+  # - name: TCP
+  #   check_name: TCPCheck
+  #   host: testbed_tcp
+  #   port: 22
+  #   points: 25
+  #   environments:
+  #   - matching_content: "succeeded!$"
 - name: Team5
   color: Blue
   users:
@@ -1995,3 +2023,10 @@ teams:
   #       value: "/var/nfs/general/testfile.txt"
   #     - name: filecontents
   #       value: Sample file contents
+  # - name: TCP
+  #   check_name: TCPCheck
+  #   host: testbed_tcp
+  #   port: 22
+  #   points: 25
+  #   environments:
+  #   - matching_content: "succeeded!$"

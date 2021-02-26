@@ -68,6 +68,9 @@ RUN pip install -I "telnetlib3==1.0.1"
 # OpenVPN Check
 RUN apt-get install -y openvpn iproute2 sudo
 
+# TCP Check
+RUN apt-get install -y nc
+
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY bin/worker /app/bin/worker
