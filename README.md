@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/scoringengine/badge/?version=latest)](https://scoringengine.readthedocs.io/en/latest/)
-[![Build Status](https://travis-ci.com/scoringengine/scoringengine.svg?branch=master)](https://travis-ci.com/scoringengine/scoringengine)
+[![CI](https://github.com/scoringengine/scoringengine/actions/workflows/main.yml/badge.svg)](https://github.com/scoringengine/scoringengine/actions/workflows/main.yml)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/3086b9e946c109140ac3/test_coverage)](https://codeclimate.com/github/scoringengine/scoringengine/test_coverage)
 
 Scoring Engine
