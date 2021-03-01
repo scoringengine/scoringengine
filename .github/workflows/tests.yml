@@ -1,0 +1,20 @@
+name: Tests
+on:
+  push:
+    branches: '*'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build Tests
+      run: make build-tests
+
+    - name: Run tests
+      run: make run-tests
+
+    # # Need to uncomment this once integration tests are back to working
+    # - name: Run integration tests
+    #   run: ./tests/integration/run.sh
