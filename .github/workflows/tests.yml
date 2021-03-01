@@ -2,6 +2,8 @@ name: Tests
 on:
   push:
     branches: '*'
+  # Allow for manual run
+  workflow_dispatch:
 
 jobs:
   tests:
