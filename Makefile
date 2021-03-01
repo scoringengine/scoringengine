@@ -19,9 +19,9 @@ run:
 run-tests:
 	docker-compose -f $(TESTS_DOCKER) -p $(PROJECT_NAME) up -d
 	# Flake8 checks
-	docker run -it scoringengine/tester bash -c "flake8 --config .flake8 ./"
+	docker run -i scoringengine/tester bash -c "flake8 --config .flake8 ./"
 	# Run unit tests
-	docker run -it -v artifacts:/app/artifacts scoringengine/tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+	docker run -i -v artifacts:/app/artifacts scoringengine/tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
 run-testbed:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
 run-integration:
