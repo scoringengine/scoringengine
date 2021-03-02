@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM ubuntu:bionic
 
 RUN \
   apt-get update && \
