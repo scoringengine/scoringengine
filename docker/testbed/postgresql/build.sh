@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure we allow connections from external hosts
-sudo sh -c 'echo "host all all samenet password" >> /etc/postgresql/12/main/pg_hba.conf'
+sudo sh -c 'echo "host all all samenet password" >> /etc/postgresql/10/main/pg_hba.conf'
 
 sudo service postgresql start || exit 1
 
