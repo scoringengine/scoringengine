@@ -1,7 +1,11 @@
 name: Tests
 on:
+  # Run on any pushes to all branches
   push:
     branches: '*'
+  # Run every night
+  schedule:
+    - cron: '0 0 * * *'
   # Allow for manual run
   workflow_dispatch:
 
@@ -17,6 +21,5 @@ jobs:
     - name: Run tests
       run: make run-tests
 
-    # # Need to uncomment this once integration tests are back to working
-    # - name: Run integration tests
-    #   run: ./tests/integration/run.sh
+    - name: Run integration tests
+      run: ./tests/integration/run.sh

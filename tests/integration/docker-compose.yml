@@ -26,7 +26,11 @@ services:
     environment:
       - SCORINGENGINE_ROUND_TIME_SLEEP=3
       - SCORINGENGINE_WORKER_REFRESH_TIME=3
-
+  # We redefine worker so that we can have multiple
+  # worker containers running as part of the integration test
+  worker:
+    deploy:
+      replicas: 3
 
 networks:
   default:
