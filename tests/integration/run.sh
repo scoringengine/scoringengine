@@ -26,7 +26,7 @@ make clean-integration
 
 # Build and start the necessary containers
 echo "Building required container environment"
-make build-integration
+make build build-integration
 echo "Starting up required container environment"
 make run-integration
 
