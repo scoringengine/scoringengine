@@ -5,7 +5,7 @@ Install MySQL Server
 ^^^^^^^^^^^^^^^^^^^^
 ::
 
-  apt-get install -y mysql-server
+  apt-get install -y mariadb-server
   sed -i -e 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mysql.conf.d/mysqld.cnf
   systemctl restart mysql
 
