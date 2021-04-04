@@ -28,4 +28,4 @@ class Round(Base):
     @property
     def local_round_start(self):
         round_start_obj = pytz.timezone('UTC').localize(self.round_start)
-        return round_start_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S')
+        return round_start_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
