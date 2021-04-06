@@ -35,4 +35,4 @@ class Check(Base):
     @property
     def local_completed_timestamp(self):
         completed_timezone_obj = pytz.timezone('UTC').localize(self.completed_timestamp)
-        return completed_timezone_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S')
+        return completed_timezone_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
