@@ -1,4 +1,4 @@
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from scoring_engine.models.base import Base
 
 
