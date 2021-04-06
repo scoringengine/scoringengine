@@ -24,7 +24,7 @@ config = {
         'Flask-WTF==0.14.3',
         'mysqlclient==1.3.12',
         'pynsive==0.2.7',
-        'PyYAML==4.2b4',
+        'PyYAML==5.4.1',
         'redis==3.2',
         'shellescape==3.4.1',
         'Werkzeug==0.16.1'
