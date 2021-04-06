@@ -46,6 +46,15 @@
                 </div>
               </form>
             </li>
+            <li class="list-group-item">
+              <form id="view_check_output_form" method="POST" action="{{ url_for('api.admin_update_blueteam_view_check_output') }}" role="form">
+                View Check Output
+                <div class="permission-switch pull-right">
+                  <input id="view_check_output_passwords" type="checkbox" onchange="$('#view_check_output_form').submit();" {{ 'checked' if blue_team_view_check_output == true }}/>
+                  <label for="view_check_output_passwords" class="label-primary"></label>
+                </div>
+              </form>
+            </li>
           </ul>
         </div>
       </div>

@@ -102,6 +102,7 @@ def permissions():
             blue_team_update_port=Setting.get_setting('blue_team_update_port').value,
             blue_team_update_account_usernames=Setting.get_setting('blue_team_update_account_usernames').value,
             blue_team_update_account_passwords=Setting.get_setting('blue_team_update_account_passwords').value,
+            blue_team_view_check_output=Setting.get_setting('blue_team_view_check_output').value,
         )
     else:
         return redirect(url_for('auth.unauthorized'))

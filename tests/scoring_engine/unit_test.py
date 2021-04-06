@@ -22,5 +22,6 @@ class UnitTest(object):
         self.session.add(Setting(name='blue_team_update_port', value=True))
         self.session.add(Setting(name='blue_team_update_account_usernames', value=True))
         self.session.add(Setting(name='blue_team_update_account_passwords', value=True))
+        self.session.add(Setting(name='blue_team_view_check_output', value=True))
         self.session.add(Setting(name='overview_show_round_info', value=True))
         self.session.commit()

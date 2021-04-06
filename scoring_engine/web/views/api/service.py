@@ -22,13 +22,18 @@ def service_get_checks(id):
         return jsonify({'status': 'Unauthorized'}), 403
     data = []
     for check in service.checks_reversed:
-        data.append({
+        check_output = {
             'round': check.round.number,
             'result': check.result,
             'timestamp': check.local_completed_timestamp,
             'reason': check.reason,
-            'output': check.output,
-        })
+        }
+        # Allow/deny blue teams from seeing checking output
+        if Setting.get_setting('blue_team_view_check_output').value is False and current_user.is_blue_team:
+            check_output['output'] = 'REDACTED'
+        else:
+            check_output['output'] = check.output
+        data.append(check_output)
     return jsonify(data=data)
 
 
