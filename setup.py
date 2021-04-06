@@ -27,7 +27,8 @@ config = {
         'PyYAML==5.4.1',
         'redis==3.2',
         'shellescape==3.4.1',
-        'Werkzeug==0.16.1'
+        'Werkzeug==0.16.1',
+        'uWSGI==2.0.19.1',
     ],
     'packages': ['scoring_engine'],
     'scripts': [],
