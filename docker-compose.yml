@@ -16,7 +16,7 @@ services:
     # ports:
     #   - 6379:6379
   mysql:
-    image: mysql:5
+    image: mariadb:10
     environment:
       - MYSQL_ROOT_PASSWORD=CHANGEME
       - MYSQL_DATABASE=scoring_engine
