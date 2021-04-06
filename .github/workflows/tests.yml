@@ -23,3 +23,10 @@ jobs:
 
     - name: Run integration tests
       run: ./tests/integration/run.sh
+
+    - name: Test & publish code coverage
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: ecb85ae3d9e46474810659154b2354f9340aa7c0f0662a209ef80311d208547a
+      with:
+        coverageCommand: npm run coverage
