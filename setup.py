@@ -20,7 +20,7 @@ config = {
         'Flask==1.0.2',
         'Flask-Caching==1.4.0',
         'Flask-Login==0.4.0',
-        'Flask-SQLAlchemy==2.2',
+        'Flask-SQLAlchemy==2.5.1',
         'Flask-WTF==0.14.3',
         'mysqlclient==1.3.12',
         'pynsive==0.2.7',

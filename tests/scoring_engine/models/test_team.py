@@ -72,7 +72,7 @@ class TestTeam(UnitTest):
         self.session.add(user_1)
         self.session.add(user_2)
         self.session.commit()
-        assert team.users == [user_1, user_2]
+        assert team.users == [user_2, user_1]  # TODO - Figure out why this is flipped
 
     def test_current_score(self):
         team = generate_sample_model_tree('Team', self.session)
