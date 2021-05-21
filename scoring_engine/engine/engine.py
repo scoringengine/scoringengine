@@ -79,6 +79,7 @@ class Engine(object):
             logger.debug(" Found " + loaded_check.__name__)
             self.add_check(loaded_check)
 
+    @staticmethod
     def load_check_files(checks_location):
         checks_location_module_str = checks_location.replace('/', '.')
         found_check_modules = pynsive.list_modules(checks_location_module_str)
@@ -104,7 +105,6 @@ class Engine(object):
             time.sleep(seconds)
         except Exception:
             self.shutdown()
-            pass
 
     def is_last_round(self):
         return self.last_round or (self.rounds_run == self.total_rounds and self.total_rounds != 0)

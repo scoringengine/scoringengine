@@ -85,7 +85,7 @@
                 success: function(data) {
                     myLineChart.data.datasets = []
                     $.each(data['team'], function(index,value) {
-                        team_data = {
+                        var team_data = {
                             "label": value['name'],
                             "fill": false,
                             "lineTension": 0.1,

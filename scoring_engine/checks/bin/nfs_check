@@ -5,7 +5,6 @@
 
 import sys
 import libnfs
-import os
 
 if len(sys.argv) != 4:
     print("Usage: " + sys.argv[0] + " host remotefilepath filecontents")

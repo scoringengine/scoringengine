@@ -64,12 +64,12 @@
                             'createdRow': function ( row, data, index ) {
                                 $('td', row).each(function() {
                                     var value = $(this).html();
-                                    column_num = $(this).index();
+                                    var column_num = $(this).index();
                                     switch(index) {
                                         // Current Score
                                         case 0:
                                             if (column_num == 0) {
-                                                html_str = `<span style="font-weight:bold">${value}</span>`
+                                                var html_str = `<span style="font-weight:bold">${value}</span>`
                                                 $(this).html(html_str);
                                             } else {
                                                 var html_str = parseFloat(`${value}`).toLocaleString();
@@ -109,15 +109,15 @@
                                                 $(this).html(html_str);
                                                 break;
                                             }
-                                            column_service_name = $('#overview th').eq(column_num).text()
-                                            service_results = data[column_service_name]
+                                            var column_service_name = $('#overview th').eq(column_num).text()
+                                            var service_results = data[column_service_name]
                                             if (service_results['result'] == 'True') {
-                                                image_icon = 'glyphicon-ok';
-                                                image_color = 'green';
+                                                var image_icon = 'glyphicon-ok';
+                                                var image_color = 'green';
                                             }
                                             else if (service_results['result'] == 'False') {
-                                                image_icon = 'glyphicon-remove';
-                                                image_color = 'red';
+                                                var image_icon = 'glyphicon-remove';
+                                                var image_color = 'red';
                                             }
                                             else {
                                                 image_icon = 'glyphicon-question-sign';

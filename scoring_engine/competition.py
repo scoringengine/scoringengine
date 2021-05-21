@@ -14,6 +14,7 @@ from scoring_engine.logger import logger
 
 
 class Competition(dict):
+    @staticmethod
     def parse_yaml_str(input_str):
         data = yaml.safe_load(input_str)
         return Competition(data)
