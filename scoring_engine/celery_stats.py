@@ -4,7 +4,8 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 
 
-class CeleryStats():
+class CeleryStats:
+    @staticmethod
     def get_queue_stats():
         finished_queue_facts = []
 
@@ -49,6 +50,7 @@ class CeleryStats():
             finished_queue_facts.append(queue_facts)
         return finished_queue_facts
 
+    @staticmethod
     def get_worker_stats():
         finished_worker_facts = []
         worker_facts = {}

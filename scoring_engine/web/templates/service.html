@@ -158,10 +158,10 @@
                   url: "/api/team/{{service.team.id}}/services/status",
                   dataType: 'json',
                   success: function(data) {
-                    navbar_str = ""
+                    var navbar_str = ""
                     for (var key in data) {
-                      value = data[key];
-                      navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item'
+                      var value = data[key];
+                      var navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item'
                       if ("{{service.id}}" == value['id']){
                         navbar_row_str += " active"
                       }
@@ -201,8 +201,8 @@
                       "orderable": false,
                       "data": null,
                       "render": function( data ) {
-                        button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
-                        button_icon = 'glyphicon-plus'
+                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
+                        var button_icon = 'glyphicon-plus'
                         if ( window.expanded_rows ){
                             if (window.expanded_rows.indexOf(data['round']) >= 0) {
                               button_icon = 'glyphicon-minus';
@@ -232,7 +232,7 @@
                   if (!window.expanded_rows){
                     window.expanded_rows = []
                   }
-                  round_num = row.data().round
+                  var round_num = row.data().round
                   // Add round_num to array to keep track of what
                   // rows need to get opened on table reload
                   if (window.expanded_rows.indexOf(round_num) == -1) {
@@ -246,7 +246,7 @@
                     }
                   }
 
-                  icon_span = $(tr).find('span:first');
+                  var icon_span = $(tr).find('span:first');
                   if (row.child.isShown()) {
                     // Close the check output row
                     row.child.hide();
@@ -255,7 +255,7 @@
                   }
                   else {
                     // Open the check output row
-                    output_row = '<pre style="max-height: 350px;">' + row.data().output + '</pre>';
+                    var output_row = '<pre style="max-height: 350px;">' + row.data().output + '</pre>';
                     row.child(output_row).show();
                     icon_span.removeClass('glyphicon-plus')
                     icon_span.addClass('glyphicon-minus')
@@ -269,10 +269,10 @@
                       key = window.expanded_rows[i];
                       table.rows().every(function(){
                         if (this.data()['round'] == key) {
-                          row = table.row(this);
-                          output_row = '<pre>' + row.data().output + '</pre>';
+                          var row = table.row(this);
+                          var output_row = '<pre>' + row.data().output + '</pre>';
                           row.child(output_row).show();
-                          icon_span = $(this).find('span:first');
+                          var icon_span = $(this).find('span:first');
                           icon_span.removeClass('glyphicon-plus');
                           icon_span.addClass('glyphicon-minus');
                         }
