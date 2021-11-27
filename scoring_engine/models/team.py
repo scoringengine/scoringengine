@@ -27,13 +27,19 @@ class Team(Base):
 
     @property
     def current_score(self):
-        return session.query(
+        score = session.query(
             func.sum(Service.points)
         ) \
         .join(Check) \
         .filter(Service.team_id == self.id) \
         .filter(Check.result.is_(True)) \
         .scalar()
+
+        # return 0 if there is no score
+        if not score:
+            return 0
+
+        return score
         
         '''
         # This will return a tuple with the correct data ala https://github.com/CTFd/CTFd/blob/5599e25fc9771feb7e4a1ed9dd6e65b7da6d22f9/CTFd/utils/scores/__init__.py#L11
