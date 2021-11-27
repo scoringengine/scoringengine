@@ -1,8 +1,10 @@
 import json
 from flask import jsonify
+from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
 from scoring_engine.db import session
+from scoring_engine.models.check import Check
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
@@ -36,16 +38,48 @@ def overview_get_round_data():
 @mod.route('/api/overview/data')
 @cache.memoize()
 def overview_data():
+    # services_data = session.query(
+    #     Service.team_id,
+    #     Service.check_name,
+    #     Service.host,
+    #     Service.port,
+    #     Check.result,
+    #     func.max(Check.completed_timestamp),
+    # ) \
+    # .join(Check) \
+    # .group_by(Service.team_id) \
+    # .group_by(Service.check_name) \
+    # .all()
+
     team_data = {}
-    teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
+    teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.name).all()
+    # teams = session.query(Team.id, Team.name).filter(Team.color == 'Blue').order_by(Team.name).all()
     for team in teams:
-        service_data = {}
-        for service in team.services:
-            service_data[service.name] = {
-                'passing': service.last_check_result(),
-                'host': service.host,
-                'port': service.port,
-            }
+        query_data = session.query(
+            Service.team_id,
+            Team.name,
+            Service.name,
+            Check.result,
+            func.max(Check.completed_timestamp),
+            Service.host,
+            Service.port,
+        ) \
+        .join(Check) \
+        .join(Team) \
+        .filter(Service.team_id == team.id) \
+        .group_by(Service.team_id) \
+        .group_by(Service.name) \
+        .all()
+
+        service_data = {x[2]: {'host': x[5], 'passing': x[3], 'port': x[6]} for x in query_data}
+
+        # service_data = {}
+        # for service in team.services:
+        #     service_data[service.name] = {
+        #         'passing': service.last_check_result(),
+        #         'host': service.host,
+        #         'port': service.port,
+        #     }
         team_data[team.name] = service_data
     return jsonify(team_data)
 
