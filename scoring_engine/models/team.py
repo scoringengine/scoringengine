@@ -62,6 +62,20 @@ class Team(Base):
 
     @property
     def place(self):
+        scores = session.query(
+            Service.team_id,
+            func.sum(Service.points).label('score'),
+        ) \
+        .join(Check) \
+        .filter(Check.result.is_(True)) \
+        .group_by(Service.team_id) \
+        .order_by(desc('score')) \
+        .all()
+
+        team_ranks = [x[0] for x in scores]
+
+        return team_ranks.index(self.id) + 1
+
         sorted_blue_teams = sorted(Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True)
         place = 0
         previous_place = 1
