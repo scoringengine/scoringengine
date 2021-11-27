@@ -36,7 +36,7 @@ services:
     # ports:
     #   - 3306:3306
   testbed_mssql:
-    image: microsoft/mssql-server-linux:latest
+    image: mcr.microsoft.com/mssql/server:2017-latest
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=yourStrong(!)Password

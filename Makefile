@@ -17,11 +17,12 @@ all:
 run:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
 run-tests:
-	docker-compose -f $(TESTS_DOCKER) -p $(PROJECT_NAME) up -d
+	# docker-compose -f $(TESTS_DOCKER) -p $(PROJECT_NAME) up -d
 	# Flake8 checks
-	docker run -i scoringengine/tester bash -c "flake8 --config .flake8 ./"
+	# docker run -i scoringengine/tester bash -c "flake8 --config .flake8 ./"
 	# Run unit tests
-	docker run -i -v artifacts:/app/artifacts scoringengine/tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+	# docker run -i -v artifacts:/app/artifacts scoringengine/tester bash -c "py.test --cov=scoring_engine --cov-report=xml:/app/artifacts/coverage.xml tests"
+	coverage run -m py.test -v .
 run-testbed:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker-compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
 run-integration:
