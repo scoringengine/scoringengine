@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, desc, func
 from sqlalchemy.orm import relationship
 from copy import copy
 from scoring_engine.models.base import Base
+from scoring_engine.models.check import Check
+from scoring_engine.db import session
 
 
 class Service(Base):
@@ -36,6 +38,20 @@ class Service(Base):
 
     @property
     def rank(self):
+        scores = session.query(
+            Service.team_id,
+            func.sum(Service.points).label('score'),
+        ) \
+        .join(Check) \
+        .filter(Check.result.is_(True)) \
+        .group_by(Service.team_id) \
+        .order_by(desc('score')) \
+        .all()
+
+        team_ranks = [x[0] for x in scores]
+        place = team_ranks.index(self.team_id) + 1
+        return place
+
         services = []
         for blue_team in Team.get_all_blue_teams():
             for service in blue_team.services:
