@@ -40,9 +40,7 @@ class Service(Base):
         return sorted(self.checks, key=lambda check: check.round.number, reverse=True)
 
     @property
-    def rank(
-        self,
-    ):  # TODO - Why does this exist? It's duplicated in the team model, and it makes more sense there
+    def rank(self):
         scores = (
             session.query(
                 Service.team_id,
@@ -50,6 +48,7 @@ class Service(Base):
             )
             .join(Check)
             .filter(Check.result.is_(True))
+            .filter(Service.name == self.name)
             .group_by(Service.team_id)
             .order_by(desc("score"))
             .all()
