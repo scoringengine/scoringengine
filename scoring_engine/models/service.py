@@ -1,6 +1,9 @@
+import ranking
+
+from copy import copy
 from sqlalchemy import Column, Integer, String, ForeignKey, desc, func
 from sqlalchemy.orm import relationship
-from copy import copy
+
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
 from scoring_engine.db import session
@@ -11,12 +14,12 @@ class Service(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     check_name = Column(String(100), nullable=False)
-    team_id = Column(Integer, ForeignKey('teams.id'))
+    team_id = Column(Integer, ForeignKey("teams.id"))
     team = relationship("Team", back_populates="services", lazy="joined")
     checks = relationship("Check", back_populates="service")
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
-    environments = relationship('Environment', back_populates="service")
+    environments = relationship("Environment", back_populates="service")
     host = Column(String(50), nullable=False)
     port = Column(Integer, default=0)
     worker_queue = Column(String(50), default="main")
@@ -38,34 +41,25 @@ class Service(Base):
 
     @property
     def rank(self):
-        scores = session.query(
-            Service.team_id,
-            func.sum(Service.points).label('score'),
-        ) \
-        .join(Check) \
-        .filter(Check.result.is_(True)) \
-        .group_by(Service.team_id) \
-        .order_by(desc('score')) \
-        .all()
+        scores = (
+            session.query(
+                Service.team_id,
+                func.sum(Service.points).label("score"),
+            )
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .filter(Service.name == self.name)
+            .group_by(Service.team_id)
+            .order_by(desc("score"))
+            .all()
+        )
 
-        team_ranks = [x[0] for x in scores]
-        place = team_ranks.index(self.team_id) + 1
-        return place
+        ranks = list(
+            ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
+        )  # [1, 2, 2, 4, 5]
+        team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
 
-        services = []
-        for blue_team in Team.get_all_blue_teams():
-            for service in blue_team.services:
-                if self.name == service.name:
-                    services.append(service)
-        sorted_services = sorted(services, key=lambda service: service.score_earned, reverse=True)
-        place = 0
-        previous_place = 1
-        for service in sorted_services:
-            if not self.score_earned == service.score_earned:
-                previous_place += 1
-            if self.id == service.id:
-                place = previous_place
-        return place
+        return ranks[team_ids.index(self.team_id)]
 
     @property
     def score_earned(self):
