@@ -1,5 +1,6 @@
 import itertools
 import random
+import ranking
 from sqlalchemy import Column, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
@@ -30,7 +31,7 @@ class Team(Base):
 
     @property
     def current_score(self):
-        return (
+        score = (
             session.query(func.sum(Service.points))
             .select_from(Team)
             .join(Service)
@@ -40,20 +41,30 @@ class Team(Base):
             .group_by(Service.team_id)
             .scalar()
         )
+        if not score:
+            return 0
+        return score
 
     @property
     def place(self):
-        sorted_blue_teams = sorted(
-            Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True
+        scores = (
+            session.query(
+                Service.team_id,
+                func.sum(Service.points).label("score"),
+            )
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .group_by(Service.team_id)
+            .order_by(desc("score"))
+            .all()
         )
-        place = 0
-        previous_place = 1
-        for team in sorted_blue_teams:
-            if not self.current_score == team.current_score:
-                previous_place += 1
-            if self.id == team.id:
-                place = previous_place
-        return place
+
+        ranks = list(
+            ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
+        )  # [1, 2, 2, 4, 5]
+        team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
+
+        return ranks[team_ids.index(self.id)]
 
     @property
     def is_red_team(self):
@@ -87,16 +98,23 @@ class Team(Base):
         # Accumulate the scores for each round based on previous round
         return list(itertools.accumulate([x[0] for x in round_scores]))
 
+    # TODO - Can this be deprecated, it only exists in tests
     def get_round_scores(self, round_num):
         if round_num == 0:
             return 0
-        round_obj = session.query(Round).filter(Round.number == round_num).all()[0]
-        round_score = 0
-        for check in round_obj.checks:
-            if check.service.team == self:
-                if check.result is True:
-                    round_score += check.service.points
-        return round_score
+
+        return (
+            session.query(
+                func.sum(Service.points),
+            )
+            .join(Check)
+            .join(Round)
+            .filter(Service.team_id == self.id)
+            .filter(Check.result.is_(True))
+            .filter(Round.number == round_num)
+            .group_by(Check.round_id)
+            .scalar()
+        )
 
     @staticmethod
     def get_all_blue_teams():
