@@ -9,6 +9,18 @@ from scoring_engine.models.team import Team
 
 from . import mod
 
+forced_update = False
+
+
+def update_caches():
+    global forced_update
+    forced_update = True
+
+    overview_data()
+    overview_get_columns()
+    overview_get_data()
+    overview_get_round_data()
+
 
 def get_table_columns():
     blue_teams = Team.get_all_blue_teams()
@@ -20,7 +32,7 @@ def get_table_columns():
 
 
 @mod.route('/api/overview/get_round_data')
-@cache.memoize()
+@cache.memoize(forced_update=lambda: forced_update)
 def overview_get_round_data():
     round_obj = session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
@@ -34,7 +46,7 @@ def overview_get_round_data():
 
 
 @mod.route('/api/overview/data')
-@cache.memoize()
+@cache.memoize(forced_update=lambda: forced_update)
 def overview_data():
     team_data = {}
     teams = session.query(Team).filter(Team.color == 'Blue').order_by(Team.id).all()
@@ -51,13 +63,13 @@ def overview_data():
 
 
 @mod.route('/api/overview/get_columns')
-@cache.memoize()
+@cache.memoize(forced_update=lambda: forced_update)
 def overview_get_columns():
     return jsonify(columns=get_table_columns())
 
 
 @mod.route('/api/overview/get_data')
-@cache.memoize()
+@cache.memoize(forced_update=lambda: forced_update)
 def overview_get_data():
     columns = get_table_columns()
     data = []

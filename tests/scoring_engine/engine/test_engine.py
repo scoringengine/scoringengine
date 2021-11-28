@@ -2,6 +2,8 @@ from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.setting import Setting
 
+from scoring_engine.web import app
+
 from scoring_engine.checks.icmp import ICMPCheck
 from scoring_engine.checks.ssh import SSHCheck
 from scoring_engine.checks.dns import DNSCheck
@@ -35,6 +37,11 @@ class TestEngine(UnitTest):
 
     def setup(self):
         super(TestEngine, self).setup()
+        self.app = app
+
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+
         round_time_sleep_obj = Setting.get_setting('round_time_sleep')
         round_time_sleep_obj.value = 0
         self.session.add(round_time_sleep_obj)

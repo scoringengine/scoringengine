@@ -10,11 +10,17 @@ def update_all_cache():
     update_services_data()
 
 
-def update_overview_data():
-    from scoring_engine.web.views.api.overview import overview_data, overview_get_data, overview_get_round_data
-    cache.delete_memoized(overview_get_data)
+def delete_overview_data():
+    from scoring_engine.web.views.api.overview import overview_data, overview_get_columns, overview_get_data, overview_get_round_data
     cache.delete_memoized(overview_data)
+    cache.delete_memoized(overview_get_columns)
+    cache.delete_memoized(overview_get_data)
     cache.delete_memoized(overview_get_round_data)
+
+
+def update_overview_data():
+    from scoring_engine.web.views.api.overview import update_caches
+    update_caches()
 
 
 def update_scoreboard_data():
