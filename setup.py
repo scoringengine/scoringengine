@@ -25,6 +25,7 @@ config = {
         'mysqlclient==2.1.0',
         'pynsive==0.2.7',
         'PyYAML==5.4.1',
+        'ranking==0.3.2',
         'redis==3.2',
         'shellescape==3.4.1',
         'Werkzeug==0.16.1',
