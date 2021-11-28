@@ -6,7 +6,6 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestCheck(UnitTest):
-
     def test_init_check(self):
         check = Check()
         assert check.id is None
@@ -14,10 +13,12 @@ class TestCheck(UnitTest):
         assert check.round_id is None
 
     def test_basic_check(self):
-        service = generate_sample_model_tree('Service', self.session)
+        service = generate_sample_model_tree("Service", self.session)
         round_obj = Round(number=1)
         self.session.add(round_obj)
-        check = Check(round=round_obj, service=service, result=True, output="example_output")
+        check = Check(
+            round=round_obj, service=service, result=True, output="example_output"
+        )
         self.session.add(check)
         self.session.commit()
         assert check.id is not None
@@ -26,26 +27,26 @@ class TestCheck(UnitTest):
         assert check.service == service
         assert check.service_id == service.id
         assert check.result is True
-        assert check.output == 'example_output'
+        assert check.output == "example_output"
         assert check.completed is False
 
     def test_finished(self):
-        service = generate_sample_model_tree('Service', self.session)
+        service = generate_sample_model_tree("Service", self.session)
         round_obj = Round(number=1)
         self.session.add(round_obj)
         check = Check(round=round_obj, service=service)
         self.session.add(check)
         self.session.commit()
         assert check.result is None
-        assert check.output == ''
+        assert check.output == ""
         assert check.completed is False
-        assert check.reason == ''
-        check.finished(True, 'Successful Match', 'good output', 'example command')
+        assert check.reason == ""
+        check.finished(True, "Successful Match", "good output", "example command")
         self.session.add(check)
         self.session.commit()
         assert check.result is True
-        assert check.output == 'good output'
-        assert check.reason == 'Successful Match'
-        assert check.command == 'example command'
+        assert check.output == "good output"
+        assert check.reason == "Successful Match"
+        assert check.command == "example command"
         assert check.completed is True
         assert type(check.local_completed_timestamp) is str

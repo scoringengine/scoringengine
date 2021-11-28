@@ -8,7 +8,12 @@ class TestAdmin(WebTest):
     def setup(self):
         super(TestAdmin, self).setup()
         user = self.create_default_user()
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1', team=user.team)
+        service = Service(
+            name="Example Service",
+            check_name="ICMP IPv4 Check",
+            host="127.0.0.1",
+            team=user.team,
+        )
         self.session.add(service)
         self.session.commit()
 
@@ -18,55 +23,55 @@ class TestAdmin(WebTest):
         user = User(username="testuser_red", password="testpass_red", team=red_team)
         self.session.add(user)
         self.session.commit()
-        self.login('testuser_red', 'testpass_red')
+        self.login("testuser_red", "testpass_red")
         resp = self.client.get(path)
         assert resp.status_code == 302
-        assert 'unauthorized' in str(resp.data)
+        assert "unauthorized" in str(resp.data)
 
     def test_auth_required_admin(self):
-        self.verify_auth_required('/admin')
-        stats_resp = self.auth_and_get_path('/admin')
+        self.verify_auth_required("/admin")
+        stats_resp = self.auth_and_get_path("/admin")
         assert stats_resp.status_code == 200
 
     def test_auth_required_admin_status(self):
-        self.verify_auth_required('/admin/status')
-        stats_resp = self.auth_and_get_path('/admin/status')
+        self.verify_auth_required("/admin/status")
+        stats_resp = self.auth_and_get_path("/admin/status")
         assert stats_resp.status_code == 200
 
     def test_auth_bad_auth_status(self):
-        self.unauthorized_admin_test('/admin/status')
+        self.unauthorized_admin_test("/admin/status")
 
     def test_auth_required_admin_manage(self):
-        self.verify_auth_required('/admin/manage')
-        stats_resp = self.auth_and_get_path('/admin/manage')
+        self.verify_auth_required("/admin/manage")
+        stats_resp = self.auth_and_get_path("/admin/manage")
         assert stats_resp.status_code == 200
 
     def test_auth_required_admin_permissions(self):
-        self.verify_auth_required('/admin/permissions')
-        stats_resp = self.auth_and_get_path('/admin/permissions')
+        self.verify_auth_required("/admin/permissions")
+        stats_resp = self.auth_and_get_path("/admin/permissions")
         assert stats_resp.status_code == 200
 
     def test_auth_bad_auth_manage(self):
-        self.unauthorized_admin_test('/admin/manage')
+        self.unauthorized_admin_test("/admin/manage")
 
     def test_auth_required_admin_settings(self):
-        self.verify_auth_required('/admin/settings')
-        stats_resp = self.auth_and_get_path('/admin/settings')
+        self.verify_auth_required("/admin/settings")
+        stats_resp = self.auth_and_get_path("/admin/settings")
         assert stats_resp.status_code == 200
 
     def test_auth_bad_auth_settings(self):
-        self.unauthorized_admin_test('/admin/settings')
+        self.unauthorized_admin_test("/admin/settings")
 
     def test_auth_required_admin_service(self):
-        self.verify_auth_required('/admin/service/1')
-        stats_resp = self.auth_and_get_path('/admin/service/1')
+        self.verify_auth_required("/admin/service/1")
+        stats_resp = self.auth_and_get_path("/admin/service/1")
         assert stats_resp.status_code == 200
 
     def test_admin_bad_service(self):
-        self.verify_auth_required('/admin/service/200')
-        resp = self.auth_and_get_path('/admin/service/200')
+        self.verify_auth_required("/admin/service/200")
+        resp = self.auth_and_get_path("/admin/service/200")
         assert resp.status_code == 302
-        assert 'unauthorized' in str(resp.data)
+        assert "unauthorized" in str(resp.data)
 
     def test_auth_bad_auth_team(self):
-        self.unauthorized_admin_test('/admin/service/3')
+        self.unauthorized_admin_test("/admin/service/3")

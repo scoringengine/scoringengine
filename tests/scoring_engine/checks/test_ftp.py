@@ -4,13 +4,14 @@ from tests.scoring_engine.checks.check_test import CheckTest
 
 
 class TestFTPCheck(CheckTest):
-    check_name = 'FTPCheck'
+    check_name = "FTPCheck"
     properties = {
-        'remotefilepath': '/adir/textfile.txt',
-        'filecontents': 'Sample contents'
+        "remotefilepath": "/adir/textfile.txt",
+        "filecontents": "Sample contents",
     }
-    accounts = {
-        'testuser': 'testpass'
-    }
+    accounts = {"testuser": "testpass"}
 
-    cmd = CHECKS_BIN_PATH + "/ftp_check '127.0.0.1' 1234 'testuser' 'testpass' '/adir/textfile.txt' 'Sample contents'"
+    cmd = (
+        CHECKS_BIN_PATH
+        + "/ftp_check '127.0.0.1' 1234 'testuser' 'testpass' '/adir/textfile.txt' 'Sample contents'"
+    )

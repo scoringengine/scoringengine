@@ -32,13 +32,12 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestEngine(UnitTest):
-
     def setup(self):
         super(TestEngine, self).setup()
-        round_time_sleep_obj = Setting.get_setting('round_time_sleep')
+        round_time_sleep_obj = Setting.get_setting("round_time_sleep")
         round_time_sleep_obj.value = 0
         self.session.add(round_time_sleep_obj)
-        worker_refresh_time_obj = Setting.get_setting('worker_refresh_time')
+        worker_refresh_time_obj = Setting.get_setting("worker_refresh_time")
         worker_refresh_time_obj.value = 0
         self.session.add(worker_refresh_time_obj)
 
@@ -112,6 +111,7 @@ class TestEngine(UnitTest):
         engine = Engine()
         check_obj = engine.check_name_to_obj("ICMP IPv4 Check")
         from scoring_engine.checks.icmp import ICMPCheck
+
         check_obj == ICMPCheck
 
     def test_check_name_to_obj_negative(self):

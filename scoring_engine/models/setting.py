@@ -12,20 +12,20 @@ class Setting(Base):
     _value_type = Column(Text, nullable=False)
 
     def __init__(self, *args, **kwargs):
-        self.name = kwargs['name']
-        self._value_text = str(kwargs['value'])
-        self.value = kwargs['value']
+        self.name = kwargs["name"]
+        self._value_text = str(kwargs["value"])
+        self.value = kwargs["value"]
         super(Base, self).__init__()
 
     def map_value_type(self, value):
         if type(value) is bool:
-            return 'Boolean'
+            return "Boolean"
         else:
-            return 'String'
+            return "String"
 
     def convert_value_type(self):
-        if self._value_type == 'Boolean':
-            if self._value_text == 'False':
+        if self._value_type == "Boolean":
+            if self._value_text == "False":
                 return False
             else:
                 return True
@@ -43,4 +43,9 @@ class Setting(Base):
 
     @staticmethod
     def get_setting(name):
-        return session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()
+        return (
+            session.query(Setting)
+            .filter(Setting.name == name)
+            .order_by(desc(Setting.id))
+            .first()
+        )

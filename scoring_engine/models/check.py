@@ -11,12 +11,12 @@ from scoring_engine.config import config
 
 
 class Check(Base):
-    __tablename__ = 'checks'
+    __tablename__ = "checks"
     id = Column(Integer, primary_key=True)
-    round_id = Column(Integer, ForeignKey('rounds.id'))
-    round = relationship('Round', back_populates='checks')
-    service_id = Column(Integer, ForeignKey('services.id'))
-    service = relationship('Service')
+    round_id = Column(Integer, ForeignKey("rounds.id"))
+    round = relationship("Round", back_populates="checks")
+    service_id = Column(Integer, ForeignKey("services.id"))
+    service = relationship("Service")
     result = Column(Boolean)
     output = Column(UnicodeText, default="")
     reason = Column(Text, default="")
@@ -34,5 +34,7 @@ class Check(Base):
 
     @property
     def local_completed_timestamp(self):
-        completed_timezone_obj = pytz.timezone('UTC').localize(self.completed_timestamp)
-        return completed_timezone_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+        completed_timezone_obj = pytz.timezone("UTC").localize(self.completed_timestamp)
+        return completed_timezone_obj.astimezone(
+            pytz.timezone(config.timezone)
+        ).strftime("%Y-%m-%d %H:%M:%S %Z")

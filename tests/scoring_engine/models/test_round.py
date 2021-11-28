@@ -6,7 +6,6 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestRound(UnitTest):
-
     def test_init_round(self):
         round_obj = Round(number=5)
         assert round_obj.id is None
@@ -21,7 +20,7 @@ class TestRound(UnitTest):
         assert type(round_obj.local_round_start) is str
 
     def test_checks(self):
-        service = generate_sample_model_tree('Service', self.session)
+        service = generate_sample_model_tree("Service", self.session)
         round_obj = Round(number=5)
         self.session.add(round_obj)
         check_1 = Check(round=round_obj, service=service)
@@ -34,7 +33,7 @@ class TestRound(UnitTest):
         assert round_obj.checks == [check_1, check_2, check_3]
 
     def test_get_last_round_num_rounds_exist(self):
-        generate_sample_model_tree('Service', self.session)
+        generate_sample_model_tree("Service", self.session)
         round_5 = Round(number=5)
         self.session.add(round_5)
         round_6 = Round(number=6)

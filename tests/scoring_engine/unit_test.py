@@ -14,14 +14,20 @@ class UnitTest(object):
         self.session.remove()
 
     def create_default_settings(self):
-        self.session.add(Setting(name='about_page_content', value='example content value'))
-        self.session.add(Setting(name='welcome_page_content', value='example welcome content <br>here'))
-        self.session.add(Setting(name='round_time_sleep', value=60))
-        self.session.add(Setting(name='worker_refresh_time', value=30))
-        self.session.add(Setting(name='blue_team_update_hostname', value=True))
-        self.session.add(Setting(name='blue_team_update_port', value=True))
-        self.session.add(Setting(name='blue_team_update_account_usernames', value=True))
-        self.session.add(Setting(name='blue_team_update_account_passwords', value=True))
-        self.session.add(Setting(name='blue_team_view_check_output', value=True))
-        self.session.add(Setting(name='overview_show_round_info', value=True))
+        self.session.add(
+            Setting(name="about_page_content", value="example content value")
+        )
+        self.session.add(
+            Setting(
+                name="welcome_page_content", value="example welcome content <br>here"
+            )
+        )
+        self.session.add(Setting(name="round_time_sleep", value=60))
+        self.session.add(Setting(name="worker_refresh_time", value=30))
+        self.session.add(Setting(name="blue_team_update_hostname", value=True))
+        self.session.add(Setting(name="blue_team_update_port", value=True))
+        self.session.add(Setting(name="blue_team_update_account_usernames", value=True))
+        self.session.add(Setting(name="blue_team_update_account_passwords", value=True))
+        self.session.add(Setting(name="blue_team_view_check_output", value=True))
+        self.session.add(Setting(name="overview_show_round_info", value=True))
         self.session.commit()

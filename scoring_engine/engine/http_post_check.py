@@ -4,7 +4,6 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class HTTPPostCheck(BasicCheck):
-
     def command(self):
         args = self.command_format(self.properties)
         sanitized_args = []

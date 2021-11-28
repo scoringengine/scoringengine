@@ -10,12 +10,12 @@ class Service(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     check_name = Column(String(100), nullable=False)
-    team_id = Column(Integer, ForeignKey('teams.id'))
+    team_id = Column(Integer, ForeignKey("teams.id"))
     team = relationship("Team", back_populates="services", lazy="joined")
     checks = relationship("Check", back_populates="service")
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
-    environments = relationship('Environment', back_populates="service")
+    environments = relationship("Environment", back_populates="service")
     host = Column(String(50), nullable=False)
     port = Column(Integer, default=0)
     worker_queue = Column(String(50), default="main")
@@ -42,7 +42,9 @@ class Service(Base):
             for service in blue_team.services:
                 if self.name == service.name:
                     services.append(service)
-        sorted_services = sorted(services, key=lambda service: service.score_earned, reverse=True)
+        sorted_services = sorted(
+            services, key=lambda service: service.score_earned, reverse=True
+        )
         place = 0
         previous_place = 1
         for service in sorted_services:

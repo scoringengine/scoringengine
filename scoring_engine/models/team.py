@@ -8,7 +8,7 @@ from scoring_engine.db import session
 
 
 class Team(Base):
-    __tablename__ = 'teams'
+    __tablename__ = "teams"
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     color = Column(String(10), nullable=False)
@@ -19,7 +19,11 @@ class Team(Base):
     def __init__(self, name, color):
         self.name = name
         self.color = color
-        self.rgb_color = "rgba(%s, %s, %s, 1)" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.rgb_color = "rgba(%s, %s, %s, 1)" % (
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+        )
 
     @property
     def current_score(self):
@@ -30,7 +34,9 @@ class Team(Base):
 
     @property
     def place(self):
-        sorted_blue_teams = sorted(Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True)
+        sorted_blue_teams = sorted(
+            Team.get_all_blue_teams(), key=lambda team: team.current_score, reverse=True
+        )
         place = 0
         previous_place = 1
         for team in sorted_blue_teams:
@@ -42,15 +48,15 @@ class Team(Base):
 
     @property
     def is_red_team(self):
-        return self.color == 'Red'
+        return self.color == "Red"
 
     @property
     def is_white_team(self):
-        return self.color == 'White'
+        return self.color == "White"
 
     @property
     def is_blue_team(self):
-        return self.color == 'Blue'
+        return self.color == "Blue"
 
     def get_array_of_scores(self, max_round):
         scores = [0]
@@ -78,17 +84,17 @@ class Team(Base):
 
     @staticmethod
     def get_all_blue_teams():
-        return session.query(Team).filter(Team.color == 'Blue').all()
+        return session.query(Team).filter(Team.color == "Blue").all()
 
     @staticmethod
     def get_all_rounds_results():
         results = {}
-        results['scores'] = {}
-        results['rounds'] = []
+        results["scores"] = {}
+        results["rounds"] = []
 
         rounds = []
         scores = {}
-        blue_teams = session.query(Team).filter(Team.color == 'Blue').all()
+        blue_teams = session.query(Team).filter(Team.color == "Blue").all()
         last_round_obj = session.query(Round).order_by(Round.number.desc()).first()
         if last_round_obj:
             last_round = last_round_obj.number
@@ -101,10 +107,10 @@ class Team(Base):
                 scores[team.name] = team.get_array_of_scores(last_round)
                 rgb_colors[team.name] = team.rgb_color
                 team_names.append(team.name)
-            results['team_names'] = team_names
-            results['rgb_colors'] = rgb_colors
+            results["team_names"] = team_names
+            results["rgb_colors"] = rgb_colors
 
-        results['rounds'] = rounds
-        results['scores'] = scores
+        results["rounds"] = rounds
+        results["scores"] = scores
 
         return results

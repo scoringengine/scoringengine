@@ -5,7 +5,6 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestAccount(UnitTest):
-
     def test_init_account(self):
         account = Account(username="testname", password="testpass")
         assert account.id is None
@@ -15,7 +14,7 @@ class TestAccount(UnitTest):
         assert account.service_id is None
 
     def test_basic_property(self):
-        service = generate_sample_model_tree('Service', self.session)
+        service = generate_sample_model_tree("Service", self.session)
         account = Account(username="testname", password="testpass", service=service)
         self.session.add(account)
         self.session.commit()
