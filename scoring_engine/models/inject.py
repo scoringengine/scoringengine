@@ -1,0 +1,217 @@
+import pytz
+
+from datetime import datetime, timezone
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Unicode,
+    UnicodeText,
+)
+from sqlalchemy import func
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.sqltypes import Boolean
+from sqlalchemy.util.langhelpers import set_creation_order
+
+from scoring_engine.models.base import Base
+from scoring_engine.config import config
+from scoring_engine.db import session
+
+
+"""
+ID: 5
+  State: Draft
+  Title: Journey to Mordor
+  Scenario: You have the ring, take it to be destroyed!
+  Deliverable: Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.
+  Scoring Rubric:
+    - 0: Damn hobbitses kept my precious!
+    - 50: You gave it your best effort, but died along the way.
+    - 100:  You saved the world!
+"""
+
+
+# TODO - Add proper relationships to fix cascading deletes - sqlalchemy.exc.ArgumentError: For many-to-one relationship Rubric.template, delete-orphan cascade is normally configured only on the "one" side of a one-to-many relationship, and not on the "many" side of a many-to-one or many-to-many relationship.  To force this relationship to allow a particular "Template" object to be referred towards by only a single "Rubric" object at a time via the Rubric.template relationship, which would allow delete-orphan cascade to take place in this direction, set the single_parent=True flag. (Background on this error at: http://sqlalche.me/e/13/bbf0)
+
+
+class Template(Base):
+    __tablename__ = "template"
+    id = Column(Integer, primary_key=True)
+    title = Column(Unicode(255), nullable=False)
+    scenario = Column(Unicode(255), nullable=False)
+    deliverable = Column(UnicodeText, nullable=False)
+    start_time = Column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
+    end_time = Column(DateTime(timezone=True), nullable=False)
+    enabled = Column(Boolean, nullable=False, default=True)
+
+    # Relationships
+    rubric = relationship(
+        "Rubric", back_populates="template", cascade="all, delete", lazy="joined"
+    )
+    inject = relationship(
+        "Inject", back_populates="template", cascade="all, delete", lazy="joined"
+    )
+
+    def __init__(
+        self, title, scenario, deliverable, start_time, end_time, enabled=True
+    ):
+        self.title = title
+        self.scenario = scenario
+        self.deliverable = deliverable
+        self.start_time = start_time
+        self.end_time = end_time
+        self.enabled = enabled
+
+    @property
+    def score(self):
+        return (
+            session.query(func.max(Rubric.value))
+            .filter(Rubric.template_id == self.id)
+            .scalar()
+        )
+
+    @property
+    def expired(self):
+        return datetime.utcnow() > self.end_time
+
+    @property
+    def localized_start_time(self):
+        return (
+            pytz.utc.localize(self.start_time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z")
+        )
+
+    @property
+    def localized_end_time(self):
+        return (
+            pytz.utc.localize(self.end_time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z")
+        )
+
+
+class Rubric(Base):
+    __tablename__ = "rubric"
+    id = Column(Integer, primary_key=True)
+    deliverable = Column(String(255), nullable=False)
+    value = Column(Integer, nullable=False)
+
+    # Relationships
+    template = relationship("Template")
+
+    # template_id = Column(Integer, ForeignKey("templates.id"))
+    # template = relationship("Template", back_populates="rubrics", lazy="joined")
+
+
+class InjectStateEnum(enum.Enum):
+    draft = "Draft"
+    scheduled = "Scheduled"
+    pending = "Pending"
+    submitted = "Submitted"
+    graded = "Graded"
+    expired = "Expired"
+
+    def __init__(self, deliverable, value, template):
+        self.deliverable = deliverable
+        self.value = value
+        self.template = template
+
+
+"""
+Draft
+Submitted
+Graded
+
+Not Submitted Anything
+Have a question waiting for feedback
+Submitted waiting for grading
+"""
+
+
+class Inject(Base):
+    __tablename__ = "inject"
+    id = Column(Integer, primary_key=True)
+    score = Column(Integer, default=0)
+    status = Column(String(255), default="Draft")
+    enabled = Column(Boolean, nullable=False, default=True)
+    submitted = Column(DateTime, nullable=False, default=datetime.utcnow)
+    graded = Column(DateTime, nullable=False, default=datetime.utcnow)
+    # TODO - File Upload
+
+    # Relationships
+    comment = relationship("Comment", back_populates="inject", cascade="all, delete")
+    file = relationship("File", back_populates="inject", cascade="all, delete")
+    team = relationship(
+        "Team", backref="injects", cascade="all, delete-orphan", single_parent=True
+    )
+    team_id = Column(Integer, ForeignKey("teams.id"))
+    template = relationship("Template", back_populates="inject")
+    template_id = Column(Integer, ForeignKey("template.id"))
+
+    def __init__(self, team, template, enabled=True):
+        self.team = team
+        self.template = template
+        self.enabled = enabled
+
+
+# class RedTeamInject(Inject):
+#     __tablename__ = "redteaminject"
+#     id = Column(Integer, ForeignKey("inject.id"), primary_key=True)
+#     target = relationship(
+#         "Team",
+#         backref="redteaminjects",
+#         cascade="all, delete-orphan",
+#         single_parent=True,
+#     )
+
+#     def __init__(self, team, template, enabled=True):
+#         self.team = team
+#         self.template = template
+#         self.enabled = enabled
+
+
+class Comment(Base):
+    __tablename__ = "comment"
+    id = Column(Integer, primary_key=True)
+    comment = Column(Text, nullable=False)
+    time = Column(DateTime, nullable=False, default=datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+
+    # Relationships
+    inject = relationship("Inject", back_populates="comment")
+    inject_id = Column(Integer, ForeignKey("inject.id"))
+    user = relationship(
+        "User", backref="comments", cascade="all, delete-orphan", single_parent=True
+    )
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    def __init__(self, comment, user, inject):
+        self.comment = comment
+        self.user = user
+        self.inject = inject
+
+
+class File(Base):
+    __tablename__ = "file"
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+
+    # Relationships
+    inject = relationship("Inject", back_populates="file")
+    inject_id = Column(Integer, ForeignKey("inject.id"))
+    user = relationship(
+        "User", backref="files", cascade="all, delete-orphan", single_parent=True
+    )
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    def __init__(self, name, user, inject):
+        self.name = name
+        self.user = user
+        self.inject = inject

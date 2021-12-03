@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-
-from random import randint
+from datetime import datetime, timedelta
+from random import choice, randint
 
 import optparse
 import os
 
+from scoring_engine.models.inject import Template, Rubric, Inject, Comment
+from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
@@ -157,7 +159,8 @@ session.add(Setting(name="blue_team_view_check_output", value=True))
 session.commit()
 
 if options.example:
-    num_rounds = randint(2000, 2550)
+    # Simulate Rounds
+    num_rounds = randint(200, 250)
     logger.info("Simulating " + str(num_rounds) + " rounds")
     for num_round in range(1, num_rounds + 1):
         round_obj = Round(number=num_round)
@@ -181,3 +184,40 @@ if options.example:
             check.finished(result, reason, output, command)
             session.add(check)
     session.commit()
+
+    # Simulate Injects
+    num_injects = randint(5, 15)
+    logger.info("Simulating " + str(num_injects) + " Injects")
+    for _ in range(num_injects):
+        template = Template(
+            title="Journey to Mordor",
+            scenario="You have the ring, take it to be destroyed!",
+            deliverable="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.",
+            start_time=datetime.now()
+            - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+            end_time=datetime.now()
+            + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+        )
+        rubric_0 = Rubric(
+            deliverable="Damn hobbitses kept my precious!", value=0, template=template
+        )
+        rubric_50 = Rubric(
+            deliverable="You gave it your best effort, but died along the way.",
+            value=50,
+            template=template,
+        )
+        rubric_100 = Rubric(
+            deliverable="You saved the world!", value=100, template=template
+        )
+
+        session.add_all([template, rubric_0, rubric_50, rubric_100])
+
+        for team in Team.get_all_blue_teams():
+            inject = Inject(
+                team=team,
+                template=template,
+            )
+            inject.score = randint(0, 100)
+            inject.status = choice(["Draft", "Submitted", "Graded"])
+            session.add(inject)
+        session.commit()

@@ -56,7 +56,8 @@
             <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
             {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
-                <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
+              <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
+              <li class="navbar-item {% if request.path == '/injects' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('injects.home') }}">Injects</a></li>
               {% endif %}
               {% if current_user.is_white_team %}
               <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"  href="{{ url_for('admin.status') }}">Admin</a></li>

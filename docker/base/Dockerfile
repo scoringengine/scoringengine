@@ -7,6 +7,7 @@ RUN \
     curl \
     python3 \
     python3-pip \
+    python3-yaml \
     libssl-dev \
     libmariadb-dev \
     iputils-ping && \

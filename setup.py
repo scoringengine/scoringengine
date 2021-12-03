@@ -30,9 +30,9 @@ config = {
         # 'Werkzeug==0.16.1',
         'uWSGI==2.0.21',
     ],
-    'packages': ['scoring_engine'],
-    'scripts': [],
-    'name': 'scoring_engine'
+    "packages": ["scoring_engine"],
+    "scripts": [],
+    "name": "scoring_engine",
 }
 
 setup(**config)

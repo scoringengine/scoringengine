@@ -14,18 +14,41 @@
         var teamBarChart = echarts.init(document.getElementById('teamBar'));
         teamBarChart.showLoading();
 
-        const barList = [];
-        $.get('/api/scoreboard/get_bar_data').done(function(data) {
-            echarts.util.each(data.scores, function(score, index) {
-                barList.push({
+        const serviceScores = [];
+        const injectScores = [];
+        // const totalScores = [];
+
+        $.getJSON('/api/scoreboard/get_bar_data').done(function (data) {
+            // Service Scores
+            echarts.util.each(data.service_scores, function (score, index) {
+                serviceScores.push({
                     value: score,
-                    itemStyle: {
-                        color: data.colors[index]
-                    }
+                    // itemStyle: {
+                    //     color: '#5470c6'
+                    // }
                 });
             });
+            // Inject Scores
+            echarts.util.each(data.inject_scores, function (score, index) {
+                injectScores.push({
+                    value: score,
+                    // itemStyle: {
+                    //     color: '#ee6666'
+                    // }
+                });
+            });
+            // Total
+            // for( var i = 0; i < serviceScores.length; i++)
+            // {
+            //     // Unary to convert to number
+            //     totalScores.push(+serviceScores[i].value + +injectScores[i].value);
+            // }
             teamBarChart.hideLoading();
             teamBarChart.setOption({
+                title: {
+                    text: 'Total Scores',
+                    x: 'center',
+                },
                 tooltip: {
                     trigger: 'axis'
                 },
@@ -46,29 +69,56 @@
                 },
                 series: [
                     {
-                    data: barList,
-                    type: 'bar'
-                    }
+                        name: 'Services',
+                        data: serviceScores,
+                        type: 'bar',
+                        stack: 'x',
+                        // label: {
+                        //     show: true
+                        // },
+                    },
+                    {
+                        name: 'Injects',
+                        data: injectScores,
+                        type: 'bar',
+                        stack: 'x',
+                        // label: {
+                        //     show: true
+                        // },
+
+                    },
+                    // {
+                    //     name: 'Total',
+                    //     data: totalScores,
+                    //     type: 'bar',
+                    //     stack: 'x',
+                    // },
                 ]
             });
         });
 
         // Update chart every 30 seconds
         setInterval(function () {
-            const barList = [];
-            $.get('/api/scoreboard/get_bar_data').done(function(data) {
-                echarts.util.each(data.scores, function(score, index) {
-                    barList.push({
+            const serviceScores = [];
+            const injectScores = [];
+            $.get('/api/scoreboard/get_bar_data').done(function (data) {
+                // Service Scores
+                echarts.util.each(data.service_scores, function (score, index) {
+                    serviceScores.push({
                         value: score,
-                        itemStyle: {
-                            color: data.colors[index]
-                        }
+                    });
+                });
+                // Inject Scores
+                echarts.util.each(data.inject_scores, function (score, index) {
+                    injectScores.push({
+                        value: score,
                     });
                 });
                 teamBarChart.setOption({
-                    series: [{
-                        data: barList,
-                    }]
+                    series: [
+                        { data: serviceScores },
+                        { data: injectScores }
+                    ]
                 });
             });
         }, 30000);
@@ -79,8 +129,8 @@
         teamLineChart.showLoading();
 
         const seriesList = [];
-        $.get('/api/scoreboard/get_line_data').done(function(data) {
-            echarts.util.each(data.team, function(team) {
+        $.getJSON('/api/scoreboard/get_line_data').done(function (data) {
+            echarts.util.each(data.team, function (team) {
                 seriesList.push({
                     name: team.name,
                     type: 'line',
@@ -92,6 +142,10 @@
             });
             teamLineChart.hideLoading();
             teamLineChart.setOption({
+                title: {
+                    text: 'Service Scores',
+                    x: 'center',
+                },
                 tooltip: {
                     trigger: 'axis'
                 },
@@ -110,14 +164,17 @@
                     type: 'value'
                 },
                 series: seriesList,
+                // label: {
+                //     show: true
+                // },
             });
         });
 
         // Update chart every 30 seconds
         setInterval(function () {
             const seriesList = [];
-            $.get('/api/scoreboard/get_line_data').done(function(data) {
-                echarts.util.each(data.team, function(team) {
+            $.get('/api/scoreboard/get_line_data').done(function (data) {
+                echarts.util.each(data.team, function (team) {
                     seriesList.push({
                         name: team.name,
                         type: 'line',

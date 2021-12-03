@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
+from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.db import session
@@ -41,7 +42,20 @@ class Team(Base):
             .join(Check)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
-            .group_by(Service.team_id)
+            .group_by(Service.team_id)  # TODO - Do we need this group_by?
+            .scalar()
+        )
+        if not score:
+            return 0
+        return score
+
+    @property
+    def current_inject_score(self):
+        score = (
+            session.query(func.sum(Inject.score))
+            .join(Team)
+            .filter(Inject.team_id == self.id)
+            .filter(Inject.status == "Graded")
             .scalar()
         )
         if not score:
@@ -72,7 +86,6 @@ class Team(Base):
         # Round 0, or no other scores available
         else:
             return 1
-
 
     @property
     def is_red_team(self):
@@ -120,22 +133,25 @@ class Team(Base):
             return 0
 
         score = (
-            session.query(
-                func.sum(Service.points)
-            )
+            session.query(func.sum(Service.points))
             .join(Check)
             .join(Round)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
             .filter(Round.number == round_num)
             .group_by(Check.round_id)
-            .scalar())
+            .scalar()
+        )
 
         return score if score else 0
 
     @staticmethod
     def get_all_blue_teams():
         return session.query(Team).filter(Team.color == "Blue").all()
+
+    @staticmethod
+    def get_all_red_teams():
+        return session.query(Team).filter(Team.color == "Red").all()
 
     @staticmethod
     def get_all_rounds_results():
