@@ -1,6 +1,8 @@
 import itertools
 import random
 import ranking
+
+from collections import defaultdict
 from sqlalchemy import Column, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
@@ -87,6 +89,7 @@ class Team(Base):
     def get_array_of_scores(self, max_round):
         round_scores = (
             session.query(
+                Check.round_id,
                 func.sum(Service.points),
             )
             .join(Check)
@@ -98,8 +101,18 @@ class Team(Base):
             .all()
         )
 
+        # Create default dict with 0 as default round value
+        d = defaultdict(int)
+        for k, v in round_scores:
+            d[k] = v
+
+        # Loop over all rounds and add 0 if not present
+        # TODO - There has to be a better way to do this...
+        for i in range(0, max_round + 1):
+            d[i]
+
         # Accumulate the scores for each round based on previous round
-        return list(itertools.accumulate([0] + [x[0] for x in round_scores]))
+        return list(itertools.accumulate([x[1] for x in sorted(d.items())]))
 
     # TODO - Can this be deprecated, it only exists in tests
     def get_round_scores(self, round_num):
@@ -108,7 +121,7 @@ class Team(Base):
 
         score = (
             session.query(
-                func.coalesce(func.sum(Service.points), 0)
+                func.sum(Service.points)
             )
             .join(Check)
             .join(Round)
