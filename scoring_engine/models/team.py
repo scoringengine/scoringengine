@@ -4,6 +4,7 @@ import ranking
 from sqlalchemy import Column, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
+
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
@@ -84,9 +85,6 @@ class Team(Base):
         return self.color == "Blue"
 
     def get_array_of_scores(self, max_round):
-        scores = [0]
-        overall_score = 0
-
         round_scores = (
             session.query(
                 func.sum(Service.points),
@@ -101,16 +99,16 @@ class Team(Base):
         )
 
         # Accumulate the scores for each round based on previous round
-        return list(itertools.accumulate([x[0] for x in round_scores]))
+        return list(itertools.accumulate([0] + [x[0] for x in round_scores]))
 
     # TODO - Can this be deprecated, it only exists in tests
     def get_round_scores(self, round_num):
         if round_num == 0:
             return 0
 
-        return (
+        score = (
             session.query(
-                func.sum(Service.points),
+                func.coalesce(func.sum(Service.points), 0)
             )
             .join(Check)
             .join(Round)
@@ -118,8 +116,9 @@ class Team(Base):
             .filter(Check.result.is_(True))
             .filter(Round.number == round_num)
             .group_by(Check.round_id)
-            .scalar()
-        )
+            .scalar())
+
+        return score if score else 0
 
     @staticmethod
     def get_all_blue_teams():
