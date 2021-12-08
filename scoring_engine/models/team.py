@@ -59,12 +59,17 @@ class Team(Base):
             .all()
         )
 
-        ranks = list(
-            ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
-        )  # [1, 2, 2, 4, 5]
-        team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
+        if scores:
+            ranks = list(
+                ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
+            )  # [1, 2, 2, 4, 5]
+            team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
 
-        return ranks[team_ids.index(self.id)]
+            return ranks[team_ids.index(self.id)]
+        # Round 0, or no other scores available
+        else:
+            return 1
+
 
     @property
     def is_red_team(self):
