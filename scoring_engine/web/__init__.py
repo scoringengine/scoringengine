@@ -1,7 +1,6 @@
 import os
 import logging
 from flask import Flask
-from easy_profile import EasyProfileMiddleware
 
 
 from scoring_engine.cache import cache
@@ -16,8 +15,6 @@ app.secret_key = os.urandom(128)
 if not config.debug:
     log = logging.getLogger("werkzeug")
     log.setLevel(logging.ERROR)
-else:
-    app.wsgi_app = EasyProfileMiddleware(app.wsgi_app)  # Enable database profiler
 
 from scoring_engine.web.views import (
     welcome,
