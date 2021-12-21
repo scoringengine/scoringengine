@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask
 
+
 from scoring_engine.cache import cache
 from scoring_engine.config import config
 
@@ -12,10 +13,20 @@ app.config.update(DEBUG=config.debug)
 app.secret_key = os.urandom(128)
 
 if not config.debug:
-    log = logging.getLogger('werkzeug')
+    log = logging.getLogger("werkzeug")
     log.setLevel(logging.ERROR)
 
-from scoring_engine.web.views import welcome, scoreboard, overview, services, admin, auth, profile, api, about
+from scoring_engine.web.views import (
+    welcome,
+    scoreboard,
+    overview,
+    services,
+    admin,
+    auth,
+    profile,
+    api,
+    about,
+)
 
 cache.init_app(app)
 

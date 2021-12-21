@@ -19,7 +19,7 @@ class Round(Base):
 
     @staticmethod
     def get_last_round_num():
-        round_obj = session.query(Round).order_by(Round.number.desc()).first()
+        round_obj = session.query(Round.number).order_by(Round.number.desc()).first()
         if round_obj is None:
             return 0
         else:

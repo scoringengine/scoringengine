@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Scoreboard{% endblock %}
 {% block head %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='vendor/js/Chart.bundle.min.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/Chart.bundle.min.js') }}"></script>
 {% endblock %}
 {% block content %}
 <div class="container md-page">
@@ -14,6 +14,8 @@
         <canvas id="teamLine" width="1000px" height="300px"></canvas>
     </div>
     <script>
+        Chart.defaults.global.animation = false;
+
         var myBarChart = new Chart(document.getElementById("pointsByTeamBar"), {
             type: 'bar',
             options: {
@@ -24,7 +26,7 @@
                 },
                 tooltips: {
                     callbacks: {
-                        label: function(tooltipItem) {
+                        label: function (tooltipItem) {
                             return tooltipItem.yLabel;
                         }
                     }
@@ -32,7 +34,7 @@
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero:true
+                            beginAtZero: true
                         }
                     }]
                 }
@@ -43,7 +45,7 @@
                 cache: false,
                 url: '/api/scoreboard/get_bar_data',
                 dataType: 'json',
-                success: function(data) {
+                success: function (data) {
                     myBarChart.data.datasets = [
                         {
                             'data': data['scores'],
@@ -54,10 +56,10 @@
                     myBarChart.data.labels = data['labels'];
                     myBarChart.update();
                 },
-                error: function(data) {
+                error: function (data) {
                     console.log("Error: " + JSON.stringify(data));
                 }
-            }).then(function() {
+            }).then(function () {
                 setTimeout(updateBarGraph, 30000);
             });
         })();
@@ -82,9 +84,9 @@
                 cache: false,
                 url: '/api/scoreboard/get_line_data',
                 dataType: 'json',
-                success: function(data) {
+                success: function (data) {
                     myLineChart.data.datasets = []
-                    $.each(data['team'], function(index,value) {
+                    $.each(data['team'], function (index, value) {
                         var team_data = {
                             "label": value['name'],
                             "fill": false,
@@ -112,10 +114,10 @@
                     myLineChart.data.labels = data['rounds'];
                     myLineChart.update();
                 },
-                error: function(data) {
+                error: function (data) {
                     console.log("Error: " + JSON.stringify(data));
                 }
-            }).then(function() {
+            }).then(function () {
                 setTimeout(updateLineGraph, 30000);
             });
         })();
