@@ -1,7 +1,6 @@
 import os
 import logging
 from flask import Flask
-from easy_profile import EasyProfileMiddleware
 
 from scoring_engine.cache import cache
 from scoring_engine.config import config
