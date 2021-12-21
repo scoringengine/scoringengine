@@ -161,7 +161,6 @@ def overview_get_data():
                 .all()
             )
             services.append([check[0] for check in checks])
-        print(services)
         data += list(zip(*services))  # zip these to get the right datatables format
 
         return json.dumps({"data": data})
