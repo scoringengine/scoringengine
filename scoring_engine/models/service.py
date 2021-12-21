@@ -37,7 +37,12 @@ class Service(Base):
 
     @property
     def checks_reversed(self):
-        return sorted(self.checks, key=lambda check: check.round.number, reverse=True)
+        return (
+            session.query(Check)
+            .filter(Check.service_id == self.id)
+            .order_by(desc(Check.round_id))
+            .all()
+        )
 
     @property
     def rank(self):
