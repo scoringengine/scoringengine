@@ -143,7 +143,7 @@ session.add(Setting(name='blue_team_view_check_output', value=True))
 session.commit()
 
 if options.example:
-    num_rounds = randint(20, 50)
+    num_rounds = randint(2000, 2550)
     logger.info("Simulating " + str(num_rounds) + " rounds")
     for num_round in range(1, num_rounds + 1):
         round_obj = Round(number=num_round)
