@@ -140,24 +140,51 @@ def overview_get_data():
         data.append(current_place_row_data)
         data.append(current_up_down_row_data)
 
-        # TODO - Optimize this...
-        for service in blue_teams[0].services:
-            service_row_data = {"": service.name}
+        # for blue_team in blue_teams:
+        #     checks = (
+        #         session.query(Service.name, Service.host, Service.port, Check.result)
+        #         .join(Service)
+        #         .filter(Check.round_id == last_round)
+        #         .filter(Service.team_id == blue_team.id)
+        #         .order_by(Service.name)
+        #         .all()
+        #     )
+        #     service_row_data = {"": check[0]}
+        #     for check in checks:
+        #         service_text = check[1]
+        #         if str(check[2]) != "0":
+        #             service_text += ":" + str(check[2])
+        #         service_data = {
+        #             "result": str(check.result),
+        #             "host_info": service_text,
+        #         }
+
+        checks = (
+            session.query(Service, Check.result)
+            .join(Check)
+            .filter(Check.round_id == last_round)
+        )
+        for service in (
+            session.query(Service.name)
+            .distinct(Service.name)
+            .group_by(Service.name)
+            .all()
+        ):
+            service_row_data = {"": service[0]}
             for blue_team in blue_teams:
-                service = (
-                    session.query(Service)
-                    .filter(Service.name == service.name)
-                    .filter(Service.team == blue_team)
+                check = (
+                    checks.filter(Service.name == service[0])
+                    .filter(Service.team_id == blue_team.id)
                     .first()
                 )
-                service_text = service.host
-                if str(service.port) != "0":
-                    service_text += ":" + str(service.port)
-                service_data = {
-                    "result": str(service.last_check_result()),
-                    "host_info": service_text,
+                check_text = check[0].host
+                if str(check[0].port) != "0":
+                    check_text += ":" + str(check[0].port)
+                check_data = {
+                    "result": str(check[1]),
+                    "host_info": check_text,
                 }
-                service_row_data[blue_team.name] = service_data
+                service_row_data[blue_team.name] = check_data
             data.append(service_row_data)
 
         return json.dumps({"columns": columns, "data": data})
