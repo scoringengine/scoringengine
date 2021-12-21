@@ -2,125 +2,133 @@
 {% block title %}Scoreboard{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/Chart.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
 {% endblock %}
 {% block content %}
 <div class="container md-page">
-    <div class="row">
-        <canvas id="pointsByTeamBar" width="1000px" height="300px"></canvas>
-    </div>
+    <div id="teamBar" style="width: 100%; height:400px;"></div>
     <hr>
-    <div class="row">
-        <canvas id="teamLine" width="1000px" height="300px"></canvas>
-    </div>
+    <div id="teamLine" style="width: 100%; height:400px;"></div>
     <script>
-        Chart.defaults.global.animation = false;
+        // Bar chart for all teams
+        var teamBarChart = echarts.init(document.getElementById('teamBar'));
+        teamBarChart.showLoading();
 
-        var myBarChart = new Chart(document.getElementById("pointsByTeamBar"), {
-            type: 'bar',
-            options: {
-                maintainAspectRatio: true,
-                responsive: true,
-                legend: {
-                    display: false
-                },
-                tooltips: {
-                    callbacks: {
-                        label: function (tooltipItem) {
-                            return tooltipItem.yLabel;
-                        }
+        const barList = [];
+        $.get('/api/scoreboard/get_bar_data').done(function(data) {
+            echarts.util.each(data.scores, function(score, index) {
+                barList.push({
+                    value: score,
+                    itemStyle: {
+                        color: data.colors[index]
                     }
-                },
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }]
-                }
-            }
-        });
-        (function updateBarGraph() {
-            $.ajax({
-                cache: false,
-                url: '/api/scoreboard/get_bar_data',
-                dataType: 'json',
-                success: function (data) {
-                    myBarChart.data.datasets = [
-                        {
-                            'data': data['scores'],
-                            'backgroundColor': data['colors'],
-                            'borderWidth': 2
-                        }
-                    ]
-                    myBarChart.data.labels = data['labels'];
-                    myBarChart.update();
-                },
-                error: function (data) {
-                    console.log("Error: " + JSON.stringify(data));
-                }
-            }).then(function () {
-                setTimeout(updateBarGraph, 30000);
+                });
             });
-        })();
-
-        var myLineChart = new Chart(document.getElementById("teamLine"), {
-            type: 'line',
-            options: {
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            autoSkip: true,
-                            maxTicksLimit: 10
-                        }
-
-                    }]
-                }
-            }
+            teamBarChart.hideLoading();
+            teamBarChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: data.labels,
+                    }
+                ],
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                    data: barList,
+                    type: 'bar'
+                    }
+                ]
+            });
         });
 
-        (function updateLineGraph() {
-            $.ajax({
-                cache: false,
-                url: '/api/scoreboard/get_line_data',
-                dataType: 'json',
-                success: function (data) {
-                    myLineChart.data.datasets = []
-                    $.each(data['team'], function (index, value) {
-                        var team_data = {
-                            "label": value['name'],
-                            "fill": false,
-                            "lineTension": 0.1,
-                            "backgroundColor": "rgba(0, 0, 0, 0)",
-                            "borderColor": value['color'],
-                            "borderCapStyle": 'butt',
-                            "borderDash": [],
-                            "borderDashOffset": 0.0,
-                            "borderJoinStyle": 'miter',
-                            "pointBorderColor": value['color'],
-                            "pointBackgroundColor": "#fff",
-                            "pointBorderWidth": 1,
-                            "pointHoverRadius": 5,
-                            "pointHoverBackgroundColor": "rgba(75,192,192,1)",
-                            "pointHoverBorderColor": "rgba(220,220,220,1)",
-                            "pointHoverBorderWidth": 2,
-                            "pointRadius": 1,
-                            "pointHitRadius": 10,
-                            "data": value['scores'],
-                            "spanGaps": false,
+        // Update chart every 30 seconds
+        setInterval(function () {
+            const barList = [];
+            $.get('/api/scoreboard/get_bar_data').done(function(data) {
+                echarts.util.each(data.scores, function(score, index) {
+                    barList.push({
+                        value: score,
+                        itemStyle: {
+                            color: data.colors[index]
                         }
-                        myLineChart.data.datasets.push(team_data);
-                    })
-                    myLineChart.data.labels = data['rounds'];
-                    myLineChart.update();
-                },
-                error: function (data) {
-                    console.log("Error: " + JSON.stringify(data));
-                }
-            }).then(function () {
-                setTimeout(updateLineGraph, 30000);
+                    });
+                });
+                teamBarChart.setOption({
+                    series: [{
+                        data: barList,
+                    }]
+                });
             });
-        })();
+        }, 30000);
+    </script>
+    <script>
+        // Line chart for all teams
+        var teamLineChart = echarts.init(document.getElementById('teamLine'));
+        teamLineChart.showLoading();
+
+        const seriesList = [];
+        $.get('/api/scoreboard/get_line_data').done(function(data) {
+            echarts.util.each(data.team, function(team) {
+                seriesList.push({
+                    name: team.name,
+                    type: 'line',
+                    data: team.scores,
+                    itemStyle: {
+                        color: team.color
+                    }
+                });
+            });
+            teamLineChart.hideLoading();
+            teamLineChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: data.rounds
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: seriesList,
+            });
+        });
+
+        // Update chart every 30 seconds
+        setInterval(function () {
+            const seriesList = [];
+            $.get('/api/scoreboard/get_line_data').done(function(data) {
+                echarts.util.each(data.team, function(team) {
+                    seriesList.push({
+                        name: team.name,
+                        type: 'line',
+                        data: team.scores,
+                    });
+                });
+                teamLineChart.setOption({
+                    series: seriesList,
+                });
+            });
+        }, 30000);
     </script>
 </div>
 {% endblock %}
