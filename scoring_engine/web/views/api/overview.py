@@ -97,19 +97,17 @@ def overview_get_columns():
 @mod.route("/api/overview/get_data")
 @cache.memoize()
 def overview_get_data():
-    columns = get_table_columns()
+    # columns = get_table_columns()
     data = []
     blue_teams = Team.get_all_blue_teams()
     last_round = Round.get_last_round_num()
 
-    if len(blue_teams) > 0:
-        current_score_row_data = {"": "Current Score"}
-        current_place_row_data = {"": "Current Place"}
-        current_up_down_row_data = {"": "Up/Down Ratio"}
-        for blue_team in blue_teams:
-            current_score_row_data[blue_team.name] = blue_team.current_score
-            current_place_row_data[blue_team.name] = blue_team.place
+    current_scores = ["Current Score"]
+    current_places = ["Current Place"]
+    service_ratios = ["Up/Down Ratio"]
 
+    if len(blue_teams) > 0:
+        for blue_team in blue_teams:
             num_up_services = (
                 session.query(
                     Service.team_id,
@@ -128,65 +126,44 @@ def overview_get_data():
                 )
                 .join(Check)
                 .join(Round)
+                .filter(Check.result.is_(False))
                 .filter(Service.team_id == blue_team.id)
                 .filter(Round.number == last_round)
                 .count()
             )
 
-            current_up_down_row_data[blue_team.name] = "{0} / {1}".format(
-                num_up_services, num_down_services
+            current_scores.append(str(blue_team.current_score))
+            current_places.append(str(blue_team.place))
+            service_ratios.append(
+                "{0} / {1}".format(num_up_services, num_down_services)
             )
-        data.append(current_score_row_data)
-        data.append(current_place_row_data)
-        data.append(current_up_down_row_data)
+        data.append(current_scores)
+        data.append(current_places)
+        data.append(service_ratios)
 
-        # for blue_team in blue_teams:
-        #     checks = (
-        #         session.query(Service.name, Service.host, Service.port, Check.result)
-        #         .join(Service)
-        #         .filter(Check.round_id == last_round)
-        #         .filter(Service.team_id == blue_team.id)
-        #         .order_by(Service.name)
-        #         .all()
-        #     )
-        #     service_row_data = {"": check[0]}
-        #     for check in checks:
-        #         service_text = check[1]
-        #         if str(check[2]) != "0":
-        #             service_text += ":" + str(check[2])
-        #         service_data = {
-        #             "result": str(check.result),
-        #             "host_info": service_text,
-        #         }
-
-        checks = (
-            session.query(Service, Check.result)
-            .join(Check)
-            .filter(Check.round_id == last_round)
+        services = []
+        services.append(
+            [
+                service[0]
+                for service in session.query(Service.name)
+                .distinct(Service.name)
+                .group_by(Service.name)
+                .all()
+            ]
         )
-        for service in (
-            session.query(Service.name)
-            .distinct(Service.name)
-            .group_by(Service.name)
-            .all()
-        ):
-            service_row_data = {"": service[0]}
-            for blue_team in blue_teams:
-                check = (
-                    checks.filter(Service.name == service[0])
-                    .filter(Service.team_id == blue_team.id)
-                    .first()
-                )
-                check_text = check[0].host
-                if str(check[0].port) != "0":
-                    check_text += ":" + str(check[0].port)
-                check_data = {
-                    "result": str(check[1]),
-                    "host_info": check_text,
-                }
-                service_row_data[blue_team.name] = check_data
-            data.append(service_row_data)
+        for blue_team in blue_teams:
+            checks = (
+                session.query(Check.result)
+                .join(Service)
+                .filter(Check.round_id == last_round)
+                .filter(Service.team_id == blue_team.id)
+                .order_by(Service.name)
+                .all()
+            )
+            services.append([check[0] for check in checks])
+        print(services)
+        data += list(zip(*services))  # zip these to get the right datatables format
 
-        return json.dumps({"columns": columns, "data": data})
+        return json.dumps({"data": data})
     else:
         return "{}"
