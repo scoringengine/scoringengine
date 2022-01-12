@@ -14,7 +14,7 @@ config = {
     # 'version': version,
     'install_requires': [
         'bcrypt==3.1.3',
-        'billiard==3.5.0.4',
+        'billiard==3.6.4.0',
         'celery==5.2.2',
         'configparser==3.5.0',
         'Flask==1.0.2',
