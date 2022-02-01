@@ -8,6 +8,8 @@ RUN apt-get update && \
 COPY docker/testbed/postgresql/build.sh /root/build.sh
 RUN bash /root/build.sh
 
+EXPOSE 5432
+
 CMD sudo -u postgres \
   /usr/lib/postgresql/10/bin/postgres \
     -h '*' \
