@@ -14,4 +14,6 @@ COPY docker/testbed/openvpn/dh.pem /etc/openvpn/dh.pem
 
 RUN chmod 755 /etc/openvpn/auth-pam.pl
 
+EXPOSE 1194/udp
+
 CMD ["/usr/sbin/openvpn", "/etc/openvpn.conf"]
