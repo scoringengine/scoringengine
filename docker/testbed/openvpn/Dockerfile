@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y openvpn perl libauthen-simple-pam-perl && \
     useradd --no-create-home --shell /bin/sh test && \
