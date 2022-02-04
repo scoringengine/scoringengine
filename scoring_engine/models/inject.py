@@ -38,7 +38,7 @@ class Template(Base):
     __tablename__ = "template"
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(255), nullable=False)
-    scenario = Column(Unicode(255), nullable=False)
+    scenario = Column(UnicodeText, nullable=False)
     deliverable = Column(UnicodeText, nullable=False)
     start_time = Column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
@@ -143,22 +143,6 @@ class Inject(Base):
         self.team = team
         self.template = template
         self.enabled = enabled
-
-
-# class RedTeamInject(Inject):
-#     __tablename__ = "redteaminject"
-#     id = Column(Integer, ForeignKey("inject.id"), primary_key=True)
-#     target = relationship(
-#         "Team",
-#         backref="redteaminjects",
-#         cascade="all, delete-orphan",
-#         single_parent=True,
-#     )
-
-#     def __init__(self, team, template, enabled=True):
-#         self.team = team
-#         self.template = template
-#         self.enabled = enabled
 
 
 class Comment(Base):
