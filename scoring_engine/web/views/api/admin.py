@@ -1,4 +1,5 @@
 import json
+from tempfile import template
 
 from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify
@@ -645,6 +646,7 @@ def admin_import_inject_templates():
                                 r = Rubric(
                                     value=rubric["value"],
                                     deliverable=rubric["deliverable"],
+                                    template=template,
                                 )
                                 session.add(r)
                         session.commit()
