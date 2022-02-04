@@ -97,12 +97,12 @@ class Template(Base):
 class Rubric(Base):
     __tablename__ = "rubric"
     id = Column(Integer, primary_key=True)
-    deliverable = Column(String(255), nullable=False)
+    deliverable = Column(Unicode(255), nullable=False)
     value = Column(Integer, nullable=False)
 
     # Relationships
-    template_id = Column(Integer, ForeignKey("templates.id"))
-    template = relationship("Template", back_populates="rubrics")
+    template_id = Column(Integer, ForeignKey("template.id"))
+    template = relationship("Template", back_populates="rubric")
 
     def __init__(self, deliverable, value, template):
         self.deliverable = deliverable
@@ -129,7 +129,6 @@ class Inject(Base):
     enabled = Column(Boolean, nullable=False, default=True)
     submitted = Column(DateTime, nullable=False, default=datetime.utcnow)
     graded = Column(DateTime, nullable=False, default=datetime.utcnow)
-    # TODO - File Upload
 
     # Relationships
     comment = relationship("Comment", back_populates="inject", cascade="all, delete")
