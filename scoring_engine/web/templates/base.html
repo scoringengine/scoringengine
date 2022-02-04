@@ -1,88 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% block head %}
-    <title>Scoring Engine - {% block title %}{% endblock %}</title>
-    <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/bootstrap.min.js') }}"></script>
-    {% endblock %}
-    <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='vendor/css/bootstrap-glyphicons.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-  </head>
-  {% if 'unauthorized' in request.path %}
-  <body style="background-color: red">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% block head %}
+  <title>Scoring Engine - {% block title %}{% endblock %}</title>
+  <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/bootstrap.min.js') }}"></script>
+  {% endblock %}
+  <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/css/bootstrap-glyphicons.css') }}" rel="stylesheet">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+  <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+</head>
+{% if 'unauthorized' in request.path %}
+
+<body style="background-color: red">
   {% else %}
+
   <body style="background-color: #f9f9f9;">
-  {% endif %}
+    {% endif %}
     <script>
-      $(document).ready (function(){
-        $("#alert-info").fadeTo(2000, 500).slideUp(500, function(){
+      $(document).ready(function () {
+        $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
         });
       });
     </script>
 
     {% for category, message in get_flashed_messages(with_categories=true) %}
-      <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert" style="margin-bottom: 0px">
-        <button type="button" class="close" data-dismiss="alert">x</button>
-        <strong>{{ message }}</strong>
-      </div>
+    <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert"
+      style="margin-bottom: 0px">
+      <button type="button" class="close" data-dismiss="alert">x</button>
+      <strong>{{ message }}</strong>
+    </div>
     {% endfor %}
 
     {% if "admin" in request.path %}
     <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
-    <!-- <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">-->
-    {% else %}
-    <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
-    {% endif %}
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Scoring Engine</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="">
-          <ul class="nav navbar-nav">
-            <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
-            <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
-            {% if current_user.is_authenticated %}
+      <!-- <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">-->
+      {% else %}
+      <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
+        {% endif %}
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+              aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Scoring Engine</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="">
+            <ul class="nav navbar-nav">
+              <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
+              <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('overview.home') }}">Overview</a></li>
+              {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
-              <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('services.home') }}">Services</a></li>
-              <li class="navbar-item {% if request.path == '/injects' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('injects.home') }}">Injects</a></li>
+              <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('services.home') }}">Services</a></li>
+              {% endif %}
+              {% if current_user.is_blue_team or current_user.is_red_team %}
+              <li class="navbar-item {% if request.path == '/injects' %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('injects.home') }}">Injects</a></li>
               {% endif %}
               {% if current_user.is_white_team %}
-              <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"  href="{{ url_for('admin.status') }}">Admin</a></li>
+              <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('admin.status') }}">Admin</a></li>
               {% endif %}
-            {% endif %}
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            {% if not current_user.is_authenticated %}
-            <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
-            {% else %}
-            <li class="dropdown">
-              <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{ current_user.get_username }} <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
-                <li class="divider"></li>
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-              </ul>
-            </li>
-            {% endif %}
-            <li class="navbar-item"><a href="{{ url_for('about.about') }}">About</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div><!--/.container-fluid -->
-    </nav>
-    {% block content %}
-    {% endblock %}
+              {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              {% if not current_user.is_authenticated %}
+              <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
+              {% else %}
+              <li class="dropdown">
+                <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{
+                  current_user.get_username }} <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
+                  <li class="divider"></li>
+                  <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                </ul>
+              </li>
+              {% endif %}
+              <li class="navbar-item"><a href="{{ url_for('about.about') }}">About</a></li>
+            </ul>
+          </div>
+          <!--/.nav-collapse -->
+        </div>
+        <!--/.container-fluid -->
+      </nav>
+      {% block content %}
+      {% endblock %}
   </body>
+
 </html>
