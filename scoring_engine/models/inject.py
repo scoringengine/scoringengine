@@ -101,10 +101,13 @@ class Rubric(Base):
     value = Column(Integer, nullable=False)
 
     # Relationships
-    template = relationship("Template")
+    template_id = Column(Integer, ForeignKey("templates.id"))
+    template = relationship("Template", back_populates="rubrics")
 
-    # template_id = Column(Integer, ForeignKey("templates.id"))
-    # template = relationship("Template", back_populates="rubrics", lazy="joined")
+    def __init__(self, deliverable, value, template):
+        self.deliverable = deliverable
+        self.value = value
+        self.template = template
 
 
 """
