@@ -30,8 +30,6 @@ from scoring_engine.celery_stats import CeleryStats
 
 from sqlalchemy.orm.exc import NoResultFound
 
-from scoring_engine.web.views import injects
-
 from . import mod
 
 
@@ -645,7 +643,6 @@ def admin_import_inject_templates():
                             # Otherwise, create the rubric
                             else:
                                 r = Rubric(
-                                    id=rubric_id,
                                     value=rubric["value"],
                                     deliverable=rubric["deliverable"],
                                 )
@@ -730,7 +727,6 @@ def admin_injects_bar():
     if current_user.is_white_team:
         team_data = {}
         team_labels = []
-        team_scores = []
         inject_scores = []
 
         for blue_team in Team.get_all_blue_teams():
