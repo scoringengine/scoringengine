@@ -35,9 +35,6 @@ ID: 5
 """
 
 
-# TODO - Add proper relationships to fix cascading deletes - sqlalchemy.exc.ArgumentError: For many-to-one relationship Rubric.template, delete-orphan cascade is normally configured only on the "one" side of a one-to-many relationship, and not on the "many" side of a many-to-one or many-to-many relationship.  To force this relationship to allow a particular "Template" object to be referred towards by only a single "Rubric" object at a time via the Rubric.template relationship, which would allow delete-orphan cascade to take place in this direction, set the single_parent=True flag. (Background on this error at: http://sqlalche.me/e/13/bbf0)
-
-
 class Template(Base):
     __tablename__ = "template"
     id = Column(Integer, primary_key=True)
@@ -108,20 +105,6 @@ class Rubric(Base):
 
     # template_id = Column(Integer, ForeignKey("templates.id"))
     # template = relationship("Template", back_populates="rubrics", lazy="joined")
-
-
-class InjectStateEnum(enum.Enum):
-    draft = "Draft"
-    scheduled = "Scheduled"
-    pending = "Pending"
-    submitted = "Submitted"
-    graded = "Graded"
-    expired = "Expired"
-
-    def __init__(self, deliverable, value, template):
-        self.deliverable = deliverable
-        self.value = value
-        self.template = template
 
 
 """
