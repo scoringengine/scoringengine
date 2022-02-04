@@ -1,6 +1,7 @@
 import json
 from tempfile import template
 
+from datetime import datetime
 from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
@@ -507,6 +508,28 @@ def admin_get_inject_templates():
                 )
             )
         return jsonify(data=data)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/inject/<inject_id>/grade", methods=["POST"])
+@login_required
+def admin_post_inject_grade(inject_id):
+    if current_user.is_white_team:
+        data = request.get_json()
+        if "score" in data.keys() and data.get("score") != "":
+            inject = session.query(Inject).get(inject_id)
+            if inject:
+                inject.graded = datetime.utcnow()
+                inject.status = "Graded"
+                inject.score = data.get("score")
+                session.add(inject)
+                session.commit()
+                return jsonify({"status": "Success"}), 200
+            else:
+                return jsonify({"status": "Invalid Inject ID"}), 400
+        else:
+            return jsonify({"status": "Invalid Score Provided"}), 400
     else:
         return {"status": "Unauthorized"}, 403
 
