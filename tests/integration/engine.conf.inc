@@ -3,6 +3,7 @@ checks_location = scoring_engine/checks
 target_round_time = 180
 worker_refresh_time = 30
 timezone = US/Eastern
+upload_folder = /app/uploads
 
 debug = False
 
