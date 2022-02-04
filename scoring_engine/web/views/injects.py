@@ -1,8 +1,6 @@
 from flask import Blueprint, render_template, url_for, redirect
 from flask_login import login_required, current_user
 from scoring_engine.models.inject import Inject, File
-from scoring_engine.models.service import Service
-from scoring_engine.models.setting import Setting
 from scoring_engine.db import session
 
 

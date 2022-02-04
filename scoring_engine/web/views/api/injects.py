@@ -1,7 +1,7 @@
 import os
 import pytz
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from flask import request, jsonify, send_file, safe_join, abort
 from flask_login import current_user, login_required
@@ -11,16 +11,6 @@ from werkzeug.utils import secure_filename
 from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import session
-from scoring_engine.cache_helper import (
-    update_overview_data,
-    update_services_data,
-    update_service_data,
-)
-from scoring_engine.models.account import Account
-from scoring_engine.models.service import Service
-from scoring_engine.models.setting import Setting
-from scoring_engine.models.check import Check
-from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Inject, File, Comment
 

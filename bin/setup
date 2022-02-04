@@ -5,7 +5,7 @@ from random import choice, randint
 import optparse
 import os
 
-from scoring_engine.models.inject import Template, Rubric, Inject, Comment
+from scoring_engine.models.inject import Template, Rubric, Inject
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round

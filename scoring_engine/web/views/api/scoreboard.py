@@ -1,6 +1,3 @@
-import json
-import random
-
 from flask import jsonify
 
 from scoring_engine.cache import cache
@@ -15,17 +12,14 @@ def scoreboard_get_bar_data():
     team_labels = []
     team_scores = []
     inject_scores = []
-    scores_colors = []
     for blue_team in Team.get_all_blue_teams():
         team_labels.append(blue_team.name)
         team_scores.append(str(blue_team.current_score))
         inject_scores.append(str(blue_team.current_inject_score))
-        # scores_colors.append(blue_team.rgb_color)
 
     team_data["labels"] = team_labels
     team_data["service_scores"] = team_scores
     team_data["inject_scores"] = inject_scores
-    # team_data["colors"] = scores_colors
     return jsonify(team_data)
 
 

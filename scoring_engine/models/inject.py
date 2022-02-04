@@ -1,6 +1,6 @@
 import pytz
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import (
     Column,
@@ -15,7 +15,6 @@ from sqlalchemy import (
 from sqlalchemy import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Boolean
-from sqlalchemy.util.langhelpers import set_creation_order
 
 from scoring_engine.models.base import Base
 from scoring_engine.config import config
