@@ -412,10 +412,6 @@ def admin_put_inject_templates_id(template_id):
     if current_user.is_white_team:
         data = request.get_json()
         template = session.query(Template).get(int(template_id))
-        print(data["start_time"])
-        print(parse(data["start_time"]))
-        print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
-        print("template.start_time", template.start_time)
         if template:
             if data.get("title"):
                 template.title = data["title"]
@@ -424,9 +420,17 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = parse(data["start_time"])
+                template.start_time = (
+                    parse(data["start_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
+                )
             if data.get("end_time"):
-                template.end_time = parse(data["end_time"])
+                template.end_time = (
+                    parse(data["end_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
+                )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -505,11 +509,11 @@ def admin_get_inject_templates():
                     scenario=template.scenario,
                     deliverable=template.deliverable,
                     score=template.score,
-                    start_time=template.start_time.astimezone(
-                        pytz.timezone(config.timezone)
+                    start_time=template.start_time.replace(
+                        tzinfo=config.timezone
                     ).isoformat(),
-                    end_time=template.end_time.astimezone(
-                        pytz.timezone(config.timezone)
+                    end_time=template.end_time.replace(
+                        tzinfo=config.timezone
                     ).isoformat(),
                     enabled=template.enabled,
                     rubric=[
