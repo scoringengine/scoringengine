@@ -422,13 +422,13 @@ def admin_put_inject_templates_id(template_id):
             if data.get("start_time"):
                 template.start_time = (
                     parse(data["start_time"])
-                    .astimezone(pytz.timezone(config.timezone))
+                    .astimezone(pytz.utc)
                     .replace(tzinfo=None)
                 )
             if data.get("end_time"):
                 template.end_time = (
                     parse(data["end_time"])
-                    .astimezone(pytz.timezone(config.timezone))
+                    .astimezone(pytz.utc)
                     .replace(tzinfo=None)
                 )
             # TODO - Fix this to not be string values from javascript select
