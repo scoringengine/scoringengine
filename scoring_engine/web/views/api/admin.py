@@ -776,7 +776,6 @@ def admin_import_inject_templates():
                             template=t,
                         )
                         session.add(r)
-                    session.commit()
                     for team_name in d["teams"]:
                         inject = (
                             session.query(Inject)
@@ -801,7 +800,7 @@ def admin_import_inject_templates():
                                 template=t,
                             )
                             session.add(inject)
-
+                    session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Invalid Data"}), 400
