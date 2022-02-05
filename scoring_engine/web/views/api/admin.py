@@ -414,6 +414,9 @@ def admin_put_inject_templates_id(template_id):
         template = session.query(Template).get(int(template_id))
         if template:
             print("template")
+            print(data["start_time"])
+            print(parse(data["start_time"]))
+            print(parse(data["start_time"]).astimezone(pytz.timezone(pytz.utc)))
             if data.get("title"):
                 template.title = data["title"]
             if data.get("scenario"):
@@ -766,6 +769,31 @@ def admin_import_inject_templates():
                         )
                         session.add(r)
                     session.commit()
+                    for team_name in d["teams"]:
+                        inject = (
+                            session.query(Inject)
+                            .join(Template)
+                            .join(Team)
+                            .filter(Team.name == team_name)
+                            .filter(Template.id == t.id)
+                            .one_or_none()
+                        )
+                        # Update inject if it exists
+                        if inject:
+                            inject.enabled = True
+                        # Otherwise, create the inject
+                        else:
+                            team = (
+                                session.query(Team)
+                                .filter(Team.name == team_name)
+                                .first()
+                            )
+                            inject = Inject(
+                                team=team,
+                                template=t,
+                            )
+                            session.add(inject)
+
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Invalid Data"}), 400
