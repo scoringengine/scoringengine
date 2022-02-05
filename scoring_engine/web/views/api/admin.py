@@ -415,7 +415,6 @@ def admin_put_inject_templates_id(template_id):
         print(data["start_time"])
         print(parse(data["start_time"]))
         print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
-        print(parse(data["start_time"]).astimezone(pytz.timezone(pytz.utc)))
         print("template.start_time", template.start_time)
         if template:
             if data.get("title"):
@@ -676,13 +675,9 @@ def admin_import_inject_templates():
                         if d.get("deliverable"):
                             t.deliverable = d["deliverable"]
                         if d.get("start_time"):
-                            t.start_time = parse(d["start_time"]).astimezone(
-                                pytz.timezone(config.timezone)
-                            )
+                            t.start_time = parse(d["start_time"])
                         if d.get("end_time"):
-                            t.end_time = parse(d["start_time"]).astimezone(
-                                pytz.timezone(config.timezone)
-                            )
+                            t.end_time = parse(d["start_time"])
                         if d.get("enabled"):
                             t.enabled = True
                         else:

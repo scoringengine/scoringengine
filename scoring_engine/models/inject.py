@@ -40,8 +40,10 @@ class Template(Base):
     title = Column(Unicode(255), nullable=False)
     scenario = Column(UnicodeText, nullable=False)
     deliverable = Column(UnicodeText, nullable=False)
-    start_time = Column(DateTime, nullable=False, default=datetime.utcnow)
-    end_time = Column(DateTime, nullable=False)
+    start_time = Column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
+    end_time = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     enabled = Column(Boolean, nullable=False, default=True)
 
     # Relationships
@@ -124,8 +126,8 @@ class Inject(Base):
     score = Column(Integer, default=0)
     status = Column(String(255), default="Draft")
     enabled = Column(Boolean, nullable=False, default=True)
-    submitted = Column(DateTime, nullable=False, default=datetime.now)
-    graded = Column(DateTime, nullable=False, default=datetime.now)
+    submitted = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    graded = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
 
     # Relationships
     comment = relationship("Comment", back_populates="inject", cascade="all, delete")
