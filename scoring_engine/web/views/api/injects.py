@@ -12,7 +12,7 @@ from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.team import Team
-from scoring_engine.models.inject import Inject, File, Comment
+from scoring_engine.models.inject import Template, Inject, File, Comment
 
 from . import mod
 
@@ -27,8 +27,10 @@ def api_injects():
     data = list()
     injects = (
         session.query(Inject)
+        .join(Template)
         .filter(Inject.team == team)
         .filter(Inject.enabled == True)
+        .filter(Template.start_time < datetime.utcnow())
         .all()
     )
     for inject in injects:
