@@ -47,6 +47,25 @@
       </h5>
       <h5>End Time - <div id="endTime">{{ inject.template.end_time }}</div>
       </h5>
+      <h4>Scenario</h4>
+      <p>{{ inject.template.scenario }}</p>
+      <h4>Deliverable</h4>
+      <p>{{ inject.template.deliverable }}</p>
+      {% if inject.template.rubric %}
+      <h4>Rubric</h4>
+      <table class="table table-bordered">
+        <tr>
+          <th>Deliverable</th>
+          <th>Value</th>
+        </tr>
+        {% for rubric in inject.template.rubric %}
+        <tr>
+          <td>{{ rubric.deliverable }}</td>
+          <td>{{ rubric.value }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
       <!-- <h5>Submitted</h5>
       <h5>Submitted By</h5>
       <h5>Created</h5>
