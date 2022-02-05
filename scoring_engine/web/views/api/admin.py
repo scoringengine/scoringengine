@@ -692,6 +692,7 @@ def admin_import_inject_templates():
                         end_time=parse(d["end_time"]).astimezone(pytz.utc),
                         enabled=d["enabled"],
                     )
+                    session.add(t)
                     for rubric in d["rubric"]:
                         r = Rubric(
                             value=rubric["value"],
@@ -700,7 +701,7 @@ def admin_import_inject_templates():
                         )
                         session.add(r)
                     session.commit()
-                return jsonify({"status": "Success"}), 200
+            return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Invalid Data"}), 400
     else:
