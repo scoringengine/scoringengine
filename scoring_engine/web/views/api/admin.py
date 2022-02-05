@@ -411,15 +411,12 @@ def admin_get_inject_templates_id(template_id):
 def admin_put_inject_templates_id(template_id):
     if current_user.is_white_team:
         data = request.get_json()
+        template = session.query(Template).get(int(template_id))
         print(data["start_time"])
         print(parse(data["start_time"]))
         print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
-        print(
-            parse(data["start_time"])
-            .astimezone(pytz.timezone(config.timezone))
-            .replace(tzinfo=None)
-        )
-        template = session.query(Template).get(int(template_id))
+        print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
+        print("template.start_time", template.start_time)
         if template:
             if data.get("title"):
                 template.title = data["title"]
@@ -428,16 +425,12 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = (
-                    parse(data["start_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
+                template.start_time = parse(data["start_time"]).astimezone(
+                    pytz.timezone(config.timezone)
                 )
             if data.get("end_time"):
-                template.end_time = (
-                    parse(data["end_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
+                template.end_time = parse(data["end_time"]).astimezone(
+                    pytz.timezone(config.timezone)
                 )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
