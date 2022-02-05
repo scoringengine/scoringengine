@@ -415,7 +415,7 @@ def admin_put_inject_templates_id(template_id):
         print(data["start_time"])
         print(parse(data["start_time"]))
         print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
-        print(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)))
+        print(parse(data["start_time"]).astimezone(pytz.timezone(pytz.utc)))
         print("template.start_time", template.start_time)
         if template:
             if data.get("title"):
@@ -426,11 +426,11 @@ def admin_put_inject_templates_id(template_id):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
                 template.start_time = parse(data["start_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                    pytz.timezone(pytz.utc)
                 )
             if data.get("end_time"):
                 template.end_time = parse(data["end_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                    pytz.timezone(pytz.utc)
                 )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
