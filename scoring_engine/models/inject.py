@@ -96,7 +96,7 @@ class Template(Base):
 class Rubric(Base):
     __tablename__ = "rubric"
     id = Column(Integer, primary_key=True)
-    deliverable = Column(Unicode(255), nullable=False)
+    deliverable = Column(UnicodeText, nullable=False)
     value = Column(Integer, nullable=False)
 
     # Relationships
