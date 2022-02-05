@@ -22,7 +22,11 @@ from . import mod
 @cache.memoize(timeout=60)
 def api_injects():
     team = session.query(Team).get(current_user.team.id)
-    if team is None or not current_user.team == team or not current_user.is_blue_team:
+    if (
+        team is None
+        or not current_user.team == team
+        or not (current_user.is_blue_team or current_user.is_red_team)
+    ):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
     injects = (
