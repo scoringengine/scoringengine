@@ -417,7 +417,7 @@ def admin_put_inject_templates_id(template_id):
             if data.get("start_time"):
                 template.start_time = parse(data["start_time"]).astimezone(pytz.utc)
             if data.get("end_time"):
-                template.end_time = parse(data["start_time"]).astimezone(pytz.utc)
+                template.end_time = parse(data["end_time"]).astimezone(pytz.utc)
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -673,6 +673,44 @@ def admin_import_inject_templates():
                                     template=template,
                                 )
                                 session.add(r)
+                        # Generate injects from template
+                        if data.get("selectedTeams"):
+                            for team_name in data["selectedTeams"]:
+                                inject = (
+                                    session.query(Inject)
+                                    .join(Template)
+                                    .join(Team)
+                                    .filter(Team.name == team_name)
+                                    .filter(Template.id == template_id)
+                                    .one_or_none()
+                                )
+                                # Update inject if it exists
+                                if inject:
+                                    inject.enabled = True
+                                # Otherwise, create the inject
+                                else:
+                                    team = (
+                                        session.query(Team)
+                                        .filter(Team.name == team_name)
+                                        .first()
+                                    )
+                                    inject = Inject(
+                                        team=team,
+                                        template=template,
+                                    )
+                                    session.add(inject)
+                        if data.get("unselectedTeams"):
+                            injects = (
+                                session.query(Inject)
+                                .join(Template)
+                                .join(Team)
+                                .filter(Team.name.in_(data["unselectedTeams"]))
+                                .filter(Template.id == template_id)
+                                .all()
+                            )
+                            for inject in injects:
+                                inject.enabled = False
+
                         session.commit()
                     else:
                         return (
