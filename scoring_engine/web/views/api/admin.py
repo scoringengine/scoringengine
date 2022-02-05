@@ -758,12 +758,12 @@ def admin_import_inject_templates():
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
-                        start_time=parse(d["start_time"]).astimezone(
-                            pytz.timezone(config.timezone)
-                        ),
-                        end_time=parse(d["end_time"]).astimezone(
-                            pytz.timezone(config.timezone)
-                        ),
+                        start_time=parse(d["start_time"])
+                        .astimezone(pytz.utc)
+                        .replace(tzinfo=None),
+                        end_time=parse(d["end_time"])
+                        .astimezone(pytz.utc)
+                        .replace(tzinfo=None),
                         enabled=d["enabled"],
                     )
                     session.add(t)
