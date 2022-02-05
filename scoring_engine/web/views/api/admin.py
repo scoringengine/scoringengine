@@ -505,11 +505,11 @@ def admin_get_inject_templates():
                     scenario=template.scenario,
                     deliverable=template.deliverable,
                     score=template.score,
-                    start_time=template.start_time.replace(
-                        tzinfo=pytz.timezone(config.timezone)
+                    start_time=template.start_time.astimezone(
+                        pytz.timezone(config.timezone)
                     ).isoformat(),
-                    end_time=template.end_time.replace(
-                        tzinfo=pytz.timezone(config.timezone)
+                    end_time=template.end_time.astimezone(
+                        pytz.timezone(config.timezone)
                     ).isoformat(),
                     enabled=template.enabled,
                     rubric=[
