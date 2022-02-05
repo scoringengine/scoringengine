@@ -521,7 +521,11 @@ def admin_get_inject_templates():
                         for x in template.rubric
                     ],
                     teams=[
-                        inject.team.name for inject in template.inject if inject.enabled
+                        inject.team.name
+                        for inject in template.inject
+                        if inject
+                        if inject.enabled
+                        if inject.team
                     ],
                 )
             )
