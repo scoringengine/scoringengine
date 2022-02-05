@@ -661,7 +661,8 @@ def admin_import_inject_templates():
         data = request.get_json()
         if data:
             for d in data:
-                print(parse(d["start_time"])).astimezone(pytz.utc)
+                print(d)
+                print(parse(d["start_time"]))
                 print(parse(d["start_time"]).astimezone(pytz.utc))
                 print(parse(d["start_time"]).astimezone(pytz.timezone(config.timezone)))
                 if d.get("id"):
