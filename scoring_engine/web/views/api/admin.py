@@ -413,10 +413,6 @@ def admin_put_inject_templates_id(template_id):
         data = request.get_json()
         template = session.query(Template).get(int(template_id))
         if template:
-            print("template")
-            print(data["start_time"])
-            print(parse(data["start_time"]))
-            print(parse(data["start_time"]).astimezone(pytz.timezone(pytz.utc)))
             if data.get("title"):
                 template.title = data["title"]
             if data.get("scenario"):
@@ -424,12 +420,16 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = parse(data["start_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                template.start_time = (
+                    parse(data["start_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
                 )
             if data.get("end_time"):
-                template.end_time = parse(data["end_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                template.end_time = (
+                    parse(data["end_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
                 )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
@@ -568,11 +568,15 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                start_time=parse(data["start_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                start_time=(
+                    parse(data["start_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
                 ),
-                end_time=parse(data["end_time"]).astimezone(
-                    pytz.timezone(config.timezone)
+                end_time=(
+                    parse(data["end_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
                 ),
             )
             session.add(template)
