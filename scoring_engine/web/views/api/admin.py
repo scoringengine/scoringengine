@@ -1,4 +1,6 @@
 import json
+import pytz
+
 from tempfile import template
 
 from datetime import datetime
@@ -414,9 +416,9 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = parse(data["start_time"])
+                template.start_time = parse(data["start_time"]).astimezone(pytz.utc)
             if data.get("end_time"):
-                template.end_time = parse(data["end_time"])
+                template.end_time = parse(data["start_time"]).astimezone(pytz.utc)
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -550,8 +552,8 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                start_time=parse(data["start_time"]),
-                end_time=parse(data["end_time"]),
+                start_time=parse(data["start_time"]).astimezone(pytz.utc),
+                end_time=parse(data["end_time"]).astimezone(pytz.utc),
             )
             session.add(template)
             session.commit()
@@ -647,9 +649,9 @@ def admin_import_inject_templates():
                         if d.get("deliverable"):
                             t.deliverable = d["deliverable"]
                         if d.get("start_time"):
-                            t.start_time = parse(d["start_time"])
+                            t.start_time = parse(d["start_time"]).astimezone(pytz.utc)
                         if d.get("end_time"):
-                            t.end_time = parse(d["end_time"])
+                            t.end_time = parse(d["end_time"]).astimezone(pytz.utc)
                         if d.get("enabled"):
                             t.enabled = True
                         else:
@@ -686,8 +688,8 @@ def admin_import_inject_templates():
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
-                        start_time=parse(d["start_time"]),
-                        end_time=parse(d["end_time"]),
+                        start_time=parse(d["start_time"]).astimezone(pytz.utc),
+                        end_time=parse(d["end_time"]).astimezone(pytz.utc),
                         enabled=d["enabled"],
                     )
                     for rubric in d["rubric"]:

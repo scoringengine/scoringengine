@@ -12,13 +12,13 @@
 <!-- YAML Export -->
 <script src="{{ url_for('static', filename='vendor/js/js-yaml.min.js') }}"></script>
 
-
-<!-- TODO - vendor these -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
   integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
-  crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker-full.min.js"></script> -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker.min.css"> -->
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"
+  integrity="sha512-fFkDTD3GpiLXZBIrfRu0etHZkCdWPkcNy4TjDqI3gQFVfbbDRFG5vV7w3mIeeOCvUY5cEKTUFiTetIsFtWjF1Q=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock %}
 
 {% block header %}Inject Templates{% endblock %}
@@ -439,8 +439,8 @@
           $('#inputUpdateTitle').val(data['title']);
           $('#inputUpdateScenario').val(data['scenario']);
           $('#inputUpdateDeliverable').val(data['deliverable']);
-          $('#inputUpdateStartTime').val(data['start_time']);
-          $('#inputUpdateEndTime').val(data['end_time']);
+          $('#inputUpdateStartTime').val(moment.utc(data['start_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
+          $('#inputUpdateEndTime').val(moment.utc(data['end_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
 
           // Enabled / Disabled
           if (data['enabled']) {
