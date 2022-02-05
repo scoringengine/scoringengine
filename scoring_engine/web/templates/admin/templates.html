@@ -45,7 +45,8 @@
     <tr>
       <th>#</th>
       <th>Title</th>
-      <!-- <th>State</th> -->
+      <th>Start Time</th>
+      <th>End Time</th>
       <th>Points</th>
       <th>Enabled</th>
       <th></th>
@@ -375,9 +376,18 @@
       "columns": [
         { "data": "id" },
         { "data": "title" },
-        // {
-        //   "data": "state",
-        // },
+        {
+          "data": "start_time",
+          "render": function (data, type, row) {
+            return moment.utc(data).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
+          }
+        },
+        {
+          "data": "end_time",
+          "render": function (data, type, row) {
+            return moment.utc(data).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
+          }
+        },
         {
           "data": "score",
         },
