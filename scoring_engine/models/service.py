@@ -59,6 +59,10 @@ class Service(Base):
             .all()
         )
 
+        # If there are no scores, return None
+        if not scores:
+            return None
+
         ranks = list(
             ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
         )  # [1, 2, 2, 4, 5]
