@@ -19,7 +19,6 @@ from . import mod
 
 @mod.route("/api/injects")
 @login_required
-@cache.memoize(timeout=60)
 def api_injects():
     team = session.query(Team).get(current_user.team.id)
     if (
@@ -113,7 +112,6 @@ def api_injects_file_upload(inject_id):
 
 @mod.route("/api/inject/<inject_id>/comments")
 @login_required
-@cache.memoize(timeout=60)
 def api_inject_comments(inject_id):
     inject = session.query(Inject).get(inject_id)
     if inject is None or not (
