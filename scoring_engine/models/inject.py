@@ -132,10 +132,10 @@ class Inject(Base):
     # Relationships
     comment = relationship("Comment", back_populates="inject", cascade="all, delete")
     file = relationship("File", back_populates="inject", cascade="all, delete")
-    team = relationship(
-        "Team", backref="injects", cascade="all, delete-orphan", single_parent=True
-    )
+
+    team = relationship("Team", back_populates="inject")
     team_id = Column(Integer, ForeignKey("teams.id"))
+
     template = relationship("Template", back_populates="inject")
     template_id = Column(Integer, ForeignKey("template.id"))
 
