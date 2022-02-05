@@ -190,7 +190,7 @@ def api_inject_files(inject_id):
     return jsonify(data=data)
 
 
-@mod.route("/api/inject/<inject_id>/file/<file_id>/download")
+@mod.route("/api/inject/<inject_id>/files/<file_id>/download")
 @login_required
 def api_inject_download(inject_id, file_id):
     inject = session.query(Inject).get(inject_id)
@@ -204,9 +204,8 @@ def api_inject_download(inject_id, file_id):
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403
 
-    path = safe_join(
-        "../../uploads/", current_user.team.name, file.name
-    )  # FIXME - relative path
+    path = safe_join(config.upload_folder, inject.team.name, file.name)
+    print(path)
     try:
         return send_file(path, as_attachment=True)
     except FileNotFoundError:

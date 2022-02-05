@@ -120,7 +120,7 @@
 
         // Append new files
         $.each(result.data, function (index, value) {
-          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "'>" + value.name + "</a></p>";
+          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a></p>";
         });
 
         // Update navbar
