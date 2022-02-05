@@ -94,12 +94,12 @@
           <div class="form-group">
             <div class="col-sm-4">
               <label for="inputStartTime">Start Time</label>
-              <input type="text" class="form-control" id="inputStartTime" placeholder="1995-12-17T03:24:00">
+              <input type="text" class="form-control" id="inputStartTime" placeholder="1995-12-17T03:24:00-0700">
             </div>
             <!-- End Time -->
             <div class="col-sm-4">
               <label for="inputEndTime">End Time</label>
-              <input type="text" class="form-control" id="inputEndTime" placeholder="1995-12-17T04:24:00">
+              <input type="text" class="form-control" id="inputEndTime" placeholder="1995-12-17T04:24:00-0700">
             </div>
             <!-- Enabled/Disabled -->
             <div class="col-sm-4">
@@ -234,12 +234,12 @@
           <div class="form-group">
             <div class="col-sm-4">
               <label for="inputUpdateStartTime">Start Time</label>
-              <input type="text" class="form-control" id="inputUpdateStartTime" placeholder="1995-12-17T03:24:00">
+              <input type="text" class="form-control" id="inputUpdateStartTime" placeholder="1995-12-17T03:24:00-0700">
             </div>
             <!-- End Time -->
             <div class="col-sm-4">
               <label for="inputUpdateEndTime">End Time</label>
-              <input type="text" class="form-control" id="inputUpdateEndTime" placeholder="1995-12-17T04:24:00">
+              <input type="text" class="form-control" id="inputUpdateEndTime" placeholder="1995-12-17T04:24:00-0700">
             </div>
             <!-- Enabled/Disabled -->
             <div class="col-sm-4">
@@ -379,13 +379,13 @@
         {
           "data": "start_time",
           "render": function (data, type, row) {
-            return moment.utc(data).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
+            return moment.utc(data).tz('America/New_York').format('YYYY-MM-DD HH:mm:ss z');
           }
         },
         {
           "data": "end_time",
           "render": function (data, type, row) {
-            return moment.utc(data).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
+            return moment.utc(data).tz('America/New_York').format('YYYY-MM-DD HH:mm:ss z');
           }
         },
         {
@@ -449,8 +449,10 @@
           $('#inputUpdateTitle').val(data['title']);
           $('#inputUpdateScenario').val(data['scenario']);
           $('#inputUpdateDeliverable').val(data['deliverable']);
-          $('#inputUpdateStartTime').val(moment.utc(data['start_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
-          $('#inputUpdateEndTime').val(moment.utc(data['end_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
+          $('#inputUpdateStartTime').val(data['start_time']);
+          $('#inputUpdateEndTime').val(data['end_time']);
+          // $('#inputUpdateStartTime').val(moment.utc(data['start_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
+          // $('#inputUpdateEndTime').val(moment.utc(data['end_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
 
           // Enabled / Disabled
           if (data['enabled']) {

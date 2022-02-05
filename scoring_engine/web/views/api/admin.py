@@ -3,13 +3,14 @@ import pytz
 
 from tempfile import template
 
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
 import html
 
+from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.inject import Template, Rubric, Inject
 from scoring_engine.models.service import Service
@@ -387,8 +388,12 @@ def admin_get_inject_templates_id(template_id):
             scenario=template.scenario,
             deliverable=template.deliverable,
             score=template.score,
-            start_time=template.start_time,
-            end_time=template.end_time,
+            start_time=template.start_time.astimezone(
+                pytz.timezone(config.timezone)
+            ).isoformat(),
+            end_time=template.end_time.astimezone(
+                pytz.timezone(config.timezone)
+            ).isoformat(),
             enabled=template.enabled,
             rubric=[
                 {"id": x.id, "value": x.value, "deliverable": x.deliverable}
@@ -408,6 +413,7 @@ def admin_put_inject_templates_id(template_id):
         data = request.get_json()
         template = session.query(Template).get(int(template_id))
         if template:
+            print("template")
             if data.get("title"):
                 template.title = data["title"]
             if data.get("scenario"):
@@ -415,9 +421,13 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = parse(data["start_time"]).astimezone(pytz.utc)
+                template.start_time = parse(data["start_time"]).astimezone(
+                    pytz.timezone(config.timezone)
+                )
             if data.get("end_time"):
-                template.end_time = parse(data["end_time"]).astimezone(pytz.utc)
+                template.end_time = parse(data["end_time"]).astimezone(
+                    pytz.timezone(config.timezone)
+                )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -496,8 +506,12 @@ def admin_get_inject_templates():
                     scenario=template.scenario,
                     deliverable=template.deliverable,
                     score=template.score,
-                    start_time=template.start_time,
-                    end_time=template.end_time,
+                    start_time=template.start_time.astimezone(
+                        pytz.timezone(config.timezone)
+                    ).isoformat(),
+                    end_time=template.end_time.astimezone(
+                        pytz.timezone(config.timezone)
+                    ).isoformat(),
                     enabled=template.enabled,
                     rubric=[
                         {"id": x.id, "value": x.value, "deliverable": x.deliverable}
@@ -551,8 +565,12 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                start_time=parse(data["start_time"]).astimezone(pytz.utc),
-                end_time=parse(data["end_time"]).astimezone(pytz.utc),
+                start_time=parse(data["start_time"]).astimezone(
+                    pytz.timezone(config.timezone)
+                ),
+                end_time=parse(data["end_time"]).astimezone(
+                    pytz.timezone(config.timezone)
+                ),
             )
             session.add(template)
             session.commit()
@@ -636,6 +654,8 @@ def admin_import_inject_templates():
         data = request.get_json()
         if data:
             for d in data:
+                print(parse(d["start_time"]))
+                print(parse(d["start_time"]).astimezone(pytz.timezone(config.timezone)))
                 if d.get("id"):
                     template_id = d["id"]
                     t = session.query(Template).get(int(template_id))
@@ -648,9 +668,13 @@ def admin_import_inject_templates():
                         if d.get("deliverable"):
                             t.deliverable = d["deliverable"]
                         if d.get("start_time"):
-                            t.start_time = parse(d["start_time"]).astimezone(pytz.utc)
+                            t.start_time = parse(d["start_time"]).astimezone(
+                                pytz.timezone(config.timezone)
+                            )
                         if d.get("end_time"):
-                            t.end_time = parse(d["end_time"]).astimezone(pytz.utc)
+                            t.end_time = parse(d["start_time"]).astimezone(
+                                pytz.timezone(config.timezone)
+                            )
                         if d.get("enabled"):
                             t.enabled = True
                         else:
@@ -725,8 +749,12 @@ def admin_import_inject_templates():
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
-                        start_time=parse(d["start_time"]).astimezone(pytz.utc),
-                        end_time=parse(d["end_time"]).astimezone(pytz.utc),
+                        start_time=parse(d["start_time"]).astimezone(
+                            pytz.timezone(config.timezone)
+                        ),
+                        end_time=parse(d["end_time"]).astimezone(
+                            pytz.timezone(config.timezone)
+                        ),
                         enabled=d["enabled"],
                     )
                     session.add(t)
