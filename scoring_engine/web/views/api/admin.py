@@ -421,15 +421,11 @@ def admin_put_inject_templates_id(template_id):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
                 template.start_time = (
-                    parse(data["start_time"])
-                    .astimezone(pytz.utc)
-                    .replace(tzinfo=None)
+                    parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                 )
             if data.get("end_time"):
                 template.end_time = (
-                    parse(data["end_time"])
-                    .astimezone(pytz.utc)
-                    .replace(tzinfo=None)
+                    parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                 )
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
@@ -510,10 +506,10 @@ def admin_get_inject_templates():
                     deliverable=template.deliverable,
                     score=template.score,
                     start_time=template.start_time.replace(
-                        tzinfo=config.timezone
+                        tzinfo=pytz.timezone(config.timezone)
                     ).isoformat(),
                     end_time=template.end_time.replace(
-                        tzinfo=config.timezone
+                        tzinfo=pytz.timezone(config.timezone)
                     ).isoformat(),
                     enabled=template.enabled,
                     rubric=[
