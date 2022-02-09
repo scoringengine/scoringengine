@@ -6,6 +6,7 @@ import re
 import signal
 import sys
 import time
+from datetime import datetime
 from functools import partial
 
 from scoring_engine.config import config
@@ -127,6 +128,7 @@ class Engine(object):
         while not self.is_last_round():
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
+            round_start_time = datetime.now()
             self.round_running = True
             self.rounds_run += 1
 
@@ -251,7 +253,12 @@ class Engine(object):
 
             if not self.is_last_round():
                 round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
-                logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
-                self.sleep(round_time_sleep)
+                round_duration = (datetime.now() - round_start_time).seconds
+                round_delta = round_time_sleep - round_duration
+                if round_delta > 0:
+                    logger.info("Sleeping in between rounds (" + str(round_delta) + " seconds)")
+                    self.sleep(round_delta)
+                else:
+                    logger.warning("Service checks lasted " + str(-round_delta) + "s longer than round length. Starting next round immediately")
 
         logger.info("Engine finished running")
