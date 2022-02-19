@@ -95,7 +95,7 @@ def api_injects_file_upload(inject_id):
     files = request.files.getlist("file")
     for file in files:
         filename = secure_filename(file.filename)
-        path = os.path.join("uploads/", current_user.team.name)
+        path = os.path.join(config.upload_folder, current_user.team.name)
 
         if not os.path.exists(path):
             os.makedirs(path)
