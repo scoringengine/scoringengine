@@ -2,13 +2,10 @@ import os
 import pytz
 
 from datetime import datetime
-
 from flask import request, jsonify, send_file, safe_join, abort
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
-
-from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.team import Team
@@ -142,6 +139,7 @@ def api_inject_comments(inject_id):
     return jsonify(data=data), 200
 
 
+# TODO - Check if comment length is greater than 25k characters, which is the TEXT max for MySQL
 @mod.route("/api/inject/<inject_id>/comment", methods=["POST"])
 @login_required
 def api_inject_add_comment(inject_id):
