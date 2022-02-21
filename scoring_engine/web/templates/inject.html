@@ -10,16 +10,14 @@
 <script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
 <link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
 
-<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+<!-- Dropzone -->
+<script src="{{ url_for('static', filename='vendor/js/dropzone.min.js') }}"></script>
+<link href="{{ url_for('static', filename='vendor/css/dropzone.min.css') }}" rel="stylesheet" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
-  integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
-  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"
-  integrity="sha512-fFkDTD3GpiLXZBIrfRu0etHZkCdWPkcNy4TjDqI3gQFVfbbDRFG5vV7w3mIeeOCvUY5cEKTUFiTetIsFtWjF1Q=="
-  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Moment -->
+<script src="{{ url_for('static', filename='vendor/js/moment.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/moment-timezone.min.js') }}"></script>
+
 {% endblock %}
 {% block content %}
 <div class="container md-page">
