@@ -6,6 +6,7 @@ from flask import request, jsonify, send_file, safe_join, abort
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
+from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.team import Team
@@ -104,10 +105,15 @@ def api_injects_file_upload(inject_id):
         f = File(filename, current_user, inject)
         session.add(f)
         session.commit()
+
+        # Delete file cache for inject
+        cache.delete_memoized(api_inject_files, inject_id)
+
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
 
 @mod.route("/api/inject/<inject_id>/comments")
+@cache.memoize()
 @login_required
 def api_inject_comments(inject_id):
     inject = session.query(Inject).get(inject_id)
@@ -159,10 +165,14 @@ def api_inject_add_comment(inject_id):
     session.add(c)
     session.commit()
 
+    # Delete comment cache for inject
+    cache.delete_memoized(api_inject_comments, inject_id)
+
     return jsonify({"status": "Comment added"}), 200
 
 
 @mod.route("/api/inject/<inject_id>/files")
+@cache.memoize()
 @login_required
 def api_inject_files(inject_id):
     inject = session.query(Inject).get(inject_id)
