@@ -47,7 +47,7 @@ configPointer.close()
 
 credsPointer = open("/tmp/auth-" + uid + ".txt", "w")
 credsPointer.write(username + "\n")
-credsPointer.write(password)
+credsPointer.write(password)  # lgtm [py/clear-text-storage-sensitive-data]
 credsPointer.close()
 
 shellPointer = open("/tmp/up-" + uid + ".sh", "w")
