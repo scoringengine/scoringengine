@@ -75,9 +75,7 @@
       $.each(data, function (key, val) {
         $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
         $("#" + key + "Percent span").text(val + "%");
-        if (val < 30) {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-danger');
-        } else if (val < 100) {
+        if (val < 100) {
           $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
         } else {
           $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-success');

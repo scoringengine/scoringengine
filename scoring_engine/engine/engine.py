@@ -291,12 +291,14 @@ class Engine(object):
                 round_delta = target_round_time - round_duration
                 if round_delta > 0:
                     logger.info(
-                        "Sleeping in between rounds (" + str(round_delta) + " seconds)"
+                        f"Targetting {target_round_time} seconds per round. Sleeping "
+                        + str(round_delta)
+                        + " seconds"
                     )
                     self.sleep(round_delta)
                 else:
                     logger.warning(
-                        f"Service checks lasted {abs(round_delta)}s longer than round length. Starting next round immediately"
+                        f"Service checks lasted {abs(round_delta)}s longer than round length ({target_round_time}). Starting next round immediately"
                     )
 
         logger.info("Engine finished running")
