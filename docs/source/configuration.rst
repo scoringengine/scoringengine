@@ -22,7 +22,7 @@ Manual
 
 Configuration Keys
 ------------------
-.. note:: Each of these config keys can be expressed via environment variables (and take precendence over the values defined in the file). IE: To define round_time_sleep, I'd set SCORINGENGINE_ROUND_TIME_SLEEP=3.
+.. note:: Each of these config keys can be expressed via environment variables (and take precendence over the values defined in the file). IE: To define target_round_time, I'd set SCORINGENGINE_TARGET_ROUND_TIME=3.
 
 .. list-table::
    :widths: 25 50
@@ -32,8 +32,8 @@ Configuration Keys
      - Description
    * - checks_location
      - Local path to directory of checks
-   * - round_time_sleep
-     - Amount of time (seconds) the engine sleeps between rounds
+   * - target_round_time
+     - Length of time (seconds) the engine should target per round
    * - worker_refresh_time
      - Amount of time (seconds) the engine will sleep for in-between polls of worker status
    * - worker_num_concurrent_tasks

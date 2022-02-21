@@ -24,7 +24,7 @@ services:
   # for no reason
   bootstrap:
     environment:
-      - SCORINGENGINE_ROUND_TIME_SLEEP=3
+      - SCORINGENGINE_TARGET_ROUND_TIME=3
       - SCORINGENGINE_WORKER_REFRESH_TIME=3
   # We redefine worker so that we can have multiple
   # worker containers running as part of the integration test
