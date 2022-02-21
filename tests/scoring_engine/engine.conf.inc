@@ -1,6 +1,6 @@
 [OPTIONS]
 checks_location = scoring_engine/checks
-round_time_sleep = 180
+target_round_time = 180
 worker_refresh_time = 30
 timezone = US/Eastern
 

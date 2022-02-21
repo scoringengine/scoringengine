@@ -6,6 +6,7 @@ import re
 import signal
 import sys
 import time
+from datetime import datetime
 from functools import partial
 
 from scoring_engine.config import config
@@ -17,7 +18,11 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.job import Job
 from scoring_engine.engine.execute_command import execute_command
-from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_FAILURE_TEXT, CHECK_TIMED_OUT_TEXT
+from scoring_engine.engine.basic_check import (
+    CHECK_SUCCESS_TEXT,
+    CHECK_FAILURE_TEXT,
+    CHECK_TIMED_OUT_TEXT,
+)
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
 from scoring_engine.db import session
@@ -28,7 +33,6 @@ def engine_sigint_handler(signum, frame, engine):
 
 
 class Engine(object):
-
     def __init__(self, total_rounds=0):
         self.checks = []
         self.total_rounds = total_rounds
@@ -52,10 +56,7 @@ class Engine(object):
         self.round_running = False
 
     def verify_settings(self):
-        settings = [
-            'round_time_sleep',
-            'worker_refresh_time'
-        ]
+        settings = ["target_round_time", "worker_refresh_time"]
         for setting_name in settings:
             if not Setting.get_setting(setting_name):
                 logger.error("Must have " + setting_name + " setting.")
@@ -81,15 +82,15 @@ class Engine(object):
 
     @staticmethod
     def load_check_files(checks_location):
-        checks_location_module_str = checks_location.replace('/', '.')
+        checks_location_module_str = checks_location.replace("/", ".")
         found_check_modules = pynsive.list_modules(checks_location_module_str)
         found_checks = []
         for found_module in found_check_modules:
             module_obj = pynsive.import_module(found_module)
             for name, arg in inspect.getmembers(module_obj):
-                if name == 'BasicCheck' or name == 'HTTPPostCheck':
+                if name == "BasicCheck" or name == "HTTPPostCheck":
                     continue
-                elif not name.endswith('Check'):
+                elif not name.endswith("Check"):
                     continue
                 found_checks.append(arg)
         return found_checks
@@ -107,14 +108,16 @@ class Engine(object):
             self.shutdown()
 
     def is_last_round(self):
-        return self.last_round or (self.rounds_run == self.total_rounds and self.total_rounds != 0)
+        return self.last_round or (
+            self.rounds_run == self.total_rounds and self.total_rounds != 0
+        )
 
     def all_pending_tasks(self, tasks):
         pending_tasks = []
         for team_name, task_ids in tasks.items():
             for task_id in task_ids:
                 task = execute_command.AsyncResult(task_id)
-                if task.state == 'PENDING':
+                if task.state == "PENDING":
                     pending_tasks.append(task_id)
         return pending_tasks
 
@@ -127,6 +130,7 @@ class Engine(object):
         while not self.is_last_round():
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
+            round_start_time = datetime.now()
             self.round_running = True
             self.rounds_run += 1
 
@@ -136,13 +140,24 @@ class Engine(object):
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
-                    raise LookupError("Unable to map service to check code for " + str(service.check_name))
-                logger.debug("Adding " + service.team.name + ' - ' + service.name + " check to queue")
+                    raise LookupError(
+                        "Unable to map service to check code for "
+                        + str(service.check_name)
+                    )
+                logger.debug(
+                    "Adding "
+                    + service.team.name
+                    + " - "
+                    + service.name
+                    + " check to queue"
+                )
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+                task = execute_command.apply_async(
+                    args=[job], queue=service.worker_queue
+                )
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []
@@ -157,15 +172,23 @@ class Engine(object):
                 # We store the list of tasks in the db, so that the web app
                 # can consume them and can dynamically update a progress bar
                 task_ids_str = json.dumps(task_ids)
-                latest_kb = KB(name='task_ids', value=task_ids_str, round_num=self.current_round)
+                latest_kb = KB(
+                    name="task_ids", value=task_ids_str, round_num=self.current_round
+                )
                 cleanup_items.append(latest_kb)
                 self.session.add(latest_kb)
                 self.session.commit()
 
                 pending_tasks = self.all_pending_tasks(task_ids)
                 while pending_tasks:
-                    worker_refresh_time = int(Setting.get_setting('worker_refresh_time').value)
-                    waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
+                    worker_refresh_time = int(
+                        Setting.get_setting("worker_refresh_time").value
+                    )
+                    waiting_info = (
+                        "Waiting for all jobs to finish (sleeping "
+                        + str(worker_refresh_time)
+                        + " seconds)"
+                    )
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
@@ -186,12 +209,16 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        environment = self.session.query(Environment).get(task.result['environment_id'])
-                        if task.result['errored_out']:
+                        environment = self.session.query(Environment).get(
+                            task.result["environment_id"]
+                        )
+                        if task.result["errored_out"]:
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
                         else:
-                            if re.search(environment.matching_content, task.result['output']):
+                            if re.search(
+                                environment.matching_content, task.result["output"]
+                            ):
                                 result = True
                                 reason = CHECK_SUCCESS_TEXT
                             else:
@@ -204,14 +231,23 @@ class Engine(object):
                                 "Failed": [],
                             }
                         if result:
-                            teams[environment.service.team.name]['Success'].append(environment.service.name)
+                            teams[environment.service.team.name]["Success"].append(
+                                environment.service.name
+                            )
                         else:
-                            teams[environment.service.team.name]['Failed'].append(environment.service.name)
+                            teams[environment.service.team.name]["Failed"].append(
+                                environment.service.name
+                            )
 
                         check = Check(service=environment.service, round=round_obj)
                         # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
                         # which maxes at 2^32 (65536) characters
-                        check.finished(result=result, reason=reason, output=task.result['output'][:35000], command=task.result['command'])
+                        check.finished(
+                            result=result,
+                            reason=reason,
+                            output=task.result["output"][:35000],
+                            command=task.result["command"],
+                        )
                         finished_checks.append(check)
 
                 for finished_check in finished_checks:
@@ -223,9 +259,9 @@ class Engine(object):
                 # We got an error while writing to db (could be normal docker stop command)
                 # but we gotta clean up any trace of the current round so when we startup
                 # again, we're at a consistent state
-                logger.error('Error received while writing check results to db')
+                logger.error("Error received while writing check results to db")
                 logger.exception(e)
-                logger.error('Ending round and cleaning up the db')
+                logger.error("Ending round and cleaning up the db")
                 for cleanup_item in cleanup_items:
                     try:
                         self.session.delete(cleanup_item)
@@ -235,13 +271,18 @@ class Engine(object):
                 sys.exit(1)
 
             logger.info("Finished Round " + str(self.current_round))
+            logger.info(
+                "Round Duration "
+                + str((datetime.now() - round_start_time).seconds)
+                + " seconds"
+            )
             logger.info("Round Stats:")
             for team_name in sorted(teams):
                 stat_string = " " + team_name
-                stat_string += " Success: " + str(len(teams[team_name]['Success']))
-                stat_string += ", Failed: " + str(len(teams[team_name]['Failed']))
-                if len(teams[team_name]['Failed']) > 0:
-                    stat_string += ' (' + ', '.join(teams[team_name]['Failed']) + ')'
+                stat_string += " Success: " + str(len(teams[team_name]["Success"]))
+                stat_string += ", Failed: " + str(len(teams[team_name]["Failed"]))
+                if len(teams[team_name]["Failed"]) > 0:
+                    stat_string += " (" + ", ".join(teams[team_name]["Failed"]) + ")"
                 logger.info(stat_string)
 
             logger.info("Updating Caches")
@@ -250,8 +291,19 @@ class Engine(object):
             self.round_running = False
 
             if not self.is_last_round():
-                round_time_sleep = int(Setting.get_setting('round_time_sleep').value)
-                logger.info("Sleeping in between rounds (" + str(round_time_sleep) + " seconds)")
-                self.sleep(round_time_sleep)
+                target_round_time = int(Setting.get_setting("target_round_time").value)
+                round_duration = (datetime.now() - round_start_time).seconds
+                round_delta = target_round_time - round_duration
+                if round_delta > 0:
+                    logger.info(
+                        f"Targetting {target_round_time} seconds per round. Sleeping "
+                        + str(round_delta)
+                        + " seconds"
+                    )
+                    self.sleep(round_delta)
+                else:
+                    logger.warning(
+                        f"Service checks lasted {abs(round_delta)}s longer than round length ({target_round_time}s). Starting next round immediately"
+                    )
 
         logger.info("Engine finished running")
