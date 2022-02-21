@@ -271,6 +271,11 @@ class Engine(object):
                 sys.exit(1)
 
             logger.info("Finished Round " + str(self.current_round))
+            logger.info(
+                "Round Duration "
+                + str((datetime.now() - round_start_time).seconds)
+                + " seconds"
+            )
             logger.info("Round Stats:")
             for team_name in sorted(teams):
                 stat_string = " " + team_name
@@ -298,7 +303,7 @@ class Engine(object):
                     self.sleep(round_delta)
                 else:
                     logger.warning(
-                        f"Service checks lasted {abs(round_delta)}s longer than round length ({target_round_time}). Starting next round immediately"
+                        f"Service checks lasted {abs(round_delta)}s longer than round length ({target_round_time}s). Starting next round immediately"
                     )
 
         logger.info("Engine finished running")
