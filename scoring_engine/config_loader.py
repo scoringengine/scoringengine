@@ -45,13 +45,9 @@ class ConfigLoader(object):
             "timezone", self.parser["OPTIONS"]["timezone"]
         )
 
-<<<<<<< HEAD
-        self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
-=======
         self.upload_folder = self.parse_sources(
             "upload_folder", self.parser["OPTIONS"]["upload_folder"]
         )
->>>>>>> d52ccd5 (Adding inject feature)
 
         self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
 
