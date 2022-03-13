@@ -10,6 +10,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, init_db, delete_db, verify_db_ready
 from scoring_engine.config import config
@@ -21,6 +22,7 @@ from scoring_engine.engine.basic_check import (
     CHECK_FAILURE_TEXT,
     CHECK_TIMED_OUT_TEXT,
 )
+from scoring_engine.web.views.api import notifications
 
 
 parser = optparse.OptionParser()
