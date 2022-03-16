@@ -7,7 +7,31 @@
 
 {% block content %}
 <div class="container md-page" style="padding-bottom: 0px;">
-  <div class="row">
+  <div class="page-header">
+    <h3>Notifications</h3>
+  </div>
+  <div class="panel panel-default">
+    <!-- Default panel contents -->
+    <div class="panel-body">
+      <ul class="nav nav-tabs">
+        <li role="navigation" {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
+            href="/notifications/unread">Unread <span class="badge">42</span></a></li>
+        <li role="navigation" {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
+            href="/notifications/read">Read</a></li>
+      </ul>
+      <!-- Table -->
+      <table class="table table-bordered">
+        <tbody>
+          <tr>
+            <td>
+              <a href="/admin/injects/1">An inject is ready to be graded</a>
+            </td>
+            <td>Team 1</td>
+            <td>Journey to Mordor</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
