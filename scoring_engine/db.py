@@ -43,10 +43,10 @@ db_salt = bcrypt.gensalt()
 # don't need to commit before every query
 # We got weird results in the web ui when we didn't
 # have this
-# def query_monkeypatch(classname):
-#     session.commit()
-#     return session.orig_query(classname)
+def query_monkeypatch(classname):
+    session.commit()
+    return session.orig_query(classname)
 
 
-# session.orig_query = session.query
-# session.query = query_monkeypatch
+session.orig_query = session.query
+session.query = query_monkeypatch
