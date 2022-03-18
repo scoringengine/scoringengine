@@ -33,7 +33,9 @@ from scoring_engine.cache_helper import (
 )
 from scoring_engine.celery_stats import CeleryStats
 
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
+
 
 from . import mod
 
@@ -819,38 +821,36 @@ def admin_import_inject_templates():
 @login_required
 def admin_inject_scores():
     if current_user.is_white_team:
-        data = []
+        data = {}
 
-        templates = session.query(Template).all()
-        for template in templates:
-            row = {"title": template.title, "end_time": template.end_time}
+        injects = (
+            session.query(Inject)
+            .options(joinedload(Inject.template))
+            .order_by(Inject.template_id)
+            .order_by(Inject.team_id)
+            .all()
+        )
 
-            # TODO - Loop through injects and generate per team scores for datatables
-            for team in Team.get_all_blue_teams():
-                inject = (
-                    session.query(Inject)
-                    .filter(Inject.team == team)
-                    .filter(Inject.template_id == template.id)
-                    .one_or_none()
-                )
-                # Return Inject Dictionary
-                if inject:
-                    row.update(
-                        {
-                            team.name: {
-                                "id": inject.id,
-                                "score": inject.score,
-                                "status": inject.status,
-                                "max_score": template.score,
-                                "pending_comment": True,  # TODO - Fix this
-                            }
-                        }
-                    )
-                # Return None if no inject
-                else:
-                    row.update({team.name: None})
-            data.append(row)
-        return jsonify(data=data), 200
+        for inject in injects:
+            if inject.template.id not in data:
+                data[inject.template.id] = {
+                    "title": inject.template.title,
+                    "end_time": inject.template.end_time,
+                }
+            if inject.team.name not in data[inject.template.id]:
+                data[inject.template.id][inject.team.name] = {
+                    "id": inject.id,
+                    "score": inject.score,
+                    "status": inject.status,
+                    "max_score": inject.template.score,
+                }
+
+        # Rewrite data to be in the format expected by the frontend
+        score_data = []
+        for x in data.items():
+            score_data.append(x[1])
+
+        return jsonify(data=score_data), 200
     else:
         return {"status": "Unauthorized"}, 403
 
