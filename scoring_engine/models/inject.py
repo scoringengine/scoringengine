@@ -12,13 +12,11 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
 )
-from sqlalchemy import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Boolean
 
 from scoring_engine.models.base import Base
 from scoring_engine.config import config
-from scoring_engine.db import session
 
 
 """
