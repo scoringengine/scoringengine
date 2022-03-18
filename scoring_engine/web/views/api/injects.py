@@ -205,7 +205,7 @@ def api_inject_add_comment(inject_id):
         return jsonify({"status": "Inject has ended"}), 400
 
     data = request.get_json()
-    if "comment" not in data or data["comment"] is "":
+    if "comment" not in data or data["comment"] == "":
         return jsonify({"status": "No comment"}), 400
 
     c = Comment(data["comment"], current_user, inject)
