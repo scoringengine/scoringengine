@@ -35,4 +35,23 @@
     </div>
   </div>
 </div>
+<script>
+    // Query API for notifications
+    $.ajax({
+      url: "/api/notifications",
+      success: function (result) {
+        // Append new files
+        $.each(result.data, function (index, value) {
+          files += "<p><a href='/" + value.id + "/download'>" + value.name + "</a></p>";
+        });
+
+        // Update navbar
+        $("#files").html(files);
+        console.log(files);
+      },
+      error: function (result) {
+        console.error("An Error Occurred Querying For Files");
+      }
+    });
+</script>
 {% endblock %}

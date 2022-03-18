@@ -10,6 +10,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True)
     message = Column(UnicodeText)
+    target = Column(UnicodeText)
     created = Column(DateTime, default=datetime.datetime.utcnow)
     is_read = Column(Boolean, default=False)
 

@@ -11,7 +11,7 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
 
-# from scoring_engine.models.notifications import Notification
+from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, init_db, delete_db, verify_db_ready
 from scoring_engine.config import config
@@ -24,7 +24,7 @@ from scoring_engine.engine.basic_check import (
     CHECK_TIMED_OUT_TEXT,
 )
 
-# from scoring_engine.web.views.api import notifications
+from scoring_engine.web.views.api import notifications
 
 
 parser = optparse.OptionParser()
@@ -227,4 +227,19 @@ if options.example:
             inject.score = randint(0, 100)
             inject.status = choice(["Draft", "Submitted", "Graded"])
             session.add(inject)
+        session.commit()
+
+    # Simulate Notifications
+    num_notifications = randint(50, 100)
+    logger.info("Simulating " + str(num_notifications) + " Notifications")
+    team_ids = [id[0] for id in session.query(Team.id).all()]
+    for _ in range(num_notifications):
+        notification = Notification(
+            message="Test Notification",
+            target="/admin/notifications",
+        )
+        if randint(0, 1) == 1:
+            notification.is_read = True
+        notification.team_id = choice(team_ids)
+        session.add(notification)
         session.commit()
