@@ -112,6 +112,53 @@ def api_injects_file_upload(inject_id):
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
 
+@mod.route("/api/inject/<inject_id>")
+@cache.memoize()
+@login_required
+def api_inject(inject_id):
+    inject = session.query(Inject).get(inject_id)
+    if inject is None or not (
+        current_user.team == inject.team or current_user.is_white_team
+    ):
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = {}
+
+    data["score"] = inject.score
+    data["status"] = inject.status
+
+    # Comments
+    comments = (
+        session.query(Comment)
+        .filter(Comment.inject == inject)
+        .order_by(Comment.time)
+        .all()
+    )
+    data["comments"] = [
+        {
+            "id": comment.id,
+            "text": comment.comment,
+            "user": comment.user.username,
+            "team": comment.user.team.name,
+            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime(
+                "%Y-%m-%d %H:%M:%S %Z"
+            ),
+        }
+        for comment in comments
+    ]
+
+    # Files
+    files = (
+        session.query(File.id, File.name)
+        .filter(File.inject_id == inject_id)
+        .order_by(File.name)
+        .all()
+    )
+    data["files"] = [{"id": file[0], "name": file[1]} for file in files]
+
+    return jsonify(data), 200
+
+
 @mod.route("/api/inject/<inject_id>/comments")
 @cache.memoize()
 @login_required
