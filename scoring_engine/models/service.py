@@ -68,6 +68,10 @@ class Service(Base):
         )  # [1, 2, 2, 4, 5]
         team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
 
+        # If the team is not in the list, return None
+        if self.team_id not in team_ids:
+            return None
+
         return ranks[team_ids.index(self.team_id)]
 
     @property
