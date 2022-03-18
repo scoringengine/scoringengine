@@ -80,10 +80,10 @@
               {% if not current_user.is_authenticated %}
               <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
               {% else %}
-              <li class="navbar-item">
+              <!-- <li class="navbar-item">
                 <a href="{{ url_for('notifications.unread') }}">Notifications {% if notification_count %}<span
                     class="badge">{{ notification_count}}</span>{% endif %}</a>
-              </li>
+              </li> -->
               <li class="dropdown">
                 <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{
                   current_user.get_username }} <b class="caret"></b></a>
