@@ -15,7 +15,8 @@
     <div class="panel-body">
       <ul class="nav nav-tabs">
         <li role="navigation" {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
-            href="/notifications/unread">Unread <span class="badge">42</span></a></li>
+            href="/notifications/unread">Unread{% if notification_count %} <span class="badge">{{ notification_count
+              }}</span>{% endif %}</a></li>
         <li role="navigation" {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
             href="/notifications/read">Read</a></li>
       </ul>
