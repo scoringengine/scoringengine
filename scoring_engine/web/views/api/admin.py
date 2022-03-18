@@ -563,6 +563,7 @@ def admin_post_inject_templates():
             data.get("title")
             and data.get("scenario")
             and data.get("deliverable")
+            and data.get("score")
             and data.get("start_time")
             and data.get("end_time")
         ):
@@ -570,6 +571,7 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
+                score=data["score"],
                 start_time=(
                     parse(data["start_time"])
                     .astimezone(pytz.timezone(config.timezone))
@@ -583,46 +585,49 @@ def admin_post_inject_templates():
             )
             session.add(template)
             session.commit()
-        # TODO - Fix this to not be string values from javascript select
-        if data.get("status") == "Enabled":
-            template.enabled = True
-        elif data.get("status") == "Disabled":
-            template.enabled = False
-        if data.get("selectedTeams"):
-            for team_name in data["selectedTeams"]:
-                inject = (
+            # TODO - Fix this to not be string values from javascript select
+            if data.get("status") == "Enabled":
+                template.enabled = True
+            elif data.get("status") == "Disabled":
+                template.enabled = False
+            if data.get("selectedTeams"):
+                for team_name in data["selectedTeams"]:
+                    inject = (
+                        session.query(Inject)
+                        .join(Template)
+                        .join(Team)
+                        .filter(Team.name == team_name)
+                        .filter(Template.id == template.id)
+                        .one_or_none()
+                    )
+                    # Update inject if it exists
+                    if inject:
+                        inject.enabled = True
+                    # Otherwise, create the inject
+                    else:
+                        team = (
+                            session.query(Team).filter(Team.name == team_name).first()
+                        )
+                        inject = Inject(
+                            team=team,
+                            template=template,
+                        )
+                        session.add(inject)
+            if data.get("unselectedTeams"):
+                injects = (
                     session.query(Inject)
                     .join(Template)
                     .join(Team)
-                    .filter(Team.name == team_name)
+                    .filter(Team.name.in_(data["unselectedTeams"]))
                     .filter(Template.id == template.id)
-                    .one_or_none()
+                    .all()
                 )
-                # Update inject if it exists
-                if inject:
-                    inject.enabled = True
-                # Otherwise, create the inject
-                else:
-                    team = session.query(Team).filter(Team.name == team_name).first()
-                    inject = Inject(
-                        team=team,
-                        template=template,
-                    )
-                    session.add(inject)
-        if data.get("unselectedTeams"):
-            injects = (
-                session.query(Inject)
-                .join(Template)
-                .join(Team)
-                .filter(Team.name.in_(data["unselectedTeams"]))
-                .filter(Template.id == template.id)
-                .all()
-            )
-            for inject in injects:
-                inject.enabled = False
-        # TODO - Rubric updates
-        session.commit()
-        return jsonify({"status": "Success"}), 200
+                for inject in injects:
+                    inject.enabled = False
+            session.commit()
+            return jsonify({"status": "Success"}), 200
+        else:
+            return jsonify({"status": "Error", "message": "Missing Data"}), 400
     else:
         return {"status": "Unauthorized"}, 403
 
