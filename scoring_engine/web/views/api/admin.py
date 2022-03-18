@@ -12,7 +12,7 @@ import html
 
 from scoring_engine.config import config
 from scoring_engine.db import session
-from scoring_engine.models.inject import Template, Rubric, Inject
+from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -395,10 +395,10 @@ def admin_get_inject_templates_id(template_id):
                 pytz.timezone(config.timezone)
             ).isoformat(),
             enabled=template.enabled,
-            rubric=[
-                {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-                for x in template.rubric
-            ],
+            # rubric=[
+            #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
+            #     for x in template.rubric
+            # ],
             teams=[inject.team.name for inject in template.inject if inject.enabled],
         )
         return jsonify(data)
@@ -432,6 +432,8 @@ def admin_put_inject_templates_id(template_id):
                 template.enabled = True
             elif data.get("status") == "Disabled":
                 template.enabled = False
+            if data.get("score"):
+                template.score = data["score"]
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
@@ -512,10 +514,10 @@ def admin_get_inject_templates():
                         pytz.timezone(config.timezone)
                     ).isoformat(),
                     enabled=template.enabled,
-                    rubric=[
-                        {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-                        for x in template.rubric
-                    ],
+                    # rubric=[
+                    #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
+                    #     for x in template.rubric
+                    # ],
                     teams=[
                         inject.team.name
                         for inject in template.inject
@@ -688,24 +690,24 @@ def admin_import_inject_templates():
                             t.enabled = True
                         else:
                             t.enabled = False
-                        for rubric in d["rubric"]:
-                            if rubric.get("id"):
-                                rubric_id = rubric["id"]
-                            r = session.query(Rubric).get(int(rubric_id))
-                            # Update rubric if it exists
-                            if r:
-                                if rubric.get("value"):
-                                    r.value = rubric["value"]
-                                if rubric.get("deliverable"):
-                                    r.deliverable = rubric["deliverable"]
-                            # Otherwise, create the rubric
-                            else:
-                                r = Rubric(
-                                    value=rubric["value"],
-                                    deliverable=rubric["deliverable"],
-                                    template=template,
-                                )
-                                session.add(r)
+                        # for rubric in d["rubric"]:
+                        #     if rubric.get("id"):
+                        #         rubric_id = rubric["id"]
+                        #     r = session.query(Rubric).get(int(rubric_id))
+                        #     # Update rubric if it exists
+                        #     if r:
+                        #         if rubric.get("value"):
+                        #             r.value = rubric["value"]
+                        #         if rubric.get("deliverable"):
+                        #             r.deliverable = rubric["deliverable"]
+                        #     # Otherwise, create the rubric
+                        #     else:
+                        #         r = Rubric(
+                        #             value=rubric["value"],
+                        #             deliverable=rubric["deliverable"],
+                        #             template=template,
+                        #         )
+                        #         session.add(r)
                         # Generate injects from template
                         if data.get("selectedTeams"):
                             for team_name in data["selectedTeams"]:
@@ -767,13 +769,13 @@ def admin_import_inject_templates():
                         enabled=d["enabled"],
                     )
                     session.add(t)
-                    for rubric in d["rubric"]:
-                        r = Rubric(
-                            value=rubric["value"],
-                            deliverable=rubric["deliverable"],
-                            template=t,
-                        )
-                        session.add(r)
+                    # for rubric in d["rubric"]:
+                    #     r = Rubric(
+                    #         value=rubric["value"],
+                    #         deliverable=rubric["deliverable"],
+                    #         template=t,
+                    #     )
+                    #     session.add(r)
                     for team_name in d["teams"]:
                         inject = (
                             session.query(Inject)

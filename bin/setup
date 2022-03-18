@@ -5,12 +5,13 @@ from random import choice, randint
 import optparse
 import os
 
-from scoring_engine.models.inject import Template, Rubric, Inject
+from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
-from scoring_engine.models.notifications import Notification
+
+# from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session, init_db, delete_db, verify_db_ready
 from scoring_engine.config import config
@@ -22,7 +23,8 @@ from scoring_engine.engine.basic_check import (
     CHECK_FAILURE_TEXT,
     CHECK_TIMED_OUT_TEXT,
 )
-from scoring_engine.web.views.api import notifications
+
+# from scoring_engine.web.views.api import notifications
 
 
 parser = optparse.OptionParser()
@@ -195,24 +197,27 @@ if options.example:
             title="Journey to Mordor",
             scenario="You have the ring, take it to be destroyed!",
             deliverable="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.",
+            score=100,
             start_time=datetime.now()
             - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
             end_time=datetime.now()
             + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
         )
-        rubric_0 = Rubric(
-            deliverable="Damn hobbitses kept my precious!", value=0, template=template
-        )
-        rubric_50 = Rubric(
-            deliverable="You gave it your best effort, but died along the way.",
-            value=50,
-            template=template,
-        )
-        rubric_100 = Rubric(
-            deliverable="You saved the world!", value=100, template=template
-        )
+        session.add(template)
 
-        session.add_all([template, rubric_0, rubric_50, rubric_100])
+        # rubric_0 = Rubric(
+        #     deliverable="Damn hobbitses kept my precious!", value=0, template=template
+        # )
+        # rubric_50 = Rubric(
+        #     deliverable="You gave it your best effort, but died along the way.",
+        #     value=50,
+        #     template=template,
+        # )
+        # rubric_100 = Rubric(
+        #     deliverable="You saved the world!", value=100, template=template
+        # )
+
+        # session.add_all([template, rubric_0, rubric_50, rubric_100])
 
         for team in Team.get_all_blue_teams():
             inject = Inject(

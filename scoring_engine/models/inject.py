@@ -40,6 +40,7 @@ class Template(Base):
     title = Column(Unicode(255), nullable=False)
     scenario = Column(UnicodeText, nullable=False)
     deliverable = Column(UnicodeText, nullable=False)
+    score = Column(Integer, nullable=False)
     start_time = Column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
     )
@@ -47,30 +48,31 @@ class Template(Base):
     enabled = Column(Boolean, nullable=False, default=True)
 
     # Relationships
-    rubric = relationship(
-        "Rubric", back_populates="template", cascade="all, delete", lazy="joined"
-    )
+    # rubric = relationship(
+    #     "Rubric", back_populates="template", cascade="all, delete", lazy="joined"
+    # )
     inject = relationship(
         "Inject", back_populates="template", cascade="all, delete", lazy="joined"
     )
 
     def __init__(
-        self, title, scenario, deliverable, start_time, end_time, enabled=True
+        self, title, scenario, deliverable, score, start_time, end_time, enabled=True
     ):
         self.title = title
         self.scenario = scenario
         self.deliverable = deliverable
+        self.score = score
         self.start_time = start_time
         self.end_time = end_time
         self.enabled = enabled
 
-    @property
-    def score(self):
-        return (
-            session.query(func.max(Rubric.value))
-            .filter(Rubric.template_id == self.id)
-            .scalar()
-        )
+    # @property
+    # def score(self):
+    #     return (
+    #         session.query(func.max(Rubric.value))
+    #         .filter(Rubric.template_id == self.id)
+    #         .scalar()
+    #     )
 
     @property
     def expired(self):
@@ -93,20 +95,20 @@ class Template(Base):
         )
 
 
-class Rubric(Base):
-    __tablename__ = "rubric"
-    id = Column(Integer, primary_key=True)
-    deliverable = Column(UnicodeText, nullable=False)
-    value = Column(Integer, nullable=False)
+# class Rubric(Base):
+#     __tablename__ = "rubric"
+#     id = Column(Integer, primary_key=True)
+#     deliverable = Column(UnicodeText, nullable=False)
+#     value = Column(Integer, nullable=False)
 
-    # Relationships
-    template_id = Column(Integer, ForeignKey("template.id"))
-    template = relationship("Template", back_populates="rubric")
+#     # Relationships
+#     template_id = Column(Integer, ForeignKey("template.id"))
+#     template = relationship("Template", back_populates="rubric")
 
-    def __init__(self, deliverable, value, template):
-        self.deliverable = deliverable
-        self.value = value
-        self.template = template
+#     def __init__(self, deliverable, value, template):
+#         self.deliverable = deliverable
+#         self.value = value
+#         self.template = template
 
 
 """

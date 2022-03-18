@@ -85,29 +85,34 @@
           <!-- Deliverable -->
           <div class="form-group">
             <div class="col-sm-12">
-              <label for="inputDeliverable">Deliverable</label>
+              <label for="inputDeliverable">Rubric</label>
               <textarea class="form-control" id="inputDeliverable" rows="3"
                 placeholder="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring."></textarea>
             </div>
           </div>
           <!-- Start Time -->
           <div class="form-group">
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputStartTime">Start Time</label>
               <input type="text" class="form-control" id="inputStartTime" placeholder="1995-12-17T03:24:00-0700">
             </div>
             <!-- End Time -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputEndTime">End Time</label>
               <input type="text" class="form-control" id="inputEndTime" placeholder="1995-12-17T04:24:00-0700">
             </div>
             <!-- Enabled/Disabled -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputStatus">Status</label>
               <select class="form-control" id="inputStatus">
                 <option>Enabled</option>
                 <option>Disabled</option>
               </select>
+            </div>
+            <!-- Score -->
+            <div class="col-sm-3">
+              <label for="inputScore">Score</label>
+              <input type="number" class="form-control" id="inputScore" placeholder="100">
             </div>
           </div>
           <!-- Teams -->
@@ -130,7 +135,7 @@
             {% endfor %}
           </div>
           <!-- Rubric -->
-          <div class="form-group">
+          <!-- <div class="form-group">
             <div class="col-sm-12">
               <label for="inputRubric">Rubric</label>
               <table class="table" id="inputRubric">
@@ -149,7 +154,7 @@
               <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addDeliverableModal">Add
                 Deliverable</button>
             </div>
-          </div>
+          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -225,29 +230,34 @@
           <!-- Deliverable -->
           <div class="form-group">
             <div class="col-sm-12">
-              <label for="inputUpdateDeliverable">Deliverable</label>
+              <label for="inputUpdateDeliverable">Rubric</label>
               <textarea class="form-control" id="inputUpdateDeliverable" rows="3"
                 placeholder="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring."></textarea>
             </div>
           </div>
           <!-- Start Time -->
           <div class="form-group">
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputUpdateStartTime">Start Time</label>
               <input type="text" class="form-control" id="inputUpdateStartTime" placeholder="1995-12-17T03:24:00-0700">
             </div>
             <!-- End Time -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputUpdateEndTime">End Time</label>
               <input type="text" class="form-control" id="inputUpdateEndTime" placeholder="1995-12-17T04:24:00-0700">
             </div>
             <!-- Enabled/Disabled -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <label for="inputUpdateStatus">Status</label>
               <select class="form-control" id="inputUpdateStatus">
                 <option>Enabled</option>
                 <option>Disabled</option>
               </select>
+            </div>
+            <!-- Score -->
+            <div class="col-sm-3">
+              <label for="inputUpdateScore">Score</label>
+              <input type="number" class="form-control" id="inputUpdateScore" placeholder="100">
             </div>
           </div>
           <!-- Teams -->
@@ -270,7 +280,7 @@
             {% endfor %}
           </div>
           <!-- Rubric -->
-          <div class="form-group">
+          <!-- <div class="form-group">
             <div class="col-sm-12">
               <label for="inputUpdateRubric">Rubric</label>
               <table class="table" id="inputUpdateRubric">
@@ -288,7 +298,7 @@
             <div class="col-sm-12">
               <button type="button" class="btn btn-primary">Add Deliverable</button>
             </div>
-          </div>
+          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -461,38 +471,40 @@
             $('#inputUpdateStatus').val('Disabled');
           }
 
+          $('#inputUpdateScore').val(data['score']);
+
           // Rubric Table
-          var rubricTable = document.getElementById("inputUpdateRubric");
+          // var Tablrubrice = document.getElementById("inputUpdateRubric");
 
           // Remove all rows except header
-          $("#inputUpdateRubric tr").remove();
+          // $("#inputUpdateRubric tr").remove();
 
-          for (let i = 0; i < data['rubric'].length; i++) {
-            var row = rubricTable.insertRow();
-            row.id = data['rubric'][i]['id'];
+          // for (let i = 0; i < data['rubric'].length; i++) {
+          //   var row = rubricTable.insertRow();
+          //   row.id = data['rubric'][i]['id'];
 
-            var deliverable = row.insertCell(0);
-            var points = row.insertCell(1);
-            var actions = row.insertCell(2);
+          //   var deliverable = row.insertCell(0);
+          //   var points = row.insertCell(1);
+          //   var actions = row.insertCell(2);
 
-            deliverable.innerText = data['rubric'][i]['deliverable']
-            points.innerText = data['rubric'][i]['value']
-            actions.innerHTML = '<div class="btn-group pull-right">' +
-              '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">' +
-              '</i> Actions <span class="caret"></span>' +
-              '</button>' +
-              '<ul class="dropdown-menu" role="menu">' +
-              '<!-- View/Edit -->' +
-              '<li>' +
-              '<a class="deliverable-view" href="#">View/Edit Deliverable</a>' +
-              '</li>' +
-              '<!-- Delete -->' +
-              '<li>' +
-              '<a class="deliverable-delete" href="#">Delete Deliverable</a>' +
-              '</li>' +
-              '</ul>' +
-              '</div>'
-          }
+          //   deliverable.innerText = data['rubric'][i]['deliverable']
+          //   points.innerText = data['rubric'][i]['value']
+          //   actions.innerHTML = '<div class="btn-group pull-right">' +
+          //     '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">' +
+          //     '</i> Actions <span class="caret"></span>' +
+          //     '</button>' +
+          //     '<ul class="dropdown-menu" role="menu">' +
+          //     '<!-- View/Edit -->' +
+          //     '<li>' +
+          //     '<a class="deliverable-view" href="#">View/Edit Deliverable</a>' +
+          //     '</li>' +
+          //     '<!-- Delete -->' +
+          //     '<li>' +
+          //     '<a class="deliverable-delete" href="#">Delete Deliverable</a>' +
+          //     '</li>' +
+          //     '</ul>' +
+          //     '</div>'
+          // }
 
           // Update Checkboxes
           const teams = data['teams'];
@@ -538,39 +550,39 @@
 
     // Add Deliverable Modal
     // TODO - Fix this randomly adding rows on click
-    $('#addDeliverableSubmitModal').unbind().click(function () {
-      if ($('#inputAddDeliverable').val() && $('#inputAddDeliverableValue').val()) {
-        // Rubric Table
-        var rubricTable = document.getElementById("inputRubric");
+    // $('#addDeliverableSubmitModal').unbind().click(function () {
+    //   if ($('#inputAddDeliverable').val() && $('#inputAddDeliverableValue').val()) {
+    //     // Rubric Table
+    //     var rubricTable = document.getElementById("inputRubric");
 
-        var row = rubricTable.insertRow();
-        var deliverable = row.insertCell(0);
-        var points = row.insertCell(1);
-        var actions = row.insertCell(2);
+    //     var row = rubricTable.insertRow();
+    //     var deliverable = row.insertCell(0);
+    //     var points = row.insertCell(1);
+    //     var actions = row.insertCell(2);
 
-        deliverable.innerText = $('#inputAddDeliverable').val();
-        points.innerText = $('#inputAddDeliverableValue').val();
-        actions.innerHTML = '<div class="btn-group pull-right">' +
-          '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">' +
-          '</i> Actions <span class="caret"></span>' +
-          '</button>' +
-          '<ul class="dropdown-menu" role="menu">' +
-          '<!-- View/Edit -->' +
-          '<li>' +
-          '<a class="deliverable-view">View/Edit Deliverable</a>' +
-          '</li>' +
-          '<!-- Delete -->' +
-          '<li>' +
-          '<a class="deliverable-delete">Delete Deliverable</a>' +
-          '</li>' +
-          '</ul>' +
-          '</div>'
+    //     deliverable.innerText = $('#inputAddDeliverable').val();
+    //     points.innerText = $('#inputAddDeliverableValue').val();
+    //     actions.innerHTML = '<div class="btn-group pull-right">' +
+    //       '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">' +
+    //       '</i> Actions <span class="caret"></span>' +
+    //       '</button>' +
+    //       '<ul class="dropdown-menu" role="menu">' +
+    //       '<!-- View/Edit -->' +
+    //       '<li>' +
+    //       '<a class="deliverable-view">View/Edit Deliverable</a>' +
+    //       '</li>' +
+    //       '<!-- Delete -->' +
+    //       '<li>' +
+    //       '<a class="deliverable-delete">Delete Deliverable</a>' +
+    //       '</li>' +
+    //       '</ul>' +
+    //       '</div>'
 
-        $('#addDeliverableModal').modal('hide');
-      } else {
-        alert('Please fill out all fields');
-      }
-    });
+    //     $('#addDeliverableModal').modal('hide');
+    //   } else {
+    //     alert('Please fill out all fields');
+    //   }
+    // });
 
     // TODO - Why doesn't this work?
     // Delete Deliverable Button
@@ -612,7 +624,7 @@
       var templateData = {}
 
       // Remove all rows except header
-      $("#inputRubric tr").remove();
+      // $("#inputRubric tr").remove();
 
       // Get Template ID
       const templateId = $('#addTemplateId').val();
@@ -670,6 +682,7 @@
       templateData['start_time'] = $('#inputUpdateStartTime').val();
       templateData['end_time'] = $('#inputUpdateEndTime').val();
       templateData['status'] = $('#inputUpdateStatus').val();
+      templateData['score'] = $('#inputUpdateScore').val();
 
       // Selected Teams
       var selectedTeams = [];
