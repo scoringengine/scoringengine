@@ -76,12 +76,18 @@ class Service(Base):
 
     @property
     def score_earned(self):
-        passed_checks = [check for check in self.checks if check.result is True]
-        return len(passed_checks) * self.points
+        return (
+            session.query(Check)
+            .filter(Check.service_id == self.id)
+            .filter(Check.result.is_(True))
+            .count()
+        ) * self.points
 
     @property
     def max_score(self):
-        return len(self.checks) * self.points
+        return (
+            session.query(Check).filter(Check.service_id == self.id).count()
+        ) * self.points
 
     @property
     def percent_earned(self):

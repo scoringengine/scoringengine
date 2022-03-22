@@ -43,7 +43,6 @@ class Team(Base):
             .join(Check)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
-            .group_by(Service.team_id)  # TODO - Do we need this group_by?
             .scalar()
         )
         if not score:

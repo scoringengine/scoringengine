@@ -4,6 +4,7 @@ import pytz
 from datetime import datetime
 from flask import request, jsonify, send_file, safe_join, abort
 from flask_login import current_user, login_required
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 from scoring_engine.cache import cache
@@ -28,6 +29,7 @@ def api_injects():
     data = list()
     injects = (
         session.query(Inject)
+        .options(joinedload(Inject.template))
         .join(Template)
         .filter(Inject.team == team)
         .filter(Inject.enabled == True)

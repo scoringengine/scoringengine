@@ -1,4 +1,6 @@
+from collections import defaultdict
 from flask import jsonify
+from itertools import accumulate
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
@@ -51,14 +53,56 @@ def scoreboard_get_bar_data():
 @mod.route("/api/scoreboard/get_line_data")
 @cache.memoize()
 def scoreboard_get_line_data():
-    results = Team.get_all_rounds_results()
-    team_data = {"team": [], "rounds": results["rounds"]}
-    if "team_names" in results.keys():
-        for team_name in results["team_names"]:
-            # TODO - Add inject score
-            scores = list(map(str, results["scores"][team_name]))
-            rgb_color = results["rgb_colors"][team_name]
-            team_data["team"].append(
-                {"name": team_name, "scores": scores, "color": rgb_color}
-            )
+    last_round = Round.get_last_round_num()
+
+    team_data = {
+        "team": [],
+        "rounds": [f"Round {round}" for round in range(last_round + 1)],
+    }
+
+    blue_teams = (
+        session.query(Team.id, Team.name, Team.rgb_color)
+        .filter(Team.color == "Blue")
+        .order_by(Team.name)
+        .all()
+    )
+
+    """
+    [(3, 1, Decimal('4500')),
+    (3, 2, Decimal('4500')),
+    (3, 3, Decimal('4400'))]
+    """
+    # Team ID, Round ID, Round Score
+    # TODO - Might be able to ignore ordering by team_id since we're using a dict
+    round_scores = (
+        session.query(
+            Service.team_id,
+            Check.round_id,
+            func.sum(Service.points),
+        )
+        .join(Check)
+        .filter(Check.result.is_(True))
+        .group_by(Service.team_id, Check.round_id)
+        .order_by(Service.team_id, Check.round_id)
+        .all()
+    )
+
+    scores_dict = {}
+    for team_id, round_id, round_score in round_scores:
+        # Generate default list full of 0 scores
+        if team_id not in scores_dict.keys():
+            scores_dict[team_id] = [0] * (last_round + 1)
+
+        # Loop through our results and update the appropriate team's list
+        scores_dict[team_id][round_id] = round_score
+
+    for team_id, team_name, rgb_color in blue_teams:
+        team_data["team"].append(
+            {
+                "name": team_name,
+                "scores": list(accumulate(scores_dict[team_id])),
+                "color": rgb_color,
+            }
+        )
+
     return jsonify(team_data)
