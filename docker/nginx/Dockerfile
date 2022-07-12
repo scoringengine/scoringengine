@@ -1,4 +1,4 @@
-FROM nginx:1.21.6
+FROM nginx:1.22
 
 # Install curl for docker nginx health check
 RUN \
