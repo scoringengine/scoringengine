@@ -1,18 +1,17 @@
-FROM ubuntu:18.04
+FROM python:3.9
 
 RUN \
   useradd -m engine && \
   apt-get update && \
   apt-get install -y \
+    curl \
     python3 \
     python3-pip \
     libssl-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
     iputils-ping && \
   rm -rf /var/lib/apt/lists/* && \
-  pip3 install virtualenv && \
-  mkdir /app && \
-  virtualenv -p `which python3` /venv
+  mkdir /app
 
 COPY docker/wait-for-container.sh /app/wait-for-container.sh
 COPY docker/wait-for-port.sh /app/wait-for-port.sh
@@ -23,14 +22,12 @@ WORKDIR /app
 
 USER root
 
-RUN \
-  chown -R engine:engine /app && \
-  chown -R engine:engine /venv
+RUN chown -R engine:engine /app
 
 USER engine
 
-# Automatically source into python virtual environment
-ENV PATH=/venv/bin:$PATH
+# Needed for celery/uwsgi
+ENV PATH=/home/engine/.local/bin:$PATH
 
 # Copy over files required for setup.py
 COPY scoring_engine/__init__.py /app/scoring_engine/__init__.py

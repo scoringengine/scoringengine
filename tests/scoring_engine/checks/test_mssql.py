@@ -10,4 +10,4 @@ class TestMSSQLCheck(CheckTest):
     accounts = {
         'pwnbus': 'pwnbuspass'
     }
-    cmd = "/opt/mssql-tools/bin/sqlcmd -S '127.0.0.1',1234 -U 'pwnbus' -P 'pwnbuspass' -d 'master' -Q 'SELECT @@version'"
+    cmd = "SQLCMDPASSWORD='pwnbuspass' sqlcmd -S '127.0.0.1',1234 -U 'pwnbus' -d 'master' -Q 'SELECT @@version'"
