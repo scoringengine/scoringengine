@@ -2,7 +2,7 @@
 version: '3.7'
 services:
   redis:
-    image: "redis:latest"
+    image: "redis:7.0.4"
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 30s
@@ -30,24 +30,22 @@ services:
     # ports:
     #   - 3306:3306
   nginx:
-    image: scoringengine/nginx
-    build:
-      context: .
-      dockerfile: ./docker/nginx/Dockerfile
-      cache_from:
-        - scoringengine/nginx
-        - nginx:latest
+    image: nginx:1.23.1
     depends_on:
       - web
     ports:
       - 80:80
       - 443:443
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 30s
       timeout: 3s
       retries: 10
     restart: on-failure
+    volumes:
+      - ./docker/nginx/files/web.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/files/scoringengine.crt:/etc/nginx/scoringengine.crt
+      - ./docker/nginx/files/scoringengine.key:/etc/nginx/scoringengine.key
     networks:
       - default
   base:
