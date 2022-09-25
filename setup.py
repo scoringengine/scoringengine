@@ -3,15 +3,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
-# from scoring_engine.version import version
-
 config = {
     'description': 'Scoring Engine for Red/White/Blue Team Competitions',
     'author': 'Brandon Myers, Rusty Bower, Zack Allen',
     'url': 'https://github.com/scoringengine/scoringengine',
     'download_url': 'https://github.com/scoringengine/scoringengine/archive/master.zip',
     'author_email': 'pwnbus@mozilla.com, rusty@rustybower.com, zallen@fastly.com',
-    # 'version': version,
+    'version': '1.0.0',
     'install_requires': [
         'bcrypt==3.1.3',
         # 'billiard==3.5.0.4',
