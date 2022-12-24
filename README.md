@@ -1,6 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/scoringengine/badge/?version=latest)](https://scoringengine.readthedocs.io/en/latest/)
 [![CI](https://github.com/scoringengine/scoringengine/actions/workflows/tests.yml/badge.svg)](https://github.com/scoringengine/scoringengine/actions/workflows/tests.yml)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/scoringengine/scoringengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/scoringengine/scoringengine/alerts/)
 [![Coverage Status](https://coveralls.io/repos/github/scoringengine/scoringengine/badge.svg?branch=master)](https://coveralls.io/github/scoringengine/scoringengine?branch=master)
 
 # Scoring Engine
