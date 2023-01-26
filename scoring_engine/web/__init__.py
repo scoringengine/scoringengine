@@ -18,6 +18,7 @@ if not config.debug:
 
 from scoring_engine.web.views import (
     welcome,
+    stats,
     scoreboard,
     overview,
     services,
@@ -31,6 +32,7 @@ from scoring_engine.web.views import (
 cache.init_app(app)
 
 app.register_blueprint(welcome.mod)
+app.register_blueprint(stats.mod)
 app.register_blueprint(scoreboard.mod)
 app.register_blueprint(overview.mod)
 app.register_blueprint(services.mod)

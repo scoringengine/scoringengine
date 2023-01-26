@@ -8,6 +8,7 @@ def update_all_cache():
     update_services_navbar()
     update_service_data()
     update_services_data()
+    update_stats()
 
 
 def update_overview_data():
@@ -53,3 +54,8 @@ def update_services_data(team_id=None):
         cache.delete_memoized(api_services, str(team_id))
     else:
         cache.delete_memoized(api_services)
+
+# TODO - Break this into an API cache expiration
+def update_stats():
+    from scoring_engine.web.views.stats import home
+    cache.delete_memoized(home)
