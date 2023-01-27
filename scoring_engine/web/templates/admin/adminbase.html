@@ -10,9 +10,12 @@
           </div>
         </div>
         <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}" href="/admin/status">Engine</a>
-          <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}" href="/admin/workers">Workers</a>
-          <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}" href="/admin/queues">Queues</a>
+          <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
+            href="/admin/status">Engine</a>
+          <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
+            href="/admin/workers">Workers</a>
+          <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
+            href="/admin/queues">Queues</a>
         </div>
       </div>
       <div class="panel panel-default">
@@ -22,25 +25,45 @@
           </div>
         </div>
         <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}" href="/admin/settings">Competition</a>
-        <a class="list-group-item {% if request.path == '/admin/permissions' %}active{% endif %}" href="/admin/permissions">Website Permissions</a>
-        <a class="list-group-item {% if request.path == '/admin/manage' %}active{% endif %}" href="/admin/manage">Users</a>
+          <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}"
+            href="/admin/settings">Competition</a>
+          <a class="list-group-item {% if request.path == '/admin/permissions' %}active{% endif %}"
+            href="/admin/permissions">Website Permissions</a>
+          <a class="list-group-item {% if request.path == '/admin/manage' %}active{% endif %}"
+            href="/admin/manage">Users</a>
         </div>
       </div>
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
-            <span>Teams <b class="pull-right glyphicon glyphicon-tasks"></b></span>
+            <span>Injects <b class="pull-right glyphicon glyphicon-file"></b></span>
+          </div>
+        </div>
+        <div class="list-group">
+          <a class="list-group-item {% if request.path == '/admin/injects/templates' %}active{% endif %}"
+            href="/admin/injects/templates">Templates</a>
+          <a class="list-group-item {% if request.path == '/admin/injects/scores' %}active{% endif %}"
+            href="/admin/injects/scores">Scores</a>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="panel-title">
+            <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
           </div>
         </div>
         <div class="list-group">
           {% for team in blue_teams %}
-            <a href="#" class="list-group-item" data-toggle="collapse" data-target="#services_team{{team.id}}">{{team.name}}</a>
-            <div id="services_team{{team.id}}" class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
+          <a href="#" class="list-group-item" data-toggle="collapse"
+            data-target="#services_team{{team.id}}">{{team.name}}</a>
+          <div id="services_team{{team.id}}"
+            class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
             {% for service in team.services %}
-              <a href="/admin/service/{{service.id}}" class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+            <a href="/admin/service/{{service.id}}"
+              class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
+                class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
             {% endfor %}
-            </div>
+          </div>
           {% endfor %}
         </div>
       </div>

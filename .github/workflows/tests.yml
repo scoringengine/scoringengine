@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install libmysqlclient-dev
-        run: sudo apt-get install -y libmysqlclient-dev
+      #- name: Install libmysqlclient-dev
+        #run: sudo apt-get install -y libmysqlclient-dev
 
       - name: Install python dependencies
         run: |

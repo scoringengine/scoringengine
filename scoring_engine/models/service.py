@@ -59,21 +59,35 @@ class Service(Base):
             .all()
         )
 
+        # If there are no scores, return None
+        if not scores:
+            return None
+
         ranks = list(
             ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
         )  # [1, 2, 2, 4, 5]
         team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
 
+        # If the team is not in the list, return None
+        if self.team_id not in team_ids:
+            return None
+
         return ranks[team_ids.index(self.team_id)]
 
     @property
     def score_earned(self):
-        passed_checks = [check for check in self.checks if check.result is True]
-        return len(passed_checks) * self.points
+        return (
+            session.query(Check)
+            .filter(Check.service_id == self.id)
+            .filter(Check.result.is_(True))
+            .count()
+        ) * self.points
 
     @property
     def max_score(self):
-        return len(self.checks) * self.points
+        return (
+            session.query(Check).filter(Check.service_id == self.id).count()
+        ) * self.points
 
     @property
     def percent_earned(self):

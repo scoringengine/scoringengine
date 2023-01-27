@@ -45,6 +45,10 @@ class ConfigLoader(object):
             "timezone", self.parser["OPTIONS"]["timezone"]
         )
 
+        self.upload_folder = self.parse_sources(
+            "upload_folder", self.parser["OPTIONS"]["upload_folder"]
+        )
+
         self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
 
         self.cache_type = self.parse_sources(

@@ -1,5 +1,8 @@
-import json
+import ranking
+
+from collections import defaultdict
 from flask import jsonify
+from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
@@ -99,70 +102,100 @@ def overview_get_columns():
 def overview_get_data():
     # columns = get_table_columns()
     data = []
-    blue_teams = Team.get_all_blue_teams()
+    blue_team_ids = [
+        team_id[0]
+        for team_id in (
+            session.query(Team.id)
+            .filter(Team.color == "Blue")
+            .order_by(Team.name)
+            .all()
+        )
+    ]
     last_round = Round.get_last_round_num()
 
     current_scores = ["Current Score"]
     current_places = ["Current Place"]
     service_ratios = ["Up/Down Ratio"]
 
-    if len(blue_teams) > 0:
-        for blue_team in blue_teams:
-            num_up_services = (
-                session.query(
-                    Service.team_id,
-                )
-                .join(Check)
-                .join(Round)
-                .filter(Check.result.is_(True))
-                .filter(Service.team_id == blue_team.id)
-                .filter(Round.number == last_round)
-                .count()
-            )
+    num_up_services = dict(
+        session.query(
+            Service.team_id,
+            func.count(Service.team_id),
+        )
+        .join(Check)
+        .join(Round)
+        .filter(Check.result.is_(True))
+        .filter(Round.number == last_round)
+        .group_by(Service.team_id)
+        .all()
+    )
 
-            num_down_services = (
-                session.query(
-                    Service.team_id,
-                )
-                .join(Check)
-                .join(Round)
-                .filter(Check.result.is_(False))
-                .filter(Service.team_id == blue_team.id)
-                .filter(Round.number == last_round)
-                .count()
-            )
+    if len(blue_team_ids) > 0:
+        # TODO - This could explode if the first team has a different number of services than everyone else
+        total_services = (
+            session.query(Service.id)
+            .filter(Service.team_id == blue_team_ids[0])
+            .count()
+        )
 
-            current_scores.append(str(blue_team.current_score))
-            current_places.append(str(blue_team.place))
+        team_scores = dict(
+            session.query(Service.team_id, func.sum(Service.points).label("score"))
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .group_by(Service.team_id)
+            .order_by(desc("score"))
+            .all()
+        )
+
+        ranks = list(
+            ranking.Ranking(team_scores.values(), start=1).ranks()
+        )  # [1, 2, 2, 4, 5]
+        ranks_dict = dict(
+            zip(team_scores.keys(), ranks)
+        )  # {12: 1, 3: 2, 10: 3, 4: 4, 7: 5, 5: 6, 6: 7, 11: 8, 9: 9, 8: 10}
+
+        for blue_team_id in blue_team_ids:
+            current_scores.append(str(team_scores.get(blue_team_id, 0)))
+            current_places.append(str(ranks_dict.get(blue_team_id, 0)))
             service_ratios.append(
-                "{0} / {1}".format(num_up_services, num_down_services)
+                "{0} / {1}".format(num_up_services.get(blue_team_id, 0), total_services)
             )
+
         data.append(current_scores)
         data.append(current_places)
         data.append(service_ratios)
 
-        services = []
-        services.append(
-            [
-                service[0]
-                for service in session.query(Service.name)
-                .distinct(Service.name)
-                .group_by(Service.name)
-                .all()
-            ]
+        checks = (
+            session.query(Service.name, Check.result)
+            .join(Service)
+            .filter(Check.round_id == last_round)
+            .order_by(Service.name, Service.team_id)
+            .all()
         )
-        for blue_team in blue_teams:
-            checks = (
-                session.query(Check.result)
-                .join(Service)
-                .filter(Check.round_id == last_round)
-                .filter(Service.team_id == blue_team.id)
-                .order_by(Service.name)
-                .all()
-            )
-            services.append([check[0] for check in checks])
-        data += list(zip(*services))  # zip these to get the right datatables format
 
-        return json.dumps({"data": data})
+        service_dict = defaultdict(list)
+
+        # Loop through each check and create a default dictionary
+        """
+        {'SERVICE': [True,
+              True,
+              False,
+              False,
+              False,
+              False,
+              False,
+              True,
+              False,
+              True]
+        """
+        for service, status in checks:
+            service_dict[service].append(status)
+
+        # Loop through dictionary to create datatables formatted list
+        for k, v in service_dict.items():
+            data.append(
+                [k] + v
+            )  # ['SERVICE', True, False, False, False, False, False, False, True, False, False]
+        return jsonify(data=data)
     else:
         return "{}"

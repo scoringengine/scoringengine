@@ -4,6 +4,7 @@ from operator import itemgetter
 
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
+from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.db import session
@@ -56,6 +57,39 @@ def manage():
             teams=teams,
             blue_teams=blue_teams,
         )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/injects/templates")
+@login_required
+def inject_templates():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        red_teams = Team.get_all_red_teams()
+        return render_template(
+            "admin/templates.html", blue_teams=blue_teams, red_teams=red_teams
+        )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/injects/scores")
+@login_required
+def inject_scores():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/injects.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/injects/<int:inject_id>")
+@login_required
+def inject_inject(inject_id):
+    if current_user.is_white_team:
+        inject = session.query(Inject).get(inject_id)
+        return render_template("admin/inject.html", inject=inject)
     else:
         return redirect(url_for("auth.unauthorized"))
 

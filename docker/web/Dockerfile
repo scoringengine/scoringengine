@@ -1,5 +1,17 @@
 FROM scoringengine/base
 
+USER root
+
+# Inject upload folder
+RUN mkdir -p /var/uploads
+RUN chown -R engine:engine /var/uploads
+
+# Install curl for docker health check
+RUN \
+  apt-get update && \
+  apt-get install -y curl && \
+  rm -rf /var/lib/apt/lists/*
+
 USER engine
 
 COPY bin/web /app/bin/web

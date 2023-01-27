@@ -1,0 +1,207 @@
+{% extends 'admin/adminbase.html' %}
+
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+<link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+
+<script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
+<link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
+
+<script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
+{% endblock %}
+
+{% block header %}
+{% if inject.status == 'Submitted' %}
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-success">{{ inject.status}}</span>
+</p>
+{% elif inject.status == 'Graded' %}
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-info">{{ inject.status}}</span></p>
+{% elif inject.template.expired %}
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-danger">Expired</span></p>
+{% elif inject.status == 'Draft' %}
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-warning">{{ inject.status}}</span>
+</p>
+{% else %}
+<p>{{ inject.template.title }}</p>
+{% endif %}
+{% endblock %}
+
+{% block admincontent %}
+
+{% if inject.status == 'Submitted' %}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <form class="form-inline">
+      <div class="form-group">
+        <label for="inputGrade">Grade</label>
+        <input type="number" class="form-control" id="inputGrade" placeholder="100">
+      </div>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submitGradeConfirmation">Submit
+        Grade</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% if inject.template.rubric %}
+<h4>Rubric</h4>
+<table class="table table-bordered">
+  <tr>
+    <th>Deliverable</th>
+    <th>Value</th>
+  </tr>
+  {% for rubric in inject.template.rubric %}
+  <tr>
+    <td>{{ rubric.deliverable }}</td>
+    <td>{{ rubric.value }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+<h4>Grade</h4>
+<p>{{ inject.score }}</p>
+<h4>Files</h4>
+<div id="files"></div>
+<h4>Comments</h4>
+<div id="comments"></div>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <form>
+      <div class="form-group">
+        <textarea id="commentArea" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Submit Modal -->
+<div class="modal fade" id="submitGradeConfirmation" tabindex="-1" role="dialog"
+  aria-labelledby="submitGradeConfirmationLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Submit Grade</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="injectId" id="injectId" value="{{ inject.id }}" />
+        <p>Are you sure you want to submit a grade for this inject?</p>
+        <p><b>You will not be able to edit this inject after submitting.</b></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" id="gradeSubmitConfirmButton" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function () {
+    // Load comments and update every 30 seconds
+    updateComments();
+    setInterval(updateComments, 30000);
+
+    // Load files and update every 30 seconds
+    updateFiles();
+    setInterval(updateFiles, 30000);
+  });
+</script>
+<script>
+  function updateFiles() {
+    // Query API for files
+    $.ajax({
+      url: "/api/inject/{{ inject.id }}/files",
+      success: function (result) {
+        var files = '';
+
+        // Append new files
+        $.each(result.data, function (index, value) {
+          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a></p>";
+        });
+
+        // Update navbar
+        $("#files").html(files);
+      },
+      error: function (result) {
+        console.error("An Error Occurred Querying For Files");
+      }
+    });
+  };
+</script>
+<script>
+  function updateComments() {
+    // Query API for files
+    $.ajax({
+      url: "/api/inject/{{ inject.id }}/comments",
+      success: function (result) {
+        var comments = ""
+
+        // Append comment elements
+        $.each(result.data, function (index, value) {
+          if (value.team == "{{ current_user.team.name }}") {
+            comments += '<div class="panel panel-primary">' +
+              '<div class="panel-heading">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
+              '<div class="panel-body">' + value.text + '</div></div>';
+          } else {
+            comments += '<div class="panel panel-default">' +
+              '<div class="panel-heading">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
+              '<div class="panel-body">' + value.text + '</div></div>';
+          }
+        });
+
+        // Update comments
+        $("#comments").html(comments);
+      },
+      error: function (result) {
+        console.error("An Error Occurred Querying For Files");
+      }
+    });
+  };
+</script>
+<script>
+  $('#addCommentButton').unbind().click(function () {
+    $.ajax({
+      url: "/api/inject/{{ inject.id }}/comment",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        comment: $('#commentArea').val()
+      }),
+      success: function (result) {
+        console.log("Comment added");
+        $('#commentArea').val('');
+        updateComments();
+      },
+      error: function (result) {
+        alert(result.responseJSON['status']);
+        console.error("ERROR:", result.responseJSON['status']);
+      }
+    });
+  });
+</script>
+<script>
+  // Submit Grade Confirmation
+  $('#gradeSubmitConfirmButton').unbind().click(function () {
+    const injectId = $('#injectId').val();
+    $.ajax({
+      url: "/api/admin/inject/" + injectId + "/grade",
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        score: $('#inputGrade').val()
+      }),
+      success: function (result) {
+        $('#submitGradeConfirmation').modal('hide');
+        location.reload();  // Reload page
+      },
+      error: function (result) {
+        console.error("ERROR:", result.responseJSON['status']);
+      }
+    });
+  });
+</script>
+{% endblock %}

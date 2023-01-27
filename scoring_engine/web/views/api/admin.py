@@ -1,11 +1,18 @@
 import json
+import pytz
 
+from tempfile import template
+
+from datetime import datetime, timezone
+from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
 import html
 
+from scoring_engine.config import config
 from scoring_engine.db import session
+from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -26,7 +33,9 @@ from scoring_engine.cache_helper import (
 )
 from scoring_engine.celery_stats import CeleryStats
 
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
+
 
 from . import mod
 
@@ -368,6 +377,541 @@ def get_check_progress_total():
         return json.dumps(output_dict)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/injects/templates/<template_id>")
+@login_required
+def admin_get_inject_templates_id(template_id):
+    if current_user.is_white_team:
+        template = session.query(Template).get(int(template_id))
+        data = dict(
+            id=template.id,
+            title=template.title,
+            scenario=template.scenario,
+            deliverable=template.deliverable,
+            score=template.score,
+            start_time=template.start_time.astimezone(
+                pytz.timezone(config.timezone)
+            ).isoformat(),
+            end_time=template.end_time.astimezone(
+                pytz.timezone(config.timezone)
+            ).isoformat(),
+            enabled=template.enabled,
+            # rubric=[
+            #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
+            #     for x in template.rubric
+            # ],
+            teams=[inject.team.name for inject in template.inject if inject.enabled],
+        )
+        return jsonify(data)
+    else:
+        return jsonify({"status": "Unauthorized"}), 403
+
+
+@mod.route("/api/admin/injects/templates/<template_id>", methods=["PUT"])
+@login_required
+def admin_put_inject_templates_id(template_id):
+    if current_user.is_white_team:
+        data = request.get_json()
+        template = session.query(Template).get(int(template_id))
+        if template:
+            if data.get("title"):
+                template.title = data["title"]
+            if data.get("scenario"):
+                template.scenario = data["scenario"]
+            if data.get("deliverable"):
+                template.deliverable = data["deliverable"]
+            if data.get("start_time"):
+                template.start_time = (
+                    parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
+                )
+            if data.get("end_time"):
+                template.end_time = (
+                    parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
+                )
+            # TODO - Fix this to not be string values from javascript select
+            if data.get("status") == "Enabled":
+                template.enabled = True
+            elif data.get("status") == "Disabled":
+                template.enabled = False
+            if data.get("score"):
+                template.score = data["score"]
+            if data.get("selectedTeams"):
+                for team_name in data["selectedTeams"]:
+                    inject = (
+                        session.query(Inject)
+                        .join(Template)
+                        .join(Team)
+                        .filter(Team.name == team_name)
+                        .filter(Template.id == template_id)
+                        .one_or_none()
+                    )
+                    # Update inject if it exists
+                    if inject:
+                        inject.enabled = True
+                    # Otherwise, create the inject
+                    else:
+                        team = (
+                            session.query(Team).filter(Team.name == team_name).first()
+                        )
+                        inject = Inject(
+                            team=team,
+                            template=template,
+                        )
+                        session.add(inject)
+            if data.get("unselectedTeams"):
+                injects = (
+                    session.query(Inject)
+                    .join(Template)
+                    .join(Team)
+                    .filter(Team.name.in_(data["unselectedTeams"]))
+                    .filter(Template.id == template_id)
+                    .all()
+                )
+                for inject in injects:
+                    inject.enabled = False
+            # TODO - Rubric updates
+            session.commit()
+            return jsonify({"status": "Success"}), 200
+        else:
+            return jsonify({"status": "Error", "message": "Template not found"}), 400
+
+    else:
+        return jsonify({"status": "Unauthorized"}), 403
+
+
+@mod.route("/api/admin/injects/templates/<template_id>", methods=["DELETE"])
+@login_required
+def admin_delete_inject_templates_id(template_id):
+    if current_user.is_white_team:
+        template = session.query(Template).get(int(template_id))
+        if template:
+            session.delete(template)
+            session.commit()
+            return jsonify({"status": "Success"}), 200
+        else:
+            return jsonify({"status": "Error", "message": "Template not found"}), 400
+    else:
+        return jsonify({"status": "Unauthorized"}), 403
+
+
+@mod.route("/api/admin/injects/templates")
+@login_required
+def admin_get_inject_templates():
+    if current_user.is_white_team:
+        data = list()
+        templates = session.query(Template).all()
+        for template in templates:
+            data.append(
+                dict(
+                    id=template.id,
+                    title=template.title,
+                    scenario=template.scenario,
+                    deliverable=template.deliverable,
+                    score=template.score,
+                    start_time=template.start_time.astimezone(
+                        pytz.timezone(config.timezone)
+                    ).isoformat(),
+                    end_time=template.end_time.astimezone(
+                        pytz.timezone(config.timezone)
+                    ).isoformat(),
+                    enabled=template.enabled,
+                    # rubric=[
+                    #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
+                    #     for x in template.rubric
+                    # ],
+                    teams=[
+                        inject.team.name
+                        for inject in template.inject
+                        if inject
+                        if inject.enabled
+                        if inject.team
+                    ],
+                )
+            )
+        return jsonify(data=data)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/inject/<inject_id>/grade", methods=["POST"])
+@login_required
+def admin_post_inject_grade(inject_id):
+    if current_user.is_white_team:
+        data = request.get_json()
+        if "score" in data.keys() and data.get("score") != "":
+            inject = session.query(Inject).get(inject_id)
+            if inject:
+                inject.graded = datetime.utcnow()
+                inject.status = "Graded"
+                inject.score = data.get("score")
+                session.add(inject)
+                session.commit()
+                return jsonify({"status": "Success"}), 200
+            else:
+                return jsonify({"status": "Invalid Inject ID"}), 400
+        else:
+            return jsonify({"status": "Invalid Score Provided"}), 400
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/injects/templates", methods=["POST"])
+@login_required
+def admin_post_inject_templates():
+    if current_user.is_white_team:
+        data = request.get_json()
+        if (
+            data.get("title")
+            and data.get("scenario")
+            and data.get("deliverable")
+            and data.get("score")
+            and data.get("start_time")
+            and data.get("end_time")
+        ):
+            template = Template(
+                title=data["title"],
+                scenario=data["scenario"],
+                deliverable=data["deliverable"],
+                score=data["score"],
+                start_time=(
+                    parse(data["start_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
+                ),
+                end_time=(
+                    parse(data["end_time"])
+                    .astimezone(pytz.timezone(config.timezone))
+                    .replace(tzinfo=None)
+                ),
+            )
+            session.add(template)
+            session.commit()
+            # TODO - Fix this to not be string values from javascript select
+            if data.get("status") == "Enabled":
+                template.enabled = True
+            elif data.get("status") == "Disabled":
+                template.enabled = False
+            if data.get("selectedTeams"):
+                for team_name in data["selectedTeams"]:
+                    inject = (
+                        session.query(Inject)
+                        .join(Template)
+                        .join(Team)
+                        .filter(Team.name == team_name)
+                        .filter(Template.id == template.id)
+                        .one_or_none()
+                    )
+                    # Update inject if it exists
+                    if inject:
+                        inject.enabled = True
+                    # Otherwise, create the inject
+                    else:
+                        team = (
+                            session.query(Team).filter(Team.name == team_name).first()
+                        )
+                        inject = Inject(
+                            team=team,
+                            template=template,
+                        )
+                        session.add(inject)
+            if data.get("unselectedTeams"):
+                injects = (
+                    session.query(Inject)
+                    .join(Template)
+                    .join(Team)
+                    .filter(Team.name.in_(data["unselectedTeams"]))
+                    .filter(Template.id == template.id)
+                    .all()
+                )
+                for inject in injects:
+                    inject.enabled = False
+            session.commit()
+            return jsonify({"status": "Success"}), 200
+        else:
+            return jsonify({"status": "Error", "message": "Missing Data"}), 400
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+# @mod.route("/api/admin/injects/templates/export")
+# @login_required
+# def admin_export_inject_templates():
+#     if current_user.is_white_team:
+#         data = []
+#         templates = session.query(Template).all()
+#         for template in templates:
+#             data.append(
+#                 dict(
+#                     id=template.id,
+#                     title=template.title,
+#                     scenario=template.scenario,
+#                     deliverable=template.deliverable,
+#                     start_time=template.start_time,
+#                     end_time=template.end_time,
+#                     enabled=template.enabled,
+#                     rubric=[
+#                         {"id": x.id, "value": x.value, "deliverable": x.deliverable}
+#                         for x in template.rubric
+#                     ],
+#                     # TODO - export teams
+#                 )
+#             )
+#         return jsonify(data=data)
+#     else:
+#         return {"status": "Unauthorized"}, 403
+
+
+# TODO - Generate injects from templates
+@mod.route("/api/admin/injects/templates/import", methods=["POST"])
+@login_required
+def admin_import_inject_templates():
+    if current_user.is_white_team:
+        data = request.get_json()
+        if data:
+            for d in data:
+                if d.get("id"):
+                    template_id = d["id"]
+                    t = session.query(Template).get(int(template_id))
+                    # Update template if it exists
+                    if t:
+                        if d.get("title"):
+                            t.title = d["title"]
+                        if d.get("scenario"):
+                            t.scenario = d["scenario"]
+                        if d.get("deliverable"):
+                            t.deliverable = d["deliverable"]
+                        if d.get("start_time"):
+                            t.start_time = (
+                                parse(d["start_time"])
+                                .astimezone(pytz.utc)
+                                .replace(tzinfo=None)
+                            )
+                        if d.get("end_time"):
+                            t.end_time = (
+                                parse(d["start_time"])
+                                .astimezone(pytz.utc)
+                                .replace(tzinfo=None)
+                            )
+                        if d.get("enabled"):
+                            t.enabled = True
+                        else:
+                            t.enabled = False
+                        # for rubric in d["rubric"]:
+                        #     if rubric.get("id"):
+                        #         rubric_id = rubric["id"]
+                        #     r = session.query(Rubric).get(int(rubric_id))
+                        #     # Update rubric if it exists
+                        #     if r:
+                        #         if rubric.get("value"):
+                        #             r.value = rubric["value"]
+                        #         if rubric.get("deliverable"):
+                        #             r.deliverable = rubric["deliverable"]
+                        #     # Otherwise, create the rubric
+                        #     else:
+                        #         r = Rubric(
+                        #             value=rubric["value"],
+                        #             deliverable=rubric["deliverable"],
+                        #             template=template,
+                        #         )
+                        #         session.add(r)
+                        # Generate injects from template
+                        if data.get("selectedTeams"):
+                            for team_name in data["selectedTeams"]:
+                                inject = (
+                                    session.query(Inject)
+                                    .join(Template)
+                                    .join(Team)
+                                    .filter(Team.name == team_name)
+                                    .filter(Template.id == template_id)
+                                    .one_or_none()
+                                )
+                                # Update inject if it exists
+                                if inject:
+                                    inject.enabled = True
+                                # Otherwise, create the inject
+                                else:
+                                    team = (
+                                        session.query(Team)
+                                        .filter(Team.name == team_name)
+                                        .first()
+                                    )
+                                    inject = Inject(
+                                        team=team,
+                                        template=template,
+                                    )
+                                    session.add(inject)
+                        if data.get("unselectedTeams"):
+                            injects = (
+                                session.query(Inject)
+                                .join(Template)
+                                .join(Team)
+                                .filter(Team.name.in_(data["unselectedTeams"]))
+                                .filter(Template.id == template_id)
+                                .all()
+                            )
+                            for inject in injects:
+                                inject.enabled = False
+
+                        session.commit()
+                    else:
+                        return (
+                            jsonify(
+                                {"status": "Error", "message": "Invalid Template ID"}
+                            ),
+                            400,
+                        )
+                # Otherwise, create the template
+                else:
+                    t = Template(
+                        title=d["title"],
+                        scenario=d["scenario"],
+                        deliverable=d["deliverable"],
+                        score=d["score"],
+                        start_time=parse(d["start_time"])
+                        .astimezone(pytz.utc)
+                        .replace(tzinfo=None),
+                        end_time=parse(d["end_time"])
+                        .astimezone(pytz.utc)
+                        .replace(tzinfo=None),
+                        enabled=d["enabled"],
+                    )
+                    session.add(t)
+                    # for rubric in d["rubric"]:
+                    #     r = Rubric(
+                    #         value=rubric["value"],
+                    #         deliverable=rubric["deliverable"],
+                    #         template=t,
+                    #     )
+                    #     session.add(r)
+                    for team_name in d["teams"]:
+                        inject = (
+                            session.query(Inject)
+                            .join(Template)
+                            .join(Team)
+                            .filter(Team.name == team_name)
+                            .filter(Template.id == t.id)
+                            .one_or_none()
+                        )
+                        # Update inject if it exists
+                        if inject:
+                            inject.enabled = True
+                        # Otherwise, create the inject
+                        else:
+                            team = (
+                                session.query(Team)
+                                .filter(Team.name == team_name)
+                                .first()
+                            )
+                            inject = Inject(
+                                team=team,
+                                template=t,
+                            )
+                            session.add(inject)
+                    session.commit()
+            return jsonify({"status": "Success"}), 200
+        else:
+            return jsonify({"status": "Error", "message": "Invalid Data"}), 400
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+# TODO - This is way too many database queries
+@mod.route("/api/admin/injects/scores")
+@login_required
+def admin_inject_scores():
+    if current_user.is_white_team:
+        data = {}
+
+        injects = (
+            session.query(Inject)
+            .options(joinedload(Inject.template))
+            .order_by(Inject.template_id)
+            .order_by(Inject.team_id)
+            .all()
+        )
+
+        for inject in injects:
+            if inject.template.id not in data:
+                data[inject.template.id] = {
+                    "title": inject.template.title,
+                    "end_time": inject.template.end_time,
+                }
+            if inject.team.name not in data[inject.template.id]:
+                data[inject.template.id][inject.team.name] = {
+                    "id": inject.id,
+                    "score": inject.score,
+                    "status": inject.status,
+                    "max_score": inject.template.score,
+                }
+
+        # Rewrite data to be in the format expected by the frontend
+        score_data = []
+        for x in data.items():
+            score_data.append(x[1])
+
+        return jsonify(data=score_data), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/injects/get_bar_chart")
+@login_required
+def admin_injects_bar():
+    if current_user.is_white_team:
+        team_data = {}
+        team_labels = []
+        inject_scores = []
+
+        for blue_team in Team.get_all_blue_teams():
+            team_labels.append(blue_team.name)
+            inject_scores.append(str(blue_team.current_inject_score))
+
+        team_data["labels"] = team_labels
+        team_data["inject_scores"] = inject_scores
+
+        return jsonify(team_data), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/admin_update_template", methods=["POST"])
+@login_required
+def admin_update_template():
+    if current_user.is_white_team:
+        print(request.form)
+        if "name" in request.form and "value" in request.form and "pk" in request.form:
+            template = session.query(Template).get(int(request.form["pk"]))
+            if template:
+                modified_check = False
+                if request.form["name"] == "template_state":
+                    template.state = request.form["value"]
+                    modified_check = True
+                elif request.form["name"] == "template_points":
+                    template.points = request.form["value"]
+                    modified_check = True
+                if modified_check:
+                    session.add(template)
+                    session.commit()
+                    # update_scoreboard_data()
+                    # update_overview_data()
+                    # update_services_navbar(check.service.team.id)
+                    # update_team_stats(check.service.team.id)
+                    # update_services_data(check.service.team.id)
+                    # update_service_data(check.service.id)
+                    return jsonify({"status": "Updated Property Information"})
+            return jsonify({"error": "Template Not Found"})
+    return jsonify({"error": "Incorrect permissions"})
+
+
+# @mod.route("/api/admin/injects/team/<team_id>")
+# @login_required
+# def admin_get_team_injects(team_id):
+#     if current_user.is_white_team:
+#         injects = session.query(Inject).filter(team_id == team_id).all()
+#         return jsonify(data=injects)
+#     else:
+#         return {"status": "Unauthorized"}, 403
 
 
 @mod.route("/api/admin/get_teams")

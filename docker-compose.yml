@@ -130,10 +130,13 @@ services:
     restart: on-failure
     networks:
       - default
+    volumes:
+      - injects:/var/uploads/
     environment:
       - SCORINGENGINE_VERSION
 
 volumes:
+  injects:
   redis:
   mysql:
 

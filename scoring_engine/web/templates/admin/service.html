@@ -12,16 +12,16 @@
 
 <script>
   $.fn.editable.defaults.mode = 'inline';
-  $(function() {
+  $(function () {
     //enable / disable
-    $('#enable').click(function() {
+    $('#enable').click(function () {
       $('.editable-table .editable').editable('toggleDisabled');
     });
 
     //editables
     $('.editable-textfield').editable({
       type: 'text',
-      validate: function(value) {
+      validate: function (value) {
         if ($.trim(value) == '') return 'This field is required';
       }
     });
@@ -29,16 +29,16 @@
     //editables
     $('.editable-dropdown').editable({
       type: 'select',
-      validate: function(value) {
+      validate: function (value) {
         if ($.trim(value) == '') return 'This field is required';
       }
     });
 
-    $('.editable-table .editable').on('hidden', function(e, reason) {
+    $('.editable-table .editable').on('hidden', function (e, reason) {
       if (reason === 'save' || reason === 'nochange') {
         var $next = $(this).closest('tr').next().find('.editable');
         if ($('#autoopen').is(':checked')) {
-          setTimeout(function() {
+          setTimeout(function () {
             $next.editable('show');
           }, 300);
         } else {
@@ -49,7 +49,7 @@
     });
   });
 
-  $(document).ready(function() {
+  $(document).ready(function () {
     $('.password').text("************");
   });
 </script>
@@ -61,8 +61,11 @@
 <table>
   <tr>
     <td style="width: 250px; padding-right: 30px;">
-      <h4>Host: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.admin_update_host')}}">{{service.host}}</a></h4>
-      <h4>Port: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port Number" data-name="port" data-url="{{url_for('api.admin_update_port')}}">{{service.port}}</a></h4>
+      <h4>Host: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host"
+          data-name="host" data-url="{{url_for('api.admin_update_host')}}">{{service.host}}</a></h4>
+      <h4>Port: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
+          data-title="Enter Port Number" data-name="port"
+          data-url="{{url_for('api.admin_update_port')}}">{{service.port}}</a></h4>
 
       <h4>Accounts</h4>
       {% if service.accounts %}
@@ -76,8 +79,12 @@
         <tbody>
           {% for account in service.accounts %}
           <tr>
-            <td width="10%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
-            <td width="90%"><a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
+            <td width="10%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{account.id}}"
+                data-title="Enter Username" data-name="username"
+                data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
+            <td width="90%"><a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}"
+                data-title="Enter Password" data-name="password"
+                data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -88,9 +95,13 @@
     </td>
     <td>
       <h4>Worker Queue Name</h4>
-      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Worker Queue Name" data-name="worker_queue" data-url="{{url_for('api.admin_update_worker_queue')}}">{{service.worker_queue}}</a>
+      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
+        data-title="Enter Worker Queue Name" data-name="worker_queue"
+        data-url="{{url_for('api.admin_update_worker_queue')}}">{{service.worker_queue}}</a>
       <h4>Points</h4>
-      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Points per successful check" data-name="points" data-url="{{url_for('api.admin_update_points')}}">{{service.points}}</a>
+      <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
+        data-title="Enter Points per successful check" data-name="points"
+        data-url="{{url_for('api.admin_update_points')}}">{{service.points}}</a>
     </td>
   </tr>
 </table>
@@ -108,7 +119,9 @@
   <tbody>
     {% for environment in service.environments %}
     <tr>
-      <td width="25%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}" data-title="Enter Matching Content" data-url="{{url_for('api.admin_update_environment')}}" data-name='matching_content'>{{environment.matching_content}}</a></td>
+      <td width="25%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{environment.id}}"
+          data-title="Enter Matching Content" data-url="{{url_for('api.admin_update_environment')}}"
+          data-name='matching_content'>{{environment.matching_content}}</a></td>
       <td>
         {% if environment.properties %}
         <table class="table table-striped table-bordered table-compact" style="clear: both">
@@ -121,8 +134,12 @@
           <tbody>
             {% for property_obj in environment.properties %}
             <tr>
-              <td width="10%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Name" data-url="{{url_for('api.admin_update_property')}}" data-name='property_name'>{{property_obj.name}}</a></td>
-              <td width="50%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}" data-title="Enter Property Value" data-url="{{url_for('api.admin_update_property')}}" data-name='property_value'>{{property_obj.value}}</a></td>
+              <td width="10%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}"
+                  data-title="Enter Property Name" data-url="{{url_for('api.admin_update_property')}}"
+                  data-name='property_name'>{{property_obj.name}}</a></td>
+              <td width="50%"><a href="#" class="editable-textfield" data-type="text" data-pk="{{property_obj.id}}"
+                  data-title="Enter Property Value" data-url="{{url_for('api.admin_update_property')}}"
+                  data-name='property_value'>{{property_obj.value}}</a></td>
             </tr>
             {% endfor %}
           </tbody>
@@ -154,49 +171,49 @@ No Environments Found.
 </table>
 
 <script>
-  $(document).ready(function() {
+  $(document).ready(function () {
     // Disable datatables error reporting
     $.fn.dataTable.ext.errMode = 'none';
 
     var dt = $('#checks').DataTable({
       "ajax": "/api/service/{{ service.id }}/checks",
       "columns": [{
-          "class": "details-control",
-          "orderable": false,
-          "data": null,
-          "defaultContent": "",
-          "width": "5%",
-        },
-        {
-          "data": "round",
-          "width": "10%"
-        },
-        {
-          "data": "result",
-          "width": "5%",
-          "render": function(data, type, row) {
-            if (data) {
-              return "<a href=\"#\" class=\"editable-dropdown\" data-pk=\"" + row['id'] + "\" data-value=\"1\" data-source='[{value: 1, text: \"Pass\"}, {value: 2, text: \"Fail\"}]' data-title=\"Select Result\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_value'>Pass</a>";
-            } else {
-              return "<a href=\"#\" class=\"editable-dropdown\" data-pk=\"" + row['id'] + "\" data-value=\"2\" data-source='[{value: 1, text: \"Pass\"}, {value: 2, text: \"Fail\"}]' data-title=\"Select Result\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_value'>Fail</a>";
-            }
+        "class": "details-control",
+        "orderable": false,
+        "data": null,
+        "defaultContent": "",
+        "width": "5%",
+      },
+      {
+        "data": "round",
+        "width": "10%"
+      },
+      {
+        "data": "result",
+        "width": "5%",
+        "render": function (data, type, row) {
+          if (data) {
+            return "<a href=\"#\" class=\"editable-dropdown\" data-pk=\"" + row['id'] + "\" data-value=\"1\" data-source='[{value: 1, text: \"Pass\"}, {value: 2, text: \"Fail\"}]' data-title=\"Select Result\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_value'>Pass</a>";
+          } else {
+            return "<a href=\"#\" class=\"editable-dropdown\" data-pk=\"" + row['id'] + "\" data-value=\"2\" data-source='[{value: 1, text: \"Pass\"}, {value: 2, text: \"Fail\"}]' data-title=\"Select Result\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_value'>Fail</a>";
           }
-        },
-        {
-          "data": "reason",
-          "width": "30%",
-          "render": function(data, type, row) {
-            return "<a href=\"#\" class=\"editable-textfield\" data-type=\"text\" data-pk=\"" + row['id'] + "\" data-title=\"Enter Reason\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_reason'>" + data + "</a>"
-          }
-        },
-        {
-          "data": "command",
-          "width": "20%",
-        },
-        {
-          "data": "timestamp",
-          "width": "30%",
         }
+      },
+      {
+        "data": "reason",
+        "width": "30%",
+        "render": function (data, type, row) {
+          return "<a href=\"#\" class=\"editable-textfield\" data-type=\"text\" data-pk=\"" + row['id'] + "\" data-title=\"Enter Reason\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_reason'>" + data + "</a>"
+        }
+      },
+      {
+        "data": "command",
+        "width": "20%",
+      },
+      {
+        "data": "timestamp",
+        "width": "30%",
+      }
       ],
       'paging': true,
       'bFilter': false,
@@ -209,7 +226,7 @@ No Environments Found.
     // Array to track the ids of the details displayed rows
     var detailRows = [];
 
-    $('#checks tbody').on('click', 'tr td.details-control', function() {
+    $('#checks tbody').on('click', 'tr td.details-control', function () {
       var tr = $(this).closest('tr');
       var row = dt.row(tr);
       var idx = $.inArray(tr.attr('id'), detailRows);
@@ -231,11 +248,11 @@ No Environments Found.
       }
     });
 
-    dt.on('draw', function() {
+    dt.on('draw', function () {
       //editables
       $('#checks .editable-textfield').editable({
         type: 'text',
-        validate: function(value) {
+        validate: function (value) {
           if ($.trim(value) == '') return 'This field is required';
         }
       });
@@ -243,13 +260,13 @@ No Environments Found.
       //editables
       $('#checks .editable-dropdown').editable({
         type: 'select',
-        validate: function(value) {
+        validate: function (value) {
           if ($.trim(value) == '') return 'This field is required';
         }
       });
 
       // On each draw, loop over the `detailRows` array and show any child rows
-      $.each(detailRows, function(i, id) {
+      $.each(detailRows, function (i, id) {
         $('#' + id + ' td.details-control').trigger('click');
       });
     });

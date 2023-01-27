@@ -21,8 +21,11 @@ config = {
         'Flask-Login==0.6.2',
         'Flask-SQLAlchemy==2.5.1',
         'Flask-WTF==1.0.1',
+        # "itsdangerous==1.1.0",
+        # "markupsafe==1.1.1",
         'mysqlclient==2.1.0',
         'pynsive==0.2.7',
+        "python-dateutil==2.8.2",
         'PyYAML==5.4.1',
         'ranking==0.3.2',
         # 'redis==4.3.4',
@@ -30,9 +33,9 @@ config = {
         # 'Werkzeug==0.16.1',
         'uWSGI==2.0.21',
     ],
-    'packages': ['scoring_engine'],
-    'scripts': [],
-    'name': 'scoring_engine'
+    "packages": ["scoring_engine"],
+    "scripts": [],
+    "name": "scoring_engine",
 }
 
 setup(**config)
