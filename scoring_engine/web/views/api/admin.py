@@ -668,6 +668,7 @@ def admin_post_inject_templates():
 def admin_import_inject_templates():
     if current_user.is_white_team:
         data = request.get_json()
+        print(data)
         if data:
             for d in data:
                 if d.get("id"):
@@ -716,7 +717,7 @@ def admin_import_inject_templates():
                         #         )
                         #         session.add(r)
                         # Generate injects from template
-                        if data.get("selectedTeams"):
+                        if d.get("selectedTeams"):
                             for team_name in data["selectedTeams"]:
                                 inject = (
                                     session.query(Inject)
@@ -741,7 +742,7 @@ def admin_import_inject_templates():
                                         template=template,
                                     )
                                     session.add(inject)
-                        if data.get("unselectedTeams"):
+                        if d.get("unselectedTeams"):
                             injects = (
                                 session.query(Inject)
                                 .join(Template)
