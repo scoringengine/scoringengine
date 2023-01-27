@@ -35,6 +35,8 @@ from scoring_engine.celery_stats import CeleryStats
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql import func
+
 
 
 from . import mod
@@ -500,7 +502,7 @@ def admin_delete_inject_templates_id(template_id):
 def admin_get_inject_templates():
     if current_user.is_white_team:
         data = list()
-        templates = session.query(Template).all()
+        templates = session.query(Template).options(joinedload(Template.inject)).all()
         for template in templates:
             data.append(
                 dict(
@@ -860,16 +862,25 @@ def admin_inject_scores():
 @login_required
 def admin_injects_bar():
     if current_user.is_white_team:
+        inject_scores = dict(
+            session.query(Inject.team_id, func.sum(Inject.score))
+            .filter(Inject.status == "Graded")
+            .group_by(Inject.team_id)
+            .all()
+        )
+
         team_data = {}
         team_labels = []
-        inject_scores = []
-
-        for blue_team in Team.get_all_blue_teams():
+        team_inject_scores = []
+        blue_teams = (
+            session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
+        )
+        for blue_team in blue_teams:
             team_labels.append(blue_team.name)
-            inject_scores.append(str(blue_team.current_inject_score))
+            team_inject_scores.append(str(inject_scores.get(blue_team.id, 0)))
 
         team_data["labels"] = team_labels
-        team_data["inject_scores"] = inject_scores
+        team_data["inject_scores"] = team_inject_scores
 
         return jsonify(team_data), 200
     else:
