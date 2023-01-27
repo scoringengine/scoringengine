@@ -7,6 +7,7 @@ mod = Blueprint("api", __name__)
 
 
 from . import admin
+from . import agent
 from . import injects
 from . import notifications
 from . import overview
