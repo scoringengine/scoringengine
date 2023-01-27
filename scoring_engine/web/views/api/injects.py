@@ -2,7 +2,7 @@ import os
 import pytz
 
 from datetime import datetime
-from flask import request, jsonify, send_file, safe_join, abort
+from flask import request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -261,7 +261,7 @@ def api_inject_download(inject_id, file_id):
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403
 
-    path = safe_join(config.upload_folder, inject.team.name, file.name)
+    path = os.path.join(config.upload_folder, inject.team.name, file.name)
     print(path)
     try:
         return send_file(path, as_attachment=True)
