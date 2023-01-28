@@ -12,9 +12,13 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
-@mod.route("/agent/checkin", methods=["POST"])
+@mod.route("/api/agent/checkin")
+def agent_checkin_get():
+    return jsonify({})
+
+
 @mod.route("/api/agent/checkin", methods=["POST"])
-def agent_checkin():
+def agent_checkin_post():
     data = request.get_json()
     first = data.get('first', False)
     flags = data.get('flags', [])
