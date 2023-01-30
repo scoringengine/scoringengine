@@ -1,4 +1,5 @@
 import yaml
+import datetime
 
 from scoring_engine.config import config
 from scoring_engine.engine.engine import Engine
@@ -9,6 +10,7 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.account import Account
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
+from scoring_engine.models.flag import Flag
 
 from scoring_engine.logger import logger
 
@@ -216,3 +218,21 @@ class Competition(dict):
                             for property_dict in environment_dict['properties']:
                                 db_session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
             db_session.commit()
+        for flag in self["flags"]:
+            start = flag.get("start_time", None)
+            end = flag.get("end_time", None)
+            if not start:
+                start = datetime.datetime.now(datetime.UTC)
+            if not end:
+                end = datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=3)
+            f = Flag(
+                type=flag["type"],
+                platform=flag["platform"],
+                data=flag["data"],
+                start_time=datetime.datetime.now(flag["start_time"], tz=datetime.UTC),
+                end_time=datetime.datetime.fromtimestamp(
+                    flag["end_time"], tz=datetime.UTC
+                ),
+            )
+            db_session.add(f)
+        db_session.commit()
