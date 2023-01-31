@@ -26,7 +26,7 @@ def agent_checkin_post():
     data = request.get_json()
     team, host, platform = get_host_info()
     flags = data.get("flags", [])
-    flags = session.query(Flag).filter(Flag.uid.in_(flags)).all()
+    flags = session.query(Flag).filter(Flag.id.in_(flags)).all()
     solves = [
         Solve(
             host=host,
