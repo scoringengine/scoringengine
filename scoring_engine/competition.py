@@ -224,15 +224,15 @@ class Competition(dict):
             start = flag.get("start_time", None)
             end = flag.get("end_time", None)
             if not start:
-                start = datetime.datetime.utcnow()
+                start = str(datetime.datetime.utcnow()) # TODO - This is hacky, find a better way to fix this
             if not end:
-                end = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+                end = str(datetime.datetime.utcnow() + datetime.timedelta(hours=3)) # TODO - This is hacky, find a better way to fix this
             f = Flag(
                 type=flag["type"],
                 platform=flag["platform"],
                 data=flag["data"],
-                start_time=parse(flag['start_time']),
-                end_time=parse(flag['end_time']),
+                start_time=parse(start),
+                end_time=parse(end),
             )
             db_session.add(f)
         db_session.commit()
