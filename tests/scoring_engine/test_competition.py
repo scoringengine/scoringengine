@@ -81,7 +81,8 @@ class CompetitionDataTest(UnitTest):
                         }
                     ]
                 },
-            ]
+            ],
+            'flags': [],  # TODO - Populate this with test flags
         }
 
     def verify_error(self, error_message):
