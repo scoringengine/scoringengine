@@ -2,7 +2,7 @@ from flask import jsonify, request, abort
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func, exists
 from sqlalchemy.sql.expression import and_
-from datetime import datetime, UTC
+from datetime import datetime
 from typing import Tuple
 
 from scoring_engine.cache import cache
@@ -52,7 +52,7 @@ def get_host_info() -> Tuple[Team, str, Platform]:
 
 
 def do_checkin(team, host, platform):
-    now = datetime.now(UTC)
+    now = datetime.utcnow()
     # get unsolved flags for this team and host and for this time period
     flags = (
         session.query(Flag)
