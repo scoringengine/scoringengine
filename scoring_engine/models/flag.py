@@ -65,7 +65,7 @@ class Solve(Base):
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     host = Column(String(260), nullable=False)
-    flag_id = Column(Integer, ForeignKey("flags.id"))
+    flag_id = Column(String(36), ForeignKey("flags.id"))
     team_id = Column(Integer, ForeignKey("teams.id"))
     flag = relationship("Flag", backref="solves", lazy="joined")
     team = relationship("Team", backref="flag_solves", lazy="joined")
