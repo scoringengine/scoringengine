@@ -40,8 +40,8 @@ class Platform(enum.Enum):
 
 class Flag(Base):
     __tablename__ = "flags"
-    id = Column(Integer, primary_key=True)
-    uid = Column(String(36), primary_key=True, default=uuid.uuid4())
+    # id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=str(uuid.uuid4()))
     type = Column(Enum(FlagTypeEnum), nullable=False)
     platform = Column(Enum(Platform), nullable=False)
     data = Column(PickleType, nullable=False)
@@ -50,7 +50,7 @@ class Flag(Base):
 
     def as_dict(self) -> dict:
         return {
-            "id": self.uid,
+            "id": self.id,
             "type": self.type.value,
             "data": self.data,
             "start_time": int(self.start_time.astimezone(pytz.utc).timestamp()),
@@ -63,7 +63,7 @@ class Solve(Base):
     __table_args__ = (
         UniqueConstraint("flag_id", "host", "team_id", name="_flag_host_team_uc"),
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     host = Column(String(260), nullable=False)
     flag_id = Column(Integer, ForeignKey("flags.id"))
     team_id = Column(Integer, ForeignKey("teams.id"))
