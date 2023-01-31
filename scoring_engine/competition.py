@@ -1,6 +1,8 @@
 import yaml
 import datetime
 
+from dateutil.parser import parse
+
 from scoring_engine.config import config
 from scoring_engine.engine.engine import Engine
 
@@ -222,17 +224,15 @@ class Competition(dict):
             start = flag.get("start_time", None)
             end = flag.get("end_time", None)
             if not start:
-                start = datetime.datetime.now(datetime.UTC)
+                start = datetime.datetime.utcnow()
             if not end:
-                end = datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=3)
+                end = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
             f = Flag(
                 type=flag["type"],
                 platform=flag["platform"],
                 data=flag["data"],
-                start_time=datetime.datetime.now(flag["start_time"], tz=datetime.UTC),
-                end_time=datetime.datetime.fromtimestamp(
-                    flag["end_time"], tz=datetime.UTC
-                ),
+                start_time=parse(flag['start_time']),
+                end_time=parse(flag['end_time']),
             )
             db_session.add(f)
         db_session.commit()
