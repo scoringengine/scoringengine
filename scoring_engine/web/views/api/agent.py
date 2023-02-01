@@ -16,6 +16,9 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
+cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
+
+
 @mod.route("/api/agent/checkin")
 def agent_checkin_get():
     return do_checkin(*get_host_info())
@@ -62,6 +65,14 @@ def do_checkin(team, host, platform):
         .filter(~exists().where(and_(Solve.team == team, Solve.host == host)))
         .all()
     )
+
+    # TODO - this is a gross dev hack
+    if cache.config['CACHE_TYPE'] == 'null':
+        cache_dict[host] = now
+        print(cache_dict)
+    else:
+        cache.set(host, now)
+        print(cache.get(host))
 
     res = {
         "flags": [f.as_dict() for f in flags],
