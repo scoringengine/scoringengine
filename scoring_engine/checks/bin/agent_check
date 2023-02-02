@@ -19,10 +19,10 @@ host = sys.argv[1]
 res = cache.get(host)
 if res and 'timestamp' in res.keys():
     diff = int(datetime.datetime.utcnow().timestamp()) - int(res.get('timestamp'))
-    if diff < 600:
-        print("SUCCESS: Agent has checked in within 5 minutes")
+    if diff < 300:
+        print("SUCCESS: Agent has checked in within 300 seconds")
     else:
-        print("ERROR: Agent last checked in " + diff + " seconds ago")
+        print("ERROR: Agent last checked in " + str(diff) + " seconds ago")
         sys.exit(1)
 else:
     print("ERROR: Agent has no timestamp information")
