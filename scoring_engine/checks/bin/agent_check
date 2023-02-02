@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+# A scoring engine check that checks the last agent checkin for a host
+
+import sys
+import datetime
+
+from scoring_engine.cache import cache
+from scoring_engine.web import app
+
+
+if len(sys.argv) != 2:
+    print("Usage: " + sys.argv[0] + " host")
+    sys.exit(1)
+
+host = sys.argv[1]
+
+# {'flags': [], 'config': None, 'timestamp': 1675321066}
+res = cache.get(host)
+if res and 'timestamp' in res.keys():
+    diff = int(datetime.datetime.utcnow().timestamp()) - int(res.get('timestamp'))
+    if diff < 600:
+        print("SUCCESS: Agent has checked in within 5 minutes")
+    else:
+        print("ERROR: Agent last checked in " + diff + " seconds ago")
+        sys.exit(1)
+else:
+    print("ERROR: Agent has no timestamp information")
+    sys.exit(1)
