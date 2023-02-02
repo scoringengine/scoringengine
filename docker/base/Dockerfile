@@ -1,17 +1,16 @@
-FROM python:3-slim-bullseye
+FROM python:3.9.16-slim-bullseye
 
 RUN \
   useradd -m engine && \
   apt-get update && \
   apt-get install -y \
     curl \
-    python3 \
-    python3-pip \
-    python3-yaml \
+    gcc \
     libssl-dev \
     libmariadb-dev \
     iputils-ping && \
   rm -rf /var/lib/apt/lists/* && \
+  python3 -m ensurepip --upgrade && \
   mkdir /app
 
 COPY docker/wait-for-container.sh /app/wait-for-container.sh
