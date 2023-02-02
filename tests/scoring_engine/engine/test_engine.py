@@ -2,6 +2,7 @@ from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.setting import Setting
 
+from scoring_engine.checks.agent import AgentCheck
 from scoring_engine.checks.icmp import ICMPCheck
 from scoring_engine.checks.ssh import SSHCheck
 from scoring_engine.checks.dns import DNSCheck
@@ -46,6 +47,7 @@ class TestEngine(UnitTest):
     def test_init(self):
         engine = Engine()
         expected_checks = [
+            AgentCheck,
             ICMPCheck,
             SSHCheck,
             DNSCheck,
