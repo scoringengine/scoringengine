@@ -66,17 +66,18 @@ def do_checkin(team, host, platform):
         .all()
     )
 
-    # TODO - this is a gross dev hack
-    if cache.config['CACHE_TYPE'] == 'null':
-        cache_dict[host] = now
-        print(cache_dict)
-    else:
-        cache.set(host, now)
-        print(cache.get(host))
-
     res = {
         "flags": [f.as_dict() for f in flags],
         "config": None,
         "timestamp": int(datetime.utcnow().timestamp()),
     }
+
+    # TODO - this is a gross dev hack
+    if cache.config['CACHE_TYPE'] == 'null':
+        cache_dict[host] = now
+        # print(cache_dict)
+    else:
+        cache.set(host, res)
+        # print(cache.get(host))
+
     return jsonify(res)
