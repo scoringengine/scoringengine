@@ -162,6 +162,10 @@ session.add(Setting(name="blue_team_update_port", value=True))
 session.add(Setting(name="blue_team_update_account_usernames", value=True))
 session.add(Setting(name="blue_team_update_account_passwords", value=True))
 session.add(Setting(name="blue_team_view_check_output", value=True))
+session.add(
+    Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 3)
+)
+session.add(Setting(name="agent_show_flag_early_mins", value=5))
 session.commit()
 
 if options.example:

@@ -41,7 +41,7 @@ class Platform(enum.Enum):
 class Flag(Base):
     __tablename__ = "flags"
     # id = Column(Integer, primary_key=True, autoincrement=True)
-    id = Column(String(36), primary_key=True, default=str(uuid.uuid4()))
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     type = Column(Enum(FlagTypeEnum), nullable=False)
     platform = Column(Enum(Platform), nullable=False)
     data = Column(PickleType, nullable=False)
@@ -53,6 +53,7 @@ class Flag(Base):
             "id": self.id,
             "type": self.type.value,
             "data": self.data,
+            "platform": self.platform.value,
             "start_time": int(self.start_time.astimezone(pytz.utc).timestamp()),
             "end_time": int(self.end_time.astimezone(pytz.utc).timestamp()),
         }
