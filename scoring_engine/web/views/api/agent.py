@@ -16,6 +16,7 @@ from scoring_engine.models.setting import Setting
 
 from . import mod
 
+cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
 
 @mod.route("/api/agent/flags")
 def agent_show_flags():
@@ -105,4 +106,13 @@ def do_checkin(team, host, platform):
         },
         "timestamp": int(datetime.utcnow().timestamp()),
     }
+
+    # TODO - this is a gross dev hack
+    if cache.config['CACHE_TYPE'] == 'null':
+        cache_dict[host] = now
+        # print(cache_dict)
+    else:
+        cache.set(host, res)
+        # print(cache.get(host))
+
     return jsonify(res)
