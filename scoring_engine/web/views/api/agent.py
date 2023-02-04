@@ -88,12 +88,13 @@ def do_checkin(team, host, platform):
             )
         )
         .filter(
-            ~exists().where(
-                and_(Flag.id == Solve.flag_id, Solve.team == team, Solve.host == host)
+            Flag.id.not_in(
+                session.query(Solve.flag_id).filter(
+                    and_(Solve.host == host, Solve.team == team)
+                )
             )
         )
-        .all()
-    )
+    ).all()
 
     res = {
         "flags": [f.as_dict() for f in flags],
