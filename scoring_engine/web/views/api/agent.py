@@ -16,7 +16,10 @@ from scoring_engine.models.setting import Setting
 
 from . import mod
 
-cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
+cache_dict = (
+    {}
+)  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
+
 
 @mod.route("/api/agent/flags")
 def agent_show_flags():
@@ -89,12 +92,13 @@ def do_checkin(team, host, platform):
             )
         )
         .filter(
-            ~exists().where(
-                and_(Flag.id == Solve.flag_id, Solve.team == team, Solve.host == host)
+            Flag.id.not_in(
+                session.query(Solve.flag_id).filter(
+                    and_(Solve.host == host, Solve.team == team)
+                )
             )
         )
-        .all()
-    )
+    ).all()
 
     res = {
         "flags": [f.as_dict() for f in flags],
@@ -108,7 +112,7 @@ def do_checkin(team, host, platform):
     }
 
     # TODO - this is a gross dev hack
-    if cache.config['CACHE_TYPE'] == 'null':
+    if cache.config["CACHE_TYPE"] == "null":
         cache_dict[host] = now
         # print(cache_dict)
     else:
