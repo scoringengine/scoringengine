@@ -256,6 +256,13 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: AGENT
+  #   check_name: AgentCheck
+  #   host: testbed_icmp
+  #   port: 0
+  #   points: 25
+  #   environments:
+  #     - matching_content: SUCCESS
   # - name: WinRM
   #   check_name: WinRMCheck
   #   host: testbed_winrm
@@ -657,6 +664,13 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: AGENT
+  #   check_name: AgentCheck
+  #   host: testbed_icmp
+  #   port: 0
+  #   points: 25
+  #   environments:
+  #     - matching_content: SUCCESS
   # - name: WinRM
   #   check_name: WinRMCheck
   #   host: testbed_winrm
@@ -1058,6 +1072,13 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: AGENT
+  #   check_name: AgentCheck
+  #   host: testbed_icmp
+  #   port: 0
+  #   points: 25
+  #   environments:
+  #     - matching_content: SUCCESS
   # - name: WinRM
   #   check_name: WinRMCheck
   #   host: testbed_winrm
@@ -1459,6 +1480,13 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: AGENT
+  #   check_name: AgentCheck
+  #   host: testbed_icmp
+  #   port: 0
+  #   points: 25
+  #   environments:
+  #     - matching_content: SUCCESS
   # - name: WinRM
   #   check_name: WinRMCheck
   #   host: testbed_winrm
@@ -1860,6 +1888,13 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  # - name: AGENT
+  #   check_name: AgentCheck
+  #   host: testbed_icmp
+  #   port: 0
+  #   points: 25
+  #   environments:
+  #     - matching_content: SUCCESS
   # - name: WinRM
   #   check_name: WinRMCheck
   #   host: testbed_winrm
