@@ -37,7 +37,7 @@ def scoreboard_get_bar_data():
     team_scores = []
     team_inject_scores = []
     blue_teams = (
-        session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
+        session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     )
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
@@ -63,7 +63,7 @@ def scoreboard_get_line_data():
     blue_teams = (
         session.query(Team.id, Team.name, Team.rgb_color)
         .filter(Team.color == "Blue")
-        .order_by(Team.name)
+        .order_by(Team.id)
         .all()
     )
 
