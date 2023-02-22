@@ -21,3 +21,6 @@ scoring_engine.egg-info
 
 # Ignore implemented config file
 engine.conf
+
+# Environment variables
+.env
