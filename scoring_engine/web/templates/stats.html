@@ -22,22 +22,26 @@
                     <th>Service Ratio</th>
                 </tr>
             </thead>
-            {% for stat in stats %}
-            <tr>
-                <td>{{ stat.round_id }}</td>
-                <td>{{ stat.start_time }}</td>
-                <td>{{ stat.end_time }}</td>
-                <td>{{ stat.total_seconds }}</td>
-                <td>{{ stat.num_up_services }} <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / {{ stat.num_down_services }} <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></td>
-            </tr>
-            {% endfor %}
         </table>
     </div>
 </div>
 <script>
     $('#stats').DataTable( {
-        "order": [[0, 'desc']]
-        // responsive: true
+        ajax: '/api/stats',
+        order: [[0, 'desc']],
+        columns: [
+            { data: 'round_id' },
+            { data: 'start_time' },
+            { data: 'end_time' },
+            { data: 'total_seconds' },
+        ],
+        "columnDefs": [{
+            "targets": 4,
+            "data": null,
+            "render": function ( data, type, row, meta ) {
+                return row.num_up_services + ' <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / ' + row.num_down_services + ' <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>';
+            }
+        }]
     } );
 </script>
 {% endblock %}
