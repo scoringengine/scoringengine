@@ -103,8 +103,10 @@ services:
         - scoringengine/worker
         - worker:latest
     depends_on:
-      - base
-      - redis
+      base: 
+        condition: service_started
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - default
