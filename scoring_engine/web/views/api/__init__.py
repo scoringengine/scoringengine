@@ -13,4 +13,5 @@ from . import overview
 from . import profile
 from . import scoreboard
 from . import service
+from . import stats
 from . import team
