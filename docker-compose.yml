@@ -27,6 +27,11 @@ services:
       - mysql:/var/lib/mysql
     networks:
       - default
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
     # ports:
     #   - 3306:3306
   nginx:
@@ -65,8 +70,8 @@ services:
         - scoringengine/bootstrap
         - bootstrap:latest
     depends_on:
-      - base
-      - mysql
+      mysql:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "exit", "1"]
     restart: on-failure
@@ -122,8 +127,8 @@ services:
         - scoringengine/web
         - web:latest
     depends_on:
-      - base
-      - mysql
+      mysql:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost:5000"]
       interval: 30s
