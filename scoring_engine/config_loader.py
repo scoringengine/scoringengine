@@ -30,6 +30,18 @@ class ConfigLoader(object):
             "int",
         )
 
+        self.engine_paused = self.parse_sources(
+            "engine_paused",
+            self.parser["OPTIONS"]["engine_paused"].lower() == "true",
+            "bool",
+        )
+
+        self.pause_duration = self.parse_sources(
+            "pause_duration",
+            int(self.parser["OPTIONS"]["pause_duration"]),
+            "int",
+        )
+
         self.worker_num_concurrent_tasks = self.parse_sources(
             "worker_num_concurrent_tasks",
             int(self.parser["OPTIONS"]["worker_num_concurrent_tasks"]),

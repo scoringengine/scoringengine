@@ -1013,6 +1013,19 @@ def admin_add_team():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/toggle_engine", methods=["POST"])
+@login_required
+def admin_toggle_engine():
+    if current_user.is_white_team:
+        setting = Setting.get_setting("engine_paused")
+        setting.value = not setting.value
+        session.add(setting)
+        session.commit()
+        return {'status': "Success"}
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_engine_stats")
 @login_required
 def admin_get_engine_stats():
@@ -1027,6 +1040,15 @@ def admin_get_engine_stats():
         )
         engine_stats["total_checks"] = session.query(Check).count()
         return jsonify(engine_stats)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_engine_paused")
+@login_required
+def admin_get_engine_status():
+    if current_user.is_white_team:
+        return jsonify({"paused": Setting.get_setting("engine_paused").value})
     else:
         return {"status": "Unauthorized"}, 403
 
