@@ -24,6 +24,8 @@ class UnitTest(object):
         )
         self.session.add(Setting(name="target_round_time", value=60))
         self.session.add(Setting(name="worker_refresh_time", value=30))
+        self.session.add(Setting(name="engine_paused", value=False))
+        self.session.add(Setting(name="pause_duration", value=30))
         self.session.add(Setting(name="blue_team_update_hostname", value=True))
         self.session.add(Setting(name="blue_team_update_port", value=True))
         self.session.add(Setting(name="blue_team_update_account_usernames", value=True))

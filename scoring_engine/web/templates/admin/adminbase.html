@@ -3,6 +3,11 @@
 <div class="container md-page">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
+      <div class="list-group text-center">
+          <button type="button" class="btn btn-default btn-lg" id="engine_toggle">
+            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
+          </button>
+      </div>
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
@@ -11,7 +16,7 @@
         </div>
         <div class="list-group">
           <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
-            href="/admin/status">Engine</a>
+            href="/admin/status" id="engine">Engine</a>
           <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
             href="/admin/workers">Workers</a>
           <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
@@ -80,6 +85,7 @@
             <div class="panel" style="border-top: 0.5px solid gray;">
               <div class="panel-body" style="padding-top: 0px;">
                 {% block admincontent %}
+                {% endblock %}
               </div>
             </div>
           </div>
@@ -88,5 +94,44 @@
     </div>
   </div>
 </div>
-{% endblock %}
+<script>
+  function getEngineStatus() {
+    $.ajax({
+      cache: false,
+      url: '/api/admin/get_engine_paused',
+      dataType: 'json',
+      success: function (data) {
+        if (!data.paused) {
+          document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
+          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause'
+          document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
+        } else {
+          document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
+          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume'
+          document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
+        }
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    getEngineStatus();
+    setInterval(function () {
+      getEngineStatus()
+    }, 30000);
+  });
+</script>
+<script>
+  $("#engine_toggle").click(function(){
+    $.ajax({
+      cache: false,
+      url: '/api/admin/toggle_engine',
+      dataType: 'json',
+      type: 'POST',
+      success: function (data) {
+        getEngineStatus();
+      }
+    });
+  });
+</script>
 {% endblock %}
