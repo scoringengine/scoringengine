@@ -56,7 +56,7 @@ class Engine(object):
         self.round_running = False
 
     def verify_settings(self):
-        settings = ["target_round_time", "worker_refresh_time"]
+        settings = ["target_round_time", "worker_refresh_time", "engine_paused", "pause_duration"]
         for setting_name in settings:
             if not Setting.get_setting(setting_name):
                 logger.error("Must have " + setting_name + " setting.")
@@ -128,6 +128,12 @@ class Engine(object):
             logger.info("Running engine for {0} round(s)".format(self.total_rounds))
 
         while not self.is_last_round():
+            if Setting.get_setting("engine_paused").value:
+                pause_duration = int(Setting.get_setting("pause_duration").value)
+                logger.info("Engine Paused. Sleeping for {0} seconds".format(pause_duration))
+                self.sleep(pause_duration)
+                continue
+
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
             round_start_time = datetime.now()
