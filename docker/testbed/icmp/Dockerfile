@@ -1,3 +1,3 @@
-FROM ubuntu:22.04
+FROM ubuntu:rolling
 
 CMD ["tail", "-f", "/dev/null"]
