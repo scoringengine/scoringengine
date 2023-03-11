@@ -87,12 +87,8 @@ def scoreboard_get_line_data():
         .all()
     )
 
-    scores_dict = {}
+    scores_dict = defaultdict(lambda: defaultdict(list))
     for team_id, round_id, round_score in round_scores:
-        # Generate default list full of 0 scores
-        if team_id not in scores_dict.keys():
-            scores_dict[team_id] = [0] * (last_round + 1)
-
         # Loop through our results and update the appropriate team's list
         scores_dict[team_id][round_id] = round_score
 
@@ -100,7 +96,7 @@ def scoreboard_get_line_data():
         team_data["team"].append(
             {
                 "name": team_name,
-                "scores": list(accumulate(scores_dict[team_id])),
+                "scores": list(accumulate(scores_dict[team_id].values(), initial=0)),
                 "color": rgb_color,
             }
         )
