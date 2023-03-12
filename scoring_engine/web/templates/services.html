@@ -9,7 +9,7 @@
 {% block content %}
 <div class="container md-page">
     <div class="row">
-        <h3>{{team_name}}</h3>
+        <h3>{{ current_user.team.name }}</h3>
         <h5 id="team_place">Place: </h5>
         <h5 id="team_current_score">Score: </h5>
     </div>
@@ -36,7 +36,7 @@
             function refreshteamdata() {
                 $.ajax({
                     cache: false,
-                    url: '/api/team/{{team_id}}/stats',
+                    url: '/api/team/{{ current_user.team.id }}/stats',
                     dataType: 'json',
                     success: function(data) {
                         $('#team_place').text("Place: " + data.place);
@@ -62,7 +62,7 @@
                         'paging': false,
                         'bFilter': false,
                         'bInfo': false,
-                        "ajax": "/api/team/{{team_id}}/services",
+                        "ajax": "/api/team/{{ current_user.team.id }}/services",
                         "order": [],
                         "columns": [
                             {
