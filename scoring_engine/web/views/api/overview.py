@@ -43,6 +43,7 @@ def overview_get_round_data():
 @cache.memoize()
 def overview_data():
     data = defaultdict(lambda: defaultdict(dict))
+    data = defaultdict(lambda: defaultdict(dict))
 
     round_obj = session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
@@ -68,6 +69,7 @@ def overview_data():
                 "passing": r[4],
             }
 
+    return jsonify(data)
     return jsonify(data)
 
 
