@@ -14,7 +14,7 @@ def home():
     if not (current_user.is_blue_team or current_user.is_red_team):
         return redirect(url_for("auth.unauthorized"))
     return render_template(
-        "injects.html", team_name=current_user.team.name, team_id=current_user.team.id
+        "injects.html"
     )
 
 
