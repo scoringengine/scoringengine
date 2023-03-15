@@ -73,9 +73,9 @@ def api_services(team_id):
     )
 
     for service in services:
-        score_earned=str(service_dict[service.name][service.team_id])
+        score_earned=str(service_dict[service.name].get(service.team_id, 0))
         max_score = str(len(service.checks) * service.points)
-        percent_earned = str(int(int(score_earned) / int(max_score) * 100))
+        percent_earned = str(int(int(score_earned) / int(max_score)) if int(max_score) != 0 else 0)
 
         if not service.checks:
             check = "Undetermined"
@@ -91,7 +91,7 @@ def api_services(team_id):
                 host=str(service.host),
                 port=str(service.port),
                 check=str(check),
-                rank=str(service_ranks[service.name][service.team_id]),
+                rank=str(service_ranks[service.name].get(service.team_id, 1)),
                 score_earned=score_earned,
                 max_score=max_score,
                 percent_earned=percent_earned,
