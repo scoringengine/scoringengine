@@ -25,7 +25,7 @@ jobs:
         name: Build and push base image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./docker/base/Dockerfile
           push: true
           tags: scoringengine/base:latest
           cache-from: type=gha
