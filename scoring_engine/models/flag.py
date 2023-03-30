@@ -38,6 +38,11 @@ class Platform(enum.Enum):
     nix = "nix"
 
 
+class Perm(enum.Enum):
+    user = "user"
+    root = "root"
+
+
 class Flag(Base):
     __tablename__ = "flags"
     # id = Column(Integer, primary_key=True, autoincrement=True)
@@ -47,6 +52,7 @@ class Flag(Base):
     data = Column(PickleType, nullable=False)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
+    perm = Column(Enum(Perm), nullable=False)
 
     def as_dict(self) -> dict:
         return {
@@ -56,6 +62,7 @@ class Flag(Base):
             "platform": self.platform.value,
             "start_time": int(self.start_time.astimezone(pytz.utc).timestamp()),
             "end_time": int(self.end_time.astimezone(pytz.utc).timestamp()),
+            "perm": self.perm.value,
         }
 
 
