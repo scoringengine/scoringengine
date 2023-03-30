@@ -2033,6 +2033,7 @@ teams:
 flags:
   - type: file
     platform: nix
+    perm: user
     data:
         path: "/tmp/flag"
         content: "hi"
