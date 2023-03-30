@@ -233,6 +233,7 @@ class Competition(dict):
                 data=flag["data"],
                 start_time=parse(start),
                 end_time=parse(end),
+                perm=flag["perm"]
             )
             db_session.add(f)
         db_session.commit()
