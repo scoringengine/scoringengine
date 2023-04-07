@@ -1,4 +1,5 @@
 import ranking
+import random
 
 from collections import defaultdict
 from flask import jsonify
@@ -84,6 +85,7 @@ def api_services(team_id):
                 check = "UP"
             else:
                 check = "DOWN"
+        check = random.choice(["UP", "DOWN"])
         data.append(
             dict(
                 service_id=str(service.id),
@@ -97,7 +99,8 @@ def api_services(team_id):
                 percent_earned=percent_earned,
                 pts_per_check=str(service.points),
                 last_ten_checks=[
-                    check.result for check in service.last_ten_checks[::-1]
+                    # check.result for check in service.last_ten_checks[::-1]
+                    random.choice([True, False]) for _ in range(10)
                 ],
             )
         )
@@ -137,6 +140,6 @@ def team_services_status(team_id):
     for service_name, service_id, check_result in checks:
         data[service_name] = {
             "id": str(service_id),
-            "result": str(check_result),
+            # "result": str(check_result),
         }
     return jsonify(data)

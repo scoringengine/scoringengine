@@ -2,138 +2,149 @@
 {% block title %}Overview{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.css">
+<!-- <script src="{{ url_for('static', filename='vendor/js/dataTables.semanticui.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.semanticui.min.css') }}" /> -->
+<!-- Datatables Bootstrap -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
 {% endblock %}
 {% block content %}
-<div class="container-fluid md-page">
-    <div class="row">
-        <h2 id="round_number" class="text-center"></h2>
-        <h4 id="round_start" class="text-center"></h4>
-    </div>
-    <div class="row">
-        <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-            <thead>
-                <tr>
-                    <th></th>
-                    {% for team in teams %}
-                    <th>{{ team.name }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-        </table>
-        <div id='hint'>Hover over status icon to get host:port information</div>
-        <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a
-                href="{{ url_for('api.overview_data') }}">Here</a></div>
-        <script>
-            function refreshheader() {
-                $.ajax({
-                    cache: false,
-                    url: '/api/overview/get_round_data',
-                    dataType: 'json',
-                    success: function (data) {
-                        $('#round_number').text("Round " + data.number);
-                        $('#round_start').text(data.round_start);
-                    }
-                });
-            }
-
-            // Populate services table
-            var overview = $('#overview').DataTable({
-                'ajax': '/api/overview/get_data',
-                'paging': false,
-                'bSort': false,
-                'info': false,
-                'searching': false,
-                'scrollX': true,
-                'columnDefs': [
-                    { "width": "10%", "targets": 0 }
-                ],
-                'createdRow': function (row, data, index) {
-                    $('td', row).each(function () {
-                        var value = $(this).html();
-                        var column_num = $(this).index();
-                        switch (index) {
-                            // Current Score
-                            case 0:
-                                if (column_num == 0) {
-                                    var html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                } else {
-                                    var html_str = parseFloat(`${value}`).toLocaleString();
-                                    $(this).html(html_str);
-                                }
-                                break;
-                            // Current Place
-                            case 1:
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                    // Add Some Ribbons
-                                } else {
-                                    if (value == 1) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>`);
-                                    } else if (value == 2) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>`);
-                                    } else if (value == 3) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
-                                    }
-                                }
-                                break;
-                            case 2:
-                                // Up and down services ratio
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                } else {
-                                    html_str = `${value}`
-                                    $(this).html(html_str);
-                                }
-                                break;
-                            default:
-                                // Service Name
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                    break;
-                                }
-
-                                if (value == 'true') {
-                                    var image_icon = 'glyphicon-ok';
-                                    var image_color = 'green';
-                                }
-                                else if (value == 'false') {
-                                    var image_icon = 'glyphicon-remove';
-                                    var image_color = 'red';
-                                }
-                                else {
-                                    image_icon = 'glyphicon-question-sign';
-                                    image_color = 'black';
-                                }
-
-                                html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}"></span>`;
-                                $(this).html(html_str);
-                        }
-                    })
-                }
-            });
-
-            $(document).ready(function () {
-                // Disable datatables error reporting
-                $.fn.dataTable.ext.errMode = 'none';
-
-                // Populate our header
-                refreshheader();
-                setInterval(function () {
-                    refreshheader()
-                }, 30000);
-
-                setInterval(function () {
-                    overview.ajax.reload();
-                }, 30000);
-            });
-        </script>
-    </div>
+<div class="ui container">
+    <div class="ui grid">
+        <div class="center aligned row">
+            <div class="column">
+                <h2 id="round_number" class="text-center" />
+                <h3 id="round_start" class="text-center" />
+            </div>
+        </div>
+        </div>
+        </div>
+        <div class="ui container">
+            <table id="overview" class="ui compact celled definition table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        {% for team in teams %}
+                        <th>{{ team.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+            <div id='hint'>Hover over status icon to get host:port information</div>
+            <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a
+                    href="{{ url_for('api.overview_data') }}">Here</a></div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script>
+    function refreshheader() {
+        $.ajax({
+            cache: false,
+            url: '/api/overview/get_round_data',
+            dataType: 'json',
+            success: function (data) {
+                $('#round_number').text("Round " + data.number);
+                $('#round_start').text(data.round_start);
+            }
+        });
+    };
+
+    // Populate services table
+    var overview = $('#overview').DataTable({
+        'ajax': '/api/overview/get_data',
+        'paging': false,
+        'bSort': false,
+        'info': false,
+        'searching': false,
+        'scrollX': true,
+        'columnDefs': [
+            { "width": "10%", "targets": 0 }
+        ],
+        'createdRow': function (row, data, index) {
+            $('td', row).each(function () {
+                var value = $(this).html();
+                var column_num = $(this).index();
+                switch (index) {
+                    // Current Score
+                    case 0:
+                        if (column_num == 0) {
+                            var html_str = `<span style="font-weight:bold">${value}</span>`
+                            $(this).html(html_str);
+                        } else {
+                            var html_str = parseFloat(`${value}`).toLocaleString();
+                            $(this).html(html_str);
+                        }
+                        break;
+                    // Current Place
+                    case 1:
+                        if (column_num == 0) {
+                            html_str = `<span style="font-weight:bold">${value}</span>`
+                            $(this).html(html_str);
+                            // Add Some Ribbons
+                        } else {
+                            if (value == 1) {
+                            $(this).html(`${value} <i class="trophy icon" data-search-terms="achievement, award, cup, game, winner" style="color: #C98910; visibility: visible;"></i>`);
+                        } else if (value == 2) {
+                            $(this).html(`${value} <i class="trophy icon" data-search-terms="achievement, award, cup, game, winner" style="color: #A8A8A8; visibility: visible;"></i>`);
+                        } else if (value == 3) {
+                            $(this).html(`${value} <i class="trophy icon" data-search-terms="achievement, award, cup, game, winner" style="color: #965A38; visibility: visible;"></i>`);
+                        }
+                    }
+                    break;
+                case 2:
+                    // Up and down services ratio
+                    if (column_num == 0) {
+                        html_str = `<span style="font-weight:bold">${value}</span>`
+                        $(this).html(html_str);
+                    } else {
+                        html_str = `${value}`
+                        $(this).html(html_str);
+                    }
+                    break;
+                default:
+                    // Service Name
+                    if (column_num == 0) {
+                        html_str = `<span style="font-weight:bold">${value}</span>`
+                        $(this).html(html_str);
+                        break;
+                    }
+
+                    if (value == 'true') {
+                    var image_icon = 'check';
+                    var image_color = 'green';
+                }
+                else if (value == 'false') {
+                    var image_icon = 'times';
+                    var image_color = 'red';
+                }
+                else {
+                    image_icon = 'question circle';
+                    image_color = 'black';
+                }
+
+                    // html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}"></span>`;
+                    html_str = `<i class="${image_icon} icon" style="color: ${image_color}; visibility: visible;"></i>`;
+                    $(this).html(html_str);
+            }
+        })
+    }
+});
+
+    $(document).ready(function () {
+        // Disable datatables error reporting
+        $.fn.dataTable.ext.errMode = 'none';
+
+    // Populate our header
+    refreshheader();
+    setInterval(function () {
+        refreshheader()
+    }, 30000);
+
+    setInterval(function () {
+        overview.ajax.reload();
+    }, 30000);
+});
+</script>
+
 {% endblock %}

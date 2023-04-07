@@ -1,4 +1,5 @@
 import ranking
+import random
 
 from collections import defaultdict
 from flask import jsonify
@@ -150,7 +151,7 @@ def overview_get_data():
             current_places.append(str(ranks_dict.get(blue_team_id, 0)))
             service_ratios.append(
                 # '{0} <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / {1} <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>'.format(num_up_services, num_down_services)  # TODO - I don't like shimming html into this
-                '{0} <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / {1} <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>'.format(
+                '{0} <i class="angle up icon" data-search-terms="arrow, caret, collapse, upload" style="visibility: visible;"></i> / {1} <i class="angle down icon" data-search-terms="arrow, caret, collapse, upload" style="visibility: visible;"></i>'.format(
                     num_up_services.get(blue_team_id, 0),
                     num_down_services.get(blue_team_id, 0),
                 )  # TODO - I don't like shimming html into this
@@ -184,7 +185,8 @@ def overview_get_data():
               True]
         """
         for service, status in checks:
-            service_dict[service].append(status)
+            # service_dict[service].append(status)
+            service_dict[service].append(random.choice([True, False]))
 
         # Loop through dictionary to create datatables formatted list
         for k, v in service_dict.items():

@@ -2,11 +2,26 @@
 {% block title %}Welcome{% endblock %}
 {% block head %}
     {{ super() }}
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet"> -->
 {% endblock %}
 {% block content %}
-<div class="container md-page">
-  {{welcome_content|safe}}
+<div class="ui grid">
+  <div class="column">1</div>
+  <div class="column">2</div>
+  <div class="column">3</div>
+  <div class="column">4</div>
+  <div class="column">5</div>
+  <div class="column">6</div>
+  <div class="column">7</div>
+  <div class="column">8</div>
+  <div class="column">9</div>
+  <div class="column">0</div>
+  <div class="column">1</div>
+  <div class="column">2</div>
+  <div class="column">3</div>
+  <div class="column">4</div>
+  <div class="column">5</div>
+  <div class="column">6</div>
 </div>
 {% endblock %}
 

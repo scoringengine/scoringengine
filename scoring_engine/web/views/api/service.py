@@ -2,6 +2,7 @@ from flask import request, jsonify
 from flask_login import current_user, login_required
 
 import html
+import random
 
 from scoring_engine.cache import cache
 from scoring_engine.db import session
