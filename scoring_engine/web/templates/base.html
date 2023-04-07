@@ -19,7 +19,6 @@
   {% else %}
   <body style="background-color: #f9f9f9;">
   {% endif %}
-
     {% for category, message in get_flashed_messages(with_categories=true) %}
     <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert"
       style="margin-bottom: 0px">
@@ -27,15 +26,15 @@
       <strong>{{ message }}</strong>
     </div>
     {% endfor %}
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark" aria-label="Thirteenth navbar example">
-          <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample11"
-              aria-controls="navbarsExample11" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-        <div class="collapse navbar-collapse d-lg-flex" id="navbarsExample11">
-          <div class="col-lg-3"></div>
-          <ul class="navbar-nav col-lg-6 justify-content-lg-center">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-1" aria-label="Tenth navbar example">
+      <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample08" aria-controls="navbarsExample08" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="d-lg-flex col-lg-3 justify-content-lg-start">
+        </div>
+        <div class="navbar-nav col-lg-6 justify-content-lg-center" id="navbarsExample08">
+          <ul class="navbar-nav">
             <li class="nav-item">
               <a class="nav-link active" aria-current="page" href="/">Home</a>
             </li>
@@ -45,29 +44,37 @@
             <li class="nav-item">
               <a class="nav-link" href="/overview">Overview</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/overview">Overview</a>
-            </li>
-            <li>
-              <i class="bi bi-circle-half"></i>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Dropdown</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
             </li>
           </ul>
-          </div>
-          </div>
-        </nav>
-      {% block content %}
-      {% endblock %}
-      <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-      <script>
-        $(document).ready(function () {
-          $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
-            $("#alert-info").slideUp(500);
-          });
+        </div>
+        <div class="d-lg-flex col-lg-3 justify-content-lg-end">
+          <button type="button" class="btn btn-secondary">
+            <i class="bi bi-circle-half"></i>
+          </button>
+          <button class="btn btn-primary">Button</button>
+        </div>
+      </div>
+    </nav>
+    {% block content %}
+    {% endblock %}
+    <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script>
+      $(document).ready(function () {
+        $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
+          $("#alert-info").slideUp(500);
         });
-      </script>
-      {% block scripts %}
-      {% endblock %}
-    </body>
+      });
+    </script>
+    {% block scripts %}
+    {% endblock %}
+  </body>
 </html>
