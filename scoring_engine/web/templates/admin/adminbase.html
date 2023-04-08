@@ -1,63 +1,59 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container md-page">
+<div class="container text-center">
   <div class="row">
-    <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
+    <!-- Menu -->
+    <div class="col-3 my-2">
+      <!-- Start/Pause Engine -->
       <div class="list-group text-center">
-          <button type="button" class="btn btn-default btn-lg" id="engine_toggle">
-            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
-          </button>
+        <button type="button" class="btn btn-success" id="engine_toggle"></button>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Stats <b class="pull-right glyphicon glyphicon-list-alt"></b></span>
-          </div>
+      <!-- Stats -->
+      <div class="card my-2">
+        <div class="card-header">
+          <div class="fs-5">Stats <i class="bi bi-bar-chart-fill"></i></div>
         </div>
-        <div class="list-group">
+        <ul class="list-group list-group-flush">
           <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
             href="/admin/status" id="engine">Engine</a>
           <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
             href="/admin/workers">Workers</a>
           <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
             href="/admin/queues">Queues</a>
-        </div>
+        </ul>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Settings <b class="pull-right glyphicon glyphicon-cog"></b></span>
-          </div>
+      <!-- Settings -->
+      <div class="card my-2">
+        <div class="card-header">
+          <div class="fs-5">Settings <i class="bi bi-gear-fill"></i></div>
         </div>
-        <div class="list-group">
+        <ul class="list-group list-group-flush">
           <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}"
             href="/admin/settings">Competition</a>
           <a class="list-group-item {% if request.path == '/admin/permissions' %}active{% endif %}"
             href="/admin/permissions">Website Permissions</a>
           <a class="list-group-item {% if request.path == '/admin/manage' %}active{% endif %}"
             href="/admin/manage">Users</a>
-        </div>
+        </ul>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Injects <b class="pull-right glyphicon glyphicon-file"></b></span>
-          </div>
+      <!-- Injects -->
+      <div class="card my-2">
+        <div class="card-header">
+          <div class="fs-5">Injects <i class="bi bi-file-earmark-ruled-fill"></i></div>
         </div>
-        <div class="list-group">
+        <ul class="list-group list-group-flush">
           <a class="list-group-item {% if request.path == '/admin/injects/templates' %}active{% endif %}"
-            href="/admin/injects/templates">Templates</a>
+          href="/admin/injects/templates">Templates</a>
           <a class="list-group-item {% if request.path == '/admin/injects/scores' %}active{% endif %}"
             href="/admin/injects/scores">Scores</a>
-        </div>
+        </ul>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
-          </div>
+      <!-- Services -->
+      <div class="card my-2">
+        <div class="card-header">
+          <div class="fs-5">Services <i class="bi bi-list-task"></i></div>
         </div>
-        <div class="list-group">
+        <ul class="list-group list-group-flush">
           {% for team in blue_teams %}
           <a href="#" class="list-group-item" data-toggle="collapse"
             data-target="#services_team{{team.id}}">{{team.name}}</a>
@@ -70,30 +66,25 @@
             {% endfor %}
           </div>
           {% endfor %}
-        </div>
+        </ul>
       </div>
     </div>
-    <div class="col-sm-9">
-      <div class="panel-body">
-        <div class="panel-group">
-          <div class="panel panel-default">
-            <div class="panel-heading" style="background-color:#f9f9f9">
-              <h2 class="panel-title">
-                {% block header %}{% endblock %}
-              </h2>
-            </div>
-            <div class="panel" style="border-top: 0.5px solid gray;">
-              <div class="panel-body" style="padding-top: 0px;">
-                {% block admincontent %}
-                {% endblock %}
-              </div>
-            </div>
-          </div>
+    <!-- Content -->
+    <div class="col-9">
+      <div class="card my-2">
+        <div class="card-header">
+          <div class="fs-5">{% block header %}{% endblock %}</div>
+        </div>
+        <div class="card-body">
+          {% block admincontent %}
+          {% endblock %}
         </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
 <script>
   function getEngineStatus() {
     $.ajax({
@@ -103,11 +94,11 @@
       success: function (data) {
         if (!data.paused) {
           document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause'
+          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-pause-fill"></i> Pause'
           document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
         } else {
           document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume'
+          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-play-fill"></i> Resume'
           document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
         }
       }

@@ -29,28 +29,6 @@ Round Stats
     </tbody>
   </table>
 </div>
-<script>
-  function getEngineStats() {
-    $.ajax({
-      cache: false,
-      url: '/api/admin/get_engine_stats',
-      dataType: 'json',
-      success: function (data) {
-        $('#round_number').text(data.round_number);
-        $('#num_passed_checks').text(data.num_passed_checks);
-        $('#num_failed_checks').text(data.num_failed_checks);
-        $('#total_checks').text(data.total_checks);
-      }
-    });
-  }
-
-  $(document).ready(function () {
-    getEngineStats();
-    setInterval(function () {
-      getEngineStats()
-    }, 5000);
-  });
-</script>
 <div class="round_status_bars">
   <h4>Current Round Status</h4>
   <span>Round Progress</span>
@@ -71,6 +49,31 @@ Round Stats
   {% endfor %}
 </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+  function getEngineStats() {
+    $.ajax({
+      cache: false,
+      url: '/api/admin/get_engine_stats',
+      dataType: 'json',
+      success: function (data) {
+        $('#round_number').text(data.round_number);
+        $('#num_passed_checks').text(data.num_passed_checks);
+        $('#num_failed_checks').text(data.num_failed_checks);
+        $('#total_checks').text(data.total_checks);
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    getEngineStats();
+  });
+  setInterval(function () {
+      getEngineStats()
+  }, 5000);
+</script>
 <script>
   function getProgress() {
     $.getJSON('/api/admin/get_round_progress', function (data) {
@@ -89,6 +92,8 @@ Round Stats
   $(document).ready(function () {
     getProgress()
   });
-  setInterval(getProgress, 3000);
+  setInterval(function () {
+    getProgress()
+  }, 5000);
 </script>
 {% endblock %}

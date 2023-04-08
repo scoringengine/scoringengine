@@ -26,6 +26,7 @@
       <strong>{{ message }}</strong>
     </div>
     {% endfor %}
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-1" aria-label="Tenth navbar example">
       <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample08" aria-controls="navbarsExample08" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,29 +37,71 @@
         <div class="navbar-nav col-lg-6 justify-content-lg-center" id="navbarsExample08">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/">Home</a>
+              <a class="nav-link {% if request.path == '/' %}active{% endif %}" aria-current="page" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/scoreboard">Scoreboard</a>
+              <a class="nav-link {% if request.path == '/scoreboard' %}active{% endif %}" href="{{ url_for('scoreboard.home') }}">Scoreboard</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/overview">Overview</a>
+              <a class="nav-link {% if request.path == '/overview' %}active{% endif %}" href="{{ url_for('overview.home') }}">Overview</a>
             </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Dropdown</a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Action</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
-                <li><a class="dropdown-item" href="#">Something else here</a></li>
-              </ul>
+            {% if current_user.is_blue_team or current_user.is_red_team %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/injects' %}active{% endif %}" href="{{ url_for('injects.home') }}">Injects</a>
             </li>
-          </ul>
+            {% endif %}
+            {% if current_user.is_blue_team or current_user.is_white_team %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/stats' %}active{% endif %}" href="{{ url_for('stats.home') }}">Stats</a>
+            </li>
+            {% endif %}
+            {% if current_user.is_white_team %}
+            <li class="nav-item">
+              <a class="nav-link {% if 'admin' in request.path %}active{% endif %}" href="{{ url_for('admin.status') }}">Admin</a>
+            </li>
+            {% endif %}
+        </ul>
         </div>
         <div class="d-lg-flex col-lg-3 justify-content-lg-end">
-          <button type="button" class="btn btn-secondary">
+          <!-- <button type="button" class="btn btn-secondary">
             <i class="bi bi-circle-half"></i>
-          </button>
-          <button class="btn btn-primary">Button</button>
+          </button> -->
+          <ul class="navbar-nav">
+            <!-- Dark/Light Mode -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-brightness-high-fill"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-brightness-high-fill"></i> Light</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-1-circle"></i> Dark</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-1-circle"></i> Auto</a></li>
+              </ul>
+            </li>
+            <!-- Break -->
+            <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+              <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+              <hr class="d-lg-none my-2 text-white-50">
+            </li>
+            {% if current_user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Dropdown link
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <!-- <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                <li><hr class="dropdown-divider"></li> -->
+                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+              </ul>
+            </li>    
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="{{ url_for('auth.login') }}">Login</a>
+            </li>
+            {% endif %}
+          </ul>
         </div>
       </div>
     </nav>
