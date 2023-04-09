@@ -2,10 +2,11 @@
 {% block title %}Inject{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
-<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet"> -->
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 
 <script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
 <link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
@@ -20,7 +21,7 @@
 
 {% endblock %}
 {% block content %}
-<div class="container md-page">
+<div class="container">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 20px;">
       <div id="inject_navbar" class="list-group"></div>
@@ -116,6 +117,10 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
 <script>
   $(document).ready(function () {
     // Update Timestamps
