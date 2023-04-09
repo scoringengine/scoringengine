@@ -1,19 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Scoreboard{% endblock %}
-{% block head %}
-{{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
-{% endblock %}
 {% block content %}
-<div class="container margin-bottom-5">
-    <div class="row">
+<div class="container">
+    <div class="row mb-3 mt-3">
         <div class="card">
             <div class="card-body">
                 <div id="teamBar" style="height:400px;" />
             </div>
         </div>
     </div>
-    <div class="row gy-2">
+    <div class="row mt-3">
         <div class="card">
             <div class="card-body">
                 <div id="teamLine" style="height:400px;" />
@@ -23,6 +19,8 @@
 </div>
 {% endblock %}
 {% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
 <script>
     // Bar chart for all teams
     var teamBarChart = echarts.init(document.getElementById('teamBar'));
@@ -30,7 +28,7 @@
 
         const serviceScores = [];
         const injectScores = [];
-// const totalScores = [];
+        // const totalScores = [];
 
         $.getJSON('/api/scoreboard/get_bar_data').done(function (data) {
             // Service Scores
