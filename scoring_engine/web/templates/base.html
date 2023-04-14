@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
   <meta charset="utf-8">
@@ -14,8 +14,6 @@
 </head>
   {% if 'unauthorized' in request.path %}
   <body style="background-color: red">
-  {% else %}
-  <body style="background-color: #f9f9f9;">
   {% endif %}
     {% for category, message in get_flashed_messages(with_categories=true) %}
     <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert"
@@ -76,9 +74,9 @@
                 <i class="bi bi-brightness-high-fill"></i>
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#"><i class="bi bi-brightness-high-fill"></i> Light</a></li>
-                <li><a class="dropdown-item" href="#"><i class="bi bi-moon-stars-fill"></i> Dark</a></li>
-                <li><a class="dropdown-item" href="#"><i class="bi bi-circle-half"></i> Auto</a></li>
+                <li><a class="dropdown-item" data-bs-theme-value="light" href="#"><i class="bi bi-brightness-high-fill"></i> Light</a></li>
+                <li><a class="dropdown-item" data-bs-theme-value="dark" href="#"><i class="bi bi-moon-stars-fill"></i> Dark</a></li>
+                <li><a class="dropdown-item" data-bs-theme-value="auto" href="#"><i class="bi bi-circle-half"></i> Auto</a></li>
               </ul>
             </li>
             <!-- Break -->
@@ -111,7 +109,8 @@
     {% block content %}
     {% endblock %}
     <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/bootstrap5.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/color-modes.js') }}"></script>
     <script>
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {

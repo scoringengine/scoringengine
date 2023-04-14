@@ -21,9 +21,10 @@
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/echarts.theme.js') }}"></script>
 <script>
     // Bar chart for all teams
-    var teamBarChart = echarts.init(document.getElementById('teamBar'));
+    var teamBarChart = echarts.init(document.getElementById('teamBar'), 'chalk');
     teamBarChart.showLoading();
 
         const serviceScores = [];
@@ -137,7 +138,7 @@
     </script>
 <script>
     // Line chart for all teams
-    var teamLineChart = echarts.init(document.getElementById('teamLine'));
+    var teamLineChart = echarts.init(document.getElementById('teamLine'), 'chalk');
     teamLineChart.showLoading();
 
         const seriesList = [];
