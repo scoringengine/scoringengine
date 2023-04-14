@@ -94,11 +94,11 @@
       dataType: 'json',
       success: function (data) {
         if (!data.paused) {
-          document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
+          document.getElementById('engine').innerHTML = 'Engine <span class="badge bg-success">Running</span>';
           document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-pause-fill"></i> Pause'
           document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
         } else {
-          document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
+          document.getElementById('engine').innerHTML ='Engine <span class="badge bg-danger">Paused</span>';
           document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-play-fill"></i> Resume'
           document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
         }

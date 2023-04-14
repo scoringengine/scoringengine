@@ -2,23 +2,12 @@
 {% block title %}Inject{% endblock %}
 {% block head %}
 {{ super() }}
-<!-- <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
-<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet"> -->
+<!-- Datatables -->
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
-
-<script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
-<link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
-
+<!-- Bootstrap-Editable -->
+<link href="{{ url_for('static', filename='vendor/css/bootstrap5-editable.css') }}" rel="stylesheet" />
 <!-- Dropzone -->
-<script src="{{ url_for('static', filename='vendor/js/dropzone.min.js') }}"></script>
 <link href="{{ url_for('static', filename='vendor/css/dropzone.min.css') }}" rel="stylesheet" />
-
-<!-- Moment -->
-<script src="{{ url_for('static', filename='vendor/js/moment.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/moment-timezone.min.js') }}"></script>
-
 {% endblock %}
 {% block content %}
 <div class="container">
@@ -28,15 +17,15 @@
     </div>
     <div class="col-sm-9">
       {% if inject.status == 'Submitted' %}
-      <h3>{{ inject.template.title }} <span class="label label-success">{{ inject.status}}</span></h3>
+      <h3>{{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span></h3>
       {% elif inject.status == 'Graded' %}
-      <h3>{{ inject.template.title }} <span class="label label-info">{{ inject.status}}</span></h3>
+      <h3>{{ inject.template.title }} <span class="badge bg-info">{{ inject.status}}</span></h3>
       {% elif inject.template.expired %}
-      <h3>{{ inject.template.title }} <span class="label label-danger">Expired</span></h3>
+      <h3>{{ inject.template.title }} <span class="badge bg-danger">Expired</span></h3>
       {% elif inject.status == 'Draft' %}
       <button type="button" class="btn btn-primary pull-right" data-toggle="modal"
         data-target="#submitInjectConfirmation">Submit Inject</button>
-      <h3>{{ inject.template.title }} <span class="label label-warning">{{ inject.status}}</span></h3>
+      <h3>{{ inject.template.title }} <span class="badge bg-warning">{{ inject.status}}</span></h3>
       {% else %}
       <h3>{{ inject.template.title }}</h3>
       {% endif %}
@@ -119,8 +108,16 @@
 </div>
 {% endblock %}
 {% block scripts %}
+<!-- Datatables -->
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<!-- Boostrap-Editable -->
+<script src="{{ url_for('static', filename='vendor/js/bootstrap5-editable.min.js') }}"></script>
+<!-- Dropzone -->
+<script src="{{ url_for('static', filename='vendor/js/dropzone.min.js') }}"></script>
+<!-- Moment -->
+<script src="{{ url_for('static', filename='vendor/js/moment.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/moment-timezone.min.js') }}"></script>
 <script>
   $(document).ready(function () {
     // Update Timestamps

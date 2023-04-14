@@ -1,16 +1,101 @@
 {% extends 'base.html' %}
 {% block title %}Service{% endblock %}
 {% block head %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-
-    <script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/bootstrap5-editable.css') }}" />
 {% endblock %}
 {% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3 lefthand-nav" style="padding-top: 20px;">
+      <div id="service_navbar" class="list-group">
+      </div>
+    </div>
+    <div class="col-sm-9">
+      <h2>{{service.name}}</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td style="padding-right:10px">
+              <h4>Host:</h4>
+            </td>
+            <td>
+              {% if modify_hostname_setting == true %}
+                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
+              {% else %}
+                {{service.host}}
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-right:10px">
+              <h4>Port:</h4>
+            </td>
+            <td>
+              {% if modify_port_setting == true %}
+                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
+              {% else %}
+                {{service.port}}
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {% if service.accounts %}
+        <h4>Accounts</h4>
+        <table class="table table-striped table-bordered table-sm editable-table" style="clear: both">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Password</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for account in service.accounts %}
+              <tr>
+                <td width="30%">
+                {% if modify_account_usernames_setting == true %}
+                  <a href="#" class="editable-textfield username" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
+                {% else %}
+                  {{account.username}}
+                {% endif %}
+                </td>
+                <td width="70%">
+                {% if modify_account_passwords_setting == true %}
+                  <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
+                {% else %}
+                  <a href="#" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
+                  <div id="masked_password_{{account.id}}" style="display: inline-block;">**********</div><div id="show_password_{{account.id}}" style="display: none;">{{account.password}}</div>
+                {% endif %}
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+      {% endif %}
+        <h4>Checks</h4>
+        <table id="checks" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Round</th>
+              <th>Result</th>
+              <th>Reason</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+        </table>
+        <br>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/bootstrap5-editable.min.js') }}"></script>
 <script>
   $.fn.editable.defaults.mode = 'inline';
 
@@ -71,225 +156,140 @@
       }
     }
 </script>
-<div class="container md-page">
-  <div class="row">
-    <div class="col-sm-3 lefthand-nav" style="padding-top: 20px;">
-      <div id="service_navbar" class="list-group">
-      </div>
-    </div>
-    <div class="col-sm-9">
-      <h2>{{service.name}}</h2>
-      <table>
-        <tbody>
-          <tr>
-            <td style="padding-right:10px">
-              <h4>Host:</h4>
-            </td>
-            <td>
-              {% if modify_hostname_setting == true %}
-                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
-              {% else %}
-                {{service.host}}
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-right:10px">
-              <h4>Port:</h4>
-            </td>
-            <td>
-              {% if modify_port_setting == true %}
-                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
-              {% else %}
-                {{service.port}}
-              {% endif %}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      {% if service.accounts %}
-        <h4>Accounts</h4>
-        <table class="table table-striped table-bordered table-compact editable-table" style="clear: both">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Password</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for account in service.accounts %}
-              <tr>
-                <td width="30%">
-                {% if modify_account_usernames_setting == true %}
-                  <a href="#" class="editable-textfield username" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
-                {% else %}
-                  {{account.username}}
-                {% endif %}
-                </td>
-                <td width="70%">
-                {% if modify_account_passwords_setting == true %}
-                  <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
-                {% else %}
-                  <a href="#" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
-                  <div id="masked_password_{{account.id}}" style="display: inline-block;">**********</div><div id="show_password_{{account.id}}" style="display: none;">{{account.password}}</div>
-                {% endif %}
-              </tr>
-              {% endfor %}
-          </tbody>
-      </table>
-      {% endif %}
-        <h4>Checks</h4>
-        <table id="checks" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Round</th>
-              <th>Result</th>
-              <th>Reason</th>
-              <th>Timestamp</th>
-            </tr>
-          </thead>
-        </table>
-        <br>
-        <script>
-            function refreshServicesNavbar() {
-              $.ajax({
-                  cache: false,
-                  url: "/api/team/{{service.team.id}}/services/status",
-                  dataType: 'json',
-                  success: function(data) {
-                    var navbar_str = ""
-                    for (var key in data) {
-                      var value = data[key];
-                      var navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item'
-                      if ("{{service.id}}" == value['id']){
-                        navbar_row_str += " active"
-                      }
-                      navbar_row_str += '">' + key;
-                      if (value['result'] == 'True'){
-                        navbar_row_str += '<span class="pull-right label label-success" style="margin-top: 2px;">UP</span>'
-                      }
-                      else if (value['result'] == 'False') {
-                        navbar_row_str += '<span class="pull-right label label-danger" style="margin-top: 2px;">DOWN</span>'
-                      }
-                      navbar_row_str += "</a>"
-                      navbar_str += navbar_row_str
-                    }
-                    $('div#service_navbar').html(navbar_str);
-                  }
-              });
+<script>
+  function refreshServicesNavbar() {
+    $.ajax({
+        cache: false,
+        url: "/api/team/{{service.team.id}}/services/status",
+        dataType: 'json',
+        success: function(data) {
+          var navbar_str = ""
+          for (var key in data) {
+            var value = data[key];
+            var navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item'
+            if ("{{service.id}}" == value['id']){
+              navbar_row_str += " active"
             }
+            navbar_row_str += '">' + key;
+            if (value['result'] == 'True'){
+              navbar_row_str += '<span class="pull-right badge bg-success" style="margin-top: 2px;">UP</span>'
+            }
+            else if (value['result'] == 'False') {
+              navbar_row_str += '<span class="pull-right badge bg-danger" style="margin-top: 2px;">DOWN</span>'
+            }
+            navbar_row_str += "</a>"
+            navbar_str += navbar_row_str
+          }
+          $('div#service_navbar').html(navbar_str);
+        }
+    });
+  }
 
-            $(document).ready(function() {
-              // Disable datatables error reporting
-              $.fn.dataTable.ext.errMode = 'none';
+  $(document).ready(function() {
+    // Disable datatables error reporting
+    $.fn.dataTable.ext.errMode = 'none';
 
-              refreshServicesNavbar();
+    refreshServicesNavbar();
 
-              var table = $('#checks')
-                .on('error.dt', function (e, settings, techNote, message) {
-                  console.log('An error has been reported by DataTables: ', message);
-                })
-                .DataTable( {
-                  "ajax": {
-                    "url": "/api/service/{{ id }}/checks",
-                    "type": 'GET'
-                  },
-                  "columns": [
-                    {
-                      "width": 15,
-                      "orderable": false,
-                      "data": null,
-                      "render": function( data ) {
-                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
-                        var button_icon = 'glyphicon-plus'
-                        if ( window.expanded_rows ){
-                            if (window.expanded_rows.indexOf(data['round']) >= 0) {
-                              button_icon = 'glyphicon-minus';
-                            }
-                        }
-                        button_text += button_icon + `"></span></a>`;
-                        return button_text;
-                      }
-                    },
-                    { "data": "round" },
-                    {
-                      "data": "result",
-                      "render": function( data ) {
-                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
-                      }
-                    },
-                    { "data": "reason"},
-                    { "data": "timestamp" }
-                  ],
-                  'order': [[1, 'desc']],
-                });
-
-                $('#checks tbody').on('click', 'a.expand-button', function () {
-                  var tr = $(this).closest('tr');
-                  var row = table.row(tr);
-
-                  if (!window.expanded_rows){
-                    window.expanded_rows = []
+    var table = $('#checks')
+      .on('error.dt', function (e, settings, techNote, message) {
+        console.log('An error has been reported by DataTables: ', message);
+      })
+      .DataTable( {
+        "ajax": {
+          "url": "/api/service/{{ id }}/checks",
+          "type": 'GET'
+        },
+        "columns": [
+          {
+            "width": 15,
+            "orderable": false,
+            "data": null,
+            "render": function( data ) {
+              var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right bi `;
+              var button_icon = 'bi-plus-circle-fill'
+              if ( window.expanded_rows ){
+                  if (window.expanded_rows.indexOf(data['round']) >= 0) {
+                    button_icon = 'bi-dash-circle-fill';
                   }
-                  var round_num = row.data().round
-                  // Add round_num to array to keep track of what
-                  // rows need to get opened on table reload
-                  if (window.expanded_rows.indexOf(round_num) == -1) {
-                    window.expanded_rows.push(round_num);
-                  }
-                  else{
-                    // Remove round_num from array
-                    var index = window.expanded_rows.indexOf(round_num);
-                    if (index > -1) {
-                      window.expanded_rows.splice(index, 1);
-                    }
-                  }
+              }
+              button_text += button_icon + `"></span></a>`;
+              return button_text;
+            }
+          },
+          { "data": "round" },
+          {
+            "data": "result",
+            "render": function( data ) {
+              return (data == true) ? '<span class="badge bg-success">UP</span>' : '<span class="badge bg-danger">DOWN</span>';
+            }
+          },
+          { "data": "reason"},
+          { "data": "timestamp" }
+        ],
+        'order': [[1, 'desc']],
+      });
 
-                  var icon_span = $(tr).find('span:first');
-                  if (row.child.isShown()) {
-                    // Close the check output row
-                    row.child.hide();
-                    icon_span.removeClass('glyphicon-minus')
-                    icon_span.addClass('glyphicon-plus')
-                  }
-                  else {
-                    // Open the check output row
-                    var output_row = '<pre style="max-height: 350px;">' + row.data().output + '</pre>';
-                    row.child(output_row).show();
-                    icon_span.removeClass('glyphicon-plus')
-                    icon_span.addClass('glyphicon-minus')
-                  }
-                });
+      $('#checks tbody').on('click', 'a.expand-button', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row(tr);
 
-                // Expands previously expanded rows on datatables reload
-                function expandRows(data){
-                  if (window.expanded_rows){
-                    for (var i = 0; i < window.expanded_rows; i++) {
-                      key = window.expanded_rows[i];
-                      table.rows().every(function(){
-                        if (this.data()['round'] == key) {
-                          var row = table.row(this);
-                          var output_row = '<pre>' + row.data().output + '</pre>';
-                          row.child(output_row).show();
-                          var icon_span = $(this).find('span:first');
-                          icon_span.removeClass('glyphicon-plus');
-                          icon_span.addClass('glyphicon-minus');
-                        }
-                      });
-                    }
-                  }
-                }
+        if (!window.expanded_rows){
+          window.expanded_rows = []
+        }
+        var round_num = row.data().round
+        // Add round_num to array to keep track of what
+        // rows need to get opened on table reload
+        if (window.expanded_rows.indexOf(round_num) == -1) {
+          window.expanded_rows.push(round_num);
+        }
+        else{
+          // Remove round_num from array
+          var index = window.expanded_rows.indexOf(round_num);
+          if (index > -1) {
+            window.expanded_rows.splice(index, 1);
+          }
+        }
 
-                setInterval(function() {
-                  table.ajax.reload(expandRows, false);
-                  refreshServicesNavbar();
-                }, 30000);
+        var icon_span = $(tr).find('span:first');
+        if (row.child.isShown()) {
+          // Close the check output row
+          row.child.hide();
+          icon_span.removeClass('bi-dash-circle-fill')
+          icon_span.addClass('bi-plus-circle-fill')
+        }
+        else {
+          // Open the check output row
+          var output_row = '<pre style="max-height: 350px;">' + row.data().output + '</pre>';
+          row.child(output_row).show();
+          icon_span.removeClass('bi-plus-circle-fill')
+          icon_span.addClass('bi-dash-circle-fill')
+        }
+      });
+
+      // Expands previously expanded rows on datatables reload
+      function expandRows(data){
+        if (window.expanded_rows){
+          for (var i = 0; i < window.expanded_rows; i++) {
+            key = window.expanded_rows[i];
+            table.rows().every(function(){
+              if (this.data()['round'] == key) {
+                var row = table.row(this);
+                var output_row = '<pre>' + row.data().output + '</pre>';
+                row.child(output_row).show();
+                var icon_span = $(this).find('span:first');
+                icon_span.removeClass('bi-plus-circle-fill');
+                icon_span.addClass('bi-dash-circle-fill');
+              }
             });
-          </script>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+          }
+        }
+      }
+
+      setInterval(function() {
+        table.ajax.reload(expandRows, false);
+        refreshServicesNavbar();
+      }, 30000);
+  });
+</script>
 {% endblock %}
