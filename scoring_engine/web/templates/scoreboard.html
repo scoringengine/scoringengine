@@ -2,204 +2,124 @@
 {% block title %}Scoreboard{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="row mb-3 mt-3">
-        <div class="card">
-            <div class="card-body">
-                <div id="teamBar" style="height:400px;" />
-            </div>
+  <div class="row my-3">
+    <div class="card">
+      <div class="card-body">
+        <div style="height: 400px">
+          <canvas id="barScores"></canvas>
         </div>
+      </div>
     </div>
-    <div class="row mt-3">
-        <div class="card">
-            <div class="card-body">
-                <div id="teamLine" style="height:400px;" />
-            </div>
+  </div>
+  <div class="row my-3">
+    <div class="card">
+      <div class="card-body">
+        <div style="height: 400px">
+          <canvas id="lineScores"></canvas>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/echarts.theme.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='vendor/js/chart.min.js') }}"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Bar chart for all teams
-    var teamBarChart = echarts.init(document.getElementById('teamBar'), 'chalk');
-    teamBarChart.showLoading();
+  // Bar Chart
+  function updateBarChart(chart) {
+    $.getJSON("/api/scoreboard/get_bar_data").done(function(response) {
+      chart.data.labels = response.labels;
+      chart.data.datasets = [{
+        label: "Services",
+        data: response.service_scores
+      },
+      {
+        label: "Injects",
+        data: response.inject_scores
+      }];
+      chart.update();
+    });
+  };
 
-        const serviceScores = [];
-        const injectScores = [];
-        // const totalScores = [];
+  const barChart = new Chart(document.getElementById('barScores'), {
+    type: 'bar',
+    options: {
+      interaction: {
+        mode: 'index'
+      },
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Total Scores',
+        }
+      },
+      responsive: true,
+      scales: {
+        x: {
+          stacked: true
+        },
+        y: {
+          stacked: true
+        }
+      },
+    }
+  });
 
-        $.getJSON('/api/scoreboard/get_bar_data').done(function (data) {
-            // Service Scores
-            echarts.util.each(data.service_scores, function (score, index) {
-                serviceScores.push({
-                    value: score,
-                    // itemStyle: {
-                    //     color: '#5470c6'
-                    // }
-                });
-            });
-            // Inject Scores
-            echarts.util.each(data.inject_scores, function (score, index) {
-                injectScores.push({
-                    value: score,
-                    // itemStyle: {
-                    //     color: '#ee6666'
-                    // }
-                });
-            });
-            // Total
-            // for( var i = 0; i < serviceScores.length; i++)
-            // {
-            //     // Unary to convert to number
-            //     totalScores.push(+serviceScores[i].value + +injectScores[i].value);
-            // }
-            teamBarChart.hideLoading();
-            teamBarChart.setOption({
-                title: {
-                    text: 'Total Scores',
-                    x: 'center',
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                xAxis: [
-                    {
-                        type: 'category',
-                        data: data.labels,
-                    }
-                ],
-                yAxis: {
-                    type: 'value'
-                },
-                series: [
-                    {
-                        name: 'Services',
-                        data: serviceScores,
-                        type: 'bar',
-                        stack: 'x',
-                        // label: {
-                        //     show: true
-                        // },
-                    },
-                    {
-                        name: 'Injects',
-                        data: injectScores,
-                        type: 'bar',
-                        stack: 'x',
-// label: {
-//     show: true
-// },
-
-                    },
-                    // {
-                    //     name: 'Total',
-                    //     data: totalScores,
-                    //     type: 'bar',
-                    //     stack: 'x',
-                    // },
-                ]
-            });
+  updateBarChart(barChart);
+  setInterval(updateBarChart, 30000, barChart);
+  
+  // Line Chart
+  function updateLineChart(chart) {
+    $.getJSON("/api/scoreboard/get_line_data").done(function(response) {
+      chart.data.labels = response.rounds;
+      var datasets = [];
+      response.team.forEach((team) => {
+        datasets.push({
+          label: team.name,
+          data: team.scores,
+          borderColor: team.color,
+          backgroundColor: team.color,
+          fill: false
         });
+      });
+      chart.data.datasets = datasets;
+      chart.update();
+    });
+  };
+  
+  const lineChart = new Chart(document.getElementById('lineScores'), {
+    type: 'line',
+    options: {
+      animation: {     
+        y: {
+          duration: 0 
+        },
+      },
+      elements: {
+        point: {
+          pointStyle: false,
+        }
+      },
+      interaction: {
+        mode: 'index'
+      },
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Service Scores',
+        }
+      },
+      responsive: true,
+    }
+  });
 
-        // Update chart every 30 seconds
-        setInterval(function () {
-            const serviceScores = [];
-            const injectScores = [];
-            $.get('/api/scoreboard/get_bar_data').done(function (data) {
-                // Service Scores
-                echarts.util.each(data.service_scores, function (score, index) {
-                    serviceScores.push({
-                        value: score,
-                    });
-                });
-                // Inject Scores
-                echarts.util.each(data.inject_scores, function (score, index) {
-                    injectScores.push({
-                        value: score,
-                    });
-                });
-                teamBarChart.setOption({
-                    series: [
-                        { data: serviceScores },
-                        { data: injectScores }
-                    ]
-                });
-            });
-        }, 30000);
-    </script>
-<script>
-    // Line chart for all teams
-    var teamLineChart = echarts.init(document.getElementById('teamLine'), 'chalk');
-    teamLineChart.showLoading();
-
-        const seriesList = [];
-        $.getJSON('/api/scoreboard/get_line_data').done(function (data) {
-            echarts.util.each(data.team, function (team) {
-                seriesList.push({
-                    name: team.name,
-                    type: 'line',
-                    data: team.scores,
-                    itemStyle: {
-                        color: team.color
-                    },
-                    showSymbol: false
-                });
-            });
-            teamLineChart.hideLoading();
-            teamLineChart.setOption({
-                title: {
-                    text: 'Service Scores',
-                    x: 'center',
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: data.rounds
-                },
-                yAxis: {
-                    type: 'value'
-                },
-                series: seriesList,
-                // label: {
-                //     show: true
-                // },
-            });
-        });
-
-        // Update chart every 30 seconds
-        setInterval(function () {
-            const seriesList = [];
-            $.get('/api/scoreboard/get_line_data').done(function (data) {
-                echarts.util.each(data.team, function (team) {
-                    seriesList.push({
-                        name: team.name,
-                        type: 'line',
-                        data: team.scores,
-                    });
-                });
-                teamLineChart.setOption({
-                    series: seriesList,
-                });
-            });
-        }, 30000);
-    </script>
-
+  $(document).ready(function () {
+    updateLineChart(lineChart);
+    setInterval(updateLineChart, 30000, lineChart);
+  });
+</script>
 {% endblock %}
