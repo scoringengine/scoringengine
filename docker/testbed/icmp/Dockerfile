@@ -1,3 +1,3 @@
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 CMD ["tail", "-f", "/dev/null"]

@@ -1,4 +1,7 @@
 import yaml
+import datetime
+
+from dateutil.parser import parse
 
 from scoring_engine.config import config
 from scoring_engine.engine.engine import Engine
@@ -9,6 +12,7 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.account import Account
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
+from scoring_engine.models.flag import Flag, Platform
 
 from scoring_engine.logger import logger
 
@@ -216,3 +220,20 @@ class Competition(dict):
                             for property_dict in environment_dict['properties']:
                                 db_session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
             db_session.commit()
+        for flag in self["flags"]:
+            start = flag.get("start_time", None)
+            end = flag.get("end_time", None)
+            if not start:
+                start = str(datetime.datetime.utcnow()) # TODO - This is hacky, find a better way to fix this
+            if not end:
+                end = str(datetime.datetime.utcnow() + datetime.timedelta(hours=3)) # TODO - This is hacky, find a better way to fix this
+            f = Flag(
+                type=flag["type"],
+                platform=Platform(flag["platform"]),
+                data=flag["data"],
+                start_time=parse(start),
+                end_time=parse(end),
+                perm=flag["perm"]
+            )
+            db_session.add(f)
+        db_session.commit()

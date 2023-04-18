@@ -164,11 +164,17 @@
     $.ajax({
       url: "/api/injects",
       success: function (result) {
-        var navbar = ""
+        console.log($(location).attr("pathname"));
+
+        var navbar = "";
 
         // Append navabar elements
         $.each(result.data, function (index, value) {
-          navbar += '<a href="/inject/' + value.id + '" class="list-group-item">' + value.title + '</a>';
+          navbar += '<a href="/inject/' + value.id + '" class="list-group-item';
+          if ($(location).attr("pathname") == "/inject/" + value.id) {
+            navbar += ' active';
+          }
+          navbar += '">' + value.title + '</a>';
         });
 
         // Update navbar
