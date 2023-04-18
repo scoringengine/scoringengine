@@ -24,8 +24,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<!-- <script src="{{ url_for('static', filename='vendor/js/chart.min.js') }}"></script> -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='vendor/js/chart.min.js') }}"></script>
 <script>
   // Bar Chart
   function updateBarChart(chart) {
@@ -68,8 +67,10 @@
     }
   });
 
-  updateBarChart(barChart);
-  setInterval(updateBarChart, 30000, barChart);
+  $(document).ready(function () {
+    updateBarChart(barChart);
+    setInterval(updateBarChart, 30000, barChart);
+  });
   
   // Line Chart
   function updateLineChart(chart) {
@@ -93,11 +94,11 @@
   const lineChart = new Chart(document.getElementById('lineScores'), {
     type: 'line',
     options: {
-      animation: {     
-        y: {
-          duration: 0 
-        },
-      },
+      // animation: {     
+      //   y: {
+      //     duration: 0 
+      //   },
+      // },
       elements: {
         point: {
           pointStyle: false,
