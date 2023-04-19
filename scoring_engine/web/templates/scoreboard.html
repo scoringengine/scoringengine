@@ -30,14 +30,19 @@
   function updateBarChart(chart) {
     $.getJSON("/api/scoreboard/get_bar_data").done(function(response) {
       chart.data.labels = response.labels;
-      chart.data.datasets = [{
-        label: "Services",
-        data: response.service_scores
-      },
-      {
-        label: "Injects",
-        data: response.inject_scores
-      }];
+      if (chart.data.datasets.length == 0) {
+        chart.data.datasets = [{
+          label: "Services",
+          data: response.service_scores
+        },
+        {
+          label: "Injects",
+          data: response.inject_scores
+        }];
+      } else {
+        chart.data.datasets[0].data = response.service_scores; // Services
+        chart.data.datasets[1].data = response.inject_scores;  // Injects
+      };
       chart.update();
     });
   };
@@ -71,22 +76,28 @@
     updateBarChart(barChart);
     setInterval(updateBarChart, 30000, barChart);
   });
-  
+
   // Line Chart
   function updateLineChart(chart) {
     $.getJSON("/api/scoreboard/get_line_data").done(function(response) {
       chart.data.labels = response.rounds;
-      var datasets = [];
-      response.team.forEach((team) => {
-        datasets.push({
-          label: team.name,
-          data: team.scores,
-          borderColor: team.color,
-          backgroundColor: team.color,
-          fill: false
+      if (chart.data.datasets.length == 0) {
+        // Initialize the line graph
+        response.team.forEach((team) => {
+          chart.data.datasets.push({
+            label: team.name,
+            data: team.scores,
+            borderColor: team.color,
+            backgroundColor: team.color,
+            fill: false
+          });
         });
-      });
-      chart.data.datasets = datasets;
+      } else {
+        // Otherwise, update the data in place to prevent filters resetting
+        response.team.forEach((team, index) => {
+          chart.data.datasets[index].data = team.scores;
+        });
+      };
       chart.update();
     });
   };
@@ -94,11 +105,6 @@
   const lineChart = new Chart(document.getElementById('lineScores'), {
     type: 'line',
     options: {
-      // animation: {     
-      //   y: {
-      //     duration: 0 
-      //   },
-      // },
       elements: {
         point: {
           pointStyle: false,
