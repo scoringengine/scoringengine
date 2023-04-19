@@ -2,10 +2,7 @@
 {% block title %}Admin - Queue Stats{% endblock %}
 
 {% block head %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+{{ super() }}
 {% endblock %}
 {% block header %}Queue Stats{% endblock %}
 
@@ -23,6 +20,9 @@
       </tbody>
     </table>
   </div>
+  {% endblock %}
+  {% block scripts %}
+  {{ super() }}
   <script>
     $(document).ready(function() {
       // Disable datatables error reporting
@@ -87,7 +87,4 @@
       }, 10000 );
     } );
   </script>
-
-
-
 {% endblock %}

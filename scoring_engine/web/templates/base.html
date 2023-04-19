@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/bootstrap5.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/bootstrap-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
   {% block head %}
   <title>Scoring Engine - {% block title %}{% endblock %}</title>
   {% endblock %}
@@ -110,7 +111,9 @@
     {% endblock %}
     <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/js/bootstrap5.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/js/color-modes.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/color-modes.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
     <script>
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {

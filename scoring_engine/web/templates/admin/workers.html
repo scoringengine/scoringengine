@@ -2,10 +2,7 @@
 {% block title %}Admin - Worker Stats{% endblock %}
 
 {% block head %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+{{ super() }}
 {% endblock %}
 {% block header %}Worker Stats{% endblock %}
 
@@ -26,71 +23,74 @@
       </tbody>
     </table>
   </div>
-  <script>
-    $(document).ready(function() {
-      // Disable datatables error reporting
-      $.fn.dataTable.ext.errMode = 'none';
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+  $(document).ready(function() {
+    // Disable datatables error reporting
+    $.fn.dataTable.ext.errMode = 'none';
 
-      var table = $('#workers')
-        .on('error.dt', function (e, settings, techNote, message) {
-          console.log('An error has been reported by DataTables: ', message);
-        })
-        .DataTable({
-          'paging': false,
-          'bFilter': false,
-          'bInfo': false,
-          "ajax": "/api/admin/get_worker_stats",
-          "language": {
-            "emptyTable": 'No workers are currently connected <span class="glyphicon glyphicon-alert" style="color:red" title="This means no services will get checked until a worker is connected."></span>',
+    var table = $('#workers')
+      .on('error.dt', function (e, settings, techNote, message) {
+        console.log('An error has been reported by DataTables: ', message);
+      })
+      .DataTable({
+        'paging': false,
+        'bFilter': false,
+        'bInfo': false,
+        "ajax": "/api/admin/get_worker_stats",
+        "language": {
+          "emptyTable": 'No workers are currently connected <span class="glyphicon glyphicon-alert" style="color:red" title="This means no services will get checked until a worker is connected."></span>',
+        },
+        "columns": [
+          { "data": "worker_name" },
+          { "data": "num_threads" },
+          { "data": "running_tasks" },
+          { "data": "completed_tasks" },
+          {
+            "data": "worker_queues",
+            "render": function( data ) {
+              var text = "";
+              for (var key in data) {
+                 text += "" + data[key] + "<br>";
+              }
+              return text;
+            }
           },
-          "columns": [
-            { "data": "worker_name" },
-            { "data": "num_threads" },
-            { "data": "running_tasks" },
-            { "data": "completed_tasks" },
-            {
-              "data": "worker_queues",
-              "render": function( data ) {
-                var text = "";
+          {
+            "width": 170,
+            "data": "services_running",
+            "render": function( data ) {
+              var text = "";
+              if (typeof data === 'string'){
+                if (data == 'None'){
+                  text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
+                }
+                else{
+                  text = data;
+                }
+              }
+              else {
                 for (var key in data) {
-                   text += "" + data[key] + "<br>";
+                  text += "" + key;
+                  if (typeof data[key] === 'string') {
+                    text += " - " + data[key];
+                  }
+                  else {
+                    text += " - " + data[key].join(', ');
+                  }
+                  text += "<br>";
                 }
-                return text;
               }
-            },
-            {
-              "width": 170,
-              "data": "services_running",
-              "render": function( data ) {
-                var text = "";
-                if (typeof data === 'string'){
-                  if (data == 'None'){
-                    text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
-                  }
-                  else{
-                    text = data;
-                  }
-                }
-                else {
-                  for (var key in data) {
-                    text += "" + key;
-                    if (typeof data[key] === 'string') {
-                      text += " - " + data[key];
-                    }
-                    else {
-                      text += " - " + data[key].join(', ');
-                    }
-                    text += "<br>";
-                  }
-                }
-                return text;
-              }
-            },
-          ],
-        });
-      setInterval( function () {
-        table.ajax.reload();
-      }, 10000 );
-    } );
-  </script>
+              return text;
+            }
+          },
+        ],
+      });
+    setInterval( function () {
+      table.ajax.reload();
+    }, 10000 );
+  } );
+</script>
 {% endblock %}

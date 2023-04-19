@@ -1057,8 +1057,11 @@ def admin_get_engine_status():
 @login_required
 def admin_get_worker_stats():
     if current_user.is_white_team:
-        worker_stats = CeleryStats.get_worker_stats()
-        return jsonify(data=worker_stats)
+        try:
+            worker_stats = CeleryStats.get_worker_stats()
+            return jsonify(data=worker_stats)
+        except:  # TODO - be more specific handling exceptions
+            return jsonify(data={})
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -1067,7 +1070,10 @@ def admin_get_worker_stats():
 @login_required
 def admin_get_queue_stats():
     if current_user.is_white_team:
-        queue_stats = CeleryStats.get_queue_stats()
-        return jsonify(data=queue_stats)
+        try:
+            queue_stats = CeleryStats.get_queue_stats()
+            return jsonify(data=queue_stats)
+        except:  # TODO - be more specific handling exceptions
+            return jsonify(data={})
     else:
         return {"status": "Unauthorized"}, 403
