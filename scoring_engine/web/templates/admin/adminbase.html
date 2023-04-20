@@ -53,33 +53,33 @@
         <div class="card-header">
           <div class="fs-5">Services <i class="bi bi-list-task"></i></div>
         </div>
-        <ul class="list-group list-group-flush">
+        <!-- Accordion -->
+        <div class="accordion accordion-flush" id="accordionExample">
           {% for team in blue_teams %}
-          <a href="#" class="list-group-item" data-toggle="collapse"
-            data-target="#services_team{{team.id}}">{{team.name}}</a>
-          <div id="services_team{{team.id}}"
-            class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
-            {% for service in team.services %}
-            <a href="/admin/service/{{service.id}}"
-              class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
-                class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
-            {% endfor %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="flush-heading_{{ team.id }}">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_{{ team.id }}">
+                {{ team.name }}
+              </button>
+            </h2>
+            <div id="flush-collapse_{{ team.id }}" class="accordion-collapse collapse {% if service and team.id == service.team.id %}show{% endif %}" data-bs-parent="#accordionFlushExample">
+              <ul class="list-group list-group-flush">
+                {% for service in team.services %}
+                <a href="/admin/service/{{service.id}}"
+                  class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
+                    class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+                {% endfor %}
+              </ul>
+            </div>
           </div>
           {% endfor %}
-        </ul>
+        </div>        
       </div>
     </div>
     <!-- Content -->
     <div class="col-9">
-      <div class="card my-2">
-        <div class="card-header">
-          <div class="fs-5">{% block header %}{% endblock %}</div>
-        </div>
-        <div class="card-body">
-          {% block admincontent %}
-          {% endblock %}
-        </div>
-      </div>
+      {% block admincontent %}
+      {% endblock %}
     </div>
   </div>
 </div>

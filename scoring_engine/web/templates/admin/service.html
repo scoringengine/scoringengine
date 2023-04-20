@@ -3,56 +3,7 @@
 
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
-
-<script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
-<link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
-
-<script>
-  $.fn.editable.defaults.mode = 'inline';
-  $(function () {
-    //enable / disable
-    $('#enable').click(function () {
-      $('.editable-table .editable').editable('toggleDisabled');
-    });
-
-    //editables
-    $('.editable-textfield').editable({
-      type: 'text',
-      validate: function (value) {
-        if ($.trim(value) == '') return 'This field is required';
-      }
-    });
-
-    //editables
-    $('.editable-dropdown').editable({
-      type: 'select',
-      validate: function (value) {
-        if ($.trim(value) == '') return 'This field is required';
-      }
-    });
-
-    $('.editable-table .editable').on('hidden', function (e, reason) {
-      if (reason === 'save' || reason === 'nochange') {
-        var $next = $(this).closest('tr').next().find('.editable');
-        if ($('#autoopen').is(':checked')) {
-          setTimeout(function () {
-            $next.editable('show');
-          }, 300);
-        } else {
-          $next.focus();
-        }
-        $('.password').text("************");
-      }
-    });
-  });
-
-  $(document).ready(function () {
-    $('.password').text("************");
-  });
-</script>
+<link href="{{ url_for('static', filename='vendor/css/bootstrap5-editable.css') }}" rel="stylesheet" />
 {% endblock %}
 
 {% block header %}{{service.team.name}} - {{service.name}}{% endblock %}
@@ -169,7 +120,53 @@ No Environments Found.
     </tr>
   </thead>
 </table>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/bootstrap5-editable.min.js') }}"></script>
+<script>
+  $.fn.editable.defaults.mode = 'inline';
+  $(function () {
+    //enable / disable
+    $('#enable').click(function () {
+      $('.editable-table .editable').editable('toggleDisabled');
+    });
 
+    //editables
+    $('.editable-textfield').editable({
+      type: 'text',
+      validate: function (value) {
+        if ($.trim(value) == '') return 'This field is required';
+      }
+    });
+
+    //editables
+    $('.editable-dropdown').editable({
+      type: 'select',
+      validate: function (value) {
+        if ($.trim(value) == '') return 'This field is required';
+      }
+    });
+
+    $('.editable-table .editable').on('hidden', function (e, reason) {
+      if (reason === 'save' || reason === 'nochange') {
+        var $next = $(this).closest('tr').next().find('.editable');
+        if ($('#autoopen').is(':checked')) {
+          setTimeout(function () {
+            $next.editable('show');
+          }, 300);
+        } else {
+          $next.focus();
+        }
+        $('.password').text("************");
+      }
+    });
+  });
+
+  $(document).ready(function () {
+    $('.password').text("************");
+  });
+</script>
 <script>
   $(document).ready(function () {
     // Disable datatables error reporting
