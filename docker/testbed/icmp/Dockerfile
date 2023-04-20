@@ -1,3 +1,3 @@
-FROM ubuntu:latest
+FROM ubuntu:kinetic
 
 CMD ["tail", "-f", "/dev/null"]
