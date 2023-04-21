@@ -58,16 +58,16 @@
           {% for team in blue_teams %}
           <div class="accordion-item">
             <h2 class="accordion-header" id="flush-heading_{{ team.id }}">
-              <button class="accordion-button {% if service and team.id != service.team.id %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_{{ team.id }}">
+              <button class="accordion-button {% if not service or team.id != service.team.id %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_{{ team.id }}">
               {{ team.name }}
               </button>
             </h2>
             <div id="flush-collapse_{{ team.id }}" class="accordion-collapse collapse {% if service and team.id == service.team.id %}show{% endif %}" data-bs-parent="#accordionFlushExample">
               <ul class="list-group list-group-flush">
                 {% for service in team.services %}
-                <a href="/admin/service/{{service.id}}"
+                <a href="/admin/service/{{ service.id }}"
                   class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
-                    class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+                    class="glyphicon glyphicon-chevron-right"></span> {{ service.name }}</a>
                 {% endfor %}
               </ul>
             </div>
