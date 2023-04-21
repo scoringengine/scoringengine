@@ -7,22 +7,30 @@
 {% block header %}Worker Stats{% endblock %}
 
 {% block admincontent %}
-  <div class="worker_stats">
-    <table id="workers" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
-      <thead>
-        <tr>
-          <th><div title="Name of Worker">Name</div></th>
-          <th><div title="Number of processes available">Processes</div></th>
-          <th><div title="Number of currently running checks">Running Checks</div></th>
-          <th><div title="Number of completed checks">Completed Checks</div></th>
-          <th><div title="Queues registered to for running service checks">Queue Names</div></th>
-          <th><div title="Services that the worker is registered to run">Enabled Services</div></th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+<!-- Worker Stats -->
+<div class="card my-2">
+  <div class="card-header">
+    <div class="fs-5">Worker Stats</div>
   </div>
+  <div class="card-body">
+    <div class="worker_stats">
+      <table id="workers" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th><div title="Name of Worker">Name</div></th>
+            <th><div title="Number of processes available">Processes</div></th>
+            <th><div title="Number of currently running checks">Running Checks</div></th>
+            <th><div title="Number of completed checks">Completed Checks</div></th>
+            <th><div title="Queues registered to for running service checks">Queue Names</div></th>
+            <th><div title="Services that the worker is registered to run">Enabled Services</div></th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}

@@ -42,16 +42,14 @@
     <div class="round_status_bars">
       <span>Round Progress</span>
       <div class="progress">
-        <div id="TotalPercent" class="progress-bar progress-bar-striped progress-bar-animated"
-          role="progressbar" style="width: 0%">
+        <div id="TotalPercent" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
           <span>0%</span>
         </div>
       </div>
       {% for team in blue_teams %}
       <span>{{team.name}}</span>
       <div class="progress">
-        <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped progress-bar-animated"
-          role="progressbar" style="width: 0%">
+        <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
           <span>0%</span>
         </div>
       </div>
@@ -93,7 +91,7 @@
         if (val < 100) {
           $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped bg-warning progress-bar-animated');
         } else {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped bg-success progress-bar-animated');
+          $("#" + key + "Percent").attr('class', 'progress-bar bg-success');
         }
       });
     });

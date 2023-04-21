@@ -6,7 +6,7 @@
     <div class="col-3 my-2">
       <!-- Start/Pause Engine -->
       <div class="list-group text-center">
-        <button type="button" class="btn btn-success" id="engine_toggle"></button>
+        <button type="button" class="btn btn-secondary" id="engine_toggle"></button>
       </div>
       <!-- Stats -->
       <div class="card my-2">
@@ -58,8 +58,8 @@
           {% for team in blue_teams %}
           <div class="accordion-item">
             <h2 class="accordion-header" id="flush-heading_{{ team.id }}">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_{{ team.id }}">
-                {{ team.name }}
+              <button class="accordion-button {% if service and team.id != service.team.id %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_{{ team.id }}">
+              {{ team.name }}
               </button>
             </h2>
             <div id="flush-collapse_{{ team.id }}" class="accordion-collapse collapse {% if service and team.id == service.team.id %}show{% endif %}" data-bs-parent="#accordionFlushExample">
