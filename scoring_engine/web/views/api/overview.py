@@ -148,7 +148,7 @@ def overview_get_data():
         for blue_team_id in blue_team_ids:
             # num_up_services, num_down_services = Round.get_round_stats(blue_team_id, last_round)
             current_scores.append(str(team_scores.get(blue_team_id, 0)))
-            current_places.append(str(ranks_dict.get(blue_team_id, 0)))
+            current_places.append(str(ranks_dict.get(blue_team_id, 0)))  # TODO - Decide if 1 is the default return value
             service_ratios.append(
                 # '{0} <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / {1} <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>'.format(num_up_services, num_down_services)  # TODO - I don't like shimming html into this
                 '{0} <i class="angle up icon" data-search-terms="arrow, caret, collapse, upload" style="visibility: visible;"></i> / {1} <i class="angle down icon" data-search-terms="arrow, caret, collapse, upload" style="visibility: visible;"></i>'.format(
