@@ -16,14 +16,6 @@
   {% if 'unauthorized' in request.path %}
   <body style="background-color: red">
   {% endif %}
-    {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert"
-      style="margin-bottom: 0px">
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      <strong>{{ message }}</strong>
-    </div>
-    {% endfor %}
-    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-1" aria-label="Tenth navbar example">
       <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample08" aria-controls="navbarsExample08" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,30 +25,37 @@
         </div>
         <div class="navbar-nav col-lg-6 justify-content-lg-center" id="navbarsExample08">
           <ul class="navbar-nav">
+            <!-- Index-->
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/' %}active{% endif %}" aria-current="page" href="/">Home</a>
             </li>
+            <!-- Scoreboard -->
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/scoreboard' %}active{% endif %}" href="{{ url_for('scoreboard.home') }}">Scoreboard</a>
             </li>
+            <!-- Overview -->
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/overview' %}active{% endif %}" href="{{ url_for('overview.home') }}">Overview</a>
             </li>
-            {% if current_user.is_blue_team %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.path == '/services' %}active{% endif %}" href="{{ url_for('services.home') }}">Services</a>
-            </li>
-            {% endif %}
-            {% if current_user.is_blue_team or current_user.is_red_team %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.path == '/injects' %}active{% endif %}" href="{{ url_for('injects.home') }}">Injects</a>
-            </li>
-            {% endif %}
+            <!-- Stats -->
             {% if current_user.is_blue_team or current_user.is_white_team %}
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/stats' %}active{% endif %}" href="{{ url_for('stats.home') }}">Stats</a>
             </li>
             {% endif %}
+            <!-- Services -->
+            {% if current_user.is_blue_team %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/services' %}active{% endif %}" href="{{ url_for('services.home') }}">Services</a>
+            </li>
+            {% endif %}
+            <!-- Injects -->
+            {% if current_user.is_blue_team or current_user.is_red_team %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/injects' %}active{% endif %}" href="{{ url_for('injects.home') }}">Injects</a>
+            </li>
+            {% endif %}
+            <!-- Admin -->
             {% if current_user.is_white_team %}
             <li class="nav-item">
               <a class="nav-link {% if 'admin' in request.path %}active{% endif %}" href="{{ url_for('admin.status') }}">Admin</a>
@@ -65,9 +64,6 @@
         </ul>
         </div>
         <div class="d-lg-flex col-lg-3 justify-content-lg-end">
-          <!-- <button type="button" class="btn btn-secondary">
-            <i class="bi bi-circle-half"></i>
-          </button> -->
           <ul class="navbar-nav">
             <!-- Dark/Light Mode -->
             <li class="nav-item dropdown">
@@ -85,6 +81,7 @@
               <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
               <hr class="d-lg-none my-2 text-white-50">
             </li>
+            <!-- Login Dropdown -->
             {% if current_user.is_authenticated %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -119,6 +116,11 @@
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
         });
+        // setTimeout(() => {  
+        //   const alertNode = document.querySelector('.alert');    
+        //   const alert = new bootstrap.Alert(alertNode)  
+        //   alert.close()  
+        // }, 2000)
       });
     </script>
     {% block scripts %}

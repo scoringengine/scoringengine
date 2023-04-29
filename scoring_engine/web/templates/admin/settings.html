@@ -1,85 +1,82 @@
 {% extends 'admin/adminbase.html' %}
 {% block title %}Admin - Competition Settings{% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
-{% block header %}Competition Settings{% endblock %}
 {% block admincontent %}
-<form class="row g-3" method="POST" action="{{ url_for('api.admin_update_target_round_time') }}" role="form">
-  <div class="input-group row">
-    <div class="col-xs-3">
-      <label for="ex1" class="pull-right" style="padding-top: 7px;">Target Round Time (s)</label>
-    </div>
-    <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
-      <div class="input-group input-group-md">
-        <input class="form-control" id="target_round_time" name="target_round_time"
-          placeholder="Insert Targer Round Time Value Here (in seconds)" value="{{ target_round_time|safe }}"
+<!-- Competition Settings -->
+<div class="card my-2">
+  <div class="card-header">
+    <div class="fs-5">Competition Settings</div>
+  </div>
+  <div class="card-body">
+    <form class="row g-3" method="POST" action="{{ url_for('api.admin_update_target_round_time') }}" role="form"> 
+      <div class="col">
+        <div class="form-floating mb-3">
+          <input class="form-control" id="target_round_time" name="target_round_time"
+          placeholder="Insert Target Round Time Value Here (in seconds)" value="{{ target_round_time|safe }}"
           required />
-        <div class="input-group-btn">
-          <button type="submit" class="btn btn-primary center-block">Save</button>
+          <label for="target_round_time">Target Round Time (seconds)</label>
         </div>
       </div>
-    </div>
-    <div class="col-xs-6">
-      <span class="help-block" style="margin-top: 0px;">Determines how long the engine should target for round
-        length.</span>
-    </div>
-  </div>
-</form>
-<form method="POST" action="{{ url_for('api.admin_update_worker_refresh_time') }}" role="form">
-  <div class="form-group row" style="margin-bottom: 0px;">
+      <!-- <div class="col-3">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>     -->
+    </form>
+    <form method="POST" action="{{ url_for('api.admin_update_worker_refresh_time') }}" role="form">
+      <div class="form-group row" style="margin-bottom: 0px;">
+        <div class="col-xs-3">
+          <label for="ex1" class="pull-right" style="padding-top: 7px;">Worker Refresh Time (s)</label>
+        </div>
+        <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+          <div class="input-group input-group-md">
+            <input class="form-control" id="worker_refresh_time" name="worker_refresh_time"
+              placeholder="Insert Worker Refresh Time Here" value="{{ worker_refresh_time|safe }}" required />
+            <div class="input-group-btn">
+              <button type="submit" class="btn btn-primary center-block">Save</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6">
+          <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps iterations of checking
+            for finished checks (also displays in the engine log).</span>
+        </div>
+      </div>
+    </form>
+    
     <div class="col-xs-3">
-      <label for="ex1" class="pull-right" style="padding-top: 7px;">Worker Refresh Time (s)</label>
+      <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
     </div>
-    <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
-      <div class="input-group input-group-md">
-        <input class="form-control" id="worker_refresh_time" name="worker_refresh_time"
-          placeholder="Insert Worker Refresh Time Here" value="{{ worker_refresh_time|safe }}" required />
-        <div class="input-group-btn">
+    <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
+      <div class="form-group row">
+        <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
+          <div class="input-group input-group-md">
+            <textarea class="form-control" rows="12" style="width: 685px;" id="welcome_page_content"
+              name="welcome_page_content" placeholder="Insert Welcome Page Content Here"
+              required>{{ welcome_page_content|safe }}</textarea>
+            <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
+          </div>
           <button type="submit" class="btn btn-primary center-block">Save</button>
         </div>
       </div>
+    </form>
+    
+    <div class="col-xs-3">
+      <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
     </div>
-    <div class="col-xs-6">
-      <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps iterations of checking
-        for finished checks (also displays in the engine log).</span>
-    </div>
-  </div>
-</form>
-
-<div class="col-xs-3">
-  <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
-</div>
-<form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
-  <div class="form-group row">
-    <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
-      <div class="input-group input-group-md">
-        <textarea class="form-control" rows="12" style="width: 685px;" id="welcome_page_content"
-          name="welcome_page_content" placeholder="Insert Welcome Page Content Here"
-          required>{{ welcome_page_content|safe }}</textarea>
-        <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
+    <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
+      <div class="form-group row" style="margin-bottom: 0px;">
+        <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
+          <div class="input-group input-group-md">
+            <textarea class="form-control" rows="9" style="width: 685px;" id="about_page_content"
+              name="about_page_content" placeholder="Insert About Page Content Here"
+              required>{{ about_page_content|safe }}</textarea>
+            <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>
+          </div>
+          <button type="submit" class="btn btn-primary center-block">Save</button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary center-block">Save</button>
-    </div>
+    </form>    
   </div>
-</form>
-
-<div class="col-xs-3">
-  <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
 </div>
-<form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
-  <div class="form-group row" style="margin-bottom: 0px;">
-    <div class="col-xs-7" style="padding-top: 10px; width: 100%; padding-left: 60px;">
-      <div class="input-group input-group-md">
-        <textarea class="form-control" rows="9" style="width: 685px;" id="about_page_content"
-          name="about_page_content" placeholder="Insert About Page Content Here"
-          required>{{ about_page_content|safe }}</textarea>
-        <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>
-      </div>
-      <button type="submit" class="btn btn-primary center-block">Save</button>
-    </div>
-  </div>
-</form>
 {% endblock %}
 {% block scripts %}
+{{ super() }}
 {% endblock %}

@@ -1,11 +1,5 @@
 {% extends 'admin/adminbase.html' %}
 {% block title %}Admin - Worker Stats{% endblock %}
-
-{% block head %}
-{{ super() }}
-{% endblock %}
-{% block header %}Worker Stats{% endblock %}
-
 {% block admincontent %}
 <!-- Worker Stats -->
 <div class="card my-2">
@@ -14,7 +8,7 @@
   </div>
   <div class="card-body">
     <div class="worker_stats">
-      <table id="workers" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+      <table id="workers" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
         <thead>
           <tr>
             <th><div title="Name of Worker">Name</div></th>
