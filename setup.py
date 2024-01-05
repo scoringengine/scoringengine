@@ -30,7 +30,7 @@ config = {
         'ranking==0.3.2',
         # 'redis==4.3.4',
         'shellescape==3.4.1',
-        # 'Werkzeug==0.16.1',
+        'Werkzeug==2.3.6',
         'uWSGI==2.0.21',
     ],
     "packages": ["scoring_engine"],
