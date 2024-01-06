@@ -36,18 +36,37 @@ class TestAdmin(WebTest):
     def test_auth_bad_auth_status(self):
         self.unauthorized_admin_test('/admin/status')
 
+    def test_auth_required_admin_workers(self):
+        self.verify_auth_required('/admin/workers')
+        stats_resp = self.auth_and_get_path('/admin/workers')
+        assert stats_resp.status_code == 200
+
+    def test_auth_bad_auth_workers(self):
+        self.unauthorized_admin_test('/admin/workers')
+
+    def test_auth_required_admin_queues(self):
+        self.verify_auth_required('/admin/queues')
+        stats_resp = self.auth_and_get_path('/admin/queues')
+        assert stats_resp.status_code == 200
+
+    def test_auth_bad_auth_queues(self):
+        self.unauthorized_admin_test('/admin/queues')
+
     def test_auth_required_admin_manage(self):
         self.verify_auth_required('/admin/manage')
         stats_resp = self.auth_and_get_path('/admin/manage')
         assert stats_resp.status_code == 200
+
+    def test_auth_bad_auth_manage(self):
+        self.unauthorized_admin_test('/admin/manage')
 
     def test_auth_required_admin_permissions(self):
         self.verify_auth_required('/admin/permissions')
         stats_resp = self.auth_and_get_path('/admin/permissions')
         assert stats_resp.status_code == 200
 
-    def test_auth_bad_auth_manage(self):
-        self.unauthorized_admin_test('/admin/manage')
+    def test_auth_bad_auth_permissions(self):
+        self.unauthorized_admin_test('/admin/permissions')
 
     def test_auth_required_admin_settings(self):
         self.verify_auth_required('/admin/settings')

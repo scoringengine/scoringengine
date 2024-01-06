@@ -88,9 +88,16 @@ services:
     #   - 1194:1194/udp
     privileged: true
   testbed_postgresql:
-    build:
-      context: .
-      dockerfile: ./docker/testbed/postgresql/Dockerfile
+    image: postgres:15.2
+    # build:
+    #   context: .
+    #   dockerfile: ./docker/testbed/postgresql/Dockerfile
+    environment:
+      # - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=CHANGEME
+      # - POSTGRES_DB=testdb
+    volumes:
+      - ./docker/testbed/postgresql/build.sh:/docker-entrypoint-initdb.d/build.sh
     networks:
       - default
     # ports:

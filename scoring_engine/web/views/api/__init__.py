@@ -7,10 +7,12 @@ mod = Blueprint("api", __name__)
 
 
 from . import admin
+from . import agent
 from . import injects
 from . import notifications
 from . import overview
 from . import profile
 from . import scoreboard
 from . import service
+from . import stats
 from . import team

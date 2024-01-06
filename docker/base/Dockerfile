@@ -13,8 +13,8 @@ RUN \
   python3 -m ensurepip --upgrade && \
   mkdir /app
 
-COPY docker/wait-for-container.sh /app/wait-for-container.sh
-COPY docker/wait-for-port.sh /app/wait-for-port.sh
+#COPY docker/wait-for-container.sh /app/wait-for-container.sh
+#COPY docker/wait-for-port.sh /app/wait-for-port.sh
 COPY setup.py /app/setup.py
 COPY docker/engine.conf.inc /app/engine.conf
 
