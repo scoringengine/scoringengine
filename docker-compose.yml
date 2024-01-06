@@ -137,7 +137,7 @@ services:
       mysql:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:5000"]
+      test: ["CMD", "uwsgi_curl", "localhost:5000"]
       interval: 30s
       timeout: 3s
       retries: 10

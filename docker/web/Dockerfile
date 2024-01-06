@@ -6,11 +6,8 @@ USER root
 RUN mkdir -p /var/uploads
 RUN chown -R engine:engine /var/uploads
 
-# Install curl for docker health check
-RUN \
-  apt-get update && \
-  apt-get install -y curl && \
-  rm -rf /var/lib/apt/lists/*
+# Install uwsgi_curl for docker health check
+RUN pip install -I uwsgi-tools
 
 USER engine
 
