@@ -60,5 +60,4 @@ USER engine
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
 
-#CMD ["sh", "-c", "Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker"]
-CMD sh -c 'Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker'
+CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker
