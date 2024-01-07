@@ -55,14 +55,6 @@ services:
       - ./docker/nginx/files/scoringengine.key:/etc/nginx/scoringengine.key
     networks:
       - default
-  base:
-    image: scoringengine/base
-    build:
-      context: .
-      dockerfile: ./docker/base/Dockerfile
-      cache_from:
-        - scoringengine/base
-        - base:latest
 
   bootstrap:
     image: scoringengine/bootstrap
@@ -94,7 +86,6 @@ services:
         - scoringengine/engine
         - engine:latest
     depends_on:
-      - base
       - redis
       - bootstrap
     restart: on-failure
@@ -113,8 +104,6 @@ services:
         - scoringengine/worker
         - worker:latest
     depends_on:
-      base: 
-        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
