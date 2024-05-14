@@ -1,4 +1,4 @@
-FROM nginx:1.23.3
+FROM nginx:1.26.0
 
 RUN \
   apt-get update && \
