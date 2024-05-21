@@ -4,3 +4,4 @@ coveralls==3.3.1
 flake8==3.5.0
 mock==2.0.0
 pytest==6.2.5
+requests>=2.32.0 # not directly required, pinned by Snyk to avoid a vulnerability
