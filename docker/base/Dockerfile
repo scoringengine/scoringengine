@@ -1,4 +1,4 @@
-FROM python:3.9.16-slim-bullseye
+FROM python:3.13.0b2-slim-bullseye
 
 RUN \
   useradd -m engine && \
