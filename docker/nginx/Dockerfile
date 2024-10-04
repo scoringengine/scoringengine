@@ -1,4 +1,4 @@
-FROM nginx:1.23.3
+FROM nginx:1.27.2
 
 COPY docker/wait-for-port.sh /
 
