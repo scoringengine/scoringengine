@@ -24,7 +24,7 @@ RUN apt-get install -y medusa
 
 # SSH Check
 # RUN pip install -I "cryptography>=3.4,<3.5"
-RUN pip install "paramiko==2.11.0"
+RUN pip install "paramiko==3.5.0"
 
 # WinRM Check
 RUN pip install -I "pywinrm>=0.4.1,<0.4.2"
