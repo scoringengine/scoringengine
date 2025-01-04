@@ -16,7 +16,7 @@ wait_for_container()
 
 wait_for_engine()
 {
-  wait_for_container "scoringengine_engine_1" 30 "make -s integration-get-round"
+  wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round"
 }
 
 # Stop any previous containers from other parts of testing
