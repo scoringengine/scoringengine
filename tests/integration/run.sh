@@ -31,7 +31,7 @@ echo "Starting up required container environment"
 make run-integration
 
 # Wait for the bootstrap container to be done (meaning DB is setup)
-wait_for_container "scoringengine_bootstrap_1" 10
+wait_for_container "scoringengine-bootstrap-1" 10
 
 # Sleep for a bit so that the engine has time to start up
 # so that we can detect when it stops running
