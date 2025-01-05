@@ -1,4 +1,4 @@
-FROM nginx:1.27.3
+FROM nginx:1.27.3-alpine3.20-slim
 
 RUN \
   apt-get update && \
