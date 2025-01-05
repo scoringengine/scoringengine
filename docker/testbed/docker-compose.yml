@@ -25,7 +25,7 @@ services:
     # ports:
     #   - 22:22
   testbed_mysql:
-    image: mysql:5
+    image: mysql:8
     environment:
       - MYSQL_ROOT_PASSWORD=CHANGEME
       - MYSQL_DATABASE=randomdb
@@ -36,7 +36,7 @@ services:
     # ports:
     #   - 3306:3306
   testbed_mssql:
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=yourStrong(!)Password
