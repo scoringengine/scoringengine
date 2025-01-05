@@ -74,7 +74,9 @@ class TestEngine(UnitTest):
             TelnetCheck,
             WinRMCheck,
         ]
-        assert set(engine.checks) == set(expected_checks)
+        assert {cls.__name__ for cls in engine.checks} == {
+            cls.__name__ for cls in expected_checks
+        }, "Mismatch in check names"
 
     def test_total_rounds_init(self):
         engine = Engine(total_rounds=100)

@@ -30,10 +30,10 @@ RUN pip install "paramiko==3.5.0"
 RUN pip install -I "pywinrm>=0.4.1,<0.4.2"
 
 # Elasticsearch Check
-RUN pip install -I "requests>=2.21,<2.22"
+RUN pip install -I "requests>=2.32.3,<2.33"
 
 # SMB Check
-RUN pip install -I "pysmb>=1.1,<1.2"
+RUN pip install -I "pysmb>=1.2,<1.3"
 
 # DNS Check
 RUN apt-get install -y dnsutils

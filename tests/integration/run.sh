@@ -16,7 +16,7 @@ wait_for_container()
 
 wait_for_engine()
 {
-  wait_for_container "scoringengine_engine_1" 30 "make -s integration-get-round"
+  wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round"
 }
 
 # Stop any previous containers from other parts of testing
@@ -31,7 +31,7 @@ echo "Starting up required container environment"
 make run-integration
 
 # Wait for the bootstrap container to be done (meaning DB is setup)
-wait_for_container "scoringengine_bootstrap_1" 10
+wait_for_container "scoringengine-bootstrap-1" 10
 
 # Sleep for a bit so that the engine has time to start up
 # so that we can detect when it stops running
