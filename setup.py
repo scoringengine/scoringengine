@@ -16,7 +16,7 @@ config = {
         "Flask==2.3.2",
         "Flask-Caching==1.10.1",
         "Flask-Login==0.6.2",
-        "Flask-SQLAlchemy==2.5.1",
+        "Flask-SQLAlchemy==3.1.1",
         "Flask-WTF==1.1.1",
         # "itsdangerous==1.1.0",
         # "markupsafe==1.1.1",
