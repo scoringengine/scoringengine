@@ -110,7 +110,7 @@ teams:
     - username: sa
       password: yourStrong(!)Password
     environments:
-    - matching_content: Microsoft SQL Server 2017
+    - matching_content: Microsoft SQL Server 2019
       properties:
       - name: database
         value: master
