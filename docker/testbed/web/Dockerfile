@@ -1,8 +1,7 @@
-FROM nginx:1.27.3
+FROM nginx:1.27.3-alpine3.20-slim 
 
 RUN \
-  apt-get update && \
-  apt-get install -y openssl && \
+  apk add --no-cache openssl && \
   mkdir /etc/nginx/ssl && \
   openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -utf8 -sha512 -subj "/CN=test.com" -keyout /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.crt
 
