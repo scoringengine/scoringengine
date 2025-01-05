@@ -17,8 +17,8 @@ host = sys.argv[1]
 
 # {'flags': [], 'config': None, 'timestamp': 1675321066}
 res = cache.get(host)
-if res and 'timestamp' in res.keys():
-    diff = int(datetime.datetime.utcnow().timestamp()) - int(res.get('timestamp'))
+if res and "timestamp" in res.keys():
+    diff = int(datetime.datetime.now(datetime.timezone.utc).timestamp()) - int(res.get("timestamp"))
     if diff < 300:
         print("SUCCESS: Agent has checked in within 300 seconds")
     else:
