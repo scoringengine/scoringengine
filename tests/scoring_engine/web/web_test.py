@@ -27,7 +27,7 @@ class WebTest(UnitTest):
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
 
-    def teardown(self):
+    def teardown_method(self, method):
         self.ctx.pop()
         super().teardown()
 

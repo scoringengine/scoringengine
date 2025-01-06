@@ -21,7 +21,7 @@ class MockConfigFalseDebug:
 
 class TestVersion(UnitTest):
 
-    def setup_method(self, method):
+    def setup_method(self):
         super().setup()
         if "SCORINGENGINE_VERSION" in os.environ:
             del os.environ["SCORINGENGINE_VERSION"]
