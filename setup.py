@@ -22,7 +22,7 @@ config = {
         # "markupsafe==1.1.1",
         "mysqlclient==2.1.0",
         # "pynsive==0.2.7",
-        "python-dateutil==2.8.2",
+        "python-dateutil==2.9.0.post0",
         "pytz==2024.2",
         "PyYAML==6.0.2",
         "ranking==0.3.2",
