@@ -28,7 +28,7 @@ config = {
         "ranking==0.3.2",
         # 'redis==4.3.4',
         "shellescape==3.4.1",
-        "Werkzeug==2.3.6",
+        "Werkzeug==3.1.0",
         "uWSGI==2.0.28",
     ],
     "packages": ["scoring_engine"],
