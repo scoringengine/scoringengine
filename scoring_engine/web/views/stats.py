@@ -16,10 +16,9 @@ mod = Blueprint("stats", __name__)
 
 
 @mod.route("/stats")
-@cache.memoize()
 @login_required
 def home():
     if not (current_user.is_blue_team or current_user.is_white_team):
-        return redirect(url_for('auth.unauthorized'))
+        return redirect(url_for("auth.unauthorized"))
 
     return render_template("stats.html")
