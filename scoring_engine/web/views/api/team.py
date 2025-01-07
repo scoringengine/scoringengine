@@ -13,12 +13,12 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 
-from . import mod
+from . import make_cache_key, mod
 
 
 @mod.route("/api/team/<team_id>/stats")
 @login_required
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 def services_get_team_data(team_id):
     team = session.query(Team).get(team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
@@ -30,7 +30,7 @@ def services_get_team_data(team_id):
 
 @mod.route("/api/team/<team_id>/services")
 @login_required
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 def api_services(team_id):
     team = session.query(Team).get(team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
@@ -40,13 +40,13 @@ def api_services(team_id):
 
     # Do math for ranks here per service
     service_scores = (
-            session.query(Service.team_id, Service.name, func.sum(Service.points).label("score"))
-            .join(Check)
-            .filter(Check.result.is_(True))
-            .group_by(Service.team_id, Service.name)
-            .order_by(Service.name, desc("score"))
-            .all()
-        )
+        session.query(Service.team_id, Service.name, func.sum(Service.points).label("score"))
+        .join(Check)
+        .filter(Check.result.is_(True))
+        .group_by(Service.team_id, Service.name)
+        .order_by(Service.name, desc("score"))
+        .all()
+    )
 
     service_dict = defaultdict(lambda: defaultdict(list))
 
@@ -56,9 +56,7 @@ def api_services(team_id):
     service_ranks = defaultdict(lambda: defaultdict(int))
 
     for service in service_dict.keys():
-        ranks = list(
-            ranking.Ranking(service_dict[service].values(), start=1).ranks()
-        )  # [1, 2, 2, 4, 5]
+        ranks = list(ranking.Ranking(service_dict[service].values(), start=1).ranks())  # [1, 2, 2, 4, 5]
         service_ranks[service] = dict(
             zip(service_dict[service].keys(), ranks)
         )  # {12: 1, 3: 2, 10: 3, 4: 4, 7: 5, 5: 6, 6: 7, 11: 8, 9: 9, 8: 10}
@@ -73,7 +71,7 @@ def api_services(team_id):
     )
 
     for service in services:
-        score_earned=str(service_dict[service.name].get(service.team_id, 0))
+        score_earned = str(service_dict[service.name].get(service.team_id, 0))
         max_score = str(len(service.checks) * service.points)
         percent_earned = str(int(int(score_earned) / int(max_score)) if int(max_score) != 0 else 0)
 
@@ -96,9 +94,7 @@ def api_services(team_id):
                 max_score=max_score,
                 percent_earned=percent_earned,
                 pts_per_check=str(service.points),
-                last_ten_checks=[
-                    check.result for check in service.last_ten_checks[::-1]
-                ],
+                last_ten_checks=[check.result for check in service.last_ten_checks[::-1]],
             )
         )
     return jsonify(data=data)
@@ -106,7 +102,7 @@ def api_services(team_id):
 
 @mod.route("/api/team/<team_id>/services/status")
 @login_required
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 def team_services_status(team_id):
     team = session.query(Team).get(team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:

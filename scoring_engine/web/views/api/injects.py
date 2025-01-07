@@ -13,18 +13,14 @@ from scoring_engine.db import session
 from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Template, Inject, File, Comment
 
-from . import mod
+from . import make_cache_key, mod
 
 
 @mod.route("/api/injects")
 @login_required
 def api_injects():
     team = session.query(Team).get(current_user.team.id)
-    if (
-        team is None
-        or not current_user.team == team
-        or not (current_user.is_blue_team or current_user.is_red_team)
-    ):
+    if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_red_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
     injects = (
@@ -56,11 +52,7 @@ def api_injects():
 @login_required
 def api_injects_submit(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if (
-        inject.team is None
-        or not current_user.team == inject.team
-        or not current_user.is_blue_team
-    ):
+    if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
     if datetime.utcnow() > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
@@ -75,11 +67,7 @@ def api_injects_submit(inject_id):
 @login_required
 def api_injects_file_upload(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if (
-        inject.team is None
-        or not current_user.team == inject.team
-        or not current_user.is_blue_team
-    ):
+    if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
 
     # Validate inject is still valid
@@ -115,13 +103,11 @@ def api_injects_file_upload(inject_id):
 
 
 @mod.route("/api/inject/<inject_id>")
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if inject is None or not (
-        current_user.team == inject.team or current_user.is_white_team
-    ):
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     data = {}
@@ -130,54 +116,35 @@ def api_inject(inject_id):
     data["status"] = inject.status
 
     # Comments
-    comments = (
-        session.query(Comment)
-        .filter(Comment.inject == inject)
-        .order_by(Comment.time)
-        .all()
-    )
+    comments = session.query(Comment).filter(Comment.inject == inject).order_by(Comment.time).all()
     data["comments"] = [
         {
             "id": comment.id,
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime(
-                "%Y-%m-%d %H:%M:%S %Z"
-            ),
+            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
 
     # Files
-    files = (
-        session.query(File.id, File.name)
-        .filter(File.inject_id == inject_id)
-        .order_by(File.name)
-        .all()
-    )
+    files = session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
     data["files"] = [{"id": file[0], "name": file[1]} for file in files]
 
     return jsonify(data), 200
 
 
 @mod.route("/api/inject/<inject_id>/comments")
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_comments(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if inject is None or not (
-        current_user.team == inject.team or current_user.is_white_team
-    ):
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     data = []
-    comments = (
-        session.query(Comment)
-        .filter(Comment.inject == inject)
-        .order_by(Comment.time)
-        .all()
-    )
+    comments = session.query(Comment).filter(Comment.inject == inject).order_by(Comment.time).all()
     for comment in comments:
         data.append(
             {
@@ -185,9 +152,7 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": comment.time.astimezone(
-                    pytz.timezone(config.timezone)
-                ).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 
@@ -199,9 +164,7 @@ def api_inject_comments(inject_id):
 @login_required
 def api_inject_add_comment(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if inject is None or not (
-        current_user.team == inject.team or current_user.is_white_team
-    ):
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
     if datetime.utcnow() > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 400
@@ -221,21 +184,14 @@ def api_inject_add_comment(inject_id):
 
 
 @mod.route("/api/inject/<inject_id>/files")
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_files(inject_id):
     inject = session.query(Inject).get(inject_id)
-    if inject is None or not (
-        current_user.team == inject.team or current_user.is_white_team
-    ):
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
-    files = (
-        session.query(File.id, File.name)
-        .filter(File.inject_id == inject_id)
-        .order_by(File.name)
-        .all()
-    )
+    files = session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
 
     if files is None:
         return jsonify({"status": "Unauthorized"}), 403
@@ -251,9 +207,7 @@ def api_inject_files(inject_id):
 @login_required
 def api_inject_download(inject_id, file_id):
     inject = session.query(Inject).get(inject_id)
-    if inject is None or not (
-        current_user.team == inject.team or current_user.is_white_team
-    ):
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     file = session.query(File).filter(File.id == file_id).one_or_none()
