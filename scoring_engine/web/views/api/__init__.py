@@ -1,21 +1,18 @@
-from flask import Blueprint
-
-from scoring_engine.models.notifications import Notification
-
+from flask import Blueprint, g, request
 from functools import wraps
-from flask import g
+
 from scoring_engine.cache import cache
+from scoring_engine.models.notifications import Notification
 
 
 def make_cache_key(*args, **kwargs):
     """Function to generate a cache key."""
-    # Access the function name and user/team information
-    fn_name = kwargs.get("fn").__name__  # Access the function name dynamically
+    request_path = request.path
     user_id = g.user.id  # Assuming g.user is set
     team_id = g.user.team.id  # Assuming g.user.team is available
 
     # Return a unique key based on the function name and user/team information
-    return f"{fn_name}_{team_id}_{user_id}"
+    return f"{request_path}_{team_id}_{user_id}"  # TODO - Can probably drop user_id here
 
 
 mod = Blueprint("api", __name__)
