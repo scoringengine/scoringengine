@@ -10,7 +10,7 @@ upload_folder = /var/uploads
 debug = False
 
 # SQLite
-db_uri = sqlite:////tmp/engine.db
+db_uri = sqlite:////tmp/engine.db?check_same_thread=False
 # MySQL
 #db_uri = mysql://user:password@host/database?charset=utf8mb4
 # Postgresql
