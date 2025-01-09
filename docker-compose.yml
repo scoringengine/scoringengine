@@ -46,6 +46,7 @@ services:
       - ./docker/nginx/files/web.conf:/etc/nginx/conf.d/default.conf
       - ./docker/nginx/files/scoringengine.crt:/etc/nginx/scoringengine.crt
       - ./docker/nginx/files/scoringengine.key:/etc/nginx/scoringengine.key
+      - ./scoring_engine/web/static/:/usr/share/nginx/html/static/
     networks:
       - default
   base:
