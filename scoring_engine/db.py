@@ -5,14 +5,17 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from scoring_engine.config import config
-from scoring_engine.models.base import Base
 
 
 def delete_db(session):
+    from scoring_engine.models.base import Base
+
     Base.metadata.drop_all(session.bind)
 
 
 def init_db(session):
+    from scoring_engine.models.base import Base
+
     Base.metadata.create_all(session.bind)
 
 
@@ -34,14 +37,10 @@ if "sqlite" in config.db_uri:
     isolation_level = "READ UNCOMMITTED"
 
 session = scoped_session(
-    sessionmaker(
-        bind=create_engine(
-            config.db_uri, isolation_level=isolation_level, poolclass=NullPool
-        )
-    )
+    sessionmaker(bind=create_engine(config.db_uri, isolation_level=isolation_level, poolclass=NullPool))
 )
 
-db_salt = bcrypt.gensalt()
+# db_salt = bcrypt.gensalt()
 
 
 # This is a monkey patch so that we
