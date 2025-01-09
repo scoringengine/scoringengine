@@ -74,5 +74,9 @@ class User(Base, UserMixin):
             password = password.encode("utf-8")
         return bcrypt.hashpw(password, salt).decode("utf-8")
 
+    def check_password(self, password):
+        """Check if provided password matches the hashed one"""
+        return bcrypt.checkpw(password.encode("utf-8"), self.password.encode("utf-8"))
+
     def get_id(self):
         return self.id

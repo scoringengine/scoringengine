@@ -13,7 +13,7 @@ class TestUser(UnitTest):
         user = User(username="testuser", password="testpass")
         assert user.id is None
         assert user.username == "testuser"
-        assert user.password == User.generate_hash("testpass")
+        assert user.check_password("testpass")
         assert type(user.password) is str
         assert user.team is None
         assert user.team_id is None
@@ -30,7 +30,7 @@ class TestUser(UnitTest):
         self.session.commit()
         assert user.id == 1
         assert user.username == "testuser"
-        assert user.password == User.generate_hash("testpass")
+        assert user.check_password("testpass")
         assert user.team is team
         assert user.team_id is team.id
         assert user.get_id() == 1
