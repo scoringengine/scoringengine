@@ -43,3 +43,8 @@ To 'unpause' the engine::
 
   docker-compose -f docker-compose.yml start engine
 
+.. warning:: It's recommended that the engine is stopped and the round is over before increasing/decreasing number of workers.
+To increase/decrease number of workers::
+
+  docker-compose -f docker-compose.yml scale worker=5
+
