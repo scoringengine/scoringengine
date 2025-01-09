@@ -106,8 +106,8 @@ class Engine(object):
         if not checks_path.is_dir():
             raise ValueError(f"{checks_location} is not a valid directory.")
 
-        # Recursively iterate through the directory to find Python files
-        for py_file in checks_path.rglob("*.py"):
+        # Iterate through the checks directory to find Python files
+        for py_file in checks_path.glob("*.py"):
             module_name = py_file.stem  # Get the filename without the `.py` extension
             module_path = str(py_file.resolve())
 
