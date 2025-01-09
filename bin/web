@@ -2,18 +2,20 @@
 
 import sys
 
-from scoring_engine.web import app as application
+from scoring_engine.web import create_app
 from scoring_engine.db import session, verify_db_ready
 
 from scoring_engine.version import version
 from scoring_engine.logger import logger
 
 
-if __name__ == '__main__':
+application = create_app()
+
+if __name__ == "__main__":
     if not verify_db_ready(session):
         logger.error("Database is not initialized, must run 'bin/setup' before starting the web app.")
         sys.exit(1)
 
     logger.info("Starting Web v.{0}".format(version))
 
-    application.run(host='0.0.0.0', port=8000)
+    application.run(host="0.0.0.0", port=8000)

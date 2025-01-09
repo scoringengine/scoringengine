@@ -7,17 +7,15 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 
-from scoring_engine.db import db_salt
-
 
 class User(Base, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     username = Column(String(50), nullable=False, unique=True)
     password = Column(Text, nullable=False)
     authenticated = Column(Boolean, default=False)
-    team_id = Column(Integer, ForeignKey('teams.id'))
-    team = relationship('Team', back_populates='users')
+    team_id = Column(Integer, ForeignKey("teams.id"))
+    team = relationship("Team", back_populates="users")
 
     def __init__(self, username, password, team=None):
         self.username = username
@@ -56,8 +54,8 @@ class User(Base, UserMixin):
         # this is due to some weird bug between rusty and I
         # where his env was returning a str, and mine were bytes
         if isinstance(password, str):
-            password = password.encode('utf-8')
-        return bcrypt.checkpw(password, self.password.encode('utf-8'))
+            password = password.encode("utf-8")
+        return bcrypt.checkpw(password, self.password.encode("utf-8"))
 
     def update_password(self, password):
         self.password = User.generate_hash(password)
@@ -66,15 +64,19 @@ class User(Base, UserMixin):
     @staticmethod
     def generate_hash(password, salt=None):
         if salt is None:
-            salt = db_salt
+            salt = bcrypt.gensalt()
         elif isinstance(salt, str):
-            salt = salt.encode('utf-8')
+            salt = salt.encode("utf-8")
 
         # this is due to some weird bug between rusty and I
         # where his env was returning a str, and mine were bytes
         if isinstance(password, str):
-            password = password.encode('utf-8')
-        return bcrypt.hashpw(password, salt).decode('utf-8')
+            password = password.encode("utf-8")
+        return bcrypt.hashpw(password, salt).decode("utf-8")
+
+    def check_password(self, password):
+        """Check if provided password matches the hashed one"""
+        return bcrypt.checkpw(password.encode("utf-8"), self.password.encode("utf-8"))
 
     def get_id(self):
         return self.id
