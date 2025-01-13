@@ -8,7 +8,7 @@ config = {
     "author_email": "pwnbus@mozilla.com, rusty@rustybower.com, zallen@fastly.com",
     "version": "1.0.0",
     "install_requires": [
-        "bcrypt==3.1.3",
+        "bcrypt==4.2.1",
         # 'billiard==3.5.0.4',
         # 'celery==4.2.2',
         "celery[redis]==5.4",
