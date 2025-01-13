@@ -20,7 +20,7 @@ class TestConfigLoader(object):
         assert self.config.worker_refresh_time == 30
 
     def test_db_uri(self):
-        assert self.config.db_uri == "sqlite:////tmp/test_engine.db"
+        assert self.config.db_uri == "sqlite:////tmp/test_engine.db?check_same_thread=False"
 
     def test_timezone(self):
         assert self.config.timezone == "US/Eastern"

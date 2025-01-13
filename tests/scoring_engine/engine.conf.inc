@@ -10,7 +10,7 @@ upload_folder = /var/uploads
 debug = False
 
 # SQLite
-db_uri = sqlite:////tmp/test_engine.db
+db_uri = sqlite:////tmp/test_engine.db?check_same_thread=False
 
 worker_num_concurrent_tasks = 4
 worker_queue = main
