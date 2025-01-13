@@ -27,7 +27,6 @@ config = {
         "PyYAML==6.0.2",
         "ranking==0.3.2",
         # 'redis==4.3.4',
-        "shellescape==3.4.1",
         "Werkzeug==3.1.3",
         "uWSGI==2.0.28",
     ],

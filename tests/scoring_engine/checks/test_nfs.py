@@ -4,10 +4,7 @@ from tests.scoring_engine.checks.check_test import CheckTest
 
 
 class TestNFSCheck(CheckTest):
-    check_name = 'NFSCheck'
-    properties = {
-        'remotefilepath': '/adir/textfile.txt',
-        'filecontents': 'Sample contents'
-    }
+    check_name = "NFSCheck"
+    properties = {"remotefilepath": "/adir/textfile.txt", "filecontents": "Sample contents"}
 
-    cmd = CHECKS_BIN_PATH + "/nfs_check '127.0.0.1' '/adir/textfile.txt' 'Sample contents'"
+    cmd = CHECKS_BIN_PATH + "/nfs_check 127.0.0.1 /adir/textfile.txt 'Sample contents'"
