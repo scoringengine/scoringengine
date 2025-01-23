@@ -2,7 +2,7 @@ import os
 import pytz
 
 from datetime import datetime
-from flask import request, jsonify, send_file, abort
+from flask import g, request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -97,7 +97,7 @@ def api_injects_file_upload(inject_id):
         session.commit()
 
         # Delete file cache for inject
-        cache.delete_memoized(api_inject_files, inject_id)
+        cache.delete(f"/api/inject/{inject_id}/files_{g.user.id}_{g.user.team.id}")
 
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
@@ -178,7 +178,7 @@ def api_inject_add_comment(inject_id):
     session.commit()
 
     # Delete comment cache for inject
-    cache.delete_memoized(api_inject_comments, inject_id)
+    cache.delete(f"/api/inject/{inject_id}/comment_{g.user.id}_{g.user.team.id}")
 
     return jsonify({"status": "Comment added"}), 200
 
