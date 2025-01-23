@@ -27,7 +27,7 @@ RUN apt-get install -y medusa
 RUN pip install "paramiko==3.5.0"
 
 # WinRM Check
-RUN pip install -I "pywinrm>=0.4.1,<0.4.2"
+RUN pip install -I "pywinrm>=0.5.0,<0.6"
 
 # Elasticsearch Check
 RUN pip install -I "requests>=2.32.3,<2.33"
