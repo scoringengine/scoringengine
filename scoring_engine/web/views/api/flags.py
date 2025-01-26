@@ -20,17 +20,17 @@ def api_flags():
 
     flags = session.query(Flag).all()
 
-    # Convert flags to dictionaries and add to response
+    # Serialize flags and include localized times
     data = [
         {
             "id": f.id,
-            "type": f.type,
-            "perm": f.perm,
-            "platform": f.platform,
-            "start_time": f.start_time,
-            "end_time": f.end_time,
-            "path": f.data["path"],
-            "content": f.data["content"],
+            "start_time": f.localize_start_time,  # Use the localized property
+            "end_time": f.localize_end_time,  # Use the localized property
+            "type": f.type.value,
+            "platform": f.platform.value,
+            "perm": f.perm.value,
+            "path": f.data.get("path"),
+            "content": f.data.get("content"),
         }
         for f in flags
     ]

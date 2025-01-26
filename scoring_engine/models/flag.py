@@ -65,12 +65,20 @@ class Flag(Base):
             "perm": self.perm.value,
         }
 
+    @property
+    def localize_start_time(self):
+        start_time_obj = pytz.timezone("UTC").localize(self.start_time)
+        return start_time_obj.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+
+    @property
+    def localize_end_time(self):
+        end_time_obj = pytz.timezone("UTC").localize(self.end_time)
+        return end_time_obj.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+
 
 class Solve(Base):
     __tablename__ = "flag_solves"
-    __table_args__ = (
-        UniqueConstraint("flag_id", "host", "team_id", name="_flag_host_team_uc"),
-    )
+    __table_args__ = (UniqueConstraint("flag_id", "host", "team_id", name="_flag_host_team_uc"),)
     id = Column(Integer, primary_key=True, autoincrement=True)
     host = Column(String(260), nullable=False)
     flag_id = Column(String(36), ForeignKey("flags.id"))
