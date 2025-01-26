@@ -1,5 +1,3 @@
-import bcrypt
-
 from flask_login import UserMixin
 
 from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
@@ -51,6 +49,8 @@ class User(Base, UserMixin):
         return self.username
 
     def check_password(self, password):
+        import bcrypt
+
         # this is due to some weird bug between rusty and I
         # where his env was returning a str, and mine were bytes
         if isinstance(password, str):
@@ -63,6 +63,8 @@ class User(Base, UserMixin):
 
     @staticmethod
     def generate_hash(password, salt=None):
+        import bcrypt
+
         if salt is None:
             salt = bcrypt.gensalt()
         elif isinstance(salt, str):
@@ -75,6 +77,8 @@ class User(Base, UserMixin):
         return bcrypt.hashpw(password, salt).decode("utf-8")
 
     def check_password(self, password):
+        import bcrypt
+
         """Check if provided password matches the hashed one"""
         return bcrypt.checkpw(password.encode("utf-8"), self.password.encode("utf-8"))
 
