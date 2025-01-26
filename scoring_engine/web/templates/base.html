@@ -71,6 +71,10 @@
               <li class="navbar-item {% if request.path == '/stats' %}active{% endif %}"><a class="nav-link"
                   href="{{ url_for('stats.home') }}">Stats</a></li>
               {% endif %}
+              {% if current_user.is_red_team or current_user.is_white_team %}
+              <li class="navbar-item {% if request.path == '/flags' %}active{% endif %}"><a class="nav-link"
+                  href="{{ url_for('flags.home') }}">Flags</a></li>
+              {% endif %}
               {% if current_user.is_white_team %}
               <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"
                   href="{{ url_for('admin.status') }}">Admin</a></li>

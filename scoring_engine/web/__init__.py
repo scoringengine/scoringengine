@@ -31,6 +31,7 @@ def create_app():
         overview,
         notifications,
         injects,
+        flags,
         auth,
         api,
         admin,
@@ -63,6 +64,7 @@ def create_app():
     app.register_blueprint(notifications.mod)
     app.register_blueprint(injects.mod)
     app.register_blueprint(auth.mod)
+    app.register_blueprint(flags.mod)
     app.register_blueprint(api.mod)
     app.register_blueprint(admin.mod)
     app.register_blueprint(about.mod)
