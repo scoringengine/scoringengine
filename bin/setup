@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
-from random import choice, randint
+from random import choice, randint, sample
 
 import optparse
 import os
@@ -10,6 +10,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
+from scoring_engine.models.flag import Flag, Solve
 
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
@@ -24,8 +25,6 @@ from scoring_engine.engine.basic_check import (
     CHECK_TIMED_OUT_TEXT,
 )
 
-from scoring_engine.web.views.api import notifications
-
 
 parser = optparse.OptionParser()
 parser.add_option("--overwrite-db", action="store_true", default=False)
@@ -37,28 +36,20 @@ options, arguments = parser.parse_args()
 # we have a check to see if the SCORINGENGINE_EXAMPLE environment
 # variable is true. If it is, we want to populate
 # the db with example data
-if (
-    "SCORINGENGINE_EXAMPLE" in os.environ
-    and os.environ["SCORINGENGINE_EXAMPLE"].lower() == "true"
-):
+if "SCORINGENGINE_EXAMPLE" in os.environ and os.environ["SCORINGENGINE_EXAMPLE"].lower() == "true":
     options.overwrite_db = True
     options.example = True
 
 # If the SCORINGENGINE_OVERWRITE_DB environment variable is set
 # we want to delete any previous data in the db
-if (
-    "SCORINGENGINE_OVERWRITE_DB" in os.environ
-    and os.environ["SCORINGENGINE_OVERWRITE_DB"].lower() == "true"
-):
+if "SCORINGENGINE_OVERWRITE_DB" in os.environ and os.environ["SCORINGENGINE_OVERWRITE_DB"].lower() == "true":
     options.overwrite_db = os.environ["SCORINGENGINE_OVERWRITE_DB"] == "true"
 
 logger.info("Starting Setup v.{0}".format(version))
 
 if not options.overwrite_db:
     if verify_db_ready(session):
-        logger.error(
-            "Exiting script and not overwriting db...must use --overwrite-db to overwrite data."
-        )
+        logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
     else:
         # Database doesn't exist, so continuing on to setup script
@@ -68,9 +59,7 @@ logger.info("Setting up DB")
 delete_db(session)
 init_db(session)
 
-competition_config_file = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "competition.yaml"
-)
+competition_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.yaml")
 sample_competition_str = open(competition_config_file, "r").read()
 competition = Competition.parse_yaml_str(sample_competition_str)
 competition.save(session)
@@ -162,9 +151,7 @@ session.add(Setting(name="blue_team_update_port", value=True))
 session.add(Setting(name="blue_team_update_account_usernames", value=True))
 session.add(Setting(name="blue_team_update_account_passwords", value=True))
 session.add(Setting(name="blue_team_view_check_output", value=True))
-session.add(
-    Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 3)
-)
+session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 3))
 session.add(Setting(name="agent_show_flag_early_mins", value=5))
 session.commit()
 
@@ -204,10 +191,8 @@ if options.example:
             scenario="You have the ring, take it to be destroyed!",
             deliverable="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.",
             score=100,
-            start_time=datetime.now()
-            - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
-            end_time=datetime.now()
-            + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+            start_time=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+            end_time=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
         )
         session.add(template)
 
@@ -249,3 +234,28 @@ if options.example:
         notification.team_id = choice(team_ids)
         session.add(notification)
         session.commit()
+
+    # Simulate Flags
+    num_flags = randint(10, 20)
+    logger.info("Simulating " + str(num_flags) + " Flags")
+    for _ in range(num_flags):
+        flag = Flag(
+            start_time=datetime.now() - timedelta(minutes=randint(0, 60)),
+            end_time=datetime.now() + timedelta(minutes=randint(0, 60)),
+        )
+        flag.platform = choice(["nix", "windows"])
+        flag.type = choice(["file", "pipe", "net", "reg"])
+        flag.perm = choice(["user", "root"])
+        flag.data = {"path": "/tmp/flag", "content": "hi"}
+        session.add(flag)
+        session.commit()
+
+        # Simulate Solves
+        for team_id in sample(team_ids, randint(1, len(team_ids))):
+            solve = Solve(
+                flag=flag,
+                host="127.0.0.1",
+                team_id=team_id,
+            )
+            session.add(solve)
+            session.commit()

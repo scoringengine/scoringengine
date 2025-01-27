@@ -15,7 +15,7 @@
         <table id="flags" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
             <thead>
                 <tr>
-                    <!-- <th>ID</th> -->
+                    <th>ID</th>
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Type</th>
@@ -27,21 +27,54 @@
             </thead>
         </table>
     </div>
+    <div class="row">
+        <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    {% for team in teams %}
+                    <th>{{ team.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+        </table>
+    </div>
 </div>
 <script>
-    $('#flags').DataTable( {
-        ajax: '/api/flags',
-        order: [[0, 'desc']],
+  $('#flags').DataTable( {
+      ajax: '/api/flags',
+      order: [[1, 'asc']],
+      columns: [
+        { data: 'id' },
+        { data: 'start_time' },
+        { data: 'end_time' },
+        { data: 'type' },
+        { data: 'platform' },
+        { data: 'perm' },
+        { data: 'path' },
+        { data: 'content' }
+      ],
+  } );
+</script>
+<script>
+    $("#solves").DataTable({
+        ajax: "/api/flags/solves", // API endpoint to fetch data
+        ordering: false,  // Disable ordering on all columns
         columns: [
-          // { data: 'id' },
-          { data: 'start_time' },
-          { data: 'end_time' },
-          { data: 'type' },
-          { data: 'platform' },
-          { data: 'perm' },
-          { data: 'path' },
-          { data: 'content' }
-        ],
-    } );
+            { data: 0, title: "ID" }, // First column for flag_id
+            {% for team in teams %}
+            { 
+                data: "{{ loop.index0 }}", // Accessing the index for each team column
+                title: "{{ team.name }}", 
+                render: function (data, type, row) {
+                    // Render checkmark for true, X for false
+                    return data 
+                        ? "<span class='glyphicon glyphicon-ok' style='color: green'></span>" 
+                        : "<span class='glyphicon glyphicon-remove' style='color: red'></span>";
+                }
+            },
+            {% endfor %}
+        ]
+    });
 </script>
 {% endblock %}
