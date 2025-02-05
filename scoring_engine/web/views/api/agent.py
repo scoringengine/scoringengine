@@ -1,9 +1,14 @@
-from flask import jsonify, request, abort
+from flask import request, make_response, abort
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func, exists
 from sqlalchemy.sql.expression import and_
 from datetime import datetime, timedelta
 from typing import Tuple
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
+from hashlib import sha256
+import json
+import os
 
 from scoring_engine.cache import cache
 from scoring_engine.db import session
@@ -17,61 +22,78 @@ from scoring_engine.models.setting import Setting
 from . import mod
 
 cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
+AESGCM_NONCE_LENGTH = 12
 
+class BtaPayloadEncryption:
+    def __init__(self, psk: str, team_name: str):
+        key = BtaPayloadEncryption.generate_key(psk, team_name)
+        self.crypto = AESGCM(key)
 
-@mod.route("/api/agent/flags")
-def agent_show_flags():
-    now = datetime.utcnow()
-    # show upcoming flags a little bit early so red team can plant them
-    # and implants that might stop checking in still get the next set of flags
-    early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
-    flags = session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time)).all()
-    return jsonify([flag.as_dict() for flag in flags])
+    def encrypt(self, msg: str | bytes) -> bytes:
+        if isinstance(msg, str):
+            msg = msg.encode()
+        nonce = os.urandom(AESGCM_NONCE_LENGTH)
+        return nonce + self.crypto.encrypt(nonce, msg, None)
 
+    def decrypt(self, msg: bytes) -> str:
+        nonce, msg = msg[:AESGCM_NONCE_LENGTH], msg[AESGCM_NONCE_LENGTH:]
+        return self.crypto.decrypt(nonce, msg, None).decode()
 
-@mod.route("/api/agent/checkin")
-def agent_checkin_get():
-    return do_checkin(*get_host_info())
+    def dumps(self, payload: dict) -> bytes:
+        return self.encrypt(json.dumps(payload))
+
+    def loads(self, payload: bytes) -> dict:
+        return json.loads(self.decrypt(payload))
+
+    @staticmethod
+    def generate_key(psk: str, team_name: str) -> bytes:
+        return sha256((team_name + psk).encode()).digest()
 
 
 @mod.route("/api/agent/checkin", methods=["POST"])
 def agent_checkin_post():
-    data = request.get_json()
-    team, host, platform = get_host_info()
-    flags = data.get("flags", [])
-    flags = session.query(Flag).filter(Flag.id.in_(flags)).all()
-    solves = [
-        Solve(
-            host=host,
-            team=team,
-            flag=flag,
-        )
-        for flag in flags
-    ]
-    session.add_all(solves)
-    return do_checkin(team, host, platform)
+    team_input = request.args.get("t", None)
+    if team_input is None:
+        abort(400)
 
-
-def get_host_info() -> Tuple[Team, str, Platform]:
+    psk = Setting.get_setting("agent_psk").value
+    crypter = BtaPayloadEncryption(psk, team_input)
     try:
-        team_input = request.args["team"]
-        host = request.args["host"]
-        platform = Platform(request.args["plat"])
-    except (ValueError, KeyError):
+      data = crypter.loads(request.get_data())
+    except InvalidTag:
+        # bad decryption
+        abort(417)
+
+    if data.get("team", None) != team_input:
+        abort(418)
+
+    team_input = data.get("team", None)
+    host = data.get("host", None)
+    platform = Platform(data.get("plat", None))
+
+    if team_input is None or host is None or platform is None:
         abort(400)
 
-    # Try to parse the team_input as an integer (ID)
-    if team_input.isdigit():
-        team: Team = session.query(Team).get(int(team_input))
-    else:
-        team: Team = session.query(Team).filter_by(name=team_input).first()
+    team = session.query(Team).filter_by(name=team_input).first()
 
-    if team is None or host is None:
-        abort(400)
-    if not team.is_blue_team:
+    if team is None or not team.is_blue_team:
         abort(400)
 
-    return team, host, platform
+    flags = data.get("flags", [])
+    if len(flags) > 0:
+        flags = session.query(Flag).filter(Flag.id.in_(flags)).all()
+        solves = [
+            Solve(
+                host=host,
+                team=team,
+                flag=flag,
+            )
+            for flag in flags
+        ]
+        session.add_all(solves)
+
+    result = do_checkin(team, host, platform)
+    return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
 
 
 def do_checkin(team, host, platform):
@@ -111,4 +133,4 @@ def do_checkin(team, host, platform):
         cache.set(host, res)
         # print(cache.get(host))
 
-    return jsonify(res)
+    return res

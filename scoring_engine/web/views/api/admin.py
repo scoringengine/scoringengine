@@ -107,42 +107,6 @@ def admin_update_check():
     return jsonify({"error": "Incorrect permissions"})
 
 
-@mod.route("/api/admin/update_host", methods=["POST"])
-@login_required
-def admin_update_host():
-    if current_user.is_white_team:
-        if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
-            if service:
-                if request.form["name"] == "host":
-                    service.host = html.escape(request.form["value"])
-                    session.add(service)
-                    session.commit()
-                    update_overview_data()
-                    update_services_data(service.team.id)
-                    update_service_data(service.id)
-                    return jsonify({"status": "Updated Service Information"})
-    return jsonify({"error": "Incorrect permissions"})
-
-
-@mod.route("/api/admin/update_port", methods=["POST"])
-@login_required
-def admin_update_port():
-    if current_user.is_white_team:
-        if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
-            if service:
-                if request.form["name"] == "port":
-                    service.port = int(request.form["value"])
-                    session.add(service)
-                    session.commit()
-                    update_overview_data()
-                    update_services_data(service.team.id)
-                    update_service_data(service.id)
-                    return jsonify({"status": "Updated Service Information"})
-    return jsonify({"error": "Incorrect permissions"})
-
-
 @mod.route("/api/admin/update_worker_queue", methods=["POST"])
 @login_required
 def admin_update_worker_queue():
