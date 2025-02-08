@@ -219,8 +219,8 @@ class Engine(object):
                 logger.info("Determining check results and saving to db")
                 round_obj = Round(number=self.current_round)
                 cleanup_items.append(round_obj)
-                self.session.add(round_obj)
-                self.session.commit()
+                # self.session.add(round_obj)
+                # self.session.commit()
 
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
@@ -265,7 +265,10 @@ class Engine(object):
 
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
+                    round_obj.checks.append(finished_check)  # Ensure proper association
                     self.session.add(finished_check)
+
+                self.session.flush()  # Ensure all changes are synchronized
                 self.session.commit()
 
             except Exception as e:
