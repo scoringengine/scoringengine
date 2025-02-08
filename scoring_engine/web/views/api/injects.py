@@ -97,7 +97,7 @@ def api_injects_file_upload(inject_id):
         session.commit()
 
         # Delete file cache for inject
-        cache.delete(f"/api/inject/{inject_id}/files_{g.user.id}_{g.user.team.id}")
+        cache.delete(f"/api/inject/{inject_id}/files_{g.user.team.id}")
 
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
@@ -178,7 +178,7 @@ def api_inject_add_comment(inject_id):
     session.commit()
 
     # Delete comment cache for inject
-    cache.delete(f"/api/inject/{inject_id}/comment_{g.user.id}_{g.user.team.id}")
+    cache.delete(f"/api/inject/{inject_id}/comment_{g.user.team.id}")
 
     return jsonify({"status": "Comment added"}), 200
 
