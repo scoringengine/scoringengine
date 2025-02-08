@@ -95,4 +95,7 @@ USER engine
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
 
-CMD ["./wait-for-port.sh", "redis:6379", "Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker"]
+# Xvfb is a virtual X server which tricks freerdp2
+# into thinking it has a screen. This is used for
+# RDP scorechecks.
+CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker
