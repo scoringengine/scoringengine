@@ -12,7 +12,7 @@ def make_cache_key(*args, **kwargs):
     team_id = g.user.team.id  # Assuming g.user.team is available
 
     # Return a unique key based on the function name and user/team information
-    return f"{request_path}_{team_id}_{user_id}"  # TODO - Can probably drop user_id here
+    return f"{request_path}_{team_id}"
 
 
 mod = Blueprint("api", __name__)
