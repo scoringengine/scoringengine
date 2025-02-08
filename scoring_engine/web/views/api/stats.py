@@ -3,7 +3,7 @@ from flask import request, jsonify
 from flask_login import current_user, login_required
 from functools import wraps
 from sqlalchemy import desc
-from sqlalchemy.sql import func
+from sqlalchemy.sql import case, func
 
 import html
 import pytz
@@ -39,31 +39,20 @@ def api_stats():
         # TODO - There has to be a better way to subquery this...
         last_round = Round.get_last_round_num()
         res = (
-            session.query(Check.round_id, func.min(Check.completed_timestamp), func.max(Check.completed_timestamp))
-            .filter(Check.round_id <= last_round)
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
+            session.query(
+                Round.id.label("round_id"),
+                Round.round_start,
+                Round.round_end,
+                func.sum(case([(Check.result == True, 1)], else_=0)).label("num_successful_checks"),
+                func.sum(case([(Check.result == False, 1)], else_=0)).label("num_unsuccessful_checks"),
+            )
+            .outerjoin(Check, Round.id == Check.round_id)
+            .join(Service, Check.service_id == Service.id)  # Ensure checks are linked to services
+            .filter(Round.id <= last_round)
+            .filter(Service.team_id == team.id)  # Limit results to the specified team
+            .group_by(Round.id, Round.round_start, Round.round_end)
+            .order_by(Round.id.desc())
             .all()
-        )
-        num_up_services = defaultdict(
-            int,
-            session.query(Check.round_id, func.count(Check.round_id))
-            .join(Service)
-            .filter(Check.result.is_(True))
-            .filter(Service.team_id == team.id)
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
-            .all(),
-        )
-        num_down_services = defaultdict(
-            int,
-            session.query(Check.round_id, func.count(Check.round_id))
-            .join(Service)
-            .filter(Check.result.is_(False))
-            .filter(Service.team_id == team.id)
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
-            .all(),
         )
 
         for row in res:
@@ -73,8 +62,8 @@ def api_stats():
                     "start_time": row[1].astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "end_time": row[2].astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "total_seconds": (row[2] - row[1]).seconds,
-                    "num_up_services": num_up_services[row[0]],
-                    "num_down_services": num_down_services[row[0]],
+                    "num_up_services": row[3],
+                    "num_down_services": row[4],
                 }
             )
         return jsonify(data=stats)
@@ -85,27 +74,18 @@ def api_stats():
         # session.query(Round.id, func.count(Check.result)).join(Check).join(Service).filter(Check.result.is_(False)).group_by(Round.id).all()
         last_round = Round.get_last_round_num()
         res = (
-            session.query(Check.round_id, func.min(Check.completed_timestamp), func.max(Check.completed_timestamp))
-            .filter(Check.round_id <= last_round)
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
+            session.query(
+                Round.id.label("round_id"),
+                Round.round_start,
+                Round.round_end,
+                func.sum(case([(Check.result == True, 1)], else_=0)).label("num_successful_checks"),
+                func.sum(case([(Check.result == False, 1)], else_=0)).label("num_unsuccessful_checks"),
+            )
+            .outerjoin(Check, Round.id == Check.round_id)  # Include all rounds even if no checks are present
+            .filter(Round.id <= last_round)
+            .group_by(Round.id, Round.round_start, Round.round_end)
+            .order_by(desc(Round.id))
             .all()
-        )
-        num_up_services = defaultdict(
-            int,
-            session.query(Check.round_id, func.count(Check.round_id))
-            .filter(Check.result.is_(True))
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
-            .all(),
-        )
-        num_down_services = defaultdict(
-            int,
-            session.query(Check.round_id, func.count(Check.round_id))
-            .filter(Check.result.is_(False))
-            .group_by(Check.round_id)
-            .order_by(desc(Check.round_id))
-            .all(),
         )
 
         for row in res:
@@ -115,8 +95,8 @@ def api_stats():
                     "start_time": row[1].astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "end_time": row[2].astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "total_seconds": (row[2] - row[1]).seconds,
-                    "num_up_services": num_up_services[row[0]],
-                    "num_down_services": num_down_services[row[0]],
+                    "num_up_services": row[3],
+                    "num_down_services": row[4],
                 }
             )
         return jsonify(data=stats)
