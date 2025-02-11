@@ -33,7 +33,11 @@ def services_get_team_data(team_id):
 @cache.cached(make_cache_key=make_cache_key)
 def api_services(team_id):
     team = session.query(Team).get(team_id)
-    if team is None or not current_user.team == team or not current_user.is_blue_team:
+    if current_user.is_blue_team is False and current_user.is_white_team is False:
+        return {"status": "Unauthorized"}, 403
+    if team is None:
+        return {"status": "Unauthorized"}, 403
+    if not current_user.team == team and current_user.is_white_team is False:
         return {"status": "Unauthorized"}, 403
 
     data = []
