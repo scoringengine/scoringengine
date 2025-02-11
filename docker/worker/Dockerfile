@@ -85,7 +85,6 @@ RUN pip install -I "telnetlib3==1.0.1"
 # Playwright-based advanced web checks
 RUN pip install -I "pytest-playwright==0.6.2"
 RUN playwright install-deps
-RUN playwright install chromium
 
 # OpenVPN Check
 RUN apt-get install -y openvpn iproute2 sudo
@@ -99,6 +98,7 @@ USER engine
 
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
+RUN playwright install chromium
 
 # Xvfb is a virtual X server which tricks freerdp2
 # into thinking it has a screen. This is used for

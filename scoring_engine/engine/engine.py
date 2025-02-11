@@ -217,7 +217,9 @@ class Engine(object):
                 logger.info("All jobs have finished for this round")
 
                 logger.info("Determining check results and saving to db")
-                round_obj = Round(number=self.current_round)
+                round_obj = Round(round_start=round_start_time, number=self.current_round)
+                round_end_time = datetime.now()
+                round_obj.round_end = round_end_time
                 cleanup_items.append(round_obj)
                 self.session.add(round_obj)
                 self.session.commit()
@@ -284,7 +286,7 @@ class Engine(object):
                 sys.exit(1)
 
             logger.info("Finished Round " + str(self.current_round))
-            logger.info("Round Duration " + str((datetime.now() - round_start_time).seconds) + " seconds")
+            logger.info("Round Duration " + str((round_end_time - round_start_time).seconds) + " seconds")
             logger.info("Round Stats:")
             for team_name in sorted(teams):
                 stat_string = " " + team_name
