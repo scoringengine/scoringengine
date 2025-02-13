@@ -160,7 +160,13 @@ if options.example:
     num_rounds = randint(200, 250)
     logger.info("Simulating " + str(num_rounds) + " rounds")
     for num_round in range(1, num_rounds + 1):
-        round_obj = Round(number=num_round)
+        round_obj = Round(
+            number=num_round,
+            round_start=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+            round_end=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+        )
+        print(f"{(round_obj.round_start - round_obj.round_end).seconds}")
+        # session.add(round_obj)
         services = session.query(Service).all()
         for service in services:
             output = ""
