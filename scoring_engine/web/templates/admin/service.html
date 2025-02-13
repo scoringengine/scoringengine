@@ -62,10 +62,10 @@
   <tr>
     <td style="width: 250px; padding-right: 30px;">
       <h4>Host: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host"
-          data-name="host" data-url="{{url_for('api.admin_update_host')}}">{{service.host}}</a></h4>
+          data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a></h4>
       <h4>Port: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
           data-title="Enter Port Number" data-name="port"
-          data-url="{{url_for('api.admin_update_port')}}">{{service.port}}</a></h4>
+          data-url="{{url_for('api.update_port')}}">{{service.port}}</a></h4>
 
       <h4>Accounts</h4>
       {% if service.accounts %}

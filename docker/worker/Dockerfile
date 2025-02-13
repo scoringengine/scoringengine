@@ -73,7 +73,7 @@ RUN \
     unixodbc-dev
 
 # RDP Check
-RUN apt-get install -y freerdp2-x11
+RUN apt-get install -y freerdp2-x11 xvfb
 
 # NFS Check
 RUN apt-get install -y libnfs-dev
@@ -81,6 +81,10 @@ RUN pip install -I "libnfs==1.0.post4"
 
 # Telnet Check
 RUN pip install -I "telnetlib3==1.0.1"
+
+# Playwright-based advanced web checks
+RUN pip install -I "pytest-playwright==0.6.2"
+RUN playwright install-deps
 
 # OpenVPN Check
 RUN apt-get install -y openvpn iproute2 sudo
@@ -94,5 +98,9 @@ USER engine
 
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
+RUN playwright install chromium
 
-CMD ["./wait-for-port.sh", "redis:6379", "/app/bin/worker"]
+# Xvfb is a virtual X server which tricks freerdp2
+# into thinking it has a screen. This is used for
+# RDP scorechecks.
+CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker
