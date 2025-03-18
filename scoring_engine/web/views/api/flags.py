@@ -1,6 +1,6 @@
 from flask import jsonify
 from flask_login import current_user, login_required
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.sql.expression import and_, or_
 
 from scoring_engine.cache import cache
@@ -87,3 +87,75 @@ def api_flags_solves():
         rows.append(new_row)
 
     return jsonify(data={"columns": columns, "rows": rows})
+
+@mod.route("/api/flags/totals")
+@login_required
+@cache.cached(make_cache_key=make_cache_key)
+def api_flags_totals():
+    if not current_user.is_red_team and not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    totals = {}  # [ Team0, Win Score, Nix Score ]
+    blue_teams = ( session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all() )
+    for blue_team in blue_teams:
+        totals[blue_team.name] = [blue_team.name, 0, 0]
+
+    for platform in ["win", "nix"]:
+        # Subquery 1: Determine permission level
+        subquery1 = (
+            session.query(
+                Solve.team_id,
+                Flag.platform,
+                Solve.host,
+                func.if_(
+                    func.group_concat(func.distinct(Flag.perm), ',') == "user,root",
+                    "root",
+                    func.group_concat(func.distinct(Flag.perm))
+                ).label("level")
+            )
+            .join(Flag, Flag.id == Solve.flag_id)
+            .filter(Flag.platform.like(platform))
+            .group_by(Solve.team_id, Flag.platform, Solve.host, Flag.start_time)
+            .subquery()
+        )
+        
+        # Subquery 2: Compute red_amt based on level
+        subquery2 = (
+            session.query(
+                (subquery1.c.team_id).label("BlueTeamId"),
+                case(
+                    (subquery1.c.level.like("user"), 0.5 * func.count()),
+                    else_=1 * func.count()
+                ).label("red_amt")
+            )
+            .group_by(subquery1.c.team_id, subquery1.c.level)
+            .order_by(subquery1.c.team_id, subquery1.c.level.desc())
+            .subquery()
+        )
+        
+        # Final Query: Sum red_amt per BlueTeamId
+        final_query = (
+            session.query(
+                Team.name.label("BlueTeam"),
+                func.sum(subquery2.c.red_amt).label("RedScore")
+            )
+            .join(Team, subquery2.c.BlueTeamId == Team.id)
+            .group_by(subquery2.c.BlueTeamId)
+            .order_by(func.sum(subquery2.c.red_amt))
+        )
+        
+        # Execute Query
+        results = final_query.all()
+        
+        # Print Results
+        for row in results:
+            if platform == "win":
+                totals[row.BlueTeam][1] = row.RedScore
+            elif platform == "nix":
+                totals[row.BlueTeam][2] = row.RedScore
+
+    data = []
+    for team in totals.values():
+        data.append({"team": team[0], "win_score": team[1], "nix_score": team[2], "total_score": team[1] + team[2]})
+
+    return jsonify(data=data)
