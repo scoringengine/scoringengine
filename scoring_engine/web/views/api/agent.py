@@ -84,7 +84,7 @@ def agent_checkin_post():
         flags = session.query(Flag).filter(
                 and_(
                     Flag.id.in_(flags),
-                    dummy == False
+                    Flag.dummy == False
                 )
             ).all()
         solves = [
