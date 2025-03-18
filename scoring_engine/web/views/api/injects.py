@@ -82,8 +82,8 @@ def api_injects_file_upload(inject_id):
 
     files = request.files.getlist("file")
     for file in files:
-        filename = secure_filename(file.filename)
-        path = os.path.join(config.upload_folder, current_user.team.name)
+        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + secure_filename(file.filename)
+        path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -215,7 +215,7 @@ def api_inject_download(inject_id, file_id):
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403
 
-    path = os.path.join(config.upload_folder, inject.team.name, file.name)
+    path = os.path.join(config.upload_folder, inject_id, inject.team.name, file.name)
     print(path)
     try:
         return send_file(path, as_attachment=True)
