@@ -244,6 +244,7 @@ if options.example:
             end_time=datetime.now() + timedelta(minutes=randint(0, 60)),
         )
         flag.platform = choice(["nix", "windows"])
+        flag.dummy = choice([False, True])
         flag.type = choice(["file", "pipe", "net", "reg"])
         flag.perm = choice(["user", "root"])
         flag.data = {"path": "/tmp/flag", "content": "hi"}

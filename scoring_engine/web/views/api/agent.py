@@ -81,7 +81,12 @@ def agent_checkin_post():
 
     flags = data.get("flags", [])
     if len(flags) > 0:
-        flags = session.query(Flag).filter(Flag.id.in_(flags)).all()
+        flags = session.query(Flag).filter(
+                and_(
+                    Flag.id.in_(flags),
+                    dummy == False
+                )
+            ).all()
         solves = [
             Solve(
                 host=host,

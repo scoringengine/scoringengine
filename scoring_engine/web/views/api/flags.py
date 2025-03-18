@@ -25,7 +25,7 @@ def api_flags():
     now = datetime.utcnow()
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     flags = (
-        session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time)).order_by(Flag.start_time).all()
+        session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     )
 
     # Serialize flags and include localized times
@@ -56,11 +56,11 @@ def api_flags_solves():
     # Get all flags and teams
     now = datetime.utcnow()
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
-    active_flags = session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time)).order_by(Flag.start_time).all()
+    active_flags = session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     active_flag_ids = [flag.id for flag in active_flags]
 
     # Flag Solve Status
-    all_hosts = session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id)).filter(or_(Solve.flag_id.in_(active_flag_ids), Solve.host.is_(None))).join(Flag, or_(Flag.id == Solve.flag_id, Solve.flag_id == None)).join(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
+    all_hosts = session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id)).filter(or_(Solve.flag_id.in_(active_flag_ids), Solve.host.is_(None))).outerjoin(Flag, Flag.id == Solve.flag_id).join(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
 
     data = {}
     rows = []
