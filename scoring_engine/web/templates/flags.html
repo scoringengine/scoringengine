@@ -79,7 +79,7 @@ $(document).ready(function() {
                 data: response.data.rows, 
 		scrollX: true,
                 columns: response.data.columns.map(col => ({
-		    title: col.replace("BTA ", "").replace("BTA", ""),
+		    title: col.replace("_BTA ", ""),
 		    render: function (data, type, row) {
 			// Render fire for true pwn, gray minus for false/no pwn
 			if(typeof data === "string") {
