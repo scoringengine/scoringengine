@@ -25,7 +25,7 @@ def is_valid_user_input(string, only_alphanumberdot, only_number):
     elif only_number:
         regex = r"^[0-9]+$"
     else:
-        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\); ]+$"
+        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$"
         if string.startswith(" ") or string.endswith(" "):
             return False
     return bool(re.match(regex, string))
