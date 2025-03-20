@@ -55,12 +55,11 @@ def api_flags_solves():
 
     # Get all flags and teams
     now = datetime.utcnow()
-    early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
-    active_flags = session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
+    active_flags = session.query(Flag).filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     active_flag_ids = [flag.id for flag in active_flags]
 
     # Flag Solve Status
-    all_hosts = session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id)).filter(or_(Solve.flag_id.in_(active_flag_ids), Solve.host.is_(None))).outerjoin(Flag, Flag.id == Solve.flag_id).join(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
+    all_hosts = session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id, Solve.flag_id.in_(active_flag_ids))).outerjoin(Flag, Flag.id == Solve.flag_id).outerjoin(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
 
     data = {}
     rows = []
@@ -74,7 +73,7 @@ def api_flags_solves():
         if not data[item.team_name].get(item.service_name):
             data[item.team_name][item.service_name] = [0, 0]
         if item.solve_id:
-            if (item.flag_platform.value == "win" and item.port == 0) or (item.flag_platform.value == "nix" and item.port == 1): # windows flags have port 0, nix have port 1
+            if (item.flag_platform.value == "windows" and item.port == 0) or (item.flag_platform.value == "nix" and item.port == 1): # windows flags have port 0, nix have port 1
                 if item.flag_perm.value == "user":
                     data[item.team_name][item.service_name][0] = 1
                 else:
@@ -100,7 +99,7 @@ def api_flags_totals():
     for blue_team in blue_teams:
         totals[blue_team.name] = [blue_team.name, 0, 0]
 
-    for platform in ["win", "nix"]:
+    for platform in ["windows", "nix"]:
         # Subquery 1: Determine permission level
         subquery1 = (
             session.query(
@@ -149,7 +148,7 @@ def api_flags_totals():
         
         # Print Results
         for row in results:
-            if platform == "win":
+            if platform == "windows":
                 totals[row.BlueTeam][1] = row.RedScore
             elif platform == "nix":
                 totals[row.BlueTeam][2] = row.RedScore

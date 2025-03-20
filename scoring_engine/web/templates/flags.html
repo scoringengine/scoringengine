@@ -84,7 +84,7 @@ $(document).ready(function() {
 			// Render fire for true pwn, gray minus for false/no pwn
 			if(typeof data === "string") {
 			    return data;
-			} else {
+			} else if (Array.isArray(data)) {
 			    if(data[1] == 1) { 
 			        return "<span class='glyphicon glyphicon-fire' style='color: red'></span>";i
 			    } else if(data[0] == 1) {
