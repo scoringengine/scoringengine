@@ -5,7 +5,7 @@
 import sys
 import datetime
 
-from scoring_engine.cache import cache
+from scoring_engine.cache import agent_cache as cache
 from flask import Flask
 
 app = Flask(__name__)

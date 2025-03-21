@@ -10,7 +10,7 @@ from hashlib import sha256
 import json
 import os
 
-from scoring_engine.cache import cache
+from scoring_engine.cache import agent_cache as cache
 from scoring_engine.db import session
 from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
