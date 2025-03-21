@@ -130,12 +130,22 @@ def do_checkin(team, host, platform):
         "timestamp": int(datetime.utcnow().timestamp()),
     }
 
+    res_cache = {
+        "config": {
+            "checkin_interval": {
+                "secs": int(Setting.get_setting("agent_checkin_interval_sec").value),
+                "nanos": 0,
+            }
+        },
+        "timestamp": int(datetime.utcnow().timestamp()),
+    }
+
     # TODO - this is a gross dev hack
     if cache.config["CACHE_TYPE"] == "null":
         cache_dict[host] = now
         # print(cache_dict)
     else:
-        cache.set(host, res)
+        cache.set(host, res_cache)
         # print(cache.get(host))
 
     return res
