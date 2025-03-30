@@ -73,11 +73,10 @@ def api_flags_solves():
         if not data[item.team_name].get(item.service_name):
             data[item.team_name][item.service_name] = [0, 0]
         if item.solve_id:
-            if (item.flag_platform.value == "windows" and item.port == 0) or (item.flag_platform.value == "nix" and item.port == 1): # windows flags have port 0, nix have port 1
-                if item.flag_perm.value == "user":
-                    data[item.team_name][item.service_name][0] = 1
-                else:
-                    data[item.team_name][item.service_name][1] = 1
+            if item.flag_perm.value == "user":
+                data[item.team_name][item.service_name][0] = 1
+            else:
+                data[item.team_name][item.service_name][1] = 1
 
     for key, val in data.items():
         new_row = [key]
