@@ -7,6 +7,7 @@ import sys
 import ftplib
 import tempfile
 import os
+import traceback
 
 if len(sys.argv) != 7:
     print("Usage: " + sys.argv[0] + " host port username password remotefilepath filecontents")
@@ -26,10 +27,18 @@ session.login(username, password)
 tmp_fd, tmp_filename = tempfile.mkstemp(text=True)
 with open(tmp_filename, 'w') as fobj:
     fobj.write(upload_file_contents)
-upload_response_text = session.storlines('STOR {0}'.format(remote_filepath), open(tmp_filename, 'rb'))
-session.quit()
-session.close()
-os.remove(tmp_filename)
+upload_response_text = None
+try:
+    upload_response_text = session.storlines('STOR {0}'.format(remote_filepath), open(tmp_filename, 'rb'))
+except:
+    print(f"ERROR: Failed to upload to remote path '{remote_filepath}'")
+    print("Check if the directory exists and if write permissions are set.")
+    traceback.print_exc()
+    sys.exit(1)
+finally:
+    session.quit()
+    session.close()
+    os.remove(tmp_filename)
 
 # Success code is 226
 if not upload_response_text.startswith('226'):
@@ -42,9 +51,17 @@ session = ftplib.FTP()
 session.connect(host=host, port=int(port))
 session.login(username, password)
 downloaded_lines = []
-download_response_text = session.retrlines('RETR {0}'.format(remote_filepath), downloaded_lines.append)
-session.quit()
-session.close()
+download_response_text = None
+try:
+    download_response_text = session.retrlines('RETR {0}'.format(remote_filepath), downloaded_lines.append)
+except:
+    print(f"ERROR: Failed to download from remote path '{remote_filepath}'")
+    print("Check if the directory exists and if read permissions are set.")
+    traceback.print_exc()
+    sys.exit(1)
+finally:
+    session.quit()
+    session.close()
 
 # Success code is 226
 if not download_response_text.startswith('226'):
