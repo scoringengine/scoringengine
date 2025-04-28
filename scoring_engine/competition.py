@@ -221,6 +221,7 @@ class Competition(dict):
                                 db_session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
             db_session.commit()
         for flag in self["flags"]:
+            dummy_val = flag.get("dummy", False)
             start = flag.get("start_time", None)
             end = flag.get("end_time", None)
             if not start:
@@ -233,7 +234,8 @@ class Competition(dict):
                 data=flag["data"],
                 start_time=parse(start),
                 end_time=parse(end),
-                perm=flag["perm"]
+                perm=flag["perm"],
+                dummy=dummy_val
             )
             db_session.add(f)
         db_session.commit()

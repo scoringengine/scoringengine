@@ -23,6 +23,11 @@
       type: 'text',
       validate: function (value) {
         if ($.trim(value) == '') return 'This field is required';
+	if (value.startsWith(" ") || value.endsWith(" ")) return "Input cannot start or end with a space";
+	if (/^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$/.test(value) == false) return "Invalid characters detected in input. Allowed characters are AlphaNumeric and any of . , @ = : / - | ( ) ;";
+      },
+      success: function(response) {
+	if(response.error) return "Unable to update value due to error: " + response.error;
       }
     });
 
@@ -62,10 +67,10 @@
   <tr>
     <td style="width: 250px; padding-right: 30px;">
       <h4>Host: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host"
-          data-name="host" data-url="{{url_for('api.admin_update_host')}}">{{service.host}}</a></h4>
+          data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a></h4>
       <h4>Port: <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
           data-title="Enter Port Number" data-name="port"
-          data-url="{{url_for('api.admin_update_port')}}">{{service.port}}</a></h4>
+          data-url="{{url_for('api.update_port')}}">{{service.port}}</a></h4>
 
       <h4>Accounts</h4>
       {% if service.accounts %}

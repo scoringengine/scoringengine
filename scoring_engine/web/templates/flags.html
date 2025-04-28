@@ -9,7 +9,7 @@
 {% block content %}
 <div class="container-fluid md-page">
     <div class="row">
-        <h2 class="text-center">Flags</h2>
+        <h2 class="text-center">Active Flags</h2>
     </div>
     <div class="row">
         <table id="flags" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
@@ -28,13 +28,27 @@
         </table>
     </div>
     <div class="row">
+        <h2 class="text-center">Capture Status for Active Flags</h2>
+	<h5 class="text-center"><span class='glyphicon glyphicon-minus' style='color: gray'></span> means no capture; <span class='glyphicon glyphicon-user' style='color: blue'></span> means user level capture; and <span class='glyphicon glyphicon-fire' style='color: red'></span> means root level capture</h5>
+    </div>
+    <div class="row">
         <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    {% for team in teams %}
-                    <th>{{ team.name }}</th>
-                    {% endfor %}
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="row">
+        <h2 class="text-center">Competition Flag Capture Stats</h2>
+	<h5 class="text-center">A lower score means the team is doing better</h5>
+        <table id="totals" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Team</th>
+                    <th>Windows Score</th>
+                    <th>nix Score</th>
+                    <th>Total Score</th>
                 </tr>
             </thead>
         </table>
@@ -57,24 +71,49 @@
   } );
 </script>
 <script>
-    $("#solves").DataTable({
-        ajax: "/api/flags/solves", // API endpoint to fetch data
-        ordering: false,  // Disable ordering on all columns
-        columns: [
-            { data: 0, title: "ID" }, // First column for flag_id
-            {% for team in teams %}
-            { 
-                data: "{{ loop.index0 }}", // Accessing the index for each team column
-                title: "{{ team.name }}", 
-                render: function (data, type, row) {
-                    // Render checkmark for true, X for false
-                    return data 
-                        ? "<span class='glyphicon glyphicon-ok' style='color: green'></span>" 
-                        : "<span class='glyphicon glyphicon-remove' style='color: red'></span>";
-                }
-            },
-            {% endfor %}
-        ]
+$(document).ready(function() {
+    $.ajax({
+        url: '/api/flags/solves',  // API endpoint to fetch data
+        success: function(response) {
+            $('#solves').DataTable({
+                data: response.data.rows, 
+		scrollX: true,
+                columns: response.data.columns.map(col => ({
+		    title: col.replace("_BTA ", ""),
+		    render: function (data, type, row) {
+			// Render fire for true pwn, gray minus for false/no pwn
+			if(typeof data === "string") {
+			    return data;
+			} else if (Array.isArray(data)) {
+			    if(data[1] == 1) { 
+			        return "<span class='glyphicon glyphicon-fire' style='color: red'></span>";i
+			    } else if(data[0] == 1) {
+			        return "<span class='glyphicon glyphicon-user' style='color: blue'></span>";
+		            } else {
+			        return "<span class='glyphicon glyphicon-minus' style='color: gray'></span>";
+			    }
+			}
+                    }
+		})), 
+                ordering: false,  // Disable ordering on all columns
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching data:', error);
+        }
     });
+});
+</script>
+<script>
+  $('#totals').DataTable( {
+      ajax: '/api/flags/totals',
+      order: [[1, 'asc']],
+      columns: [
+        { data: 'team' },
+        { data: 'win_score' },
+        { data: 'nix_score' },
+        { data: 'total_score' }
+      ],
+  } );
 </script>
 {% endblock %}

@@ -11,11 +11,6 @@ import pytz
 from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import session
-from scoring_engine.cache_helper import (
-    update_overview_data,
-    update_services_data,
-    update_service_data,
-)
 from scoring_engine.models.account import Account
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
@@ -43,8 +38,8 @@ def api_stats():
                 Round.id.label("round_id"),
                 Round.round_start,
                 Round.round_end,
-                func.sum(case([(Check.result == True, 1)], else_=0)).label("num_successful_checks"),
-                func.sum(case([(Check.result == False, 1)], else_=0)).label("num_unsuccessful_checks"),
+                func.sum(case((Check.result == True, 1), else_=0)).label("num_successful_checks"),
+                func.sum(case((Check.result == False, 1), else_=0)).label("num_unsuccessful_checks"),
             )
             .outerjoin(Check, Round.id == Check.round_id)
             .join(Service, Check.service_id == Service.id)  # Ensure checks are linked to services
@@ -77,8 +72,8 @@ def api_stats():
                 Round.id.label("round_id"),
                 Round.round_start,
                 Round.round_end,
-                func.sum(case([(Check.result == True, 1)], else_=0)).label("num_successful_checks"),
-                func.sum(case([(Check.result == False, 1)], else_=0)).label("num_unsuccessful_checks"),
+                func.sum(case((Check.result == True, 1), else_=0)).label("num_successful_checks"),
+                func.sum(case((Check.result == False, 1), else_=0)).label("num_unsuccessful_checks"),
             )
             .outerjoin(Check, Round.id == Check.round_id)  # Include all rounds even if no checks are present
             .filter(Round.id <= last_round)

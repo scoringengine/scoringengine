@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column,
     Enum,
     Integer,
+    Boolean,
     PickleType,
     DateTime,
     String,
@@ -53,6 +54,7 @@ class Flag(Base):
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
     perm = Column(Enum(Perm), nullable=False)
+    dummy = Column(Boolean, nullable=False, default=False)
 
     def as_dict(self) -> dict:
         return {
@@ -63,6 +65,7 @@ class Flag(Base):
             "start_time": int(self.start_time.astimezone(pytz.utc).timestamp()),
             "end_time": int(self.end_time.astimezone(pytz.utc).timestamp()),
             "perm": self.perm.value,
+            "dummy": self.dummy,
         }
 
     @property

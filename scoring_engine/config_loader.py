@@ -24,6 +24,15 @@ class ConfigLoader(object):
             "target_round_time", int(self.parser["OPTIONS"]["target_round_time"]), "int"
         )
 
+        self.agent_psk = self.parse_sources(
+            "agent_psk",
+            self.parser["OPTIONS"]["agent_psk"],
+        )
+
+        self.agent_show_flag_early_mins = self.parse_sources(
+            "agent_show_flag_early_mins", int(self.parser["OPTIONS"]["agent_show_flag_early_mins"]), "int"
+        )
+
         self.worker_refresh_time = self.parse_sources(
             "worker_refresh_time",
             int(self.parser["OPTIONS"]["worker_refresh_time"]),
@@ -46,6 +55,36 @@ class ConfigLoader(object):
             "worker_num_concurrent_tasks",
             int(self.parser["OPTIONS"]["worker_num_concurrent_tasks"]),
             "int",
+        )
+
+        self.blue_team_update_hostname = self.parse_sources(
+            "blue_team_update_hostname",
+            self.parser["OPTIONS"]["blue_team_update_hostname"].lower() == "true",
+            "bool",
+        )
+
+        self.blue_team_update_port = self.parse_sources(
+            "blue_team_update_port",
+            self.parser["OPTIONS"]["blue_team_update_port"].lower() == "true",
+            "bool",
+        )
+
+        self.blue_team_update_account_usernames = self.parse_sources(
+            "blue_team_update_account_usernames",
+            self.parser["OPTIONS"]["blue_team_update_account_usernames"].lower() == "true",
+            "bool",
+        )
+
+        self.blue_team_update_account_passwords = self.parse_sources(
+            "blue_team_update_account_passwords",
+            self.parser["OPTIONS"]["blue_team_update_account_passwords"].lower() == "true",
+            "bool",
+        )
+
+        self.blue_team_view_check_output = self.parse_sources(
+            "blue_team_view_check_output",
+            self.parser["OPTIONS"]["blue_team_view_check_output"].lower() == "true",
+            "bool",
         )
 
         self.worker_queue = self.parse_sources(
