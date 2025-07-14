@@ -4,3 +4,4 @@ coveralls==3.3.1
 flake8==7.2.0
 mock==5.1.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
 pytest==7.4.2
+urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
