@@ -120,11 +120,12 @@ class ConfigLoader(object):
         """
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
+            env_val = os.environ[environment_key]
             if obj_type.lower() == "int":
-                return int(os.environ[environment_key])
+                return int(env_val)
             elif obj_type.lower() == "bool":
-                return os.environ[environment_key].lower() == "true"
+                return env_val.lower() in ("true", "1", "yes")
             else:
-                return os.environ[environment_key]
+                return env_val
         else:
             return default_value
