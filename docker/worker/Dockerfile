@@ -73,7 +73,9 @@ RUN \
     unixodbc-dev
 
 # RDP Check
-RUN apt-get install -y freerdp2-x11
+# freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
+RUN apt-get update && \
+    (apt-get install -y freerdp2-x11 || apt-get install -y freerdp3-x11)
 
 # NFS Check
 RUN apt-get install -y libnfs-dev

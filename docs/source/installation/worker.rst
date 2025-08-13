@@ -91,7 +91,8 @@ Install dependencies for RDP check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  apt-get install -y freerdp-x11
+  # Package name changed in newer distributions
+  apt-get install -y freerdp2-x11 || apt-get install -y freerdp3-x11
 
 Install dependencies for MSSQL check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
