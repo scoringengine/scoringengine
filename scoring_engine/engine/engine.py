@@ -1,3 +1,11 @@
+"""Core execution loop for the scoring engine.
+
+This module coordinates the loading of service checks, manages round
+execution, communicates with worker processes, and gracefully handles
+shutdown signals.  The :class:`Engine` class encapsulates this behavior and
+provides helpers for maintaining state between rounds.
+"""
+
 import importlib
 import importlib.util
 import inspect
@@ -32,10 +40,29 @@ from scoring_engine.db import session
 
 
 def engine_sigint_handler(signum, frame, engine):
+    """Gracefully stop the engine when a termination signal is received.
+
+    Parameters
+    ----------
+    signum : int
+        The signal number received.
+    frame : FrameType
+        Current stack frame (unused).
+    engine : Engine
+        Instance of the running engine that should be shut down.
+    """
+
     engine.shutdown()
 
 
 class Engine(object):
+    """Main controller for running scoring rounds.
+
+    The engine loads available service checks, executes them for each team and
+    service, and records the results to the database.  It also monitors for
+    shutdown requests and tracks the progress of rounds.
+    """
+
     def __init__(self, total_rounds=0):
         self.checks = []
         self.total_rounds = total_rounds
@@ -59,6 +86,13 @@ class Engine(object):
         self.round_running = False
 
     def verify_settings(self):
+        """Ensure required settings exist before the engine starts.
+
+        The engine relies on several configuration values stored in the
+        database.  If any are missing the process exits with an error so that
+        misconfigurations do not go unnoticed.
+        """
+
         settings = ["target_round_time", "worker_refresh_time", "engine_paused", "pause_duration"]
         for setting_name in settings:
             if not Setting.get_setting(setting_name):
@@ -66,6 +100,12 @@ class Engine(object):
                 exit(1)
 
     def shutdown(self):
+        """Request a graceful stop of the engine.
+
+        If a round is currently running the shutdown will occur after it
+        completes; otherwise the engine stops immediately.
+        """
+
         if self.round_running:
             logger.warning("Shutting down after this round...")
         else:
@@ -73,10 +113,18 @@ class Engine(object):
         self.last_round = True
 
     def add_check(self, check_obj):
+        """Register a check class with the engine.
+
+        Checks are stored alphabetically to keep deterministic ordering when
+        iterating over them.
+        """
+
         self.checks.append(check_obj)
         self.checks = sorted(self.checks, key=lambda check: check.__name__)
 
     def load_checks(self):
+        """Discover and load check classes from the configured directory."""
+
         logger.debug("Loading checks source from " + str(self.checks_location))
         loaded_checks = Engine.load_check_files(self.checks_location)
         for loaded_check in loaded_checks:
