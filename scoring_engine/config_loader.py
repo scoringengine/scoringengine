@@ -1,9 +1,27 @@
+"""Helpers for loading configuration from files and the environment.
+
+This module reads an ``engine.conf`` style configuration file and allows
+settings to be overridden via environment variables. Each option is loaded
+from the file unless a corresponding ``SCORINGENGINE_<OPTION>`` variable is
+present in the environment, in which case the environment value wins.
+"""
+
 import configparser
 import os
 
 
 class ConfigLoader(object):
+    """Load configuration values from a file with optional environment overrides."""
+
     def __init__(self, location="../engine.conf"):
+        """Initialize the loader and parse the configuration file.
+
+        Parameters
+        ----------
+        location : str, optional
+            Path to the configuration file relative to this module. Defaults to
+            ``"../engine.conf"``.
+        """
         config_location = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), location
         )
@@ -80,6 +98,26 @@ class ConfigLoader(object):
         )
 
     def parse_sources(self, key_name, default_value, obj_type="str"):
+        """Return a configuration value using environment overrides when present.
+
+        Parameters
+        ----------
+        key_name : str
+            The name of the option as defined in the configuration file.
+        default_value : Any
+            The value parsed from the configuration file. The return type of this
+            method will match the type of ``default_value``.
+        obj_type : str, optional
+            Expected type of the value. Supported values are ``"str"``, ``"int"``
+            and ``"bool"``. Defaults to ``"str"``.
+
+        Returns
+        -------
+        Any
+            Either the value from ``default_value`` or the value from the
+            environment variable ``SCORINGENGINE_<KEY_NAME>`` converted to the
+            requested type.
+        """
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
             if obj_type.lower() == "int":
