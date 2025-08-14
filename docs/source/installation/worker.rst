@@ -120,8 +120,8 @@ Install dependencies for NFS check
 ::
 
   apt-get install -y libnfs-dev
-  # Try newer libnfs releases first, fall back to the older pinned version
-  source /home/engine/scoring_engine/env/bin/activate && pip install -I "libnfs>=5,<6" || pip install -I "libnfs==1.0.post4"
+  # Install the libnfs Python bindings
+  source /home/engine/scoring_engine/env/bin/activate && pip install -I "libnfs==1.0.post4"
 
 Install dependencies for OpenVPN check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

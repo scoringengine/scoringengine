@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 RUN \
   useradd -m engine && \
@@ -10,7 +10,7 @@ RUN \
     libssl-dev \
     libmariadb-dev \
     iputils-ping && \
-    # python3.13-dev && \
+    # python3-dev && \
   rm -rf /var/lib/apt/lists/* && \
   python3 -m ensurepip --upgrade && \
   mkdir /app

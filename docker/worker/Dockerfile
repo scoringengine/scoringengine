@@ -79,7 +79,8 @@ RUN apt-get update && \
 
 # NFS Check
 RUN apt-get install -y libnfs-dev
-RUN pip install -I "libnfs>=5,<6" || pip install -I "libnfs==1.0.post4"
+# Pin to the last published Python binding for libnfs
+RUN pip install -I "libnfs==1.0.post4"
 
 # Telnet Check
 RUN pip install -I "telnetlib3==1.0.1"
