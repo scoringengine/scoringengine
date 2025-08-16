@@ -17,6 +17,10 @@ collect_ignore = []
 
 
 def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "integration: mark tests that require the database and full stack"
+    )
+
     # If the integration flag is set, we only
     # load and run tests in the integration directory
     # else, we load our normal tests

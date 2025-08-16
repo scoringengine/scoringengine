@@ -44,3 +44,17 @@ Log in with any of the following logins at http://localhost:
 ## Documentation
 
 [https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/)
+
+## Running integration tests without Docker
+
+The integration tests can now be executed without the full Docker stack. Install
+the project and test dependencies and run the tests marked as integration:
+
+```
+pip install -e .
+pip install -r tests/requirements.txt
+pytest tests/integration -m integration --integration -q
+```
+
+This uses a lightweight SQLite database and skips Web UI checks that depend on
+external services.
