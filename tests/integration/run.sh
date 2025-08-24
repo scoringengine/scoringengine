@@ -46,13 +46,10 @@ wait_for_engine()
   do
     ROUND=$(get_engine_round)
     echo "scoringengine-engine-1 is not finished yet....sleeping for 30 seconds (Round $ROUND)"
-    if [ "$ROUND" -gt 0 ]; then
-      return 0
-    fi
     sleep 30
     ATTEMPTS=$((ATTEMPTS + 1))
     if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
-      echo "Timeout waiting for scoringengine-engine-1 to produce a round"
+      echo "Timeout waiting for scoringengine-engine-1 to finish"
       docker logs scoringengine-engine-1 | tail -n 50 || true
       return 1
     fi
