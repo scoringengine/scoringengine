@@ -10,11 +10,10 @@ cleanup() {
 
 trap cleanup EXIT
 
-wait_for_container()
-{
+wait_for_container() {
   CONTAINER_NAME=$1
   SLEEP_AMOUNT=$2
-  SLEEP_COMMAND_SCRIPT=$3
+  SLEEP_COMMAND_SCRIPT=${3:-}
   MAX_ATTEMPTS=${4:-0}
   ATTEMPTS=0
   while [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" = "true" ]
