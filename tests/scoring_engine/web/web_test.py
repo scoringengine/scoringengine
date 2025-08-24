@@ -11,8 +11,8 @@ from mock import MagicMock, call
 
 class WebTest(UnitTest):
 
-    def setup(self):
-        super(WebTest, self).setup()
+    def setup_method(self):
+        super(WebTest, self).setup_method()
         self.app = create_app()
         self.app.config["TESTING"] = True
         self.app.config["WTF_CSRF_ENABLED"] = False
@@ -27,9 +27,9 @@ class WebTest(UnitTest):
         self.mock_obj = self.view_module.render_template
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
 
-    def teardown(self):
+    def teardown_method(self):
         self.ctx.pop()
-        super(WebTest, self).teardown()
+        super(WebTest, self).teardown_method()
 
     def build_args(self, *args, **kwargs):
         return call(*args, **kwargs)

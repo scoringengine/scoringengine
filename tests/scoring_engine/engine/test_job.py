@@ -3,7 +3,7 @@ from scoring_engine.engine.job import Job
 
 class TestJob(object):
 
-    def setup(self):
+    def setup_method(self):
         self.job = Job(environment_id="12345", command="ls -l")
 
     def test_init(self):
