@@ -23,8 +23,34 @@ wait_for_container()
 
 wait_for_engine()
 {
-  # Wait up to 20 iterations (~10 minutes) for the engine to finish
-  wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round" 20
+  get_engine_round() {
+    make -s integration-get-round | sed -n 's/.*Round \([0-9]\+\).*/\1/p'
+  }
+
+  MAX_ATTEMPTS=20
+  ATTEMPTS=0
+  while [ "`docker inspect -f {{.State.Running}} scoringengine-engine-1`" == "true" ]
+  do
+    ROUND=$(get_engine_round)
+    echo "scoringengine-engine-1 is not finished yet....sleeping for 30 seconds (Round $ROUND)"
+    if [ "$ROUND" -gt 0 ]; then
+      return 0
+    fi
+    sleep 30
+    ATTEMPTS=$((ATTEMPTS + 1))
+    if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
+      echo "Timeout waiting for scoringengine-engine-1 to produce a round"
+      docker logs scoringengine-engine-1 | tail -n 50 || true
+      return 1
+    fi
+  done
+
+  ROUND=$(get_engine_round)
+  if [ "$ROUND" -eq 0 ]; then
+    echo "scoringengine-engine-1 exited without producing a round"
+    docker logs scoringengine-engine-1 | tail -n 50 || true
+    return 1
+  fi
 }
 
 # Stop any previous containers from other parts of testing
