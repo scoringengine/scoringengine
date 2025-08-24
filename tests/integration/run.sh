@@ -36,7 +36,17 @@ wait_for_container() {
 wait_for_engine()
 {
   get_engine_round() {
-    make -s integration-get-round | sed -n 's/.*Round \([0-9]\+\).*/\1/p'
+    local output
+    if ! output=$(make -s integration-get-round 2>/dev/null); then
+      echo 0
+      return
+    fi
+    local round
+    round=$(echo "$output" | sed -n 's/.*Round \([0-9]\+\).*/\1/p')
+    if [ -z "$round" ]; then
+      round=0
+    fi
+    echo "$round"
   }
 
   MAX_ATTEMPTS=${MAX_ENGINE_ATTEMPTS:-10}
