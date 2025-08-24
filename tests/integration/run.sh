@@ -1,5 +1,6 @@
-# Exit script if any commands fail
-set -e
+#!/usr/bin/env bash
+# Exit script if any commands fail and treat unset variables as errors
+set -euo pipefail
 
 cleanup() {
   echo "Cleaning up container environment"
@@ -16,7 +17,7 @@ wait_for_container()
   SLEEP_COMMAND_SCRIPT=$3
   MAX_ATTEMPTS=${4:-0}
   ATTEMPTS=0
-  while [ "`docker inspect -f {{.State.Running}} $CONTAINER_NAME`" == "true" ]
+  while [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" = "true" ]
   do
     if [ -n "$SLEEP_COMMAND_SCRIPT" ]; then
       SLEEP_COMMAND_OUTPUT=$($SLEEP_COMMAND_SCRIPT)
@@ -41,7 +42,7 @@ wait_for_engine()
 
   MAX_ATTEMPTS=${MAX_ENGINE_ATTEMPTS:-10}
   ATTEMPTS=0
-  while [ "`docker inspect -f {{.State.Running}} scoringengine-engine-1`" == "true" ]
+  while [ "$(docker inspect -f '{{.State.Running}}' scoringengine-engine-1)" = "true" ]
   do
     ROUND=$(get_engine_round)
     echo "scoringengine-engine-1 is not finished yet....sleeping for 30 seconds (Round $ROUND)"
