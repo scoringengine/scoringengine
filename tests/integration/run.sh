@@ -6,17 +6,25 @@ wait_for_container()
   CONTAINER_NAME=$1
   SLEEP_AMOUNT=$2
   SLEEP_COMMAND_SCRIPT=$3
+  MAX_ATTEMPTS=${4:-0}
+  ATTEMPTS=0
   while [ "`docker inspect -f {{.State.Running}} $CONTAINER_NAME`" == "true" ]
   do
     SLEEP_COMMAND_OUTPUT=$($SLEEP_COMMAND_SCRIPT)
     echo "$CONTAINER_NAME is not finished yet....sleeping for $SLEEP_AMOUNT seconds $SLEEP_COMMAND_OUTPUT"
     sleep $SLEEP_AMOUNT
+    ATTEMPTS=$((ATTEMPTS + 1))
+    if [ "$MAX_ATTEMPTS" -ne 0 ] && [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
+      echo "Timeout waiting for $CONTAINER_NAME to finish"
+      return 1
+    fi
   done
 }
 
 wait_for_engine()
 {
-  wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round"
+  # Wait up to 20 iterations (~10 minutes) for the engine to finish
+  wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round" 20
 }
 
 # Stop any previous containers from other parts of testing
