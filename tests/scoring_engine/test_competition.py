@@ -8,8 +8,8 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class CompetitionDataTest(UnitTest):
-    def setup(self):
-        super(CompetitionDataTest, self).setup()
+    def setup_method(self):
+        super(CompetitionDataTest, self).setup_method()
         self.setup = {
             'teams': [
                 {
@@ -341,8 +341,8 @@ class TestPropertyData(CompetitionDataTest):
 class TestGoodSetup(CompetitionDataTest):
     # Test to make sure we can parse a good json correctly
     # and can write all the things to the db
-    def setup(self):
-        super(TestGoodSetup, self).setup()
+    def setup_method(self):
+        super(TestGoodSetup, self).setup_method()
         competition = Competition(self.setup)
         competition.save(self.session)
         self.blue_teams = Team.get_all_blue_teams()

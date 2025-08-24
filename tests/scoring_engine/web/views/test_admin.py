@@ -5,8 +5,8 @@ from scoring_engine.models.service import Service
 
 
 class TestAdmin(WebTest):
-    def setup(self):
-        super(TestAdmin, self).setup()
+    def setup_method(self):
+        super(TestAdmin, self).setup_method()
         user = self.create_default_user()
         service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1', team=user.team)
         self.session.add(service)

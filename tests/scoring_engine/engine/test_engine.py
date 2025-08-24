@@ -34,8 +34,8 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestEngine(UnitTest):
-    def setup(self):
-        super(TestEngine, self).setup()
+    def setup_method(self):
+        super(TestEngine, self).setup_method()
         target_round_time_obj = Setting.get_setting("target_round_time")
         target_round_time_obj.value = 0
         self.session.add(target_round_time_obj)
@@ -49,9 +49,9 @@ class TestEngine(UnitTest):
         self.ctx = self.app.app_context()
         self.ctx.push()
 
-    def teardown(self):
+    def teardown_method(self):
         self.ctx.pop()
-        super(TestEngine, self).teardown()
+        super(TestEngine, self).teardown_method()
 
     def test_init(self):
         engine = Engine()

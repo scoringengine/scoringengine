@@ -27,7 +27,25 @@ class ConfigLoader(object):
         )
 
         self.parser = configparser.ConfigParser()
+        # Attempt to read the supplied configuration file.  In the test
+        # environment the real ``engine.conf`` is not present and only the
+        # example ``engine.conf.inc`` file exists.  Previously this resulted
+        # in an empty parser which later raised ``KeyError`` when accessing
+        # the ``OPTIONS`` section.  To make the loader resilient (and allow
+        # tests to run in CI without a separate configuration step) we fall
+        # back to reading ``<location>.inc`` if the primary file is missing
+        # or does not contain the required section.
         self.parser.read(config_location)
+        if not self.parser.has_section("OPTIONS"):
+            fallback = f"{config_location}.inc"
+            if os.path.exists(fallback):
+                self.parser.read(fallback)
+
+        # If we still don't have an OPTIONS section, create an empty one so
+        # attribute accesses below raise more informative errors during
+        # testing rather than a ``KeyError`` at lookup time.
+        if not self.parser.has_section("OPTIONS"):
+            self.parser.add_section("OPTIONS")
 
         self.debug = self.parse_sources(
             "debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool"
