@@ -2,10 +2,10 @@
 {% block title %}Admin - Queue Stats{% endblock %}
 
 {% block head %}
-    {{ super() }}
+  {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block header %}Queue Stats{% endblock %}
 
