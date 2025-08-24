@@ -12,6 +12,8 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 
+from flask import current_app
+
 from scoring_engine.config import config
 from scoring_engine.models.service import Service
 from scoring_engine.models.environment import Environment
@@ -295,7 +297,7 @@ class Engine(object):
                 logger.info(stat_string)
 
             logger.info("Updating Caches")
-            update_all_cache()
+            update_all_cache(current_app)
 
             self.round_running = False
 
