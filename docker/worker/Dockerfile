@@ -73,10 +73,14 @@ RUN \
     unixodbc-dev
 
 # RDP Check
-RUN apt-get install -y freerdp2-x11
+# freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
+# Some distributions ship only a generic "freerdp" package
+RUN apt-get update && \
+    (apt-get install -y freerdp2-x11 || apt-get install -y freerdp3-x11 || apt-get install -y freerdp)
 
 # NFS Check
 RUN apt-get install -y libnfs-dev
+# Pin to the last published Python binding for libnfs
 RUN pip install -I "libnfs==1.0.post4"
 
 # Telnet Check
