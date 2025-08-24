@@ -20,7 +20,7 @@ config = {
         "Flask-WTF==1.2.2",
         # "itsdangerous==1.1.0",
         # "markupsafe==1.1.1",
-        "mysqlclient==2.1.0",
+        "mysqlclient==2.2.7",
         # "pynsive==0.2.7",
         "python-dateutil==2.9.0.post0",
         "pytz==2025.2",
