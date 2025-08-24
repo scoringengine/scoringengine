@@ -1,7 +1,6 @@
 import importlib
 from flask import render_template as render_template_orig
 
-from scoring_engine.web import create_app
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 
@@ -18,8 +17,6 @@ class WebTest(UnitTest):
         self.app.config["WTF_CSRF_ENABLED"] = False
 
         self.client = self.app.test_client()
-        self.ctx = self.app.app_context()
-        self.ctx.push()
 
         view_name = self.__class__.__name__[4:]
         self.view_module = importlib.import_module("scoring_engine.web.views." + view_name.lower(), "*")

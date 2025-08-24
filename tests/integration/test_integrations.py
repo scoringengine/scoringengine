@@ -4,6 +4,9 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.db import session
+from scoring_engine.web import create_app
+app = create_app()
+app.app_context().push()
 
 NUM_TESTBED_SERVICES = 14
 NUM_OVERALL_ROUNDS = 5

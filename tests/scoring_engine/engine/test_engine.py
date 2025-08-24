@@ -1,7 +1,6 @@
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.setting import Setting
-from scoring_engine.web import create_app
 
 from scoring_engine.checks.agent import AgentCheck
 from scoring_engine.checks.icmp import ICMPCheck

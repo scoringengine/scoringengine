@@ -6,6 +6,7 @@ from flask_login import LoginManager
 
 from scoring_engine.cache import cache
 from scoring_engine.config import config
+from scoring_engine.db import db
 
 
 SECRET_KEY = os.urandom(128)
@@ -16,6 +17,8 @@ def create_app():
 
     app.config.update(DEBUG=config.debug)
     app.config.update(UPLOAD_FOLDER=config.upload_folder)
+    app.config.update(SQLALCHEMY_DATABASE_URI=config.db_uri)
+    app.config.update(SQLALCHEMY_TRACK_MODIFICATIONS=False)
     app.secret_key = SECRET_KEY
 
     if not config.debug:
@@ -39,6 +42,7 @@ def create_app():
     )
 
     cache.init_app(app)
+    db.init_app(app)
 
     # Initialize login manager
     login_manager = LoginManager()
@@ -48,12 +52,11 @@ def create_app():
     login_manager.session_protection = "strong"
 
     # Register the user_loader function after initializing login_manager
-    from scoring_engine.db import session
     from scoring_engine.models.user import User
 
     @login_manager.user_loader
     def load_user(user_id):
-        return session.query(User).get(int(user_id))
+        return db.session.query(User).get(int(user_id))
 
     app.register_blueprint(welcome.mod)
     app.register_blueprint(services.mod)
