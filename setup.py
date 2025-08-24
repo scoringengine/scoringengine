@@ -11,7 +11,7 @@ config = {
         "bcrypt==4.2.1",
         # 'billiard==3.5.0.4',
         # 'celery==4.2.2',
-        "celery[redis]==5.4",
+        "celery[redis]==5.5.3",
         "configparser==7.1.0",
         "Flask==3.1.0",
         "Flask-Caching==2.3.1",

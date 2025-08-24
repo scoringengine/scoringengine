@@ -24,7 +24,7 @@ services:
     # ports:
     #   - 22:22
   testbed_mysql:
-    image: mysql:8
+    image: mysql:9
     environment:
       - MYSQL_ROOT_PASSWORD=CHANGEME
       - MYSQL_DATABASE=randomdb
