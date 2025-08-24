@@ -1,16 +1,18 @@
 FROM python:3.12-slim
 
-RUN \
-  useradd -m engine && \
-  apt-get update && \
-  apt-get install -y \
+RUN set -eux; \
+  useradd -m engine; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends \
     build-essential \
-    curl \
     gcc \
+    curl \
     libssl-dev \
+    pkg-config \
+    libmariadb-dev-compat \
     libmariadb-dev \
-    iputils-ping && \
-    # python3-dev && \
+    iputils-ping \
+  ; \
   rm -rf /var/lib/apt/lists/* && \
   python3 -m ensurepip --upgrade && \
   mkdir /app
