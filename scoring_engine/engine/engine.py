@@ -177,6 +177,7 @@ class Engine(object):
             services = self.session.query(Service).all()[:]
             random.shuffle(services)
             task_ids = {}
+            task_info = {}
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
@@ -187,6 +188,7 @@ class Engine(object):
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
                 task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+                task_info[task.id] = {"environment_id": environment.id, "command": command_str}
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []
@@ -207,6 +209,8 @@ class Engine(object):
                 self.session.commit()
 
                 pending_tasks = self.all_pending_tasks(task_ids)
+                prev_pending_count = len(pending_tasks)
+                stagnant_cycles = 0
                 while pending_tasks:
                     worker_refresh_time = int(Setting.get_setting("worker_refresh_time").value)
                     waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
@@ -214,7 +218,20 @@ class Engine(object):
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
                     pending_tasks = self.all_pending_tasks(task_ids)
-                logger.info("All jobs have finished for this round")
+                    if len(pending_tasks) == prev_pending_count:
+                        stagnant_cycles += 1
+                        if stagnant_cycles >= 10:
+                            logger.warning(
+                                "Pending tasks have not decreased after %s refreshes, continuing anyway", stagnant_cycles
+                            )
+                            break
+                    else:
+                        stagnant_cycles = 0
+                        prev_pending_count = len(pending_tasks)
+                if pending_tasks:
+                    logger.warning("Proceeding with %s task(s) still pending", len(pending_tasks))
+                else:
+                    logger.info("All jobs have finished for this round")
 
                 logger.info("Determining check results and saving to db")
                 round_obj = Round(number=self.current_round)
@@ -230,10 +247,13 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        environment = self.session.query(Environment).get(task.result["environment_id"])
-                        if task.result["errored_out"]:
+                        info = task_info[task_id]
+                        environment = self.session.query(Environment).get(info["environment_id"])
+                        if not task.ready() or task.result.get("errored_out", False):
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
+                            output = ""
+                            command = info["command"]
                         else:
                             if re.search(environment.matching_content, task.result["output"]):
                                 result = True
@@ -241,6 +261,8 @@ class Engine(object):
                             else:
                                 result = False
                                 reason = CHECK_FAILURE_TEXT
+                            output = task.result["output"]
+                            command = task.result["command"]
 
                         if environment.service.team.name not in teams:
                             teams[environment.service.team.name] = {
@@ -258,8 +280,8 @@ class Engine(object):
                         check.finished(
                             result=result,
                             reason=reason,
-                            output=task.result["output"][:35000],
-                            command=task.result["command"],
+                            output=output[:35000],
+                            command=command,
                         )
                         finished_checks.append(check)
 
