@@ -1,6 +1,14 @@
 # Exit script if any commands fail
 set -e
 
+cleanup() {
+  echo "Cleaning up container environment"
+  make stop-integration >/dev/null 2>&1 || true
+  make clean-integration >/dev/null 2>&1 || true
+}
+
+trap cleanup EXIT
+
 wait_for_container()
 {
   CONTAINER_NAME=$1
@@ -10,8 +18,12 @@ wait_for_container()
   ATTEMPTS=0
   while [ "`docker inspect -f {{.State.Running}} $CONTAINER_NAME`" == "true" ]
   do
-    SLEEP_COMMAND_OUTPUT=$($SLEEP_COMMAND_SCRIPT)
-    echo "$CONTAINER_NAME is not finished yet....sleeping for $SLEEP_AMOUNT seconds $SLEEP_COMMAND_OUTPUT"
+    if [ -n "$SLEEP_COMMAND_SCRIPT" ]; then
+      SLEEP_COMMAND_OUTPUT=$($SLEEP_COMMAND_SCRIPT)
+      echo "$CONTAINER_NAME is not finished yet....sleeping for $SLEEP_AMOUNT seconds $SLEEP_COMMAND_OUTPUT"
+    else
+      echo "$CONTAINER_NAME is not finished yet....sleeping for $SLEEP_AMOUNT seconds"
+    fi
     sleep $SLEEP_AMOUNT
     ATTEMPTS=$((ATTEMPTS + 1))
     if [ "$MAX_ATTEMPTS" -ne 0 ] && [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
@@ -27,7 +39,7 @@ wait_for_engine()
     make -s integration-get-round | sed -n 's/.*Round \([0-9]\+\).*/\1/p'
   }
 
-  MAX_ATTEMPTS=20
+  MAX_ATTEMPTS=${MAX_ENGINE_ATTEMPTS:-10}
   ATTEMPTS=0
   while [ "`docker inspect -f {{.State.Running}} scoringengine-engine-1`" == "true" ]
   do
@@ -86,6 +98,3 @@ sleep 5
 echo "Running integration tests"
 make run-integration-tests
 
-# Clean up container environment
-echo "Cleaning up container environment"
-make stop-integration
