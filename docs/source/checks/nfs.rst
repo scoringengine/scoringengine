@@ -1,6 +1,6 @@
 NFS
 ^^^
-Uses python libnfs to login to an NFS server, write a file, login again to NFS and read a file
+Uses system NFS utilities to mount a share, write a file, and read it back to verify the contents
 
 Custom Properties:
 

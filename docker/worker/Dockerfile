@@ -79,9 +79,7 @@ RUN apt-get update && \
     (apt-get install -y freerdp2-x11 || apt-get install -y freerdp3-x11 || apt-get install -y freerdp)
 
 # NFS Check
-RUN apt-get install -y libnfs-dev
-# Pin to the last published Python binding for libnfs
-RUN pip install -I "libnfs==1.0.post4"
+RUN apt-get install -y nfs-common
 
 # Telnet Check
 RUN pip install -I "telnetlib3==1.0.1"

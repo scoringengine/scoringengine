@@ -18,7 +18,7 @@ Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/b
 
 # User privilege specification
 root	ALL=(ALL:ALL) ALL
-engine  ALL=(ALL:ALL) NOPASSWD: /usr/sbin/openvpn
+engine  ALL=(ALL:ALL) NOPASSWD: /usr/sbin/openvpn, /usr/bin/mount, /usr/bin/umount
 
 # Members of the admin group may gain root privileges
 %admin ALL=(ALL) ALL
