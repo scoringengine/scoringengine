@@ -14,14 +14,14 @@
 
 {% block header %}
 {% if inject.status == 'Submitted' %}
-<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-success">{{ inject.status}}</span>
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span>
 </p>
 {% elif inject.status == 'Graded' %}
-<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-info">{{ inject.status}}</span></p>
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-info">{{ inject.status}}</span></p>
 {% elif inject.template.expired %}
-<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-danger">Expired</span></p>
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-danger">Expired</span></p>
 {% elif inject.status == 'Draft' %}
-<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="label label-warning">{{ inject.status}}</span>
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-warning">{{ inject.status}}</span>
 </p>
 {% else %}
 <p>{{ inject.template.title }}</p>
@@ -38,7 +38,7 @@
         <label for="inputGrade">Grade</label>
         <input type="number" class="form-control" id="inputGrade" placeholder="100">
       </div>
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submitGradeConfirmation">Submit
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitGradeConfirmation">Submit
         Grade</button>
     </form>
   </div>
@@ -83,8 +83,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-            aria-hidden="true">&times;</span></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         <h4 class="modal-title">Submit Grade</h4>
       </div>
       <div class="modal-body">
@@ -93,7 +92,7 @@
         <p><b>You will not be able to edit this inject after submitting.</b></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" id="gradeSubmitConfirmButton" class="btn btn-primary">Submit</button>
       </div>
     </div>

@@ -167,10 +167,10 @@
                       }
                       navbar_row_str += '">' + key;
                       if (value['result'] == 'True'){
-                        navbar_row_str += '<span class="pull-right label label-success" style="margin-top: 2px;">UP</span>'
+                        navbar_row_str += '<span class="float-end badge bg-success" style="margin-top: 2px;">UP</span>'
                       }
                       else if (value['result'] == 'False') {
-                        navbar_row_str += '<span class="pull-right label label-danger" style="margin-top: 2px;">DOWN</span>'
+                        navbar_row_str += '<span class="float-end badge bg-danger" style="margin-top: 2px;">DOWN</span>'
                       }
                       navbar_row_str += "</a>"
                       navbar_str += navbar_row_str
@@ -201,7 +201,7 @@
                       "orderable": false,
                       "data": null,
                       "render": function( data ) {
-                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
+                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="float-end glyphicon `;
                         var button_icon = 'glyphicon-plus'
                         if ( window.expanded_rows ){
                             if (window.expanded_rows.indexOf(data['round']) >= 0) {
@@ -216,7 +216,7 @@
                     {
                       "data": "result",
                       "render": function( data ) {
-                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                        return (data == true) ? '<span class="badge bg-success">UP</span>' : '<span class="badge bg-danger">DOWN</span>';
                       }
                     },
                     { "data": "reason"},
