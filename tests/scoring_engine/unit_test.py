@@ -1,17 +1,22 @@
 from scoring_engine.db import session, delete_db, init_db
 from scoring_engine.models.setting import Setting
+from scoring_engine.web import create_app
 
 
 class UnitTest(object):
     def setup_method(self):
+        self.app = create_app()
+        self.ctx = self.app.app_context()
+        self.ctx.push()
         self.session = session
-        delete_db(self.session)
-        init_db(self.session)
+        delete_db()
+        init_db()
         self.create_default_settings()
 
     def teardown_method(self):
-        delete_db(self.session)
+        delete_db()
         self.session.remove()
+        self.ctx.pop()
 
     def create_default_settings(self):
         self.session.add(

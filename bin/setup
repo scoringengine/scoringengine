@@ -19,6 +19,7 @@ from scoring_engine.config import config
 from scoring_engine.competition import Competition
 from scoring_engine.logger import logger
 from scoring_engine.version import version
+from scoring_engine.web import create_app
 from scoring_engine.engine.basic_check import (
     CHECK_SUCCESS_TEXT,
     CHECK_FAILURE_TEXT,
@@ -47,8 +48,11 @@ if "SCORINGENGINE_OVERWRITE_DB" in os.environ and os.environ["SCORINGENGINE_OVER
 
 logger.info("Starting Setup v.{0}".format(version))
 
+app = create_app()
+app.app_context().push()
+
 if not options.overwrite_db:
-    if verify_db_ready(session):
+    if verify_db_ready():
         logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
         exit()
     else:
@@ -56,8 +60,8 @@ if not options.overwrite_db:
         logger.debug("Database doesn't exist yet...")
 
 logger.info("Setting up DB")
-delete_db(session)
-init_db(session)
+delete_db()
+init_db()
 
 competition_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.yaml")
 sample_competition_str = open(competition_config_file, "r").read()
