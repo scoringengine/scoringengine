@@ -5,8 +5,8 @@ from scoring_engine.version import version
 
 class TestAbout(WebTest):
 
-    def setup(self):
-        super(TestAbout, self).setup()
+    def setup_method(self):
+        super(TestAbout, self).setup_method()
         self.create_default_user()
 
     def test_about(self):

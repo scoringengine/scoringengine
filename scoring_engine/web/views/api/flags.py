@@ -19,7 +19,8 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_flags():
-    if not current_user.is_red_team and not current_user.is_white_team:
+    team = session.get(Team, current_user.team.id)
+    if team is None or not current_user.team == team or not (current_user.is_red_team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     now = datetime.utcnow()

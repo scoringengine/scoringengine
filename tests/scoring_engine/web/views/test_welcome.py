@@ -3,8 +3,8 @@ from tests.scoring_engine.web.web_test import WebTest
 
 class TestWelcome(WebTest):
 
-    def setup(self):
-        super(TestWelcome, self).setup()
+    def setup_method(self):
+        super(TestWelcome, self).setup_method()
         self.create_default_user()
         self.welcome_content = 'example welcome content <br>here'
 

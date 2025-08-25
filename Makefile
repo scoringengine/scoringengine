@@ -78,4 +78,4 @@ rebuild-integration-new: build-integration stop-integration clean-integration ru
 
 .PHONY: integration-get-round
 integration-get-round:
-	docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run --no-deps engine bash -c "python -c 'from scoring_engine.models.round import Round; print(\"(Round {0})\".format(Round.get_last_round_num()))'"
+	docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run --rm --no-deps engine bash -c "python -c 'from scoring_engine.models.round import Round; print(\"(Round {0})\".format(Round.get_last_round_num()))'"

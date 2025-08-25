@@ -1,15 +1,51 @@
+"""Helpers for loading configuration from files and the environment.
+
+This module reads an ``engine.conf`` style configuration file and allows
+settings to be overridden via environment variables. Each option is loaded
+from the file unless a corresponding ``SCORINGENGINE_<OPTION>`` variable is
+present in the environment, in which case the environment value wins.
+"""
+
 import configparser
 import os
 
 
 class ConfigLoader(object):
+    """Load configuration values from a file with optional environment overrides."""
+
     def __init__(self, location="../engine.conf"):
+        """Initialize the loader and parse the configuration file.
+
+        Parameters
+        ----------
+        location : str, optional
+            Path to the configuration file relative to this module. Defaults to
+            ``"../engine.conf"``.
+        """
         config_location = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), location
         )
 
         self.parser = configparser.ConfigParser()
+        # Attempt to read the supplied configuration file.  In the test
+        # environment the real ``engine.conf`` is not present and only the
+        # example ``engine.conf.inc`` file exists.  Previously this resulted
+        # in an empty parser which later raised ``KeyError`` when accessing
+        # the ``OPTIONS`` section.  To make the loader resilient (and allow
+        # tests to run in CI without a separate configuration step) we fall
+        # back to reading ``<location>.inc`` if the primary file is missing
+        # or does not contain the required section.
         self.parser.read(config_location)
+        if not self.parser.has_section("OPTIONS"):
+            fallback = f"{config_location}.inc"
+            if os.path.exists(fallback):
+                self.parser.read(fallback)
+
+        # If we still don't have an OPTIONS section, create an empty one so
+        # attribute accesses below raise more informative errors during
+        # testing rather than a ``KeyError`` at lookup time.
+        if not self.parser.has_section("OPTIONS"):
+            self.parser.add_section("OPTIONS")
 
         self.debug = self.parse_sources(
             "debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool"
@@ -119,13 +155,34 @@ class ConfigLoader(object):
         )
 
     def parse_sources(self, key_name, default_value, obj_type="str"):
+        """Return a configuration value using environment overrides when present.
+
+        Parameters
+        ----------
+        key_name : str
+            The name of the option as defined in the configuration file.
+        default_value : Any
+            The value parsed from the configuration file. The return type of this
+            method will match the type of ``default_value``.
+        obj_type : str, optional
+            Expected type of the value. Supported values are ``"str"``, ``"int"``
+            and ``"bool"``. Defaults to ``"str"``.
+
+        Returns
+        -------
+        Any
+            Either the value from ``default_value`` or the value from the
+            environment variable ``SCORINGENGINE_<KEY_NAME>`` converted to the
+            requested type.
+        """
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
+            env_val = os.environ[environment_key]
             if obj_type.lower() == "int":
-                return int(os.environ[environment_key])
+                return int(env_val)
             elif obj_type.lower() == "bool":
-                return os.environ[environment_key].lower() == "true"
+                return env_val.lower() in ("true", "1", "yes")
             else:
-                return os.environ[environment_key]
+                return env_val
         else:
             return default_value

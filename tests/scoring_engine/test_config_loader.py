@@ -4,7 +4,7 @@ from scoring_engine.config_loader import ConfigLoader
 
 
 class TestConfigLoader(object):
-    def setup(self):
+    def setup_method(self):
         self.config = ConfigLoader(location="../tests/scoring_engine/engine.conf.inc")
 
     def test_debug(self):
@@ -81,3 +81,15 @@ class TestConfigLoader(object):
     def test_parse_sources_str_environment(self):
         os.environ["SCORINGENGINE_REDIS_HOST"] = "127.0.0.1"
         assert self.config.parse_sources("redis_host", "1.2.3.4") == "127.0.0.1"
+
+
+def test_default_uses_example_config():
+    """Ensure ConfigLoader falls back to the bundled example config.
+
+    In environments where ``engine.conf`` is not present (like CI), the
+    loader should automatically read ``engine.conf.inc`` so that sensible
+    defaults are available and tests can execute.
+    """
+    cfg = ConfigLoader()  # no explicit path provided
+    # A value from engine.conf.inc confirms the fallback worked
+    assert cfg.db_uri == "sqlite:////tmp/engine.db?check_same_thread=False"
