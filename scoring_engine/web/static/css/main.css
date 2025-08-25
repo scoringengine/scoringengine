@@ -103,10 +103,9 @@ tr.shown td.details-control {
 .md-page {
     background: #fff;
     padding: 0px 25px 25px 25px;
-    margin-top: 10px;
+    margin: 10px auto 15px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.1);
     max-width: 95%;
-    margin-bottom: 15px;
 }
 
 a.editable-click {
