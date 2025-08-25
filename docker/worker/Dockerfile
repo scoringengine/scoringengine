@@ -88,7 +88,7 @@ RUN pip install -I "libnfs==1.0.post4"
 RUN pip install -I "telnetlib3==1.0.1"
 
 # Playwright-based advanced web checks
-RUN pip install -I "pytest-playwright==0.6.2"
+RUN pip install -I "pytest-playwright"
 RUN playwright install-deps
 
 # OpenVPN Check
