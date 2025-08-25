@@ -54,6 +54,9 @@
                     $('td', row).each(function () {
                         var value = $(this).html();
                         var column_num = $(this).index();
+                        if (column_num !== 0) {
+                            $(this).addClass('text-center');
+                        }
                         switch (index) {
                             // Current Score
                             case 0:
