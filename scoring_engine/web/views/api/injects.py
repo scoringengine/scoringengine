@@ -19,7 +19,7 @@ from . import make_cache_key, mod
 @mod.route("/api/injects")
 @login_required
 def api_injects():
-    team = session.query(Team).get(current_user.team.id)
+    team = session.get(Team, current_user.team.id)
     if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_red_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
@@ -51,7 +51,7 @@ def api_injects():
 @mod.route("/api/inject/<inject_id>/submit", methods=["POST"])
 @login_required
 def api_injects_submit(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
     if datetime.utcnow() > inject.template.end_time:
@@ -66,7 +66,7 @@ def api_injects_submit(inject_id):
 @mod.route("/api/inject/<inject_id>/upload", methods=["POST"])
 @login_required
 def api_injects_file_upload(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
 
@@ -106,7 +106,7 @@ def api_injects_file_upload(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
@@ -139,7 +139,7 @@ def api_inject(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_comments(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
@@ -163,7 +163,7 @@ def api_inject_comments(inject_id):
 @mod.route("/api/inject/<inject_id>/comment", methods=["POST"])
 @login_required
 def api_inject_add_comment(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
     if datetime.utcnow() > inject.template.end_time:
@@ -187,7 +187,7 @@ def api_inject_add_comment(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_files(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
@@ -206,7 +206,7 @@ def api_inject_files(inject_id):
 @mod.route("/api/inject/<inject_id>/files/<file_id>/download")
 @login_required
 def api_inject_download(inject_id, file_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 

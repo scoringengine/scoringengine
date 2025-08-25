@@ -47,7 +47,7 @@ from . import mod
 def admin_update_environment():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            environment = session.query(Environment).get(int(request.form["pk"]))
+            environment = session.get(Environment, int(request.form["pk"]))
             if environment:
                 if request.form["name"] == "matching_content":
                     environment.matching_content = html.escape(request.form["value"])
@@ -63,7 +63,7 @@ def admin_update_environment():
 def admin_update_property():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            property_obj = session.query(Property).get(int(request.form["pk"]))
+            property_obj = session.get(Property, int(request.form["pk"]))
             if property_obj:
                 if request.form["name"] == "property_name":
                     property_obj.name = html.escape(request.form["value"])
@@ -81,7 +81,7 @@ def admin_update_property():
 def admin_update_check():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            check = session.query(Check).get(int(request.form["pk"]))
+            check = session.get(Check, int(request.form["pk"]))
             if check:
                 modified_check = False
                 if request.form["name"] == "check_value":
@@ -112,7 +112,7 @@ def admin_update_check():
 def admin_update_host():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "host":
                     service.host = html.escape(request.form["value"])
@@ -130,7 +130,7 @@ def admin_update_host():
 def admin_update_port():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "port":
                     service.port = int(request.form["value"])
@@ -148,7 +148,7 @@ def admin_update_port():
 def admin_update_worker_queue():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "worker_queue":
                     service.worker_queue = request.form["value"]
@@ -163,7 +163,7 @@ def admin_update_worker_queue():
 def admin_update_points():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "points":
                     service.points = int(request.form["value"])
@@ -385,7 +385,7 @@ def get_check_progress_total():
 @login_required
 def admin_get_inject_templates_id(template_id):
     if current_user.is_white_team:
-        template = session.query(Template).get(int(template_id))
+        template = session.get(Template, int(template_id))
         data = dict(
             id=template.id,
             title=template.title,
@@ -415,7 +415,7 @@ def admin_get_inject_templates_id(template_id):
 def admin_put_inject_templates_id(template_id):
     if current_user.is_white_team:
         data = request.get_json()
-        template = session.query(Template).get(int(template_id))
+        template = session.get(Template, int(template_id))
         if template:
             if data.get("title"):
                 template.title = data["title"]
@@ -486,7 +486,7 @@ def admin_put_inject_templates_id(template_id):
 @login_required
 def admin_delete_inject_templates_id(template_id):
     if current_user.is_white_team:
-        template = session.query(Template).get(int(template_id))
+        template = session.get(Template, int(template_id))
         if template:
             session.delete(template)
             session.commit()
@@ -542,7 +542,7 @@ def admin_post_inject_grade(inject_id):
     if current_user.is_white_team:
         data = request.get_json()
         if "score" in data.keys() and data.get("score") != "":
-            inject = session.query(Inject).get(inject_id)
+            inject = session.get(Inject, inject_id)
             if inject:
                 inject.graded = datetime.utcnow()
                 inject.status = "Graded"
@@ -675,7 +675,7 @@ def admin_import_inject_templates():
             for d in data:
                 if d.get("id"):
                     template_id = d["id"]
-                    t = session.query(Template).get(int(template_id))
+                    t = session.get(Template, int(template_id))
                     # Update template if it exists
                     if t:
                         if d.get("title"):
@@ -703,7 +703,7 @@ def admin_import_inject_templates():
                         # for rubric in d["rubric"]:
                         #     if rubric.get("id"):
                         #         rubric_id = rubric["id"]
-                        #     r = session.query(Rubric).get(int(rubric_id))
+                        #     r = session.get(Rubric, int(rubric_id))
                         #     # Update rubric if it exists
                         #     if r:
                         #         if rubric.get("value"):
@@ -893,7 +893,7 @@ def admin_update_template():
     if current_user.is_white_team:
         print(request.form)
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            template = session.query(Template).get(int(request.form["pk"]))
+            template = session.get(Template, int(request.form["pk"]))
             if template:
                 modified_check = False
                 if request.form["name"] == "template_state":
