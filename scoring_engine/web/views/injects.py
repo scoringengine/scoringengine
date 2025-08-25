@@ -21,7 +21,7 @@ def home():
 @mod.route("/inject/<inject_id>")
 @login_required
 def inject(inject_id):
-    inject = session.query(Inject).get(inject_id)
+    inject = session.get(Inject, inject_id)
     if (
         inject is None
         or not current_user.team == inject.team

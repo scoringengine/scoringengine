@@ -20,7 +20,7 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def services_get_team_data(team_id):
-    team = session.query(Team).get(team_id)
+    team = session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 
@@ -32,7 +32,7 @@ def services_get_team_data(team_id):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_services(team_id):
-    team = session.query(Team).get(team_id)
+    team = session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 
@@ -104,7 +104,7 @@ def api_services(team_id):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def team_services_status(team_id):
-    team = session.query(Team).get(team_id)
+    team = session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 

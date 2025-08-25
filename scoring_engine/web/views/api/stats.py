@@ -28,7 +28,7 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_stats():
-    team = session.query(Team).get(current_user.team.id)
+    team = session.get(Team, current_user.team.id)
     if (
         team is None
         or not current_user.team == team

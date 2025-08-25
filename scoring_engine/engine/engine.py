@@ -232,7 +232,7 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        environment = self.session.query(Environment).get(task.result["environment_id"])
+                        environment = self.session.get(Environment, task.result["environment_id"])
                         if task.result["errored_out"]:
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT

@@ -62,7 +62,7 @@ def get_host_info() -> Tuple[Team, str, Platform]:
 
     # Try to parse the team_input as an integer (ID)
     if team_input.isdigit():
-        team: Team = session.query(Team).get(int(team_input))
+        team: Team = session.get(Team, int(team_input))
     else:
         team: Team = session.query(Team).filter_by(name=team_input).first()
 
@@ -104,7 +104,8 @@ def do_checkin(team, host, platform):
     }
 
     # TODO - this is a gross dev hack
-    if cache.config["CACHE_TYPE"] == "null":
+    cache_type = cache.config["CACHE_TYPE"]
+    if cache_type == "null" or cache_type.endswith("NullCache"):
         cache_dict[host] = now
         # print(cache_dict)
     else:

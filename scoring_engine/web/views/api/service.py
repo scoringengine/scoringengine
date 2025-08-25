@@ -23,7 +23,7 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def service_get_checks(service_id):
-    service = session.query(Service).get(service_id)
+    service = session.get(Service, service_id)
     if service is None or not (current_user.team == service.team or current_user.team.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = []
@@ -57,7 +57,7 @@ def service_get_checks(service_id):
 def update_service_account_info():
     if current_user.is_white_team or current_user.is_blue_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            account = session.query(Account).get(int(request.form["pk"]))
+            account = session.get(Account, int(request.form["pk"]))
             if current_user.team == account.service.team or current_user.is_white_team:
                 if account:
                     if request.form["name"] == "username":
@@ -81,7 +81,7 @@ def update_service_account_info():
 def update_host():
     if current_user.is_blue_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if service.team == current_user.team and request.form["name"] == "host":
                     modify_hostname_setting = Setting.get_setting("blue_team_update_hostname").value
@@ -102,7 +102,7 @@ def update_host():
 def update_port():
     if current_user.is_blue_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.query(Service).get(int(request.form["pk"]))
+            service = session.get(Service, int(request.form["pk"]))
             if service:
                 if service.team == current_user.team and request.form["name"] == "port":
                     modify_port_setting = Setting.get_setting("blue_team_update_port").value
