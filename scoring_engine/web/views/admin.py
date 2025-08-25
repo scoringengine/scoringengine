@@ -88,7 +88,7 @@ def inject_scores():
 @login_required
 def inject_inject(inject_id):
     if current_user.is_white_team:
-        inject = session.query(Inject).get(inject_id)
+        inject = session.get(Inject, inject_id)
         return render_template("admin/inject.html", inject=inject)
     else:
         return redirect(url_for("auth.unauthorized"))
@@ -98,7 +98,7 @@ def inject_inject(inject_id):
 @login_required
 def service(id):
     if current_user.is_white_team:
-        service = session.query(Service).get(id)
+        service = session.get(Service, id)
         blue_teams = Team.get_all_blue_teams()
         if service is None:
             return redirect(url_for("auth.unauthorized"))

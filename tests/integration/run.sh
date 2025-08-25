@@ -24,6 +24,9 @@ echo "Stopping any previous containers"
 make stop-integration
 make clean-integration
 
+# Remove any stopped containers left over from previous runs
+docker container prune -f >/dev/null 2>&1 || true
+
 # Build and start the necessary containers
 echo "Building required container environment"
 make build build-integration

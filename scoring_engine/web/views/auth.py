@@ -24,7 +24,7 @@ login_manager = LoginManager()
 # You can still define the user_loader function here, as it's needed for Flask-Login
 @login_manager.user_loader
 def load_user(id):
-    return session.query(User).get(int(id))
+    return session.get(User, int(id))
 
 
 # Define the before_request function

@@ -1,6 +1,7 @@
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.setting import Setting
+from scoring_engine.web import create_app
 
 from scoring_engine.checks.agent import AgentCheck
 from scoring_engine.checks.icmp import ICMPCheck
@@ -33,8 +34,8 @@ from tests.scoring_engine.unit_test import UnitTest
 
 
 class TestEngine(UnitTest):
-    def setup(self):
-        super(TestEngine, self).setup()
+    def setup_method(self):
+        super(TestEngine, self).setup_method()
         target_round_time_obj = Setting.get_setting("target_round_time")
         target_round_time_obj.value = 0
         self.session.add(target_round_time_obj)
@@ -43,6 +44,14 @@ class TestEngine(UnitTest):
         self.session.add(worker_refresh_time_obj)
 
         self.session.commit()
+
+        self.app = create_app()
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+
+    def teardown_method(self):
+        self.ctx.pop()
+        super(TestEngine, self).teardown_method()
 
     def test_init(self):
         engine = Engine()

@@ -10,8 +10,8 @@ from tests.scoring_engine.web.web_test import WebTest
 
 class TestAPI(WebTest):
 
-    def setup(self):
-        super(TestAPI, self).setup()
+    def setup_method(self):
+        super(TestAPI, self).setup_method()
         self.create_default_user()
 
     def test_auth_required_admin_get_round_progress(self):

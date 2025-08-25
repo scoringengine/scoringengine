@@ -141,7 +141,8 @@ def do_checkin(team, host, platform):
     }
 
     # TODO - this is a gross dev hack
-    if cache.config["CACHE_TYPE"] == "null":
+    cache_type = cache.config["CACHE_TYPE"]
+    if cache_type == "null" or cache_type.endswith("NullCache"):
         cache_dict[host] = now
         # print(cache_dict)
     else:

@@ -34,7 +34,7 @@ def is_valid_user_input(string, only_alphanumberdot, only_number):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def service_get_checks(service_id):
-    service = session.query(Service).get(service_id)
+    service = session.get(Service, service_id)
     if service is None or not (current_user.team == service.team or current_user.team.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = []

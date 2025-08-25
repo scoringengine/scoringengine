@@ -3,13 +3,13 @@ from scoring_engine.models.setting import Setting
 
 
 class UnitTest(object):
-    def setup(self):
+    def setup_method(self):
         self.session = session
         delete_db(self.session)
         init_db(self.session)
         self.create_default_settings()
 
-    def teardown(self):
+    def teardown_method(self):
         delete_db(self.session)
         self.session.remove()
 

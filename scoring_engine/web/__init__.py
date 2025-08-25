@@ -54,7 +54,7 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return session.query(User).get(int(user_id))
+        return session.get(User, int(user_id))
 
     app.register_blueprint(welcome.mod)
     app.register_blueprint(services.mod)

@@ -1,9 +1,28 @@
-from scoring_engine.cache import cache
-from scoring_engine.web import create_app
+"""Helper functions for clearing and updating application caches."""
 
-def update_all_cache():
-    app = create_app()
-    with app.app_context():
+from flask import current_app
+
+from scoring_engine.cache import cache
+
+
+def update_all_cache(app_or_ctx=None):
+    """Clear and rebuild all cached values.
+
+    Parameters
+    ----------
+    app_or_ctx : Flask app or app context, optional
+        If provided, the cache will be cleared within this application's
+        context.  If omitted, the current application context will be used.
+    """
+
+    if app_or_ctx is None:
+        app_or_ctx = current_app
+
+    context_manager = (
+        app_or_ctx.app_context() if hasattr(app_or_ctx, "app_context") else app_or_ctx
+    )
+
+    with context_manager:
         cache.clear()
 
     update_overview_data()

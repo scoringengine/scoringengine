@@ -19,7 +19,7 @@ def home():
 @mod.route('/service/<id>')
 @login_required
 def service(id):
-    service = session.query(Service).get(id)
+    service = session.get(Service, id)
     if service is None or not current_user.team == service.team:
         return redirect(url_for('auth.unauthorized'))
     modify_hostname_setting = Setting.get_setting('blue_team_update_hostname').value
