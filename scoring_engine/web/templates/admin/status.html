@@ -55,7 +55,7 @@ Round Stats
   <h4>Current Round Status</h4>
   <span>Round Progress</span>
   <div class="progress">
-    <div id="TotalPercent" class="progress-bar progress-bar-striped active " role="progressbar" aria-valuenow="0"
+    <div id="TotalPercent" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0"
       aria-valuemin="0" aria-valuemax="100" style="width:0%">
       <span>0%</span>
     </div>
@@ -63,7 +63,7 @@ Round Stats
   {% for team in blue_teams %}
   <span>{{team.name}}</span>
   <div class="progress">
-    <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped active progress-bar-success"
+    <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
       role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
       <span>0%</span>
     </div>
@@ -78,9 +78,9 @@ Round Stats
         $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
         $("#" + key + "Percent span").text(val + "%");
         if (val < 100) {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
+          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped progress-bar-animated bg-warning');
         } else {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-success');
+          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped progress-bar-animated bg-success');
         }
       });
     });
