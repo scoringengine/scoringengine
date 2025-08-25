@@ -1,30 +1,18 @@
-from sqlalchemy import (
-    Column,
-    Enum,
-    Integer,
-    PickleType,
-    DateTime,
-    String,
-    UniqueConstraint,
-    ForeignKey,
-)
+import enum
+import html
+import uuid
 
+import pytz
+from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer,
+                        PickleType, String, UniqueConstraint)
 # from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-import pytz
-
-import html
-
-import uuid
-
-from scoring_engine.models.base import Base
-from scoring_engine.models.team import Team
 from scoring_engine.cache import cache
 from scoring_engine.config import config
-
-
-import enum
+from scoring_engine.models.base import Base
+from scoring_engine.models.flag import FlagTypeEnum, Platform
+from scoring_engine.models.team import Team
 
 
 class Agent(Base):
