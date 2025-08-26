@@ -34,12 +34,12 @@ Putting it all together
   - The `Engine` starts
   - The first `Round` starts
   - The `Engine` tasks `Checks` out to the `Workers`
-  - The `Workers` execute the `Checks` and return the output to the `Engine`
-  - The `Engine` waits for all `Checks` to finish
-  - The `Engine` determines the results of each `Check`, and saves the results to the DB
-- The `Engine` ends the `Round`
-- The `Engine` sleeps for some time
-- The second `Round` starts
-- ...
+    - The `Workers` execute the `Checks` and return the output to the `Engine`
+    - The `Engine` waits for all `Checks` to finish
+    - The `Engine` determines the results of each `Check`, and saves the results to the DB
+    - The `Engine` ends the `Round`
+    - The `Engine` sleeps for some time
+    - The second `Round` starts
+    - ...
 
 .. include:: screenshots.rst

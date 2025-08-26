@@ -30,3 +30,12 @@ Flags and Injects
 
 Endpoints under ``/api/flags`` and ``/api/admin/injects`` support
 capture-the-flag style challenges and graded injects.
+
+Example
+=======
+
+Retrieve scoreboard data as JSON:
+
+.. code-block:: bash
+
+   curl http://localhost/api/scoreboard/get_bar_data

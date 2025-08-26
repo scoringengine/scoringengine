@@ -8,5 +8,6 @@ Custom Properties:
 
 .. list-table::
    :widths: 25 50
+
    * - ca
      - entire CA text

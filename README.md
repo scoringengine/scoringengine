@@ -71,6 +71,17 @@ make html
 
 Open `docs/build/html/index.html` in your browser to view the rendered documentation.
 
+## Tests and Code Style
+
+Run the linters and test suite before submitting changes:
+
+```bash
+pre-commit run --files <changed-files>
+pytest
+```
+
+To check every file, use `pre-commit run --all-files`.
+
 ## License
 
 Released under the [MIT License](LICENSE).
