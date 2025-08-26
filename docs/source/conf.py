@@ -48,8 +48,8 @@ master_doc = "index"
 
 # General information about the project.
 project = "ScoringEngine"
-copyright = "2017, ScoringEngine"
-author = "ScoringEngine"
+copyright = "2017-2025, ScoringEngine"
+author = "ScoringEngine and Rusty Bower"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
