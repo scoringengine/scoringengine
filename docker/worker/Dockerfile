@@ -88,7 +88,8 @@ RUN pip install -I "libnfs==1.0.post4"
 RUN pip install -I "telnetlib3==1.0.1"
 
 # Playwright-based advanced web checks
-RUN pip install -I "pytest-playwright"
+# Note: update docker/engine/Dockerfile as well when changing playwright version
+RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
 RUN playwright install-deps
 
 # OpenVPN Check

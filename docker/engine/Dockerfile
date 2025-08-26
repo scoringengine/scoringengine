@@ -4,6 +4,7 @@ COPY bin/engine /app/bin/engine
 
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
-RUN pip install -I "pytest-playwright"
+# Note: update docker/worker/Dockerfile as well when changing playwright version
+RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
 
 CMD ["./wait-for-container.sh", "bootstrap", "/app/bin/engine"]
