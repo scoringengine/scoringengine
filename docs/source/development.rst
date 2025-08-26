@@ -71,6 +71,17 @@ Worker
 
   python bin/worker
 
+Code Style Checks
+-----------------
+We use `pre-commit <https://pre-commit.com/>`_ to lint and format the code.
+Install it and run the hooks on changed files:
+::
+
+  pip install pre-commit
+  pre-commit run --files path/to/file.py
+
+To check all files, run ``pre-commit run --all-files``.
+
 Run Tests
 ---------
 We use the `pytest <https://docs.pytest.org/en/latest/>`_ testing framework.

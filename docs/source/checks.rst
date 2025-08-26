@@ -17,5 +17,7 @@ Implemented Checks
 .. include:: checks/smb.rst
 .. include:: checks/smtp.rst
 .. include:: checks/ssh.rst
+.. include:: checks/telnet.rst
 .. include:: checks/vnc.rst
 .. include:: checks/winrm.rst
+.. include:: checks/openvpn.rst

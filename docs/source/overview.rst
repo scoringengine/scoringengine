@@ -18,7 +18,7 @@ The engine is responsible for tasking `Checks` that are used to verify network s
 
 Worker
 ^^^^^^
-The worker connects to Redis and waits for `Checks` to get tasked in order to run them against . Once it receives a
+The worker connects to Redis and waits for `Checks` to get tasked in order to run them against the target service. Once it receives a
 `Check`, it executes the command and sends the output back to the Engine.
 
 Web
@@ -34,12 +34,12 @@ Putting it all together
   - The `Engine` starts
   - The first `Round` starts
   - The `Engine` tasks `Checks` out to the `Workers`
-  - The `Workers` execute the `Checks` and return the output to the `Engine`
-  - The `Engine` waits for all `Checks` to finish
-  - The `Engine` determines the results of each `Check`, and saves the results to the DB
-  - The `Engine` ends the `Round`
-  - The `Engine` sleeps for some time
-  - The second `Round` starts
-  - ...
+    - The `Workers` execute the `Checks` and return the output to the `Engine`
+    - The `Engine` waits for all `Checks` to finish
+    - The `Engine` determines the results of each `Check`, and saves the results to the DB
+    - The `Engine` ends the `Round`
+    - The `Engine` sleeps for some time
+    - The second `Round` starts
+    - ...
 
 .. include:: screenshots.rst
