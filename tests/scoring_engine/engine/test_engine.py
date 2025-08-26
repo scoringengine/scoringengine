@@ -28,6 +28,7 @@ from scoring_engine.checks.wordpress import WordpressCheck
 from scoring_engine.checks.nfs import NFSCheck
 from scoring_engine.checks.openvpn import OpenVPNCheck
 from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
+from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
 from scoring_engine.checks.telnet import TelnetCheck
 from scoring_engine.checks.winrm import WinRMCheck
 
@@ -82,6 +83,7 @@ class TestEngine(UnitTest):
             NFSCheck,
             OpenVPNCheck,
             WebappScoringengineCheck,
+            WebappNginxdefaultpageCheck,
             TelnetCheck,
             WinRMCheck,
         ]
