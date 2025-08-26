@@ -11,3 +11,4 @@ Table of Contents
   checks
   development
   create_new_check
+  api
