@@ -1,5 +1,12 @@
-import requests
 import pytest
+
+
+# These tests require the web UI to be running in Docker and are skipped in
+# the lightweight integration environment.
+pytestmark = pytest.mark.skip("Web UI integration tests require Docker")
+
+
+import requests
 
 
 class TestWebUI(object):

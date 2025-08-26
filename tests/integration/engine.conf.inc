@@ -9,14 +9,16 @@ upload_folder = /var/uploads
 
 debug = False
 
-db_uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
+# Use a lightweight SQLite database for integration tests
+db_uri = sqlite:///integration_test.db
 
 worker_num_concurrent_tasks = -1
 worker_queue = main
 
-# Set to null to disable caching
-cache_type = redis
+# Disable caching for tests
+cache_type = null
 
-redis_host = redis
-redis_port = 6379
-redis_password =
+# Redis configuration is unnecessary when caching is disabled
+# redis_host = redis
+# redis_port = 6379
+# redis_password =
