@@ -5,10 +5,10 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.db import session
 
-NUM_TESTBED_SERVICES = 14
+NUM_TESTBED_SERVICES = 15
 NUM_OVERALL_ROUNDS = 5
 NUM_OVERALL_TEAMS = 5
-SERVICE_TOTAL_POINTS_PER_ROUND = 1425
+SERVICE_TOTAL_POINTS_PER_ROUND = 1525
 
 
 class TestIntegration(object):
