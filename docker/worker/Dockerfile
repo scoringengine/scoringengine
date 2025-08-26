@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dnsutils \
     # PostgreSQL checks
     postgresql-client \
-    # NFS checks via python libnfs
-    libnfs-dev \
+    # NFS checks
+    nfs-common \
     # OpenVPN checks
     openvpn \
     # OpenVPN check uses ip command
@@ -57,8 +57,6 @@ RUN pip install --no-cache-dir -I \
     "requests>=2.32.3,<2.33" \
     # SMB checks
     "pysmb>=1.2,<1.3" \
-    # NFS checks
-    "libnfs==1.0.post4" \
     # Telnet checks
     "telnetlib3==1.0.1"
 
