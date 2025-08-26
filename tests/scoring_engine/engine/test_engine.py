@@ -1,7 +1,6 @@
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.setting import Setting
-from scoring_engine.web import create_app
 
 from scoring_engine.checks.agent import AgentCheck
 from scoring_engine.checks.icmp import ICMPCheck
@@ -45,12 +44,7 @@ class TestEngine(UnitTest):
 
         self.session.commit()
 
-        self.app = create_app()
-        self.ctx = self.app.app_context()
-        self.ctx.push()
-
     def teardown_method(self):
-        self.ctx.pop()
         super(TestEngine, self).teardown_method()
 
     def test_init(self):

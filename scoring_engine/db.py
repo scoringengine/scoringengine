@@ -1,56 +1,32 @@
-import bcrypt
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError, ProgrammingError
-from sqlalchemy.pool import NullPool
-
-from scoring_engine.config import config
 
 
-def delete_db(session):
+db = SQLAlchemy()
+
+# Maintain backward compatibility for modules importing `session`
+session = db.session
+
+
+def delete_db():
     from scoring_engine.models.base import Base
 
-    Base.metadata.drop_all(session.bind)
+    Base.metadata.drop_all(bind=db.engine)
 
 
-def init_db(session):
+def init_db():
     from scoring_engine.models.base import Base
 
-    Base.metadata.create_all(session.bind)
+    Base.metadata.create_all(bind=db.engine)
 
 
-def verify_db_ready(session):
+def verify_db_ready():
     ready = True
     try:
         from scoring_engine.models.user import User
 
-        session.get(User, 1)
+        db.session.get(User, 1)
     except (OperationalError, ProgrammingError):
         ready = False
     return ready
 
-
-isolation_level = "READ COMMITTED"
-if "sqlite" in config.db_uri:
-    # sqlite db does not support transaction based statements
-    # so we have to manually set it to something else
-    isolation_level = "READ UNCOMMITTED"
-
-session = scoped_session(
-    sessionmaker(bind=create_engine(config.db_uri, isolation_level=isolation_level, poolclass=NullPool))
-)
-
-# db_salt = bcrypt.gensalt()
-
-
-# This is a monkey patch so that we
-# don't need to commit before every query
-# We got weird results in the web ui when we didn't
-# have this
-def query_monkeypatch(*classname):
-    session.commit()
-    return session.orig_query(*classname)
-
-
-session.orig_query = session.query
-session.query = query_monkeypatch
