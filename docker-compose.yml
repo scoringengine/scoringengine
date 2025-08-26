@@ -22,6 +22,11 @@ services:
       - MYSQL_USER=se_user
       - MYSQL_PASSWORD=CHANGEME
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 3s
+      retries: 10
     volumes:
       - mysql:/var/lib/mysql
     networks:
@@ -31,7 +36,8 @@ services:
   nginx:
     image: nginx:1.23.1
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     ports:
       - 80:80
       - 443:443
@@ -65,10 +71,10 @@ services:
         - scoringengine/bootstrap
         - bootstrap:latest
     depends_on:
-      - base
-      - mysql
-    healthcheck:
-      test: ["CMD", "exit", "1"]
+      base:
+        condition: service_started
+      mysql:
+        condition: service_healthy
     restart: on-failure
     networks:
       - default
@@ -85,9 +91,12 @@ services:
         - scoringengine/engine
         - engine:latest
     depends_on:
-      - base
-      - redis
-      - bootstrap
+      base:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      bootstrap:
+        condition: service_completed_successfully
     restart: on-failure
     networks:
       - default
@@ -103,8 +112,10 @@ services:
         - scoringengine/worker
         - worker:latest
     depends_on:
-      - base
-      - redis
+      base:
+        condition: service_started
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - default
@@ -120,10 +131,15 @@ services:
         - scoringengine/web
         - web:latest
     depends_on:
-      - base
-      - mysql
+      base:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      bootstrap:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:5000"]
+      # uwsgi exposes an HTTP stats server on port 9191; use it for liveness
+      test: ["CMD", "curl", "-f", "http://localhost:9191"]
       interval: 30s
       timeout: 3s
       retries: 10

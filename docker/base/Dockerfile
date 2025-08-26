@@ -16,9 +16,6 @@ RUN set -eux; \
   rm -rf /var/lib/apt/lists/* && \
   python3 -m ensurepip --upgrade && \
   mkdir /app
-
-COPY docker/wait-for-container.sh /app/wait-for-container.sh
-COPY docker/wait-for-port.sh /app/wait-for-port.sh
 COPY pyproject.toml /app/pyproject.toml
 COPY docker/engine.conf.inc /app/engine.conf
 
@@ -36,4 +33,4 @@ ENV PATH=/home/engine/.local/bin:$PATH
 COPY scoring_engine /app/scoring_engine
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install -e .
+    pip install --no-cache-dir -e .
