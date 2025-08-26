@@ -13,6 +13,7 @@ Scoring Engine is an open-source platform for running Red/White/Blue team compet
 - Automated scheduling and execution of service checks
 - Redis-backed workers for parallel execution
 - Web interface for viewing scores and configuring services
+- JSON API for programmatic access to scores and configuration
 - Example mode with pre-populated demo data
 
 ## Prerequisites
@@ -57,6 +58,18 @@ Log in using any of the following credentials:
 ## Documentation
 
 Full documentation is available at [https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/).
+
+## Building Documentation Locally
+
+To build the documentation locally:
+
+```bash
+pip install -r docs/requirements.txt
+cd docs
+make html
+```
+
+Open `docs/build/html/index.html` in your browser to view the rendered documentation.
 
 ## License
 
