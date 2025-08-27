@@ -4,43 +4,85 @@
 
 # Scoring Engine
 
-Scoring Engine for Red/White/Blue Team Competitions
+Scoring Engine is an open-source platform for running Red/White/Blue team competitions. It automates service checks each round and provides a web-based scoreboard and configuration interface.
 
-<img src="https://github.com/scoringengine/scoringengine/blob/master/docs/source/images/screenshots.gif" width="800" height="577" />
+![Scoring Engine screenshot](https://github.com/scoringengine/scoringengine/blob/master/docs/source/images/screenshots.gif)
 
-## Getting started
+## Features
 
-Download [Docker](https://www.docker.com/products/overview). If you are on Mac or Windows, [Docker Compose](https://docs.docker.com/compose) will be automatically installed. On Linux, make sure you have the latest version of [Compose](https://docs.docker.com/compose/install/). If you're using [Docker for Windows](https://docs.docker.com/docker-for-windows/) on Windows 10 pro or later, you must also [switch to Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
+- Automated scheduling and execution of service checks
+- Redis-backed workers for parallel execution
+- Web interface for viewing scores and configuring services
+- JSON API for programmatic access to scores and configuration
+- Example mode with pre-populated demo data
 
-Run in this directory:
+## Prerequisites
 
-```
+- [Docker](https://www.docker.com/products/overview)
+- [Docker Compose](https://docs.docker.com/compose/) (included with Docker Desktop; on Linux install separately)
+- For Windows users, ensure Docker Desktop is set to [use Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
+
+## Quick Start
+
+From this directory run:
+
+```bash
 docker-compose build
 docker-compose up
 ```
 
-If you want to delete the database before starting, set the SCORINGENGINE_OVERWRITE_DB environment variable:
+### Optional environment variables
 
-```
+Reset the database before starting:
+
+```bash
 SCORINGENGINE_OVERWRITE_DB=true docker-compose up
 ```
 
-We also provide the ability to run it in an 'example' mode. This means only the web ui runs, and the database is prepopulated with example data. Set the SCORINGENGINE_EXAMPLE environment variable to true:
+Run with sample data and only the web UI:
 
-```
+```bash
 SCORINGENGINE_EXAMPLE=true docker-compose up
 ```
 
-The app will be running at [http://localhost](http://localhost)
+Once running, access the application at [http://localhost](http://localhost/).
 
-Log in with any of the following logins at http://localhost:
+Log in using any of the following credentials:
 
-- whiteteamuser:testpass
-- team1user1:testpass
-- team2user1:testpass
-- team2user2:testpass
-- redteamuser:testpass
+- `whiteteamuser:testpass`
+- `team1user1:testpass`
+- `team2user1:testpass`
+- `team2user2:testpass`
+- `redteamuser:testpass`
 
 ## Documentation
 
-[https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/)
+Full documentation is available at [https://scoringengine.readthedocs.io/en/latest/](https://scoringengine.readthedocs.io/en/latest/).
+
+## Building Documentation Locally
+
+To build the documentation locally:
+
+```bash
+pip install -r docs/requirements.txt
+cd docs
+make html
+```
+
+Open `docs/build/html/index.html` in your browser to view the rendered documentation.
+
+## Tests and Code Style
+
+Run the linters and test suite before submitting changes:
+
+```bash
+pre-commit run --files <changed-files>
+pytest
+```
+
+To check every file, use `pre-commit run --all-files`.
+
+## License
+
+Released under the [MIT License](LICENSE).
+

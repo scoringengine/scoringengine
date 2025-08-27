@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-# A scoring engine check that logs into NFS, writes file
-# and then logs into NFL again, and reads the file
+# A scoring engine check that mounts an NFS share, writes a file,
+# and then reads the file back to verify the contents
 
+import os
 import sys
-import libnfs
+import subprocess
+import tempfile
 
 if len(sys.argv) != 4:
     print("Usage: " + sys.argv[0] + " host remotefilepath filecontents")
@@ -14,23 +16,40 @@ host = sys.argv[1]
 remote_filepath = sys.argv[2]
 upload_file_contents = sys.argv[3]
 
-# Connect and Upload file to server
-try:
-    nfs = libnfs.open('nfs://{0}{1}'.format(host, remote_filepath), mode='w')
-    nfs.write(upload_file_contents)
-    nfs.close()
-except Exception as err:
-    print("ERROR: {0}".format(err))
-    sys.exit(1)
+remote_dir = os.path.dirname(remote_filepath)
+remote_name = os.path.basename(remote_filepath)
 
-# Connect and Download file
-try:
-    downloaded_lines = libnfs.open('nfs://{0}{1}'.format(host, remote_filepath), mode='r').read()
-except Exception as err:
-    print("ERROR: {0}".format(err))
-    sys.exit(1)
+with tempfile.TemporaryDirectory() as mount_dir:
+    mounted = False
+    try:
+        subprocess.run([
+            "sudo",
+            "mount",
+            "-t",
+            "nfs",
+            f"{host}:{remote_dir}",
+            mount_dir,
+        ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        mounted = True
+    except subprocess.CalledProcessError as err:
+        print(f"ERROR: {err.stderr.decode().strip()}")
+        sys.exit(1)
 
-downloaded_data = ''.join(downloaded_lines)
+    try:
+        remote_file = os.path.join(mount_dir, remote_name)
+        with open(remote_file, "w") as fh:
+            fh.write(upload_file_contents)
+        with open(remote_file, "r") as fh:
+            downloaded_data = fh.read()
+    except Exception as err:
+        print(f"ERROR: {err}")
+        if mounted:
+            subprocess.run(["sudo", "umount", mount_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sys.exit(1)
+
+    if mounted:
+        subprocess.run(["sudo", "umount", mount_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
 if downloaded_data != upload_file_contents:
     print("ERROR: Uploaded contents do not match downloaded contents")
     sys.exit(1)

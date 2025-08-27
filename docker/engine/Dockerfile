@@ -7,4 +7,4 @@ RUN pip install -e .
 # Note: update docker/worker/Dockerfile as well when changing playwright version
 RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
 
-CMD ["./wait-for-container.sh", "bootstrap", "/app/bin/engine"]
+CMD ["/app/bin/engine"]
