@@ -1,6 +1,6 @@
 # codeclimate-test-reporter==0.2.1  # Deprecated and not maintained. Switch to coverage directly for local reports or GitHub Actions.
 coverage==6.1.2
-coveralls==3.3.1
+coveralls==4.0.1
 flake8==7.2.0
 mock==5.1.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
 pytest==7.4.2
