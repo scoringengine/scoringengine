@@ -46,8 +46,8 @@ RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/conf
 # freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
 # Some distributions ship only a generic "freerdp" package
 # RDP checks
-RUN apt-get update && (apt-get install -y --no-install-recommends freerdp2-x11 || apt-get install -y --no-install-recommends freerdp3-x11 || apt-get install -y --no-install-recommends freerdp) && rm -rf /var/lib/apt/lists/*
-RUN apt-get install -y xvfb
+RUN apt-get update && (apt-get install -y --no-install-recommends freerdp2-x11 || apt-get install -y --no-install-recommends freerdp3-x11 || apt-get install -y --no-install-recommends freerdp)
+RUN apt-get install -y xvfb && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -I \
     # SSH checks
