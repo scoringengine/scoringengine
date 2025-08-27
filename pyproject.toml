@@ -18,7 +18,7 @@ dependencies = [
   "bcrypt==4.3.0",
   "celery[redis]==5.5.3",
   "configparser==7.1.0",
-  "cryptography==44.0.0",
+  "cryptography==44.0.1",
   "Flask==3.1.2",
   "Flask-Caching==2.3.1",
   "Flask-Login==0.6.3",
