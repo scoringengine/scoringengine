@@ -46,7 +46,8 @@ RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/conf
 # freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
 # Some distributions ship only a generic "freerdp" package
 # RDP checks
-RUN apt-get update && (apt-get install -y --no-install-recommends freerdp2-x11 || apt-get install -y --no-install-recommends freerdp3-x11 || apt-get install -y --no-install-recommends freerdp) && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && (apt-get install -y --no-install-recommends freerdp2-x11 || apt-get install -y --no-install-recommends freerdp3-x11 || apt-get install -y --no-install-recommends freerdp)
+RUN apt-get install -y xvfb && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -I \
     # SSH checks
@@ -59,10 +60,22 @@ RUN pip install --no-cache-dir -I \
     "pysmb>=1.2,<1.3" \
     # Telnet checks
     "telnetlib3==1.0.1"
+    
+# Playwright-based advanced web checks
+# Note: update docker/engine/Dockerfile as well when changing playwright version
+RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
+RUN playwright install-deps
 
 COPY bin/worker /app/bin/worker
 COPY docker/worker/sudoers /etc/sudoers
 
 USER engine
 
-CMD ["/app/bin/worker"]
+COPY scoring_engine /app/scoring_engine
+RUN pip install -e .
+RUN playwright install chromium
+
+# Xvfb is a virtual X server which tricks freerdp2
+# into thinking it has a screen. This is used for
+# RDP scorechecks.
+CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker

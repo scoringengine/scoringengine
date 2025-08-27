@@ -25,6 +25,11 @@
           type: 'text',
           validate: function(value) {
               if($.trim(value) == '') return 'This field is required';
+	      if (value.startsWith(" ") || value.endsWith(" ")) return "Input cannot start or end with a space";
+	      if (/^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$/.test(value) == false) return "Invalid characters detected in input. Allowed characters are AlphaNumeric and any of . , @ = : / - | ( ) ;";
+          },
+          success: function(response) {
+            if(response.error) return "Unable to update value due to error: " + response.error;
           }
       });
 

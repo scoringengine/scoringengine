@@ -2,8 +2,8 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class LDAPCheck(BasicCheck):
-    required_properties = ['domain', 'base_dn']
-    CMD = "ldapsearch -x -h {0} -p {1} -D {2}@{3} -b {4} -w {5} '(objectclass=User)' cn"
+    required_properties = ['domain_base']
+    CMD = "ldapsearch -x -H ldap://{0}:{1} -D cn={2},cn=Users,{3} -w {4} -b {3} '(objectclass=Domain)' cn"
 
     def command_format(self, properties):
         account = self.get_random_account()
@@ -11,7 +11,6 @@ class LDAPCheck(BasicCheck):
             self.host,
             self.port,
             account.username,
-            properties['domain'],
-            properties['base_dn'],
+            properties['domain_base'],
             account.password
         )

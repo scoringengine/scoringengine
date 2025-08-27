@@ -110,11 +110,13 @@ def team_services_status(team_id):
 
     data = {}
 
-    round_id = session.query(Round.id).order_by(Round.number.desc()).first()[0]
+    round_obj = session.query(Round.id).order_by(Round.number.desc()).first()
 
     # We have no round data, the first round probably hasn't started yet
-    if not round_id:
+    if not round_obj:
         return data
+
+    round_id = round_obj[0]
 
     checks = (
         session.query(

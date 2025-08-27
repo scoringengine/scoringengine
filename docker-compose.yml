@@ -121,6 +121,7 @@ services:
       - default
     environment:
       - SCORINGENGINE_VERSION
+      - DISPLAY=:1
     privileged: true
   web:
     image: scoringengine/web

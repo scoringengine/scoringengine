@@ -139,20 +139,20 @@ welcome_content = """
 """
 
 logger.info("Creating the default Settings")
-about_page_setting = Setting(name="about_page_content", value=about_content)
-session.add(about_page_setting)
+session.add(Setting(name="about_page_content", value=about_content))
 session.add(Setting(name="welcome_page_content", value=welcome_content))
 session.add(Setting(name="target_round_time", value=config.target_round_time))
 session.add(Setting(name="worker_refresh_time", value=config.worker_refresh_time))
 session.add(Setting(name="engine_paused", value=config.engine_paused))
 session.add(Setting(name="pause_duration", value=config.pause_duration))
-session.add(Setting(name="blue_team_update_hostname", value=True))
-session.add(Setting(name="blue_team_update_port", value=True))
-session.add(Setting(name="blue_team_update_account_usernames", value=True))
-session.add(Setting(name="blue_team_update_account_passwords", value=True))
-session.add(Setting(name="blue_team_view_check_output", value=True))
-session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 3))
-session.add(Setting(name="agent_show_flag_early_mins", value=5))
+session.add(Setting(name="blue_team_update_hostname", value=config.blue_team_update_hostname))
+session.add(Setting(name="blue_team_update_port", value=config.blue_team_update_port))
+session.add(Setting(name="blue_team_update_account_usernames", value=config.blue_team_update_account_usernames))
+session.add(Setting(name="blue_team_update_account_passwords", value=config.blue_team_update_account_passwords))
+session.add(Setting(name="blue_team_view_check_output", value=config.blue_team_view_check_output))
+session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 5))
+session.add(Setting(name="agent_show_flag_early_mins", value=config.agent_show_flag_early_mins))
+session.add(Setting(name="agent_psk", value=config.agent_psk))
 session.commit()
 
 if options.example:
@@ -250,6 +250,7 @@ if options.example:
             end_time=datetime.now() + timedelta(minutes=randint(0, 60)),
         )
         flag.platform = choice(["nix", "windows"])
+        flag.dummy = choice([False, True])
         flag.type = choice(["file", "pipe", "net", "reg"])
         flag.perm = choice(["user", "root"])
         flag.data = {"path": "/tmp/flag", "content": "hi"}

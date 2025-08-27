@@ -256,6 +256,18 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Webapp Nginx
+    check_name: WebappNginxdefaultpageCheck
+    host: testbed_web
+    port: 443
+    points: 100
+    environments:
+    - matching_content: 'PASSED'
+      properties:
+      - name: scheme
+        value: https
+      - name: basepath
+        value: /
   # - name: AGENT
   #   check_name: AgentCheck
   #   host: testbed_icmp
@@ -664,6 +676,18 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Webapp Nginx
+    check_name: WebappNginxdefaultpageCheck
+    host: testbed_web
+    port: 443
+    points: 100
+    environments:
+    - matching_content: 'PASSED'
+      properties:
+      - name: scheme
+        value: https
+      - name: basepath
+        value: /
   # - name: AGENT
   #   check_name: AgentCheck
   #   host: testbed_icmp
@@ -1072,6 +1096,18 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Webapp Nginx
+    check_name: WebappNginxdefaultpageCheck
+    host: testbed_web
+    port: 443
+    points: 100
+    environments:
+    - matching_content: 'PASSED'
+      properties:
+      - name: scheme
+        value: https
+      - name: basepath
+        value: /
   # - name: AGENT
   #   check_name: AgentCheck
   #   host: testbed_icmp
@@ -1480,6 +1516,18 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Webapp Nginx
+    check_name: WebappNginxdefaultpageCheck
+    host: testbed_web
+    port: 443
+    points: 100
+    environments:
+    - matching_content: 'PASSED'
+      properties:
+      - name: scheme
+        value: https
+      - name: basepath
+        value: /
   # - name: AGENT
   #   check_name: AgentCheck
   #   host: testbed_icmp
@@ -1888,6 +1936,18 @@ teams:
         value: A scoring engine test subject!
       - name: body
         value: This is the body of the email
+  - name: Webapp Nginx
+    check_name: WebappNginxdefaultpageCheck
+    host: testbed_web
+    port: 443
+    points: 100
+    environments:
+    - matching_content: 'PASSED'
+      properties:
+      - name: scheme
+        value: https
+      - name: basepath
+        value: /
   # - name: AGENT
   #   check_name: AgentCheck
   #   host: testbed_icmp
