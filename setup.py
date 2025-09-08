@@ -13,7 +13,7 @@ config = {
         # 'celery==4.2.2',
         "celery[redis]==5.4",
         "configparser==7.1.0",
-        "Flask==3.1.0",
+        "Flask==3.1.2",
         "Flask-Caching==2.3.0",
         "Flask-Login==0.6.3",
         "Flask-SQLAlchemy==3.1.1",
