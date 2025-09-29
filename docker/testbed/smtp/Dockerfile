@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN \
   apt-get update && \
-  apt-get install -y --no-install-recommends openssl postfix sasl2-bin && \
+  apt-get install -y --no-install-recommends openssl postfix sasl2-bin libsasl2-modules && \
   rm -rf /var/lib/apt/lists/*
 
 RUN \
