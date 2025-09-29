@@ -82,6 +82,33 @@ pytest
 
 To check every file, use `pre-commit run --all-files`.
 
+### Optional Playwright web UI tests
+
+Advanced web UI integration tests rely on Playwright and are disabled by default
+to avoid installing Chromium during routine workflows. To enable them:
+
+1. Install the optional requirements:
+
+   ```bash
+   # When installing from a clone
+   pip install ".[playwright]"
+
+   # Or, when installing the published package
+   pip install "scoring_engine[playwright]"
+
+   # Legacy fallback matching older instructions
+   pip install -r tests/requirements-webui.txt
+   ```
+
+2. Export `WITH_PLAYWRIGHT=true` before building Docker images so the engine,
+   worker, and tester containers include the Playwright runtime.
+
+3. Export `SCORINGENGINE_RUN_WEBUI_TESTS=1` before running
+   `tests/integration/run.sh` to execute the Playwright-backed scenarios.
+
+When these variables are not set, the standard integration suite runs without
+Playwright and no Chromium download is performed.
+
 ## License
 
 Released under the [MIT License](LICENSE).

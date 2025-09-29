@@ -90,6 +90,8 @@ services:
       cache_from:
         - scoringengine/engine
         - engine:latest
+      args:
+        WITH_PLAYWRIGHT: ${WITH_PLAYWRIGHT:-false}
     depends_on:
       base:
         condition: service_started
@@ -111,6 +113,8 @@ services:
       cache_from:
         - scoringengine/worker
         - worker:latest
+      args:
+        WITH_PLAYWRIGHT: ${WITH_PLAYWRIGHT:-false}
     depends_on:
       base:
         condition: service_started

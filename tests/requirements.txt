@@ -4,3 +4,8 @@ coveralls==3.3.1
 flake8==7.3.0
 mock==5.1.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
 pytest==8.4.2
+
+# Optional Playwright-based integration tests require additional dependencies.
+# Install the `playwright` extra (``pip install ".[playwright]"``) or,
+# equivalently, install tests/requirements-webui.txt when enabling
+# SCORINGENGINE_RUN_WEBUI_TESTS.

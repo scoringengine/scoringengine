@@ -8,6 +8,8 @@ services:
       cache_from:
         - scoringengine/tester
         - tester:latest
+      args:
+        WITH_PLAYWRIGHT: ${WITH_PLAYWRIGHT:-false}
     networks:
       - default
   # We redefine engine service so we can
@@ -18,6 +20,9 @@ services:
     restart: "no"
     environment:
       - SCORINGENGINE_NUM_ROUNDS=5
+    build:
+      args:
+        WITH_PLAYWRIGHT: ${WITH_PLAYWRIGHT:-false}
   # We redefine bootstrap so we can modify the
   # round refresh timers, so we aren't waiting around
   # for no reason
@@ -30,6 +35,9 @@ services:
   worker:
     deploy:
       replicas: 3
+    build:
+      args:
+        WITH_PLAYWRIGHT: ${WITH_PLAYWRIGHT:-false}
 
 networks:
   default:
