@@ -12,7 +12,7 @@ config = {
         # 'billiard==3.5.0.4',
         # 'celery==4.2.2',
         "celery[redis]==5.4",
-        "configparser==7.1.0",
+        "configparser==7.2.0",
         "Flask==3.1.2",
         "Flask-Caching==2.3.0",
         "Flask-Login==0.6.3",
