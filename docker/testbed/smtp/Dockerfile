@@ -1,10 +1,12 @@
-FROM ubuntu:24.10
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN \
   apt-get update && \
-  apt-get -y install openssl postfix sasl2-bin
+  apt-get -y install openssl postfix sasl2-bin && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
 
 RUN \
   mkdir /etc/postfix/ssl && \

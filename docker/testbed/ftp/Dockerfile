@@ -1,8 +1,12 @@
-FROM ubuntu:24.10
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN \
-  apt-get update && apt-get install -y --no-install-recommends vsftpd && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends vsftpd && \
   apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
   echo "local_enable=YES" >> /etc/vsftpd.conf && \
   echo "write_enable=YES" >> /etc/vsftpd.conf && \
   echo "dirlist_enable=YES" >> /etc/vsftpd.conf && \
@@ -13,7 +17,7 @@ RUN \
   echo 'ttesterson:testpass' | chpasswd && \
   echo 'rpeterson:otherpass' | chpasswd && \
   mkdir /ftp_files && \
-  echo 'canary' | tee -a > /ftp_files/testfile.txt && \
+  printf 'canary\n' > /ftp_files/testfile.txt && \
   chmod 777 -R /ftp_files
 
 EXPOSE 21
