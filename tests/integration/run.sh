@@ -1,6 +1,11 @@
 # Exit script if any commands fail
 set -e
 
+# Optional Playwright-based web UI tests can be enabled by exporting
+# SCORINGENGINE_RUN_WEBUI_TESTS=1 before executing this script. When enabled,
+# make sure the optional requirements in tests/requirements-webui.txt are
+# installed inside the tester image (set WITH_PLAYWRIGHT=true for Docker builds).
+
 wait_for_container()
 {
   CONTAINER_NAME=$1
