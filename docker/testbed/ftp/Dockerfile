@@ -1,8 +1,11 @@
-FROM ubuntu:24.10
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN \
-  apt-get update && apt-get install -y --no-install-recommends vsftpd && \
-  apt-get clean && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends vsftpd && \
+  rm -rf /var/lib/apt/lists/* && \
   echo "local_enable=YES" >> /etc/vsftpd.conf && \
   echo "write_enable=YES" >> /etc/vsftpd.conf && \
   echo "dirlist_enable=YES" >> /etc/vsftpd.conf && \

@@ -1,10 +1,11 @@
-FROM ubuntu:24.10
+FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN \
   apt-get update && \
-  apt-get -y install openssl postfix sasl2-bin
+  apt-get install -y --no-install-recommends openssl postfix sasl2-bin libsasl2-modules && \
+  rm -rf /var/lib/apt/lists/*
 
 RUN \
   mkdir /etc/postfix/ssl && \
