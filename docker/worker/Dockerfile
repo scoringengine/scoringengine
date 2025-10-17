@@ -1,5 +1,7 @@
 FROM scoringengine/base
 
+ARG WITH_PLAYWRIGHT=false
+
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -63,8 +65,10 @@ RUN pip install --no-cache-dir -I \
     
 # Playwright-based advanced web checks
 # Note: update docker/engine/Dockerfile as well when changing playwright version
-RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
-RUN playwright install-deps
+RUN if [ "$WITH_PLAYWRIGHT" = "true" ]; then \
+      pip install -I "pytest-playwright>=0.7.0,<0.8" && \
+      playwright install-deps; \
+    fi
 
 COPY bin/worker /app/bin/worker
 COPY docker/worker/sudoers /etc/sudoers
@@ -73,7 +77,9 @@ USER engine
 
 COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
-RUN playwright install chromium
+RUN if [ "$WITH_PLAYWRIGHT" = "true" ]; then \
+      playwright install chromium; \
+    fi
 
 # Xvfb is a virtual X server which tricks freerdp2
 # into thinking it has a screen. This is used for
