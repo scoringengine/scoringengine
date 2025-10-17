@@ -1,10 +1,36 @@
-import requests
+import os
+from urllib.parse import urljoin
+
 import pytest
+import requests
+from requests.exceptions import RequestException
+
+BASE_URL = os.environ.get("SCORINGENGINE_WEBUI_BASE_URL", "https://nginx")
+_REQUEST_TIMEOUT = float(os.environ.get("SCORINGENGINE_WEBUI_TIMEOUT", "5"))
+
+
+def _build_url(page):
+    base = BASE_URL if BASE_URL.endswith('/') else f"{BASE_URL}/"
+    return urljoin(base, page)
+
+
+def _skip_if_unreachable():
+    try:
+        response = requests.get(_build_url(""), verify=False, timeout=_REQUEST_TIMEOUT)
+        response.close()
+    except RequestException as exc:
+        pytest.skip(
+            f"Web UI not reachable at {BASE_URL!r}: {exc}",
+            allow_module_level=True,
+        )
+
+
+_skip_if_unreachable()
 
 
 class TestWebUI(object):
     def get_page(self, page):
-        return requests.get('https://nginx/{0}'.format(page), verify=False)
+        return requests.get(_build_url(page), verify=False, timeout=_REQUEST_TIMEOUT)
 
     pages = [
         {
