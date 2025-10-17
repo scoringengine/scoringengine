@@ -16,7 +16,12 @@ upload_folder = /var/uploads
 
 debug = False
 
-db_uri = mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4
+# The integration test suite runs without the docker-compose stack, so we
+# back the SQLAlchemy session with a lightweight SQLite database on disk. The
+# database is populated with deterministic seed data during test collection.
+# Using SQLite keeps the tests self-contained while still exercising the full
+# ORM stack in a relational database.
+db_uri = sqlite:////tmp/scoring_engine_integration_tests.db
 
 worker_num_concurrent_tasks = -1
 worker_queue = main
