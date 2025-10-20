@@ -1,5 +1,6 @@
-import os
 import textwrap
+from pathlib import Path
+
 from scoring_engine.config_loader import ConfigLoader
 
 
@@ -41,3 +42,22 @@ def test_boolean_env_values_recognized(tmp_path, monkeypatch):
     loader = ConfigLoader(location=str(cfg_path))
     assert loader.debug is True
     assert loader.engine_paused is False
+
+
+def test_missing_option_falls_back_to_example(tmp_path):
+    """Options missing from engine.conf should be populated by engine.conf.inc."""
+
+    base_config = Path('tests/scoring_engine/engine.conf.inc').read_text()
+
+    cfg_path = tmp_path / 'engine.conf'
+    # Remove the agent_psk entry to simulate an incomplete configuration file.
+    cfg_path.write_text(base_config.replace('agent_psk = TheCakeIsALie\n', ''))
+
+    fallback_path = tmp_path / 'engine.conf.inc'
+    fallback_path.write_text(base_config)
+
+    loader = ConfigLoader(location=str(cfg_path))
+
+    # The loader should fill the missing option from the fallback file rather
+    # than raising ``KeyError``.
+    assert loader.agent_psk == 'TheCakeIsALie'
