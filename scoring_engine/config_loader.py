@@ -32,14 +32,17 @@ class ConfigLoader(object):
         # example ``engine.conf.inc`` file exists.  Previously this resulted
         # in an empty parser which later raised ``KeyError`` when accessing
         # the ``OPTIONS`` section.  To make the loader resilient (and allow
-        # tests to run in CI without a separate configuration step) we fall
-        # back to reading ``<location>.inc`` if the primary file is missing
-        # or does not contain the required section.
-        self.parser.read(config_location)
-        if not self.parser.has_section("OPTIONS"):
+        # tests to run in CI without a separate configuration step) we read
+        # ``<location>.inc`` *before* the primary file when it is available.
+        # This allows the bundled example configuration to provide defaults
+        # while still letting an ``engine.conf`` override specific values.
+        files_to_read = []
+        if not location.endswith(".inc"):
             fallback = f"{config_location}.inc"
             if os.path.exists(fallback):
-                self.parser.read(fallback)
+                files_to_read.append(fallback)
+        files_to_read.append(config_location)
+        self.parser.read(files_to_read)
 
         # If we still don't have an OPTIONS section, create an empty one so
         # attribute accesses below raise more informative errors during
