@@ -8,6 +8,9 @@ present in the environment, in which case the environment value wins.
 
 import configparser
 import os
+from typing import Any, Dict, List, Set
+
+from scoring_engine.logger import logger
 
 
 class ConfigLoader(object):
@@ -44,118 +47,74 @@ class ConfigLoader(object):
         files_to_read.append(config_location)
         self.parser.read(files_to_read)
 
+        self._user_defined_options = self._load_user_defined_options(config_location)
+
         # If we still don't have an OPTIONS section, create an empty one so
         # attribute accesses below raise more informative errors during
         # testing rather than a ``KeyError`` at lookup time.
         if not self.parser.has_section("OPTIONS"):
             self.parser.add_section("OPTIONS")
 
-        self.debug = self.parse_sources(
-            "debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool"
+        self.modules: List[Dict[str, Any]] = []
+        self._module_index: Dict[str, Dict[str, Any]] = {}
+
+        self.debug = self._load_option("debug", obj_type="bool")
+        self.checks_location = self._load_option("checks_location")
+        self.target_round_time = self._load_option(
+            "target_round_time", obj_type="int"
+        )
+        self.agent_psk = self._load_option(
+            "agent_psk", required=False, use_fallback=False
+        )
+        self.agent_show_flag_early_mins = self._load_option(
+            "agent_show_flag_early_mins",
+            obj_type="int",
+            required=False,
+            use_fallback=False,
+        )
+        self.worker_refresh_time = self._load_option(
+            "worker_refresh_time", obj_type="int"
+        )
+        self.engine_paused = self._load_option(
+            "engine_paused", obj_type="bool"
+        )
+        self.pause_duration = self._load_option("pause_duration", obj_type="int")
+        self.worker_num_concurrent_tasks = self._load_option(
+            "worker_num_concurrent_tasks", obj_type="int"
+        )
+        self.blue_team_update_hostname = self._load_option(
+            "blue_team_update_hostname", obj_type="bool"
+        )
+        self.blue_team_update_port = self._load_option(
+            "blue_team_update_port", obj_type="bool"
+        )
+        self.blue_team_update_account_usernames = self._load_option(
+            "blue_team_update_account_usernames", obj_type="bool"
+        )
+        self.blue_team_update_account_passwords = self._load_option(
+            "blue_team_update_account_passwords", obj_type="bool"
+        )
+        self.blue_team_view_check_output = self._load_option(
+            "blue_team_view_check_output", obj_type="bool"
+        )
+        self.worker_queue = self._load_option("worker_queue")
+        self.timezone = self._load_option("timezone")
+        self.upload_folder = self._load_option("upload_folder")
+        self.db_uri = self._load_option("db_uri")
+        self.cache_type = self._load_option(
+            "cache_type", fallback="null", required=False
+        )
+        self.redis_host = self._load_option(
+            "redis_host", required=False
+        )
+        self.redis_port = self._load_option(
+            "redis_port", obj_type="int", required=False
+        )
+        self.redis_password = self._load_option(
+            "redis_password", required=False
         )
 
-        self.checks_location = self.parse_sources(
-            "checks_location",
-            self.parser["OPTIONS"]["checks_location"],
-        )
-
-        self.target_round_time = self.parse_sources(
-            "target_round_time", int(self.parser["OPTIONS"]["target_round_time"]), "int"
-        )
-
-        self.agent_psk = self.parse_sources(
-            "agent_psk",
-            self.parser["OPTIONS"]["agent_psk"],
-        )
-
-        self.agent_show_flag_early_mins = self.parse_sources(
-            "agent_show_flag_early_mins", int(self.parser["OPTIONS"]["agent_show_flag_early_mins"]), "int"
-        )
-
-        self.worker_refresh_time = self.parse_sources(
-            "worker_refresh_time",
-            int(self.parser["OPTIONS"]["worker_refresh_time"]),
-            "int",
-        )
-
-        self.engine_paused = self.parse_sources(
-            "engine_paused",
-            self.parser["OPTIONS"]["engine_paused"].lower() == "true",
-            "bool",
-        )
-
-        self.pause_duration = self.parse_sources(
-            "pause_duration",
-            int(self.parser["OPTIONS"]["pause_duration"]),
-            "int",
-        )
-
-        self.worker_num_concurrent_tasks = self.parse_sources(
-            "worker_num_concurrent_tasks",
-            int(self.parser["OPTIONS"]["worker_num_concurrent_tasks"]),
-            "int",
-        )
-
-        self.blue_team_update_hostname = self.parse_sources(
-            "blue_team_update_hostname",
-            self.parser["OPTIONS"]["blue_team_update_hostname"].lower() == "true",
-            "bool",
-        )
-
-        self.blue_team_update_port = self.parse_sources(
-            "blue_team_update_port",
-            self.parser["OPTIONS"]["blue_team_update_port"].lower() == "true",
-            "bool",
-        )
-
-        self.blue_team_update_account_usernames = self.parse_sources(
-            "blue_team_update_account_usernames",
-            self.parser["OPTIONS"]["blue_team_update_account_usernames"].lower() == "true",
-            "bool",
-        )
-
-        self.blue_team_update_account_passwords = self.parse_sources(
-            "blue_team_update_account_passwords",
-            self.parser["OPTIONS"]["blue_team_update_account_passwords"].lower() == "true",
-            "bool",
-        )
-
-        self.blue_team_view_check_output = self.parse_sources(
-            "blue_team_view_check_output",
-            self.parser["OPTIONS"]["blue_team_view_check_output"].lower() == "true",
-            "bool",
-        )
-
-        self.worker_queue = self.parse_sources(
-            "worker_queue",
-            self.parser["OPTIONS"]["worker_queue"],
-        )
-
-        self.timezone = self.parse_sources(
-            "timezone", self.parser["OPTIONS"]["timezone"]
-        )
-
-        self.upload_folder = self.parse_sources(
-            "upload_folder", self.parser["OPTIONS"]["upload_folder"]
-        )
-
-        self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
-
-        self.cache_type = self.parse_sources(
-            "cache_type", self.parser["OPTIONS"]["cache_type"]
-        )
-
-        self.redis_host = self.parse_sources(
-            "redis_host", self.parser["OPTIONS"]["redis_host"]
-        )
-
-        self.redis_port = self.parse_sources(
-            "redis_port", int(self.parser["OPTIONS"]["redis_port"]), "int"
-        )
-
-        self.redis_password = self.parse_sources(
-            "redis_password", self.parser["OPTIONS"]["redis_password"]
-        )
+        self._register_non_core_modules()
 
     def parse_sources(self, key_name, default_value, obj_type="str"):
         """Return a configuration value using environment overrides when present.
@@ -181,11 +140,120 @@ class ConfigLoader(object):
         environment_key = "SCORINGENGINE_{}".format(key_name.upper())
         if environment_key in os.environ:
             env_val = os.environ[environment_key]
-            if obj_type.lower() == "int":
-                return int(env_val)
-            elif obj_type.lower() == "bool":
-                return env_val.lower() in ("true", "1", "yes")
-            else:
-                return env_val
+            return self._coerce(env_val, obj_type)
         else:
             return default_value
+
+    def _load_user_defined_options(self, config_location: str) -> Set[str]:
+        options: Set[str] = set()
+        if os.path.exists(config_location):
+            user_parser = configparser.ConfigParser()
+            user_parser.read(config_location)
+            if user_parser.has_section("OPTIONS"):
+                options.update(user_parser["OPTIONS"].keys())
+        return options
+
+    def _coerce(self, value: Any, obj_type: str) -> Any:
+        if value is None:
+            return None
+        if obj_type.lower() == "int":
+            return int(value)
+        if obj_type.lower() == "bool":
+            if isinstance(value, bool):
+                return value
+            return str(value).lower() in ("true", "1", "yes", "on")
+        return value if isinstance(value, str) else str(value)
+
+    def _load_option(
+        self,
+        key_name: str,
+        obj_type: str = "str",
+        required: bool = True,
+        fallback: Any = None,
+        use_fallback: bool = True,
+    ) -> Any:
+        environment_key = f"SCORINGENGINE_{key_name.upper()}"
+        if environment_key in os.environ:
+            return self._coerce(os.environ[environment_key], obj_type)
+
+        if self.parser.has_option("OPTIONS", key_name):
+            if use_fallback or key_name in self._user_defined_options:
+                raw_value = self.parser["OPTIONS"][key_name]
+                return self._coerce(raw_value, obj_type)
+
+        if required:
+            raise configparser.NoOptionError(key_name, "OPTIONS")
+
+        if fallback is not None:
+            return self._coerce(fallback, obj_type)
+
+        return None
+
+    def _register_non_core_modules(self) -> None:
+        bta_missing: List[str] = []
+        if not self.agent_psk:
+            bta_missing.append("agent_psk")
+        elif self.agent_show_flag_early_mins is None:
+            bta_missing.append("agent_show_flag_early_mins")
+
+        bta_enabled = bool(self.agent_psk)
+        bta_configured = bta_enabled and not bta_missing
+        self._register_module(
+            key="black_team_agent",
+            name="Black Team Agent",
+            enabled=bta_enabled,
+            configured=bta_configured,
+            missing=bta_missing,
+        )
+
+        cache_missing: List[str] = []
+        cache_enabled = bool(self.cache_type) and str(self.cache_type).lower() not in (
+            "null",
+            "none",
+            "disabled",
+        )
+        if cache_enabled:
+            if not self.redis_host:
+                cache_missing.append("redis_host")
+            if self.redis_port is None:
+                cache_missing.append("redis_port")
+        cache_configured = cache_enabled and not cache_missing
+        self._register_module(
+            key="redis_cache",
+            name="Redis Cache",
+            enabled=cache_enabled,
+            configured=cache_configured,
+            missing=cache_missing,
+        )
+
+    def _register_module(
+        self,
+        *,
+        key: str,
+        name: str,
+        enabled: bool,
+        configured: bool,
+        missing: List[str],
+    ) -> None:
+        module = {
+            "key": key,
+            "name": name,
+            "enabled": enabled,
+            "configured": configured,
+            "missing": missing,
+        }
+        self.modules.append(module)
+        self._module_index[key] = module
+
+        if not configured:
+            if missing:
+                logger.warning(
+                    "Non-core module '%s' is disabled or misconfigured. Missing values: %s",
+                    name,
+                    ", ".join(missing),
+                )
+            else:
+                logger.info("Non-core module '%s' is disabled.", name)
+
+    def module(self, key: str) -> Dict[str, Any]:
+        return self._module_index.get(key, {})

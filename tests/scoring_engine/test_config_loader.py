@@ -70,6 +70,18 @@ class TestConfigLoader(object):
     def test_worker_queue(self):
         assert self.config.worker_queue == "main"
 
+    def test_module_status_includes_black_team_agent(self):
+        modules = {module["key"]: module for module in self.config.modules}
+        agent_module = modules["black_team_agent"]
+        assert agent_module["enabled"] is True
+        assert agent_module["configured"] is True
+
+    def test_module_status_includes_cache(self):
+        modules = {module["key"]: module for module in self.config.modules}
+        cache_module = modules["redis_cache"]
+        assert cache_module["enabled"] is False
+        assert cache_module["configured"] is False
+
     def test_parse_sources_int_environment(self):
         os.environ["SCORINGENGINE_ROUND_SLEEP_TIME"] = "1"
         assert self.config.parse_sources("round_sleep_time", "1234", "int") == 1

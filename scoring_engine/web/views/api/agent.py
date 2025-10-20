@@ -11,6 +11,7 @@ import json
 import os
 
 from scoring_engine.cache import agent_cache as cache
+from scoring_engine.config import config
 from scoring_engine.db import session
 from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
@@ -56,7 +57,14 @@ def agent_checkin_post():
     if team_input is None:
         abort(400)
 
-    psk = Setting.get_setting("agent_psk").value
+    module = config.module("black_team_agent")
+    if not module.get("configured"):
+        abort(503)
+
+    psk_setting = Setting.get_setting("agent_psk")
+    if psk_setting is None or not psk_setting.value:
+        abort(503)
+    psk = psk_setting.value
     crypter = BtaPayloadEncryption(psk, team_input)
     try:
       data = crypter.loads(request.get_data())
@@ -105,7 +113,10 @@ def do_checkin(team, host, platform):
     now = datetime.utcnow()
     # show upcoming flags a little bit early so red team can plant them
     # and implants that might stop checking in still get the next set of flags
-    early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
+    early_setting = Setting.get_setting("agent_show_flag_early_mins")
+    if early_setting is None or early_setting.value is None:
+        abort(503)
+    early = now + timedelta(minutes=int(early_setting.value))
     # get unsolved flags for this team and host and for this time period
     flags = (
         session.query(Flag)

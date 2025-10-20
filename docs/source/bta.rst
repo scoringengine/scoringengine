@@ -12,7 +12,9 @@ Configuration
 =============
 
 Two settings must be configured before BTAs can communicate with the
-engine:
+engine. If either value is missing the module is disabled, the
+``/api/agent/checkin`` endpoint will return HTTP 503, and the admin
+status page will highlight the missing configuration:
 
 ``agent_psk``
   Pre-shared key used to derive per-team encryption keys.
