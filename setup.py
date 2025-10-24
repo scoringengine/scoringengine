@@ -30,6 +30,16 @@ config = {
         "Werkzeug==3.1.3",
         "uWSGI==2.0.28",
     ],
+    "extras_require": {
+        "playwright": [
+            "pytest-playwright>=0.7.0,<0.8",
+        ],
+        # Provide a forgiving alias for the common misspelling so packaging
+        # consumers can still install the optional stack.
+        "playwrite": [
+            "pytest-playwright>=0.7.0,<0.8",
+        ],
+    },
     "packages": ["scoring_engine"],
     "scripts": [],
     "name": "scoring_engine",

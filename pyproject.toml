@@ -33,6 +33,16 @@ dependencies = [
   "uWSGI==2.0.30",
 ]
 
+[project.optional-dependencies]
+playwright = [
+  "pytest-playwright>=0.7.0,<0.8",
+]
+# Alias for the common misspelling so installation commands in existing
+# documentation continue to work for users.
+playwrite = [
+  "pytest-playwright>=0.7.0,<0.8",
+]
+
 [project.urls]
 Homepage = "https://github.com/scoringengine/scoringengine"
 Download = "https://github.com/scoringengine/scoringengine/archive/master.zip"
