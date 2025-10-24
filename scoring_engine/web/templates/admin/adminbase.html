@@ -4,14 +4,14 @@
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
       <div class="list-group text-center">
-          <button type="button" class="btn btn-default btn-lg" id="engine_toggle">
+          <button type="button" class="btn btn-secondary btn-lg" id="engine_toggle">
             <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
           </button>
       </div>
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
-            <span>Stats <b class="pull-right glyphicon glyphicon-list-alt"></b></span>
+            <span>Stats <b class="float-end glyphicon glyphicon-list-alt"></b></span>
           </div>
         </div>
         <div class="list-group">
@@ -26,7 +26,7 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
-            <span>Settings <b class="pull-right glyphicon glyphicon-cog"></b></span>
+            <span>Settings <b class="float-end glyphicon glyphicon-cog"></b></span>
           </div>
         </div>
         <div class="list-group">
@@ -41,7 +41,7 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
-            <span>Injects <b class="pull-right glyphicon glyphicon-file"></b></span>
+            <span>Injects <b class="float-end glyphicon glyphicon-file"></b></span>
           </div>
         </div>
         <div class="list-group">
@@ -54,15 +54,15 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
-            <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
+            <span>Services <b class="float-end glyphicon glyphicon-tasks"></b></span>
           </div>
         </div>
         <div class="list-group">
           {% for team in blue_teams %}
-          <a href="#" class="list-group-item" data-toggle="collapse"
-            data-target="#services_team{{team.id}}">{{team.name}}</a>
+          <a href="#" class="list-group-item" data-bs-toggle="collapse"
+            data-bs-target="#services_team{{team.id}}">{{team.name}}</a>
           <div id="services_team{{team.id}}"
-            class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
+            class="sublinks collapse {% if service and team.id == service.team.id %}show{% endif %}">
             {% for service in team.services %}
             <a href="/admin/service/{{service.id}}"
               class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
@@ -102,11 +102,11 @@
       dataType: 'json',
       success: function (data) {
         if (!data.paused) {
-          document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
+          document.getElementById('engine').innerHTML = 'Engine <span class="badge bg-success">Running</span>';
           document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause'
           document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
         } else {
-          document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
+          document.getElementById('engine').innerHTML ='Engine <span class="badge bg-secondary">Paused</span>';
           document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume'
           document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
         }
