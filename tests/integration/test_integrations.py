@@ -14,16 +14,21 @@ SERVICE_TOTAL_POINTS_PER_ROUND = 1525
 def pytest_generate_tests(metafunc):
     """
     Generate test parameters dynamically.
-    This runs during collection, so we need to create an app context.
+    This runs during collection, so we need to create an app context
+    and ensure the integration test data exists.
     """
     # Import here to avoid circular imports
     from scoring_engine.web import create_app
+    from tests.integration.db_setup import ensure_integration_data
 
     # Create app and push context for collection-time queries
     app = create_app()
     app.config['TESTING'] = True
 
     with app.app_context():
+        # Ensure integration test data exists before querying
+        ensure_integration_data()
+
         if "blue_team" in metafunc.fixturenames:
             blue_teams = Team.get_all_blue_teams()
             metafunc.parametrize("blue_team", blue_teams)
