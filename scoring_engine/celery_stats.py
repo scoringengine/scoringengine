@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from scoring_engine.celery_app import celery_app
 from scoring_engine.db import session
 from scoring_engine.models.service import Service
@@ -11,7 +13,7 @@ class CeleryStats:
 
         queues_facts = {}
 
-        all_services = session.query(Service).all()
+        all_services = session.query(Service).options(joinedload(Service.team)).all()
         for service in all_services:
             if service.worker_queue not in queues_facts:
                 queues_facts[service.worker_queue] = {
@@ -84,7 +86,7 @@ class CeleryStats:
             worker_facts[worker_name]['running_tasks'] = len(stats)
 
         # Produce list of Service checks this worker will run
-        all_services = session.query(Service).all()
+        all_services = session.query(Service).options(joinedload(Service.team)).all()
         for worker_name, facts in worker_facts.items():
             facts['services_running'] = []
             services_running = {}
