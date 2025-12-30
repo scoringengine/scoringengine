@@ -45,6 +45,9 @@ class Engine(object):
         self.config = config
         self.checks_location = self.config.checks_location
 
+        # Keep reference to db for backward compatibility
+        self.db = db
+
         self.verify_settings()
 
         self.last_round = False
