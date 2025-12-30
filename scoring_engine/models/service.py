@@ -1,6 +1,5 @@
 import ranking
 
-from copy import copy
 from sqlalchemy import Column, Integer, String, ForeignKey, desc, func
 from sqlalchemy.orm import relationship
 
@@ -25,9 +24,21 @@ class Service(Base):
     worker_queue = Column(String(50), default="main")
 
     def check_result_for_round(self, round_num):
-        for check in self.checks:
-            if check.round.number == round_num:
-                return check.result
+        """
+        Get check result for a specific round.
+        Optimized to use a DB query instead of loading all checks into memory.
+        """
+        from scoring_engine.models.round import Round
+
+        check = (
+            session.query(Check)
+            .join(Round)
+            .filter(Check.service_id == self.id)
+            .filter(Round.number == round_num)
+            .first()
+        )
+        if check:
+            return check.result
         return False
 
     def last_check_result(self):
@@ -46,6 +57,12 @@ class Service(Base):
 
     @property
     def rank(self):
+        """
+        Calculate this service's rank among all services with the same name.
+        WARNING: This queries ALL services with this name on EVERY access!
+        Avoid calling in loops. For bulk operations, calculate ranks in batch
+        (see scoring_engine/web/views/api/team.py:42-62 for efficient implementation).
+        """
         scores = (
             session.query(
                 Service.team_id,
@@ -76,6 +93,10 @@ class Service(Base):
 
     @property
     def score_earned(self):
+        """
+        Calculate total score earned by this service.
+        WARNING: Performs DB query on each access. Cache when used multiple times.
+        """
         return (
             session.query(Check)
             .filter(Check.service_id == self.id)
@@ -85,6 +106,10 @@ class Service(Base):
 
     @property
     def max_score(self):
+        """
+        Calculate maximum possible score for this service.
+        WARNING: Performs DB query on each access. Cache when used multiple times.
+        """
         return (
             session.query(Check).filter(Check.service_id == self.id).count()
         ) * self.points
@@ -97,6 +122,14 @@ class Service(Base):
 
     @property
     def last_ten_checks(self):
-        reverse_checks = copy(self.checks)
-        reverse_checks.reverse()
-        return reverse_checks[:10]
+        """
+        Get the last 10 checks for this service in reverse chronological order.
+        Optimized to use a DB query with LIMIT instead of loading all checks into memory.
+        """
+        return (
+            session.query(Check)
+            .filter(Check.service_id == self.id)
+            .order_by(desc(Check.id))
+            .limit(10)
+            .all()
+        )
