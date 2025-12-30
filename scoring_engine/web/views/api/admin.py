@@ -310,7 +310,6 @@ def admin_update_blueteam_edit_account_passwords():
 def admin_update_blueteam_view_check_output():
     if current_user.is_white_team:
         setting = Setting.get_setting("blue_team_view_check_output")
-        print(setting.__dict__)
         if setting.value is True:
             setting.value = False
         else:
@@ -670,7 +669,6 @@ def admin_post_inject_templates():
 def admin_import_inject_templates():
     if current_user.is_white_team:
         data = request.get_json()
-        print(data)
         if data:
             for d in data:
                 if d.get("id"):
@@ -891,7 +889,6 @@ def admin_injects_bar():
 @login_required
 def admin_update_template():
     if current_user.is_white_team:
-        print(request.form)
         if "name" in request.form and "value" in request.form and "pk" in request.form:
             template = session.get(Template, int(request.form["pk"]))
             if template:
