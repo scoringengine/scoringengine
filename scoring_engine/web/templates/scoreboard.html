@@ -104,8 +104,8 @@
         // Initial load
         updateBarChart();
 
-        // Fallback polling every 5 minutes (in case WebSocket disconnects)
-        setInterval(updateBarChart, 300000);
+        // Fallback polling every minute (in case WebSocket disconnects)
+        setInterval(updateBarChart, 60000);
     </script>
     <script>
         // Line chart for all teams
@@ -178,8 +178,8 @@
         // Initial load
         updateLineChart();
 
-        // Fallback polling every 5 minutes (in case WebSocket disconnects)
-        setInterval(updateLineChart, 300000);
+        // Fallback polling every minute (in case WebSocket disconnects)
+        setInterval(updateLineChart, 60000);
 
         // WebSocket connection for real-time updates
         const socket = io();
