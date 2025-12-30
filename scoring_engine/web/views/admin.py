@@ -2,6 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from operator import itemgetter
 
+from scoring_engine.config import config
 from scoring_engine.models.user import User
 from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Inject
@@ -19,7 +20,11 @@ mod = Blueprint("admin", __name__)
 def status():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
-        return render_template("admin/status.html", blue_teams=blue_teams)
+        return render_template(
+            "admin/status.html",
+            blue_teams=blue_teams,
+            module_status=config.modules,
+        )
     else:
         return redirect(url_for("auth.unauthorized"))
 

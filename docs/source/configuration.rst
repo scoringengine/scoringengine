@@ -35,7 +35,7 @@ Configuration Keys
    * - target_round_time
      - Length of time (seconds) the engine should target per round
    * - agent_psk
-     - The pre-shared key used for encryption between BTA and the Scoring Engine
+     - Pre-shared key used for the optional Black Team Agent integration. When omitted the module is disabled and the admin status page will note that configuration is required to enable it.
    * - agent_show_flag_early_mins
      - The length of time in minutes before a flag becomes active that BTA can grab the flag details
    * - worker_refresh_time
@@ -61,10 +61,24 @@ Configuration Keys
    * - db_uri
      - Database connection URI
    * - cache_type
-     - The type of storage for the cache. Set to null to disable caching
+     - The type of storage for the cache. Set to ``null`` to disable caching. When enabled additional Redis settings must be provided.
    * - redis_host
-     - The hostname/ip of the redis server
+     - The hostname/ip of the redis server (required when caching is enabled)
    * - redis_port
-     - The port of the redis server
+     - The port of the redis server (required when caching is enabled)
    * - redis_password
      - The password used to connect to redis (if no password, leave empty)
+
+Optional Modules
+----------------
+
+Several capabilities are considered non-core and are disabled unless they are explicitly configured. The engine surfaces their status in three places:
+
+* During startup the log stream will highlight missing values for optional modules.
+* The admin portal status page lists each module along with whether it is enabled and ready.
+* The documentation in this section identifies which configuration keys are required for each module.
+
+Currently the optional modules are:
+
+* **Black Team Agent** – requires ``agent_psk`` and ``agent_show_flag_early_mins``. Without these values the agent API remains disabled.
+* **Redis Cache** – requires ``cache_type`` to be set to a Redis backend along with ``redis_host`` and ``redis_port``.

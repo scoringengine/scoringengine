@@ -28,6 +28,35 @@ Round Stats
       </tr>
     </tbody>
   </table>
+  {% if module_status %}
+  <h4>Module Status</h4>
+  <table class="table table-striped table-bordered table-compact">
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Enabled</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for module in module_status %}
+      <tr class="{% if module.configured %}success{% elif module.enabled %}warning{% else %}active{% endif %}">
+        <td>{{ module.name }}</td>
+        <td>{{ 'Yes' if module.enabled else 'No' }}</td>
+        <td>
+          {% if module.configured %}
+            Ready
+          {% elif module.missing %}
+            Missing configuration: {{ module.missing | join(', ') }}
+          {% else %}
+            Disabled
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
 </div>
 <script>
   function getEngineStats() {
