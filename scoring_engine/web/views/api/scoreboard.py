@@ -4,7 +4,7 @@ from itertools import accumulate
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
@@ -18,7 +18,7 @@ from . import mod
 @cache.memoize()
 def scoreboard_get_bar_data():
     current_scores = dict(
-        session.query(Service.team_id, func.sum(Service.points))
+        db.session.query(Service.team_id, func.sum(Service.points))
         .join(Check)
         .filter(Check.result.is_(True))
         .group_by(Service.team_id)
@@ -26,7 +26,7 @@ def scoreboard_get_bar_data():
     )
 
     inject_scores = dict(
-        session.query(Inject.team_id, func.sum(Inject.score))
+        db.session.query(Inject.team_id, func.sum(Inject.score))
         .filter(Inject.status == "Graded")
         .group_by(Inject.team_id)
         .all()
@@ -37,7 +37,7 @@ def scoreboard_get_bar_data():
     team_scores = []
     team_inject_scores = []
     blue_teams = (
-        session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
+        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     )
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
@@ -61,7 +61,7 @@ def scoreboard_get_line_data():
     }
 
     blue_teams = (
-        session.query(Team.id, Team.name, Team.rgb_color)
+        db.session.query(Team.id, Team.name, Team.rgb_color)
         .filter(Team.color == "Blue")
         .order_by(Team.id)
         .all()
@@ -75,7 +75,7 @@ def scoreboard_get_line_data():
     # Team ID, Round ID, Round Score
     # TODO - Might be able to ignore ordering by team_id since we're using a dict
     round_scores = (
-        session.query(
+        db.session.query(
             Service.team_id,
             Check.round_id,
             func.sum(Service.points),

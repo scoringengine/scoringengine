@@ -7,7 +7,7 @@ from scoring_engine.engine.engine import Engine
 
 from scoring_engine.version import version
 from scoring_engine.logger import logger
-from scoring_engine.db import session, verify_db_ready
+from scoring_engine.db import db, verify_db_ready
 from scoring_engine.web import create_app
 
 
@@ -25,13 +25,13 @@ total_rounds = 0
 if 'SCORINGENGINE_NUM_ROUNDS' in os.environ:
     total_rounds = int(os.environ['SCORINGENGINE_NUM_ROUNDS'])
 
-if not verify_db_ready(session):
-    logger.error("Database is not initialized, must run 'bin/setup' before starting the engine.")
-    sys.exit(1)
-
 app = create_app()
 
 with app.app_context():
+    if not verify_db_ready():
+        logger.error("Database is not initialized, must run 'bin/setup' before starting the engine.")
+        sys.exit(1)
+
     engine = Engine(total_rounds=total_rounds)
     logger.info("Starting Engine v.{0}".format(version))
     engine.run()

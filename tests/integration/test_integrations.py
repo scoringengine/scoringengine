@@ -3,7 +3,7 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 from tests.integration.db_setup import ensure_integration_data
 
@@ -33,13 +33,13 @@ class TestIntegration(object):
         assert blue_team.current_score == (SERVICE_TOTAL_POINTS_PER_ROUND * NUM_OVERALL_ROUNDS), \
             "Invalid number of overall points per team {0}".format(blue_team.name)
 
-    @pytest.mark.parametrize("service", session.query(Service).all())
+    @pytest.mark.parametrize("service", db.session.query(Service).all())
     def test_services(self, service):
         assert service.last_check_result() is True, \
             "{0} service failed on {1}".format(service.name, service.team.name)
         assert service.percent_earned == 100
 
-    @pytest.mark.parametrize("check", session.query(Check).all())
+    @pytest.mark.parametrize("check", db.session.query(Check).all())
     def test_checks(self, check):
         assert check.result is True, \
             "{0} on round {1} failed for team {2}\nReason: {3}\nOutput: {4}".format(check.service.name, check.round.number, check.service.team.name, check.reason, check.output)

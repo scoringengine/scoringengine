@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Iterable, List
 
 import scoring_engine.models  # noqa: F401 – ensure models are registered with SQLAlchemy
-from scoring_engine.db import delete_db, init_db, session
+from scoring_engine.db import delete_db, init_db, db
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -59,7 +59,7 @@ def _seed_rounds() -> List[Round]:
     """Create ``Round`` rows for the configured number of rounds."""
 
     rounds = [Round(number=idx) for idx in range(1, _NUM_ROUNDS + 1)]
-    session.add_all(rounds)
+    db.session.add_all(rounds)
     return rounds
 
 
@@ -67,8 +67,8 @@ def _seed_team(team_index: int, rounds: Iterable[Round]) -> None:
     """Populate a single blue team, its services and their checks."""
 
     team = Team(name=f"Blue Team {team_index}", color="Blue")
-    session.add(team)
-    session.flush()  # Ensure ``team.id`` is populated for relationship wiring
+    db.session.add(team)
+    db.session.flush()  # Ensure ``team.id`` is populated for relationship wiring
 
     for service_position, (base_name, points) in enumerate(_iter_service_definitions(), start=1):
         service = Service(
@@ -80,11 +80,11 @@ def _seed_team(team_index: int, rounds: Iterable[Round]) -> None:
             worker_queue="main",
         )
         service.points = points
-        session.add(service)
-        session.flush()
+        db.session.add(service)
+        db.session.flush()
 
         for round_obj in rounds:
-            session.add(
+            db.session.add(
                 Check(
                     round=round_obj,
                     service=service,
@@ -104,12 +104,12 @@ def ensure_integration_data() -> None:
     # Recreate the schema from scratch to avoid any persistent state between
     # test runs.  ``delete_db`` is safe to call even if the database is empty
     # because all models are imported above.
-    delete_db(session)
-    init_db(session)
+    delete_db()
+    init_db()
 
     rounds = _seed_rounds()
 
     for team_index in range(1, _NUM_BLUE_TEAMS + 1):
         _seed_team(team_index, rounds)
 
-    session.commit()
+    db.session.commit()
