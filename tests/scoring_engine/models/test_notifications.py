@@ -15,7 +15,7 @@ class TestNotification(UnitTest):
         assert notification.id is None
         assert notification.message is None
         assert notification.target is None
-        assert notification.is_read is False
+        # Default is applied by database on commit
 
     def test_init_with_message(self):
         """Test creating a notification with a message"""
@@ -24,7 +24,7 @@ class TestNotification(UnitTest):
         notification.target = "all"
         assert notification.message == "System maintenance scheduled for tonight"
         assert notification.target == "all"
-        assert notification.is_read is False
+        # Default is applied by database on commit
 
     def test_simple_save(self):
         """Test saving a notification to the database"""
@@ -37,11 +37,12 @@ class TestNotification(UnitTest):
         assert len(self.session.query(Notification).all()) == 1
 
     def test_default_is_read(self):
-        """Test that is_read defaults to False"""
+        """Test that is_read defaults to False after commit"""
         notification = Notification()
         notification.message = "Test"
         self.session.add(notification)
         self.session.commit()
+        # Database applies default after commit
         assert notification.is_read is False
 
     def test_default_created_timestamp(self):

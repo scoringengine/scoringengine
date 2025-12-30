@@ -217,7 +217,7 @@ class TestInject(UnitTest):
         assert inject.team == team
         assert inject.template == template
         assert inject.enabled is True
-        assert inject.score == 0
+        # Defaults are applied by database on commit
         assert inject.status == "Draft"
 
     def test_init_disabled(self):
@@ -264,7 +264,7 @@ class TestInject(UnitTest):
         assert len(self.session.query(Inject).all()) == 1
 
     def test_default_values(self):
-        """Test that default values are set correctly"""
+        """Test that default values are set correctly after commit"""
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
 
@@ -285,6 +285,7 @@ class TestInject(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
+        # After commit, database defaults are applied
         assert inject.score == 0
         assert inject.status == "Draft"
         assert inject.enabled is True
@@ -375,8 +376,10 @@ class TestInject(UnitTest):
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
 
-        user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        user1 = User(username="testuser1", password="testpass", team=team)
+        user2 = User(username="testuser2", password="testpass", team=team)
+        self.session.add(user1)
+        self.session.add(user2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -394,8 +397,9 @@ class TestInject(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
-        comment1 = Comment(comment="First comment", user=user, inject=inject)
-        comment2 = Comment(comment="Second comment", user=user, inject=inject)
+        # Use different users due to single_parent=True constraint
+        comment1 = Comment(comment="First comment", user=user1, inject=inject)
+        comment2 = Comment(comment="Second comment", user=user2, inject=inject)
         self.session.add(comment1)
         self.session.add(comment2)
         self.session.commit()
@@ -407,8 +411,10 @@ class TestInject(UnitTest):
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
 
-        user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        user1 = User(username="testuser1", password="testpass", team=team)
+        user2 = User(username="testuser2", password="testpass", team=team)
+        self.session.add(user1)
+        self.session.add(user2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -426,8 +432,9 @@ class TestInject(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
-        file1 = File(name="document1.pdf", user=user, inject=inject)
-        file2 = File(name="evidence.docx", user=user, inject=inject)
+        # Use different users due to single_parent=True constraint
+        file1 = File(name="document1.pdf", user=user1, inject=inject)
+        file2 = File(name="evidence.docx", user=user2, inject=inject)
         self.session.add(file1)
         self.session.add(file2)
         self.session.commit()
@@ -507,7 +514,7 @@ class TestComment(UnitTest):
         assert comment.comment == "This is a test comment"
         assert comment.user == user
         assert comment.inject == inject
-        assert comment.is_read is False
+        # Default is applied by database on commit
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")
@@ -539,7 +546,7 @@ class TestComment(UnitTest):
         assert len(self.session.query(Comment).all()) == 1
 
     def test_default_is_read(self):
-        """Test that is_read defaults to False"""
+        """Test that is_read defaults to False after commit"""
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
 
@@ -566,6 +573,7 @@ class TestComment(UnitTest):
         self.session.add(comment)
         self.session.commit()
 
+        # Database applies default after commit
         assert comment.is_read is False
         assert comment.time is not None
 
@@ -699,8 +707,12 @@ class TestFile(UnitTest):
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
 
-        user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        user1 = User(username="testuser1", password="testpass", team=team)
+        user2 = User(username="testuser2", password="testpass", team=team)
+        user3 = User(username="testuser3", password="testpass", team=team)
+        self.session.add(user1)
+        self.session.add(user2)
+        self.session.add(user3)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -718,9 +730,10 @@ class TestFile(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
-        file1 = File(name="doc1.pdf", user=user, inject=inject)
-        file2 = File(name="doc2.pdf", user=user, inject=inject)
-        file3 = File(name="screenshot.png", user=user, inject=inject)
+        # Use different users due to single_parent=True constraint
+        file1 = File(name="doc1.pdf", user=user1, inject=inject)
+        file2 = File(name="doc2.pdf", user=user2, inject=inject)
+        file3 = File(name="screenshot.png", user=user3, inject=inject)
         self.session.add(file1)
         self.session.add(file2)
         self.session.add(file3)
