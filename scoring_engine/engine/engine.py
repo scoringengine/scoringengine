@@ -302,6 +302,17 @@ class Engine(object):
             logger.info("Updating Caches")
             update_all_cache(current_app)
 
+            # Emit WebSocket event to notify clients of scoreboard update
+            try:
+                from scoring_engine.web import socketio
+                logger.info("Broadcasting scoreboard update via WebSocket")
+                socketio.emit('scoreboard_update', {
+                    'round': self.current_round,
+                    'timestamp': round_end_time.isoformat()
+                }, room='scoreboard')
+            except Exception as e:
+                logger.warning(f"Failed to emit WebSocket event: {e}")
+
             self.round_running = False
 
             if not self.is_last_round():

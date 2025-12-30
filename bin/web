@@ -2,7 +2,7 @@
 
 import sys
 
-from scoring_engine.web import create_app
+from scoring_engine.web import create_app, socketio
 from scoring_engine.db import db, verify_db_ready
 
 from scoring_engine.version import version
@@ -17,6 +17,7 @@ if __name__ == "__main__":
             logger.error("Database is not initialized, must run 'bin/setup' before starting the web app.")
             sys.exit(1)
 
-    logger.info("Starting Web v.{0}".format(version))
+    logger.info("Starting Web v.{0} with WebSocket support".format(version))
 
-    application.run(host="0.0.0.0", port=8000)
+    # Use socketio.run() instead of app.run() for WebSocket support
+    socketio.run(application, host="0.0.0.0", port=8000, allow_unsafe_werkzeug=True)
