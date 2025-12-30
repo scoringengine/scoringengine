@@ -2,6 +2,8 @@ FROM scoringengine/base
 
 USER root
 
+# Install system dependencies in a single layer to reduce image size
+# This consolidates all apt-get operations to minimize layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # allows adding HTTPS apt repos for MSSQL checks
     apt-transport-https \
@@ -29,25 +31,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iproute2 \
     # OpenVPN check runs openvpn via sudo
     sudo \
+    # RDP checks - virtual X server for freerdp
+    xvfb \
   && rm -rf /var/lib/apt/lists/*
 
+# Install Microsoft SQL Server tools and freerdp in single layer
+# freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
+# Some distributions ship only a generic "freerdp" package
 RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
     dpkg -i /tmp/packages-microsoft-prod.deb && \
+    rm /tmp/packages-microsoft-prod.deb && \
     apt-get update && \
     ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
       # Microsoft SQL Server checks
       mssql-tools18 \
-      # Microsoft SQL Server checks
       sqlcmd \
-      # Microsoft SQL Server checks
       unixodbc-dev \
+    && (apt-get install -y --no-install-recommends freerdp2-x11 || \
+        apt-get install -y --no-install-recommends freerdp3-x11 || \
+        apt-get install -y --no-install-recommends freerdp) \
     && rm -rf /var/lib/apt/lists/*
-
-# freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
-# Some distributions ship only a generic "freerdp" package
-# RDP checks
-RUN apt-get update && (apt-get install -y --no-install-recommends freerdp2-x11 || apt-get install -y --no-install-recommends freerdp3-x11 || apt-get install -y --no-install-recommends freerdp)
-RUN apt-get install -y xvfb && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -I \
     # SSH checks

@@ -18,6 +18,13 @@ services:
     restart: "no"
     environment:
       - SCORINGENGINE_NUM_ROUNDS=5
+    healthcheck:
+      # Check if engine is running by verifying it can query the database
+      test: ["CMD", "python", "-c", "from scoring_engine.models.round import Round; Round.get_last_round_num()"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
   # We redefine bootstrap so we can modify the
   # round refresh timers, so we aren't waiting around
   # for no reason

@@ -34,19 +34,16 @@ echo "Starting up required container environment"
 make run-integration
 
 # Wait for the bootstrap container to be done (meaning DB is setup)
-wait_for_container "scoringengine-bootstrap-1" 10
+echo "Waiting for bootstrap to complete database initialization"
+docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine wait bootstrap
 
-# Sleep for a bit so that the engine has time to start up
-# so that we can detect when it stops running
-echo "Sleeping for 20 seconds for the engine to start up"
-sleep 20
+# Wait for engine to become healthy (meaning it has started and can query the database)
+echo "Waiting for engine to start and become healthy"
+docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine wait engine
 
-# Wait for engine to finish running
+# Wait for engine to finish running (it will exit after NUM_ROUNDS)
+echo "Waiting for engine to complete all rounds"
 wait_for_engine
-
-# Sleep for a bit so next MySQL call will return all results
-echo "Sleeping for 5 seconds for MySQL to catch up"
-sleep 5
 
 # Run integration tests against live testbed db
 echo "Running integration tests"
