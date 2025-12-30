@@ -13,13 +13,9 @@ class WebTest(UnitTest):
 
     def setup_method(self):
         super(WebTest, self).setup_method()
-        self.app = create_app()
-        self.app.config["TESTING"] = True
+        # Reuse the app created by UnitTest instead of creating a new one
         self.app.config["WTF_CSRF_ENABLED"] = False
-
         self.client = self.app.test_client()
-        self.ctx = self.app.app_context()
-        self.ctx.push()
 
         view_name = self.__class__.__name__[4:]
         self.view_module = importlib.import_module("scoring_engine.web.views." + view_name.lower(), "*")
@@ -28,7 +24,6 @@ class WebTest(UnitTest):
         self.mock_obj.side_effect = lambda *args, **kwargs: render_template_orig(*args, **kwargs)
 
     def teardown_method(self):
-        self.ctx.pop()
         super(WebTest, self).teardown_method()
 
     def build_args(self, *args, **kwargs):

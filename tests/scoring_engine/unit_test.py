@@ -1,9 +1,19 @@
 from scoring_engine.db import db, delete_db, init_db
 from scoring_engine.models.setting import Setting
+from scoring_engine.web import create_app
 
 
 class UnitTest(object):
     def setup_method(self):
+        # Create Flask app and application context for Flask-SQLAlchemy
+        self.app = create_app()
+        self.app.config['TESTING'] = True
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+
+        # Backward compatibility - many tests use self.session
+        self.session = db.session
+
         delete_db()
         init_db()
         self.create_default_settings()
@@ -11,6 +21,7 @@ class UnitTest(object):
     def teardown_method(self):
         delete_db()
         db.session.remove()
+        self.ctx.pop()
 
     def create_default_settings(self):
         db.session.add(
