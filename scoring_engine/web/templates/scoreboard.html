@@ -3,7 +3,7 @@
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/js/socket.io.min.js') }}"></script>
 {% endblock %}
 {% block content %}
 <div class="container md-page">
