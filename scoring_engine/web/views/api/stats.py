@@ -13,7 +13,7 @@ from scoring_engine.cache_helper import (update_overview_data,
                                          update_service_data,
                                          update_services_data)
 from scoring_engine.config import config
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
@@ -28,7 +28,7 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_stats():
-    team = session.get(Team, current_user.team.id)
+    team = db.session.get(Team, current_user.team.id)
     if (
         team is None
         or not current_user.team == team
@@ -41,7 +41,7 @@ def api_stats():
         # TODO - There has to be a better way to subquery this...
         last_round = Round.get_last_round_num()
         res = (
-            session.query(
+            db.session.query(
                 Round.id.label("round_id"),
                 Round.round_start,
                 Round.round_end,
@@ -82,10 +82,10 @@ def api_stats():
     if current_user.is_white_team:
         stats = []
         # TODO - There's probably a better way to do this.
-        # session.query(Round.id, func.count(Check.result)).join(Check).join(Service).filter(Check.result.is_(False)).group_by(Round.id).all()
+        # db.session.query(Round.id, func.count(Check.result)).join(Check).join(Service).filter(Check.result.is_(False)).group_by(Round.id).all()
         last_round = Round.get_last_round_num()
         res = (
-            session.query(
+            db.session.query(
                 Round.id.label("round_id"),
                 Round.round_start,
                 Round.round_end,

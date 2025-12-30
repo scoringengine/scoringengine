@@ -6,6 +6,7 @@ from flask_login import LoginManager
 
 from scoring_engine.cache import cache, agent_cache
 from scoring_engine.config import config
+from scoring_engine.db import db
 
 
 SECRET_KEY = os.urandom(128)
@@ -17,6 +18,17 @@ def create_app():
     app.config.update(DEBUG=config.debug)
     app.config.update(UPLOAD_FOLDER=config.upload_folder)
     app.secret_key = SECRET_KEY
+
+    # Configure Flask-SQLAlchemy
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.db_uri
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # Verify connections before using them
+        'pool_recycle': 3600,   # Recycle connections after 1 hour
+    }
+
+    # Initialize Flask-SQLAlchemy with the app
+    db.init_app(app)
 
     if not config.debug:
         log = logging.getLogger("werkzeug")
@@ -49,12 +61,11 @@ def create_app():
     login_manager.session_protection = "strong"
 
     # Register the user_loader function after initializing login_manager
-    from scoring_engine.db import session
     from scoring_engine.models.user import User
 
     @login_manager.user_loader
     def load_user(user_id):
-        return session.get(User, int(user_id))
+        return db.session.get(User, int(user_id))
 
     app.register_blueprint(welcome.mod)
     app.register_blueprint(services.mod)

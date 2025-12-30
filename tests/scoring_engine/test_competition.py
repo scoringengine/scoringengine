@@ -344,7 +344,7 @@ class TestGoodSetup(CompetitionDataTest):
     def setup_method(self):
         super(TestGoodSetup, self).setup_method()
         competition = Competition(self.setup)
-        competition.save(self.session)
+        competition.save()
         self.blue_teams = Team.get_all_blue_teams()
         self.blue_team = self.blue_teams[0]
         self.service = self.blue_team.services[0]

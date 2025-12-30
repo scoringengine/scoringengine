@@ -4,6 +4,7 @@ import datetime
 from dateutil.parser import parse
 
 from scoring_engine.config import config
+from scoring_engine.db import db
 from scoring_engine.engine.engine import Engine
 
 from scoring_engine.models.team import Team
@@ -188,14 +189,14 @@ class Competition(dict):
         assert type(property_obj['value']) is str, "{0} {1} property 'value' field must be a string".format(team_name, service_name)
         assert property_obj['name'] in found_check_source.required_properties, "{0} {1} {2} does not require the property '{3}'".format(team_name, service_name, found_check_source.__name__, property_obj['name'])
 
-    def save(self, db_session):
+    def save(self):
         for team_dict in self['teams']:
             logger.info("Creating {0} Team: {1}".format(team_dict['color'], team_dict['name']))
             team_obj = Team(name=team_dict['name'], color=team_dict['color'])
-            db_session.add(team_obj)
+            db.session.add(team_obj)
             for user_dict in team_dict['users']:
                 logger.info("\tCreating User {0}:{1}".format(user_dict['username'], user_dict['password']))
-                db_session.add(User(username=user_dict['username'], password=user_dict['password'], team=team_obj))
+                db.session.add(User(username=user_dict['username'], password=user_dict['password'], team=team_obj))
             if 'services' in team_dict:
                 for service_dict in team_dict['services']:
                     logger.info("\tCreating {0} Service".format(service_dict['name']))
@@ -209,17 +210,17 @@ class Competition(dict):
                     )
                     if 'worker_queue' in service_dict:
                         service_obj.worker_queue = service_dict['worker_queue']
-                    db_session.add(service_obj)
+                    db.session.add(service_obj)
                     if 'accounts' in service_dict:
                         for account_dict in service_dict['accounts']:
-                            db_session.add(Account(username=account_dict['username'], password=account_dict['password'], service=service_obj))
+                            db.session.add(Account(username=account_dict['username'], password=account_dict['password'], service=service_obj))
                     for environment_dict in service_dict['environments']:
                         environment_obj = Environment(service=service_obj, matching_content=environment_dict['matching_content'])
-                        db_session.add(environment_obj)
+                        db.session.add(environment_obj)
                         if 'properties' in environment_dict:
                             for property_dict in environment_dict['properties']:
-                                db_session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
-            db_session.commit()
+                                db.session.add(Property(environment=environment_obj, name=property_dict['name'], value=property_dict['value']))
+            db.session.commit()
         for flag in self["flags"]:
             dummy_val = flag.get("dummy", False)
             start = flag.get("start_time", None)
@@ -237,5 +238,5 @@ class Competition(dict):
                 perm=flag["perm"],
                 dummy=dummy_val
             )
-            db_session.add(f)
-        db_session.commit()
+            db.session.add(f)
+        db.session.commit()

@@ -4,7 +4,7 @@ from flask import jsonify
 from flask_login import current_user, login_required
 
 from scoring_engine.config import config
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.notifications import Notification
 
 from . import mod
@@ -20,7 +20,7 @@ def _get_notifications_data(is_read_filter=None, include_is_read=False):
     Returns:
         List of notification dictionaries
     """
-    query = session.query(Notification).filter(Notification.team_id == current_user.team_id)
+    query = db.session.query(Notification).filter(Notification.team_id == current_user.team_id)
 
     if is_read_filter is not None:
         query = query.filter(Notification.is_read == is_read_filter)

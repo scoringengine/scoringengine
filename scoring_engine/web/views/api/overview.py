@@ -11,7 +11,7 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
 
 from scoring_engine.cache import cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 from . import mod
 
@@ -28,7 +28,7 @@ def get_table_columns():
 @mod.route("/api/overview/get_round_data")
 @cache.memoize()
 def overview_get_round_data():
-    round_obj = session.query(Round).order_by(Round.number.desc()).first()
+    round_obj = db.session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
         round_start = round_obj.local_round_start
         number = round_obj.number
@@ -44,16 +44,16 @@ def overview_get_round_data():
 def overview_data():
     data = defaultdict(lambda: defaultdict(dict))
 
-    round_obj = session.query(Round).order_by(Round.number.desc()).first()
+    round_obj = db.session.query(Round).order_by(Round.number.desc()).first()
     if round_obj:
         checks = (
-            session.query(Check.service_id, Check.result)
+            db.session.query(Check.service_id, Check.result)
             .join(Round)
             .filter(Round.number == round_obj.number)
             .subquery()
         )
         res = (
-            session.query(
+            db.session.query(
                 Team.name, Service.name, Service.host, Service.port, checks.c.result
             )
             .join(Team)
@@ -85,7 +85,7 @@ def overview_get_data():
     blue_team_ids = [
         team_id[0]
         for team_id in (
-            session.query(Team.id).filter(Team.color == "Blue").order_by(Team.id).all()
+            db.session.query(Team.id).filter(Team.color == "Blue").order_by(Team.id).all()
         )
     ]
     last_round = Round.get_last_round_num()
@@ -95,7 +95,7 @@ def overview_get_data():
     service_ratios = ["Up/Down Ratio"]
 
     num_up_services = dict(
-        session.query(
+        db.session.query(
             Service.team_id,
             func.count(Service.team_id),
         )
@@ -108,7 +108,7 @@ def overview_get_data():
     )
 
     num_down_services = dict(
-        session.query(
+        db.session.query(
             Service.team_id,
             func.count(Service.team_id),
         )
@@ -123,13 +123,13 @@ def overview_get_data():
     if len(blue_team_ids) > 0:
         # TODO - This could explode if the first team has a different number of services than everyone else
         # total_services = (
-        #     session.query(Service.id)
+        #     db.session.query(Service.id)
         #     .filter(Service.team_id == blue_team_ids[0])
         #     .count()
         # )
 
         team_scores = dict(
-            session.query(Service.team_id, func.sum(Service.points).label("score"))
+            db.session.query(Service.team_id, func.sum(Service.points).label("score"))
             .join(Check)
             .filter(Check.result.is_(True))
             .group_by(Service.team_id)
@@ -161,7 +161,7 @@ def overview_get_data():
         data.append(service_ratios)
 
         checks = (
-            session.query(Service.name, Check.result)
+            db.session.query(Service.name, Check.result)
             .join(Service)
             .filter(Check.round_id == last_round)
             .order_by(Service.name, Service.team_id)

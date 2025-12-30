@@ -11,7 +11,7 @@ from flask_login import current_user, login_required
 import html
 
 from scoring_engine.config import config
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
@@ -47,12 +47,12 @@ from . import mod
 def admin_update_environment():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            environment = session.get(Environment, int(request.form["pk"]))
+            environment = db.session.get(Environment, int(request.form["pk"]))
             if environment:
                 if request.form["name"] == "matching_content":
                     environment.matching_content = html.escape(request.form["value"])
-                session.add(environment)
-                session.commit()
+                db.session.add(environment)
+                db.session.commit()
                 return jsonify({"status": "Updated Environment Information"})
             return jsonify({"error": "Incorrect permissions"})
     return jsonify({"error": "Incorrect permissions"})
@@ -63,14 +63,14 @@ def admin_update_environment():
 def admin_update_property():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            property_obj = session.get(Property, int(request.form["pk"]))
+            property_obj = db.session.get(Property, int(request.form["pk"]))
             if property_obj:
                 if request.form["name"] == "property_name":
                     property_obj.name = html.escape(request.form["value"])
                 elif request.form["name"] == "property_value":
                     property_obj.value = html.escape(request.form["value"])
-                session.add(property_obj)
-                session.commit()
+                db.session.add(property_obj)
+                db.session.commit()
                 return jsonify({"status": "Updated Property Information"})
             return jsonify({"error": "Incorrect permissions"})
     return jsonify({"error": "Incorrect permissions"})
@@ -81,7 +81,7 @@ def admin_update_property():
 def admin_update_check():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            check = session.get(Check, int(request.form["pk"]))
+            check = db.session.get(Check, int(request.form["pk"]))
             if check:
                 modified_check = False
                 if request.form["name"] == "check_value":
@@ -94,8 +94,8 @@ def admin_update_check():
                     modified_check = True
                     check.reason = request.form["value"]
                 if modified_check:
-                    session.add(check)
-                    session.commit()
+                    db.session.add(check)
+                    db.session.commit()
                     update_scoreboard_data()
                     update_overview_data()
                     update_services_navbar(check.service.team.id)
@@ -112,12 +112,12 @@ def admin_update_check():
 def admin_update_host():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.get(Service, int(request.form["pk"]))
+            service = db.session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "host":
                     service.host = html.escape(request.form["value"])
-                    session.add(service)
-                    session.commit()
+                    db.session.add(service)
+                    db.session.commit()
                     update_overview_data()
                     update_services_data(service.team.id)
                     update_service_data(service.id)
@@ -130,12 +130,12 @@ def admin_update_host():
 def admin_update_port():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.get(Service, int(request.form["pk"]))
+            service = db.session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "port":
                     service.port = int(request.form["value"])
-                    session.add(service)
-                    session.commit()
+                    db.session.add(service)
+                    db.session.commit()
                     update_overview_data()
                     update_services_data(service.team.id)
                     update_service_data(service.id)
@@ -148,12 +148,12 @@ def admin_update_port():
 def admin_update_worker_queue():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.get(Service, int(request.form["pk"]))
+            service = db.session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "worker_queue":
                     service.worker_queue = request.form["value"]
-                    session.add(service)
-                    session.commit()
+                    db.session.add(service)
+                    db.session.commit()
                     return jsonify({"status": "Updated Service Information"})
     return jsonify({"error": "Incorrect permissions"})
 
@@ -163,12 +163,12 @@ def admin_update_worker_queue():
 def admin_update_points():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            service = session.get(Service, int(request.form["pk"]))
+            service = db.session.get(Service, int(request.form["pk"]))
             if service:
                 if request.form["name"] == "points":
                     service.points = int(request.form["value"])
-                    session.add(service)
-                    session.commit()
+                    db.session.add(service)
+                    db.session.commit()
                     return jsonify({"status": "Updated Service Information"})
     return jsonify({"error": "Incorrect permissions"})
 
@@ -180,8 +180,8 @@ def admin_update_about_page_content():
         if "about_page_content" in request.form:
             setting = Setting.get_setting("about_page_content")
             setting.value = request.form["about_page_content"]
-            session.add(setting)
-            session.commit()
+            db.session.add(setting)
+            db.session.commit()
             flash("About Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: about_page_content not specified.", "danger")
@@ -196,8 +196,8 @@ def admin_update_welcome_page_content():
         if "welcome_page_content" in request.form:
             setting = Setting.get_setting("welcome_page_content")
             setting.value = request.form["welcome_page_content"]
-            session.add(setting)
-            session.commit()
+            db.session.add(setting)
+            db.session.commit()
             flash("Welcome Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: welcome_page_content not specified.", "danger")
@@ -216,8 +216,8 @@ def admin_update_target_round_time():
                 flash("Error: Target Round Time must be an integer.", "danger")
                 return redirect(url_for("admin.settings"))
             setting.value = input_time
-            session.add(setting)
-            session.commit()
+            db.session.add(setting)
+            db.session.commit()
             flash("Target Round Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: target_round_time not specified.", "danger")
@@ -236,8 +236,8 @@ def admin_update_worker_refresh_time():
                 flash("Error: Worker Refresh Time must be an integer.", "danger")
                 return redirect(url_for("admin.settings"))
             setting.value = input_time
-            session.add(setting)
-            session.commit()
+            db.session.add(setting)
+            db.session.commit()
             flash("Worker Refresh Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: worker_refresh_time not specified.", "danger")
@@ -254,8 +254,8 @@ def admin_update_blueteam_edit_hostname():
             setting.value = False
         else:
             setting.value = True
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -269,8 +269,8 @@ def admin_update_blueteam_edit_port():
             setting.value = False
         else:
             setting.value = True
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -284,8 +284,8 @@ def admin_update_blueteam_edit_account_usernames():
             setting.value = False
         else:
             setting.value = True
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -299,8 +299,8 @@ def admin_update_blueteam_edit_account_passwords():
             setting.value = False
         else:
             setting.value = True
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -314,8 +314,8 @@ def admin_update_blueteam_view_check_output():
             setting.value = False
         else:
             setting.value = True
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -325,7 +325,7 @@ def admin_update_blueteam_view_check_output():
 def get_check_progress_total():
     if current_user.is_white_team:
         task_id_settings = (
-            session.query(KB)
+            db.session.query(KB)
             .filter_by(name="task_ids")
             .order_by(KB.round_num.desc())
             .first()
@@ -384,7 +384,7 @@ def get_check_progress_total():
 @login_required
 def admin_get_inject_templates_id(template_id):
     if current_user.is_white_team:
-        template = session.get(Template, int(template_id))
+        template = db.session.get(Template, int(template_id))
         data = dict(
             id=template.id,
             title=template.title,
@@ -414,7 +414,7 @@ def admin_get_inject_templates_id(template_id):
 def admin_put_inject_templates_id(template_id):
     if current_user.is_white_team:
         data = request.get_json()
-        template = session.get(Template, int(template_id))
+        template = db.session.get(Template, int(template_id))
         if template:
             if data.get("title"):
                 template.title = data["title"]
@@ -440,7 +440,7 @@ def admin_put_inject_templates_id(template_id):
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
-                        session.query(Inject)
+                        db.session.query(Inject)
                         .join(Template)
                         .join(Team)
                         .filter(Team.name == team_name)
@@ -453,16 +453,16 @@ def admin_put_inject_templates_id(template_id):
                     # Otherwise, create the inject
                     else:
                         team = (
-                            session.query(Team).filter(Team.name == team_name).first()
+                            db.session.query(Team).filter(Team.name == team_name).first()
                         )
                         inject = Inject(
                             team=team,
                             template=template,
                         )
-                        session.add(inject)
+                        db.session.add(inject)
             if data.get("unselectedTeams"):
                 injects = (
-                    session.query(Inject)
+                    db.session.query(Inject)
                     .join(Template)
                     .join(Team)
                     .filter(Team.name.in_(data["unselectedTeams"]))
@@ -472,7 +472,7 @@ def admin_put_inject_templates_id(template_id):
                 for inject in injects:
                     inject.enabled = False
             # TODO - Rubric updates
-            session.commit()
+            db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Template not found"}), 400
@@ -485,10 +485,10 @@ def admin_put_inject_templates_id(template_id):
 @login_required
 def admin_delete_inject_templates_id(template_id):
     if current_user.is_white_team:
-        template = session.get(Template, int(template_id))
+        template = db.session.get(Template, int(template_id))
         if template:
-            session.delete(template)
-            session.commit()
+            db.session.delete(template)
+            db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Template not found"}), 400
@@ -501,7 +501,7 @@ def admin_delete_inject_templates_id(template_id):
 def admin_get_inject_templates():
     if current_user.is_white_team:
         data = list()
-        templates = session.query(Template).options(joinedload(Template.inject)).all()
+        templates = db.session.query(Template).options(joinedload(Template.inject)).all()
         for template in templates:
             data.append(
                 dict(
@@ -541,13 +541,13 @@ def admin_post_inject_grade(inject_id):
     if current_user.is_white_team:
         data = request.get_json()
         if "score" in data.keys() and data.get("score") != "":
-            inject = session.get(Inject, inject_id)
+            inject = db.session.get(Inject, inject_id)
             if inject:
                 inject.graded = datetime.utcnow()
                 inject.status = "Graded"
                 inject.score = data.get("score")
-                session.add(inject)
-                session.commit()
+                db.session.add(inject)
+                db.session.commit()
                 return jsonify({"status": "Success"}), 200
             else:
                 return jsonify({"status": "Invalid Inject ID"}), 400
@@ -586,8 +586,8 @@ def admin_post_inject_templates():
                     .replace(tzinfo=None)
                 ),
             )
-            session.add(template)
-            session.commit()
+            db.session.add(template)
+            db.session.commit()
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -596,7 +596,7 @@ def admin_post_inject_templates():
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
-                        session.query(Inject)
+                        db.session.query(Inject)
                         .join(Template)
                         .join(Team)
                         .filter(Team.name == team_name)
@@ -609,16 +609,16 @@ def admin_post_inject_templates():
                     # Otherwise, create the inject
                     else:
                         team = (
-                            session.query(Team).filter(Team.name == team_name).first()
+                            db.session.query(Team).filter(Team.name == team_name).first()
                         )
                         inject = Inject(
                             team=team,
                             template=template,
                         )
-                        session.add(inject)
+                        db.session.add(inject)
             if data.get("unselectedTeams"):
                 injects = (
-                    session.query(Inject)
+                    db.session.query(Inject)
                     .join(Template)
                     .join(Team)
                     .filter(Team.name.in_(data["unselectedTeams"]))
@@ -627,7 +627,7 @@ def admin_post_inject_templates():
                 )
                 for inject in injects:
                     inject.enabled = False
-            session.commit()
+            db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Missing Data"}), 400
@@ -640,7 +640,7 @@ def admin_post_inject_templates():
 # def admin_export_inject_templates():
 #     if current_user.is_white_team:
 #         data = []
-#         templates = session.query(Template).all()
+#         templates = db.session.query(Template).all()
 #         for template in templates:
 #             data.append(
 #                 dict(
@@ -673,7 +673,7 @@ def admin_import_inject_templates():
             for d in data:
                 if d.get("id"):
                     template_id = d["id"]
-                    t = session.get(Template, int(template_id))
+                    t = db.session.get(Template, int(template_id))
                     # Update template if it exists
                     if t:
                         if d.get("title"):
@@ -701,7 +701,7 @@ def admin_import_inject_templates():
                         # for rubric in d["rubric"]:
                         #     if rubric.get("id"):
                         #         rubric_id = rubric["id"]
-                        #     r = session.get(Rubric, int(rubric_id))
+                        #     r = db.session.get(Rubric, int(rubric_id))
                         #     # Update rubric if it exists
                         #     if r:
                         #         if rubric.get("value"):
@@ -715,12 +715,12 @@ def admin_import_inject_templates():
                         #             deliverable=rubric["deliverable"],
                         #             template=template,
                         #         )
-                        #         session.add(r)
+                        #         db.session.add(r)
                         # Generate injects from template
                         if d.get("selectedTeams"):
                             for team_name in data["selectedTeams"]:
                                 inject = (
-                                    session.query(Inject)
+                                    db.session.query(Inject)
                                     .join(Template)
                                     .join(Team)
                                     .filter(Team.name == team_name)
@@ -733,7 +733,7 @@ def admin_import_inject_templates():
                                 # Otherwise, create the inject
                                 else:
                                     team = (
-                                        session.query(Team)
+                                        db.session.query(Team)
                                         .filter(Team.name == team_name)
                                         .first()
                                     )
@@ -741,10 +741,10 @@ def admin_import_inject_templates():
                                         team=team,
                                         template=template,
                                     )
-                                    session.add(inject)
+                                    db.session.add(inject)
                         if d.get("unselectedTeams"):
                             injects = (
-                                session.query(Inject)
+                                db.session.query(Inject)
                                 .join(Template)
                                 .join(Team)
                                 .filter(Team.name.in_(data["unselectedTeams"]))
@@ -776,17 +776,17 @@ def admin_import_inject_templates():
                         .replace(tzinfo=None),
                         enabled=d["enabled"],
                     )
-                    session.add(t)
+                    db.session.add(t)
                     # for rubric in d["rubric"]:
                     #     r = Rubric(
                     #         value=rubric["value"],
                     #         deliverable=rubric["deliverable"],
                     #         template=t,
                     #     )
-                    #     session.add(r)
+                    #     db.session.add(r)
                     for team_name in d["teams"]:
                         inject = (
-                            session.query(Inject)
+                            db.session.query(Inject)
                             .join(Template)
                             .join(Team)
                             .filter(Team.name == team_name)
@@ -799,7 +799,7 @@ def admin_import_inject_templates():
                         # Otherwise, create the inject
                         else:
                             team = (
-                                session.query(Team)
+                                db.session.query(Team)
                                 .filter(Team.name == team_name)
                                 .first()
                             )
@@ -807,8 +807,8 @@ def admin_import_inject_templates():
                                 team=team,
                                 template=t,
                             )
-                            session.add(inject)
-            session.commit()
+                            db.session.add(inject)
+            db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Invalid Data"}), 400
@@ -824,7 +824,7 @@ def admin_inject_scores():
         data = {}
 
         injects = (
-            session.query(Inject)
+            db.session.query(Inject)
             .options(joinedload(Inject.template), joinedload(Inject.team))
             .order_by(Inject.template_id)
             .order_by(Inject.team_id)
@@ -860,7 +860,7 @@ def admin_inject_scores():
 def admin_injects_bar():
     if current_user.is_white_team:
         inject_scores = dict(
-            session.query(Inject.team_id, func.sum(Inject.score))
+            db.session.query(Inject.team_id, func.sum(Inject.score))
             .filter(Inject.status == "Graded")
             .group_by(Inject.team_id)
             .all()
@@ -870,7 +870,7 @@ def admin_injects_bar():
         team_labels = []
         team_inject_scores = []
         blue_teams = (
-            session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
+            db.session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
         )
         for blue_team in blue_teams:
             team_labels.append(blue_team.name)
@@ -889,7 +889,7 @@ def admin_injects_bar():
 def admin_update_template():
     if current_user.is_white_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
-            template = session.get(Template, int(request.form["pk"]))
+            template = db.session.get(Template, int(request.form["pk"]))
             if template:
                 modified_check = False
                 if request.form["name"] == "template_state":
@@ -899,8 +899,8 @@ def admin_update_template():
                     template.points = request.form["value"]
                     modified_check = True
                 if modified_check:
-                    session.add(template)
-                    session.commit()
+                    db.session.add(template)
+                    db.session.commit()
                     # update_scoreboard_data()
                     # update_overview_data()
                     # update_services_navbar(check.service.team.id)
@@ -916,7 +916,7 @@ def admin_update_template():
 # @login_required
 # def admin_get_team_injects(team_id):
 #     if current_user.is_white_team:
-#         injects = session.query(Inject).filter(team_id == team_id).all()
+#         injects = db.session.query(Inject).filter(team_id == team_id).all()
 #         return jsonify(data=injects)
 #     else:
 #         return {"status": "Unauthorized"}, 403
@@ -926,7 +926,7 @@ def admin_update_template():
 @login_required
 def admin_get_teams():
     if current_user.is_white_team:
-        all_teams = session.query(Team).all()
+        all_teams = db.session.query(Team).all()
         data = []
         for team in all_teams:
             users = {}
@@ -945,14 +945,14 @@ def admin_update_password():
         if "user_id" in request.form and "password" in request.form:
             try:
                 user_obj = (
-                    session.query(User).filter(User.id == request.form["user_id"]).one()
+                    db.session.query(User).filter(User.id == request.form["user_id"]).one()
                 )
             except NoResultFound:
                 return redirect(url_for("auth.login"))
             user_obj.update_password(html.escape(request.form["password"]))
             user_obj.authenticated = False
-            session.add(user_obj)
-            session.commit()
+            db.session.add(user_obj)
+            db.session.commit()
             flash("Password Successfully Updated.", "success")
             return redirect(url_for("admin.manage"))
         else:
@@ -972,15 +972,15 @@ def admin_add_user():
             and "team_id" in request.form
         ):
             team_obj = (
-                session.query(Team).filter(Team.id == request.form["team_id"]).one()
+                db.session.query(Team).filter(Team.id == request.form["team_id"]).one()
             )
             user_obj = User(
                 username=html.escape(request.form["username"]),
                 password=html.escape(request.form["password"]),
                 team=team_obj,
             )
-            session.add(user_obj)
-            session.commit()
+            db.session.add(user_obj)
+            db.session.commit()
             flash("User successfully added.", "success")
             return redirect(url_for("admin.manage"))
         else:
@@ -998,8 +998,8 @@ def admin_add_team():
             team_obj = Team(
                 html.escape(request.form["name"]), html.escape(request.form["color"])
             )
-            session.add(team_obj)
-            session.commit()
+            db.session.add(team_obj)
+            db.session.commit()
             flash("Team successfully added.", "success")
             return redirect(url_for("admin.manage"))
         else:
@@ -1015,8 +1015,8 @@ def admin_toggle_engine():
     if current_user.is_white_team:
         setting = Setting.get_setting("engine_paused")
         setting.value = not setting.value
-        session.add(setting)
-        session.commit()
+        db.session.add(setting)
+        db.session.commit()
         return {'status': "Success"}
     else:
         return {"status": "Unauthorized"}, 403
@@ -1029,12 +1029,12 @@ def admin_get_engine_stats():
         engine_stats = {}
         engine_stats["round_number"] = Round.get_last_round_num()
         engine_stats["num_passed_checks"] = (
-            session.query(Check).filter_by(result=True).count()
+            db.session.query(Check).filter_by(result=True).count()
         )
         engine_stats["num_failed_checks"] = (
-            session.query(Check).filter_by(result=False).count()
+            db.session.query(Check).filter_by(result=False).count()
         )
-        engine_stats["total_checks"] = session.query(Check).count()
+        engine_stats["total_checks"] = db.session.query(Check).count()
         return jsonify(engine_stats)
     else:
         return {"status": "Unauthorized"}, 403

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, Text, desc
 from time import time
 
 from scoring_engine.models.base import Base
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 class Setting(Base):
@@ -59,10 +59,10 @@ class Setting(Base):
             cached_value, cached_time = cls._cache[name]
             if current_time - cached_time < cls._cache_ttl:
                 # Merge the cached object back into the session to avoid DetachedInstanceError
-                return session.merge(cached_value, load=False)
+                return db.session.merge(cached_value, load=False)
 
         # Query database and update cache
-        setting = session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()
+        setting = db.session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()
         if setting:
             cls._cache[name] = (setting, current_time)
         return setting

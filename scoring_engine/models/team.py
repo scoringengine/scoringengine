@@ -12,7 +12,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 class Team(Base):
@@ -42,7 +42,9 @@ class Team(Base):
         or using bulk queries when accessing scores for multiple teams.
         """
         score = (
-            session.query(func.sum(Service.points))
+            db.session.query(func.sum(Service.points))
+            .select_from(Team)
+            .join(Service)
             .join(Check)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
@@ -60,7 +62,8 @@ class Team(Base):
         or using bulk queries when accessing scores for multiple teams.
         """
         score = (
-            session.query(func.sum(Inject.score))
+            db.session.query(func.sum(Inject.score))
+            .join(Team)
             .filter(Inject.team_id == self.id)
             .filter(Inject.status == "Graded")
             .scalar()
@@ -79,7 +82,7 @@ class Team(Base):
         See scoring_engine/web/views/api/overview.py for an efficient batch implementation.
         """
         scores = (
-            session.query(
+            db.session.query(
                 Service.team_id,
                 func.sum(Service.points).label("score"),
             )
@@ -118,7 +121,7 @@ class Team(Base):
 
     def get_array_of_scores(self, max_round):
         round_scores = (
-            session.query(
+            db.session.query(
                 Check.round_id,
                 func.sum(Service.points),
             )
@@ -150,7 +153,7 @@ class Team(Base):
             return 0
 
         score = (
-            session.query(func.sum(Service.points))
+            db.session.query(func.sum(Service.points))
             .join(Check)
             .join(Round)
             .filter(Service.team_id == self.id)
@@ -164,11 +167,11 @@ class Team(Base):
 
     @staticmethod
     def get_all_blue_teams():
-        return session.query(Team).filter(Team.color == "Blue").all()
+        return db.session.query(Team).filter(Team.color == "Blue").all()
 
     @staticmethod
     def get_all_red_teams():
-        return session.query(Team).filter(Team.color == "Red").all()
+        return db.session.query(Team).filter(Team.color == "Red").all()
 
     @staticmethod
     def get_all_rounds_results():
@@ -178,8 +181,8 @@ class Team(Base):
 
         rounds = []
         scores = {}
-        blue_teams = session.query(Team).filter(Team.color == "Blue").all()
-        last_round_obj = session.query(func.max(Round.number)).scalar()
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").all()
+        last_round_obj = db.session.query(func.max(Round.number)).scalar()
         if last_round_obj:
             last_round = last_round_obj
             rounds = ["Round {}".format(x) for x in range(0, last_round + 1)]

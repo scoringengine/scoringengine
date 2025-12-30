@@ -11,7 +11,7 @@ import json
 import os
 
 from scoring_engine.cache import agent_cache as cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
@@ -74,14 +74,14 @@ def agent_checkin_post():
     if team_input is None or host is None or platform is None:
         abort(400)
 
-    team = session.query(Team).filter_by(name=team_input).first()
+    team = db.session.query(Team).filter_by(name=team_input).first()
 
     if team is None or not team.is_blue_team:
         abort(400)
 
     flags = data.get("flags", [])
     if len(flags) > 0:
-        flags = session.query(Flag).filter(
+        flags = db.session.query(Flag).filter(
                 and_(
                     Flag.id.in_(flags),
                     Flag.dummy == False
@@ -95,7 +95,7 @@ def agent_checkin_post():
             )
             for flag in flags
         ]
-        session.add_all(solves)
+        db.session.add_all(solves)
 
     result = do_checkin(team, host, platform)
     return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
@@ -108,7 +108,7 @@ def do_checkin(team, host, platform):
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     # get unsolved flags for this team and host and for this time period
     flags = (
-        session.query(Flag)
+        db.session.query(Flag)
         .filter(
             and_(
                 Flag.platform == platform,
@@ -116,7 +116,7 @@ def do_checkin(team, host, platform):
                 now < Flag.end_time,
             )
         )
-        .filter(Flag.id.not_in(session.query(Solve.flag_id).filter(and_(Solve.host == host, Solve.team == team))))
+        .filter(Flag.id.not_in(db.session.query(Solve.flag_id).filter(and_(Solve.host == host, Solve.team == team))))
     ).all()
 
     res = {
