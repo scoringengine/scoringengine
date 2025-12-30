@@ -756,7 +756,6 @@ def admin_import_inject_templates():
                             for inject in injects:
                                 inject.enabled = False
 
-                        session.commit()
                     else:
                         return (
                             jsonify(
@@ -811,7 +810,7 @@ def admin_import_inject_templates():
                                 template=t,
                             )
                             session.add(inject)
-                    session.commit()
+            session.commit()
             return jsonify({"status": "Success"}), 200
         else:
             return jsonify({"status": "Error", "message": "Invalid Data"}), 400
