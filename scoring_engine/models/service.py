@@ -31,7 +31,7 @@ class Service(Base):
         from scoring_engine.models.round import Round
 
         check = (
-            session.query(Check)
+            db.session.query(Check)
             .join(Round)
             .filter(Check.service_id == self.id)
             .filter(Round.number == round_num)
@@ -127,7 +127,7 @@ class Service(Base):
         Optimized to use a DB query with LIMIT instead of loading all checks into memory.
         """
         return (
-            session.query(Check)
+            db.session.query(Check)
             .filter(Check.service_id == self.id)
             .order_by(desc(Check.id))
             .limit(10)
