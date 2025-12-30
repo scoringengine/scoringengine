@@ -171,7 +171,6 @@ def api_inject_comments(inject_id):
     return jsonify(data=data), 200
 
 
-# TODO - Check if comment length is greater than 25k characters, which is the TEXT max for MySQL
 @mod.route("/api/inject/<inject_id>/comment", methods=["POST"])
 @login_required
 def api_inject_add_comment(inject_id):
@@ -184,6 +183,8 @@ def api_inject_add_comment(inject_id):
     data = request.get_json()
     if "comment" not in data or data["comment"] == "":
         return jsonify({"status": "No comment"}), 400
+    if len(data["comment"]) > 25000:
+        return jsonify({"status": "Comment too long (max 25,000 characters)"}), 400
 
     c = Comment(data["comment"], current_user, inject)
     session.add(c)
