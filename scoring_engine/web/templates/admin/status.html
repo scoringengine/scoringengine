@@ -1,6 +1,11 @@
 {% extends 'admin/adminbase.html' %}
 {% block title %}Admin - Round Stats{% endblock %}
 
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/utils.js') }}"></script>
+{% endblock %}
+
 {% block header %}
 Round Stats
 {% endblock %}
@@ -75,12 +80,20 @@ Round Stats
   function getProgress() {
     $.getJSON('/api/admin/get_round_progress', function (data) {
       $.each(data, function (key, val) {
-        $("#" + key + "Percent").css('width', val + "%").attr('aria-valuenow', val);
-        $("#" + key + "Percent span").text(val + "%");
+        // Sanitize key before using in selector to prevent XSS
+        var sanitizedKey = ScoringEngineUtils.sanitizeSelector(key);
+        var $progressBar = $("#" + sanitizedKey + "Percent");
+        var $progressSpan = $progressBar.find('span');
+
+        // Update progress bar
+        $progressBar.css('width', val + "%").attr('aria-valuenow', val);
+        $progressSpan.text(val + "%");
+
+        // Update progress bar class based on completion
         if (val < 100) {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
+          $progressBar.attr('class', 'progress-bar progress-bar-striped active progress-bar-warning');
         } else {
-          $("#" + key + "Percent").attr('class', 'progress-bar progress-bar-striped active progress-bar-success');
+          $progressBar.attr('class', 'progress-bar progress-bar-striped active progress-bar-success');
         }
       });
     });

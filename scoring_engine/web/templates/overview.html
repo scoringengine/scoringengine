@@ -51,71 +51,64 @@
                     { "width": "10%", "targets": 0 }
                 ],
                 'createdRow': function (row, data, index) {
-                    $('td', row).each(function () {
-                        var value = $(this).html();
-                        var column_num = $(this).index();
+                    // Cache row cells array for better performance
+                    var $cells = $(row).children('td');
+                    var cellsLength = $cells.length;
+
+                    // Process cells
+                    for (var i = 0; i < cellsLength; i++) {
+                        var $cell = $($cells[i]);
+                        var value = $cell.html();
+
                         switch (index) {
                             // Current Score
                             case 0:
-                                if (column_num == 0) {
-                                    var html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
+                                if (i == 0) {
+                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
                                 } else {
-                                    var html_str = parseFloat(`${value}`).toLocaleString();
-                                    $(this).html(html_str);
+                                    $cell.html(parseFloat(value).toLocaleString());
                                 }
                                 break;
                             // Current Place
                             case 1:
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                    // Add Some Ribbons
+                                if (i == 0) {
+                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
                                 } else {
-                                    if (value == 1) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>`);
-                                    } else if (value == 2) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>`);
-                                    } else if (value == 3) {
-                                        $(this).html(`${value} <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>`);
-                                    }
+                                    // Add medal ribbons for top 3
+                                    var medal = '';
+                                    if (value == 1) medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>';
+                                    else if (value == 2) medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>';
+                                    else if (value == 3) medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>';
+                                    if (medal) $cell.html(value + medal);
                                 }
                                 break;
                             case 2:
                                 // Up and down services ratio
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                } else {
-                                    html_str = `${value}`
-                                    $(this).html(html_str);
+                                if (i == 0) {
+                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
                                 }
                                 break;
                             default:
-                                // Service Name
-                                if (column_num == 0) {
-                                    html_str = `<span style="font-weight:bold">${value}</span>`
-                                    $(this).html(html_str);
-                                    break;
+                                // Service status or name
+                                if (i == 0) {
+                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                                } else {
+                                    // Determine status icon and color
+                                    var icon, color;
+                                    if (value == 'true') {
+                                        icon = 'glyphicon-ok';
+                                        color = 'green';
+                                    } else if (value == 'false') {
+                                        icon = 'glyphicon-remove';
+                                        color = 'red';
+                                    } else {
+                                        icon = 'glyphicon-question-sign';
+                                        color = 'black';
+                                    }
+                                    $cell.html(`<span class="glyphicon ${icon}" style="color:${color}"></span>`);
                                 }
-
-                                if (value == 'true') {
-                                    var image_icon = 'glyphicon-ok';
-                                    var image_color = 'green';
-                                }
-                                else if (value == 'false') {
-                                    var image_icon = 'glyphicon-remove';
-                                    var image_color = 'red';
-                                }
-                                else {
-                                    image_icon = 'glyphicon-question-sign';
-                                    image_color = 'black';
-                                }
-
-                                html_str = `<span class="glyphicon ${image_icon}" style="color:${image_color}"></span>`;
-                                $(this).html(html_str);
                         }
-                    })
+                    }
                 }
             });
 
