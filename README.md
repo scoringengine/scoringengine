@@ -82,6 +82,20 @@ pytest
 
 To check every file, use `pre-commit run --all-files`.
 
+## Version Management
+
+This project uses semantic versioning. To bump versions during development:
+
+```bash
+# Install development dependencies
+pip install -r tests/requirements.txt
+
+# Bump version (patch/minor/major)
+bump-my-version bump patch
+```
+
+See [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) for detailed instructions on versioning workflow.
+
 ## License
 
 Released under the [MIT License](LICENSE).
