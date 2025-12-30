@@ -15,8 +15,7 @@ __pycache__/
 *.so
 .Python
 
-# Testing
-tests/
+# Testing artifacts (keep tests/ directory itself for tester image)
 .pytest_cache/
 .coverage
 .coverage.*
