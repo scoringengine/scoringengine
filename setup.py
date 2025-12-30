@@ -27,7 +27,7 @@ config = {
         "PyYAML==6.0.2",
         "ranking==0.3.2",
         # 'redis==4.3.4',
-        "Werkzeug==3.1.3",
+        "Werkzeug==3.1.4",
         "uWSGI==2.0.31",
     ],
     "packages": ["scoring_engine"],
