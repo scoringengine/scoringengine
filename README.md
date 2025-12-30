@@ -22,6 +22,10 @@ Scoring Engine is an open-source platform for running Red/White/Blue team compet
 - [Docker Compose](https://docs.docker.com/compose/) (included with Docker Desktop; on Linux install separately)
 - For Windows users, ensure Docker Desktop is set to [use Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
 
+**Note**: For airgapped/offline competitions with no internet access:
+- Quick start: Run `./bin/create-airgapped-package.sh` to create a complete deployment package
+- Full guide: See the [Airgapped Deployment Guide](docs/source/installation/airgapped.rst)
+
 ## Quick Start
 
 From this directory run:

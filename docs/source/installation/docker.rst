@@ -3,6 +3,8 @@ Docker
 
 .. note:: It takes a minute or 2 for all of the containers to start up and get going!
 
+.. important:: For airgapped/offline competitions with no internet access, see :doc:`airgapped` for complete deployment instructions.
+
 TestBed Environment
 -------------------
 ::

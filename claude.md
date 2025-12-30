@@ -199,6 +199,32 @@ SCORINGENGINE_OVERWRITE_DB=true docker-compose up
 
 Access at http://localhost with credentials from README.md
 
+### Airgapped/Offline Deployments
+
+**IMPORTANT**: Many competitions run in completely airgapped environments with NO internet access.
+
+For airgapped deployments, ALL dependencies must be vendored before entering the environment:
+
+**Required vendoring**:
+- Docker images (base Python, Redis, MariaDB, Nginx)
+- Python packages (all pip dependencies)
+- System packages (all apt dependencies)
+- Application images (scoringengine/base, engine, worker, web, bootstrap)
+
+**Preparation workflow** (with internet):
+1. Build all images: `docker-compose build --no-cache`
+2. Export images: `docker save [image] -o [file].tar`
+3. Package with repository code
+4. Transfer to airgapped environment
+
+**Deployment workflow** (airgapped):
+1. Load images: `docker load -i [file].tar`
+2. Deploy: `docker-compose up -d`
+
+**Key principle**: Once images are built and loaded, NO external network access is required. All dependencies are embedded in the Docker image layers.
+
+See `docs/source/installation/airgapped.rst` for complete step-by-step guide.
+
 ### Running Tests
 
 ```bash
