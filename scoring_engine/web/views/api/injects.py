@@ -116,7 +116,13 @@ def api_inject(inject_id):
     data["status"] = inject.status
 
     # Comments
-    comments = session.query(Comment).filter(Comment.inject == inject).order_by(Comment.time).all()
+    comments = (
+        session.query(Comment)
+        .options(joinedload(Comment.user).joinedload("team"))
+        .filter(Comment.inject == inject)
+        .order_by(Comment.time)
+        .all()
+    )
     data["comments"] = [
         {
             "id": comment.id,
@@ -144,7 +150,13 @@ def api_inject_comments(inject_id):
         return jsonify({"status": "Unauthorized"}), 403
 
     data = []
-    comments = session.query(Comment).filter(Comment.inject == inject).order_by(Comment.time).all()
+    comments = (
+        session.query(Comment)
+        .options(joinedload(Comment.user).joinedload("team"))
+        .filter(Comment.inject == inject)
+        .order_by(Comment.time)
+        .all()
+    )
     for comment in comments:
         data.append(
             {

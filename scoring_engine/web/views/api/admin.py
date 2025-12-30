@@ -828,7 +828,7 @@ def admin_inject_scores():
 
         injects = (
             session.query(Inject)
-            .options(joinedload(Inject.template))
+            .options(joinedload(Inject.template), joinedload(Inject.team))
             .order_by(Inject.template_id)
             .order_by(Inject.team_id)
             .all()
