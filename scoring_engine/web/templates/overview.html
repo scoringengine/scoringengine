@@ -120,14 +120,14 @@
                 // Populate our header
                 refreshheader();
 
-                // Fallback polling every 5 minutes (in case WebSocket disconnects)
+                // Fallback polling every minute (in case WebSocket disconnects)
                 setInterval(function () {
                     refreshheader()
-                }, 300000);
+                }, 60000);
 
                 setInterval(function () {
                     overview.ajax.reload();
-                }, 300000);
+                }, 60000);
 
                 // WebSocket connection for real-time updates
                 const socket = io();
