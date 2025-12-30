@@ -36,10 +36,13 @@ class Team(Base):
 
     @property
     def current_score(self):
+        """
+        Calculate current score from successful checks.
+        WARNING: This performs a DB query on each access. Consider caching results
+        or using bulk queries when accessing scores for multiple teams.
+        """
         score = (
             session.query(func.sum(Service.points))
-            .select_from(Team)
-            .join(Service)
             .join(Check)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
@@ -51,9 +54,13 @@ class Team(Base):
 
     @property
     def current_inject_score(self):
+        """
+        Calculate current inject score from graded injects.
+        WARNING: This performs a DB query on each access. Consider caching results
+        or using bulk queries when accessing scores for multiple teams.
+        """
         score = (
             session.query(func.sum(Inject.score))
-            .join(Team)
             .filter(Inject.team_id == self.id)
             .filter(Inject.status == "Graded")
             .scalar()
@@ -64,6 +71,13 @@ class Team(Base):
 
     @property
     def place(self):
+        """
+        Calculate team's current place/rank based on scores.
+        WARNING: This queries ALL teams and their scores on EVERY access!
+        This is very expensive - avoid calling in loops or templates.
+        For bulk operations, calculate ranks once and cache/pass the results.
+        See scoring_engine/web/views/api/overview.py for an efficient batch implementation.
+        """
         scores = (
             session.query(
                 Service.team_id,
@@ -82,7 +96,10 @@ class Team(Base):
             )  # [1, 2, 2, 4, 5]
             team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
 
-            return ranks[team_ids.index(self.id)]
+            if self.id in team_ids:
+                return ranks[team_ids.index(self.id)]
+            else:
+                return 1
         # Round 0, or no other scores available
         else:
             return 1
