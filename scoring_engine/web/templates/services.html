@@ -4,6 +4,7 @@
     {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/socket.io.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
 {% block content %}
@@ -47,9 +48,6 @@
 
             $(document).ready(function() {
                 refreshteamdata();
-                setInterval(function(){
-                    refreshteamdata()
-                }, 30000);
 
                 // Disable datatables error reporting
                 $.fn.dataTable.ext.errMode = 'none';
@@ -123,9 +121,45 @@
                             },
                         ],
                     });
+
+                // Fallback polling every minute (in case WebSocket disconnects)
+                setInterval(function(){
+                    refreshteamdata()
+                }, 60000);
+
                 setInterval( function () {
                     table.ajax.reload();
-                }, 30000 );
+                }, 60000 );
+
+                // WebSocket connection for real-time updates
+                // Note: WebSocket signals "round completed" but each client fetches
+                // their OWN team's data via authenticated API calls for security
+                const socket = io();
+
+                socket.on('connect', function() {
+                    console.log('WebSocket connected');
+                    socket.emit('join_scoreboard');
+                });
+
+                socket.on('disconnect', function() {
+                    console.log('WebSocket disconnected');
+                });
+
+                socket.on('joined', function(data) {
+                    console.log('Joined room:', data.room);
+                });
+
+                socket.on('scoreboard_update', function(data) {
+                    console.log('Services update received for round:', data.round);
+                    // Refresh team stats and services table with authenticated API calls
+                    // Each team only sees their own data via API authorization
+                    refreshteamdata();
+                    table.ajax.reload(null, false); // false = don't reset paging
+                });
+
+                socket.on('connect_error', function(error) {
+                    console.error('WebSocket connection error:', error);
+                });
             } );
         </script>
     </div>
