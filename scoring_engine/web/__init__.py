@@ -3,12 +3,16 @@ import logging
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_socketio import SocketIO
 
 from scoring_engine.cache import cache, agent_cache
 from scoring_engine.config import config
 
 
 SECRET_KEY = os.urandom(128)
+
+# Initialize SocketIO globally so it can be imported by other modules
+socketio = SocketIO(cors_allowed_origins="*", async_mode="threading")
 
 
 def create_app():
@@ -36,10 +40,12 @@ def create_app():
         api,
         admin,
         about,
+        websocket,
     )
 
     cache.init_app(app)
     agent_cache.init_app(app)
+    socketio.init_app(app)
 
     # Initialize login manager
     login_manager = LoginManager()
