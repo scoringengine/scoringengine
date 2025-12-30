@@ -65,10 +65,10 @@ class TestSetting(UnitTest):
         assert result1.value == 'initial_value'
         assert 'cached_setting' in Setting._cache
 
-        # Second call should return cached value (same object reference)
+        # Second call should return cached value with same data
         result2 = Setting.get_setting('cached_setting')
         assert result2.value == 'initial_value'
-        assert result1 is result2  # Same cached object
+        assert result1.id == result2.id  # Same setting from cache
 
     def test_get_setting_cache_expiration(self):
         # Clear cache before test

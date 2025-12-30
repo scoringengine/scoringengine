@@ -58,7 +58,8 @@ class Setting(Base):
         if name in cls._cache:
             cached_value, cached_time = cls._cache[name]
             if current_time - cached_time < cls._cache_ttl:
-                return cached_value
+                # Merge the cached object back into the session to avoid DetachedInstanceError
+                return session.merge(cached_value, load=False)
 
         # Query database and update cache
         setting = session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()
