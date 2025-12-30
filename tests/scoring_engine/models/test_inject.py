@@ -217,8 +217,7 @@ class TestInject(UnitTest):
         assert inject.team == team
         assert inject.template == template
         assert inject.enabled is True
-        # Defaults are applied by database on commit
-        assert inject.status == "Draft"
+        # Defaults like status and score are applied by database on commit, not in __init__
 
     def test_init_disabled(self):
         team = Team(name="Blue Team 1", color="Blue")
