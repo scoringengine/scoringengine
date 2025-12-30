@@ -55,7 +55,7 @@ def update_team_stats(team_id=None):
     if team_id is not None:
         cache.delete(f"/api/team/{team_id}/stats_{team_id}")
     elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.keys("*/api/team/*/stats_*"):
+        for key in cache.cache._write_client.scan_iter(match="*/api/team/*/stats_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 def update_services_navbar(team_id=None):
@@ -64,7 +64,7 @@ def update_services_navbar(team_id=None):
     if team_id is not None:
         cache.delete(f"/api/team/{team_id}/services/status_{team_id}")
     elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.keys("*/api/team/*/services/status_*"):
+        for key in cache.cache._write_client.scan_iter(match="*/api/team/*/services/status_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
@@ -75,7 +75,7 @@ def update_service_data(service_id=None):
         # we don't need to know the team_id for the final part because each service id is globally unique so this will only delete one team's cache of a specific service's data
         cache.delete(f"/api/service/{service_id}/checks_*")
     elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.keys("*/api/service/*/checks_*"):
+        for key in cache.cache._write_client.scan_iter(match="*/api/service/*/checks_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 def update_services_data(team_id=None):
@@ -84,7 +84,7 @@ def update_services_data(team_id=None):
     if team_id is not None:
         cache.delete(f"/api/team/{team_id}/services_{team_id}")
     elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.keys("*/api/team/*/services_*"):
+        for key in cache.cache._write_client.scan_iter(match="*/api/team/*/services_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 

@@ -228,7 +228,6 @@ def api_inject_download(inject_id, file_id):
         return jsonify({"status": "Unauthorized"}), 403
 
     path = os.path.join(config.upload_folder, inject_id, inject.team.name, file.name)
-    print(path)
     try:
         return send_file(path, as_attachment=True)
     except FileNotFoundError:
