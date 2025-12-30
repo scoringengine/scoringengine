@@ -440,16 +440,16 @@
     });
 
     // TODO - Clear modal values - $('form').get(0).reset()
-    dt.on('draw', function () {
-      // View/Edit Modal
-      $('.template-view').unbind().click(function () {
-        var data = dt.row($(this).closest('tr')).data();
+    // Use event delegation instead of unbind/bind pattern for dynamically generated elements
+    $('#templates').on('click', '.template-view', function () {
+      var data = dt.row($(this).closest('tr')).data();
 
-        // Uncheck all checkboxes
-        $('#updateTeams input:checkbox').prop('checked', false);
+      // Uncheck all checkboxes
+      $('#updateTeams input:checkbox').prop('checked', false);
 
-        // Query API for template data
-        $.getJSON("/api/admin/injects/templates/" + data['id'], function (data) {
+      // Query API for template data
+      $.getJSON("/api/admin/injects/templates/" + data['id'])
+        .done(function (data) {
           // Update Modal
           $('#updateTemplateId').val(data['id']);
           $('#inputUpdateTitle').val(data['title']);
@@ -509,21 +509,24 @@
               $(this).prop("checked", true);
             }
           });
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          console.error('Failed to load template data:', textStatus, errorThrown);
+          alert('Error loading template data. Please try again.');
         });
-        // Show Modal
-        $('#updateTemplateModal').modal('show');
-      });
+      // Show Modal
+      $('#updateTemplateModal').modal('show');
+    });
 
-      // Delete Modal
-      $('.template-delete').unbind().click(function () {
-        var data = dt.row($(this).closest('tr')).data();
-        $('#deleteTemplateId').val(data['id']);
-        $('#templateDeleteModal').modal('show');
-      });
+    // Delete Modal
+    $('#templates').on('click', '.template-delete', function () {
+      var data = dt.row($(this).closest('tr')).data();
+      $('#deleteTemplateId').val(data['id']);
+      $('#templateDeleteModal').modal('show');
     });
 
     // Import Modal
-    $('#importTemplatesSubmit').unbind().click(function () {
+    $('#importTemplatesSubmit').on('click', function () {
       var data = jsyaml.load($('#importTemplates').val());
       console.log(data);
       $.ajax({
@@ -591,15 +594,20 @@
     });
 
     // Export Modal
-    $('#exportTemplatesButton').unbind().click(function () {
-      $.getJSON("/api/admin/injects/templates", function (data) {
-        // Update Modal
-        $('#exportTemplates').val(jsyaml.dump(data.data));
-      });
+    $('#exportTemplatesButton').on('click', function () {
+      $.getJSON("/api/admin/injects/templates")
+        .done(function (data) {
+          // Update Modal
+          $('#exportTemplates').val(jsyaml.dump(data.data));
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          console.error('Failed to export templates:', textStatus, errorThrown);
+          alert('Error exporting templates. Please try again.');
+        });
     });
 
     // Delete Template Confirmation
-    $('#templateDeleteButton').unbind().click(function () {
+    $('#templateDeleteButton').on('click', function () {
       const templateId = $('#deleteTemplateId').val();
       $.ajax({
         url: "/api/admin/injects/templates/" + templateId,
@@ -616,7 +624,11 @@
     });
 
     // Add Template Submit
-    $('#addTemplateButton').unbind().click(function () {
+    // Cache DOM elements for better performance
+    var $teamsContainer = $('#teams');
+    var $addTemplateModal = $('#addTemplateModal');
+
+    $('#addTemplateButton').on('click', function () {
       var templateData = {}
 
       // Remove all rows except header
@@ -636,14 +648,14 @@
 
       // Selected Teams
       var selectedTeams = [];
-      $('#teams input:checked').each(function () {
+      $teamsContainer.find('input:checked').each(function () {
         selectedTeams.push($(this).parent().text().trim());
       });
       templateData['selectedTeams'] = selectedTeams
 
       // Unselected Teams
       var unselectedTeams = [];
-      $('#teams input:not(:checked)').each(function () {
+      $teamsContainer.find('input:not(:checked)').each(function () {
         unselectedTeams.push($(this).parent().text().trim());
       });
       templateData['unselectedTeams'] = unselectedTeams
@@ -655,7 +667,7 @@
         contentType: "application/json",
         dataType: "json",
         success: function (result) {
-          $('#addTemplateModal').modal('hide');
+          $addTemplateModal.modal('hide');
           dt.ajax.reload();
         },
         error: function (result) {
@@ -666,7 +678,11 @@
     });
 
     // Update Template Submit
-    $('#updateTemplateButton').unbind().click(function () {
+    // Cache DOM elements for better performance
+    var $updateTeamsContainer = $('#updateTeams');
+    var $updateTemplateModal = $('#updateTemplateModal');
+
+    $('#updateTemplateButton').on('click', function () {
       var templateData = {}
 
       // Get Template ID
@@ -683,14 +699,14 @@
 
       // Selected Teams
       var selectedTeams = [];
-      $('#updateTeams input:checked').each(function () {
+      $updateTeamsContainer.find('input:checked').each(function () {
         selectedTeams.push($(this).parent().text().trim());
       });
       templateData['selectedTeams'] = selectedTeams
 
       // Unselected Teams
       var unselectedTeams = [];
-      $('#updateTeams input:not(:checked)').each(function () {
+      $updateTeamsContainer.find('input:not(:checked)').each(function () {
         unselectedTeams.push($(this).parent().text().trim());
       });
       templateData['unselectedTeams'] = unselectedTeams
@@ -702,7 +718,7 @@
         contentType: "application/json",
         dataType: "json",
         success: function (result) {
-          $('#updateTemplateModal').modal('hide');
+          $updateTemplateModal.modal('hide');
           dt.ajax.reload(null, false);  // Keep Page State
         },
         error: function (result) {

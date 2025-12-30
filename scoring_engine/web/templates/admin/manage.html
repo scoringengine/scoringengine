@@ -78,17 +78,21 @@
   <script>
     /* Formatting function for row details - modify as you need */
     function format (data) {
-      var table = '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">'+
-        '<tr>'+
-        '<th>Username</th>'+
-        '<th>Password</th>'+
-        '<th>Logged In</th>'+
+      var rows = [
+        '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">',
+        '<tr>',
+        '<th>Username</th>',
+        '<th>Password</th>',
+        '<th>Logged In</th>',
         '</tr><tbody>'
+      ];
+
       for (var key in data.users) {
-        table += '<tr><td>' + key + '</td><td>' + data.users[key][0] + '</td><td>' + data.users[key][1] + '</td></tr>'
+        rows.push('<tr><td>' + key + '</td><td>' + data.users[key][0] + '</td><td>' + data.users[key][1] + '</td></tr>');
       }
-      table += '</tbody></table>'
-      return table;
+
+      rows.push('</tbody></table>');
+      return rows.join('');
     }
 
     $(document).ready(function() {
