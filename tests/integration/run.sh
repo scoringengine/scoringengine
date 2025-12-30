@@ -19,6 +19,26 @@ wait_for_engine()
   wait_for_container "scoringengine-engine-1" 30 "make -s integration-get-round"
 }
 
+wait_for_engine_healthy()
+{
+  echo "Waiting for engine to start and become healthy"
+  COMPOSE_CMD="docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine"
+
+  # Wait up to 60 seconds for engine to become healthy
+  for i in $(seq 1 12); do
+    HEALTH_STATUS=$($COMPOSE_CMD ps engine --format json | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "starting")
+    if [ "$HEALTH_STATUS" = "healthy" ]; then
+      echo "Engine is healthy and ready"
+      return 0
+    fi
+    echo "Engine health status: $HEALTH_STATUS, waiting... (attempt $i/12)"
+    sleep 5
+  done
+
+  echo "Warning: Engine did not become healthy within 60 seconds, proceeding anyway"
+  return 0
+}
+
 # Stop any previous containers from other parts of testing
 echo "Stopping any previous containers"
 make stop-integration
@@ -33,20 +53,15 @@ make build build-integration
 echo "Starting up required container environment"
 make run-integration
 
-# Wait for the bootstrap container to be done (meaning DB is setup)
-wait_for_container "scoringengine-bootstrap-1" 10
+# Bootstrap completion is handled by engine's depends_on: bootstrap (service_completed_successfully)
+# So we just need to wait for engine to become healthy, then wait for it to complete
 
-# Sleep for a bit so that the engine has time to start up
-# so that we can detect when it stops running
-echo "Sleeping for 20 seconds for the engine to start up"
-sleep 20
+# Wait for engine to become healthy (meaning it has started and can query the database)
+wait_for_engine_healthy
 
-# Wait for engine to finish running
+# Wait for engine to finish running (it will exit after NUM_ROUNDS)
+echo "Waiting for engine to complete all rounds"
 wait_for_engine
-
-# Sleep for a bit so next MySQL call will return all results
-echo "Sleeping for 5 seconds for MySQL to catch up"
-sleep 5
 
 # Run integration tests against live testbed db
 echo "Running integration tests"
