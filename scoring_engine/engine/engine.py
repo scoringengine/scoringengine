@@ -257,12 +257,11 @@ class Engine(object):
                             teams[environment.service.team.name]["Failed"].append(environment.service.name)
 
                         check = Check(service=environment.service, round=round_obj)
-                        # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
-                        # which maxes at 2^32 (65536) characters
+                        # Store full output - Check.finished() will handle file storage for large outputs
                         check.finished(
                             result=result,
                             reason=reason,
-                            output=task.result["output"][:35000],
+                            output=task.result["output"],
                             command=task.result["command"],
                         )
                         finished_checks.append(check)

@@ -126,10 +126,11 @@ def api_inject(inject_id):
     data["comments"] = [
         {
             "id": comment.id,
-            "text": comment.comment,
+            "text": comment.get_full_comment(),  # Get full comment from file or DB
             "user": comment.user.username,
             "team": comment.user.team.name,
             "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "is_truncated": comment.is_stored_in_file,
         }
         for comment in comments
     ]
@@ -158,13 +159,17 @@ def api_inject_comments(inject_id):
         .all()
     )
     for comment in comments:
+        # Get full comment text (from file or database)
+        comment_text = comment.get_full_comment()
+
         data.append(
             {
                 "id": comment.id,
-                "text": comment.comment,
+                "text": comment_text,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
                 "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "is_truncated": comment.is_stored_in_file,  # Indicate if full text is in file
             }
         )
 
@@ -174,6 +179,11 @@ def api_inject_comments(inject_id):
 @mod.route("/api/inject/<inject_id>/comment", methods=["POST"])
 @login_required
 def api_inject_add_comment(inject_id):
+    from scoring_engine.file_storage import (
+        should_use_file_storage_for_comment,
+        save_comment_to_file
+    )
+
     inject = session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
@@ -183,11 +193,28 @@ def api_inject_add_comment(inject_id):
     data = request.get_json()
     if "comment" not in data or data["comment"] == "":
         return jsonify({"status": "No comment"}), 400
-    if len(data["comment"]) > 25000:
-        return jsonify({"status": "Comment too long (max 25,000 characters)"}), 400
 
-    c = Comment(data["comment"], current_user, inject)
-    session.add(c)
+    comment_text = data["comment"]
+
+    # Decide whether to store in file or database
+    if should_use_file_storage_for_comment(comment_text):
+        # Create comment first to get ID
+        c = Comment("", current_user, inject)  # Temporary empty comment
+        session.add(c)
+        session.flush()  # Get the ID without committing
+
+        # Save to file and update comment
+        file_path, preview = save_comment_to_file(
+            c.id, inject.id, current_user.team.name, comment_text
+        )
+        c.comment = preview  # Store preview in DB
+        c.file_path = file_path
+        c.preview = preview
+    else:
+        # Store entirely in database (backward compatible)
+        c = Comment(comment_text, current_user, inject)
+        session.add(c)
+
     session.commit()
 
     # Delete comment cache for inject

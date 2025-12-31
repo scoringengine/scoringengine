@@ -149,6 +149,8 @@ class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
     comment = Column(Text, nullable=False)
+    file_path = Column(Text, nullable=True)  # Path to file if comment is stored on disk
+    preview = Column(Text, nullable=True)  # Preview text for large comments stored in files
     time = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_read = Column(Boolean, default=False)
 
@@ -160,10 +162,37 @@ class Comment(Base):
     )
     user_id = Column(Integer, ForeignKey("users.id"))
 
-    def __init__(self, comment, user, inject):
+    def __init__(self, comment, user, inject, file_path=None, preview=None):
         self.comment = comment
         self.user = user
         self.inject = inject
+        self.file_path = file_path
+        self.preview = preview
+
+    def get_full_comment(self):
+        """Get the full comment text, loading from file if necessary.
+
+        Returns
+        -------
+        str
+            Full comment text
+        """
+        if self.file_path:
+            from scoring_engine.file_storage import load_comment_from_file
+            content = load_comment_from_file(self.file_path, self.id, self.user.team.id if self.user and self.user.team else None)
+            return content if content is not None else self.preview or self.comment
+        return self.comment
+
+    @property
+    def is_stored_in_file(self):
+        """Check if comment is stored in a file.
+
+        Returns
+        -------
+        bool
+            True if comment is stored in file, False otherwise
+        """
+        return self.file_path is not None
 
 
 class File(Base):

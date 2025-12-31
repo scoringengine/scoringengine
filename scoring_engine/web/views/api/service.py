@@ -52,8 +52,9 @@ def service_get_checks(service_id):
             "result": check[0].result,
             "timestamp": check[0].local_completed_timestamp,
             "reason": check[0].reason,
-            "output": check[0].output,
+            "output": check[0].get_full_output(),  # Load from file if necessary
             "command": check[0].command,
+            "is_output_in_file": check[0].is_output_in_file,
         }
         for check in check_output
     ]
