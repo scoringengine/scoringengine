@@ -1,4 +1,4 @@
-FROM python:3.14.1-slim-bookworm
+FROM python:3.14.2-slim-bookworm
 
 RUN set -eux; \
   useradd -m engine; \
