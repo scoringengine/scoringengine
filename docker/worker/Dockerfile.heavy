@@ -1,44 +1,32 @@
-# Full worker image containing ALL check dependencies (monolith)
+# Worker image for heavy/specialized service checks
 #
-# This image includes dependencies for all 28 service checks. Use this if you
-# want a single worker that can handle any check type.
+# This worker handles checks requiring heavier dependencies:
+#   - MSSQL (Microsoft SQL Server tools)
+#   - RDP (freerdp + Xvfb virtual display)
+#   - VNC (medusa)
+#   - OpenVPN (openvpn client)
+#   - NFS (nfs-common + mount)
+#   - POP3/POP3S (medusa)
+#   - IMAP/IMAPS (medusa)
+#   - Playwright-based webapp checks (Chromium)
 #
-# For lighter deployments, consider the split worker images:
-#   - Dockerfile.standard: Common checks (~400MB smaller, no MSSQL/Playwright/RDP)
-#   - Dockerfile.heavy: MSSQL, Playwright, RDP, VNC, OpenVPN, NFS checks
+# Queue: "heavy" - configure services in competition.yaml with:
+#   worker_queue: heavy
 #
-# Queue configuration:
-#   - Default queue: "main"
-#   - Override via SCORINGENGINE_WORKER_QUEUE environment variable
-#   - Services can specify worker_queue in competition.yaml
-#
-# See docs/source/installation/workers.rst for detailed documentation.
+# Or configure this worker via SCORINGENGINE_WORKER_QUEUE=heavy
 
 FROM scoringengine/base
 
 USER root
 
-# Install system dependencies in a single layer to reduce image size
-# This consolidates all apt-get operations to minimize layers
+# Install system dependencies for heavy checks
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # allows adding HTTPS apt repos for MSSQL checks
     apt-transport-https \
     # verifies apt repository signatures for MSSQL checks
     gpg \
-    # ICMP ping checks
-    iputils-ping \
-    # HTTP/HTTPS/WordPress checks
-    curl \
-    # MySQL checks
-    default-mysql-client \
-    # LDAP checks
-    ldap-utils \
     # POP3/IMAP/VNC login checks
     medusa \
-    # DNS checks
-    dnsutils \
-    # PostgreSQL checks
-    postgresql-client \
     # NFS checks
     nfs-common \
     # OpenVPN checks
@@ -51,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Microsoft SQL Server tools and freerdp in single layer
+# Install Microsoft SQL Server tools and freerdp
 # freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
 # Some distributions ship only a generic "freerdp" package
 RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
@@ -68,18 +56,6 @@ RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/conf
         apt-get install -y --no-install-recommends freerdp) \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -I \
-    # SSH checks
-    "paramiko==3.5.0" \
-    # WinRM checks
-    "pywinrm>=0.5.0,<0.6" \
-    # Elasticsearch checks
-    "requests>=2.32.3,<2.33" \
-    # SMB checks
-    "pysmb>=1.2,<1.3" \
-    # Telnet checks
-    "telnetlib3==1.0.1"
-    
 # Playwright-based advanced web checks
 # Note: update docker/engine/Dockerfile as well when changing playwright version
 RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
@@ -94,7 +70,7 @@ COPY scoring_engine /app/scoring_engine
 RUN pip install -e .
 RUN playwright install chromium
 
-# Xvfb is a virtual X server which tricks freerdp2
+# Xvfb is a virtual X server which tricks freerdp
 # into thinking it has a screen. This is used for
 # RDP scorechecks.
 CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker

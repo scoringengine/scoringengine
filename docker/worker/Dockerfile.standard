@@ -1,0 +1,64 @@
+# Worker image for standard/common service checks
+#
+# This lightweight worker handles the most common checks:
+#   - ICMP (ping)
+#   - DNS (dig)
+#   - HTTP/HTTPS (curl)
+#   - SSH (paramiko)
+#   - MySQL (mysql client)
+#   - PostgreSQL (psql)
+#   - FTP (Python ftplib)
+#   - SMB (pysmb)
+#   - SMTP/SMTPS (Python smtplib)
+#   - Telnet (telnetlib3)
+#   - LDAP (ldapsearch)
+#   - Elasticsearch (requests)
+#   - WinRM (pywinrm)
+#   - Wordpress (curl)
+#
+# Queue: "main" (default) or configure via SCORINGENGINE_WORKER_QUEUE
+#
+# For checks requiring heavier dependencies (MSSQL, Playwright, RDP, VNC, OpenVPN, NFS),
+# use the 'heavy' worker image instead.
+
+FROM scoringengine/base
+
+USER root
+
+# Install system dependencies for standard checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # ICMP ping checks
+    iputils-ping \
+    # HTTP/HTTPS/WordPress checks
+    curl \
+    # MySQL checks
+    default-mysql-client \
+    # LDAP checks
+    ldap-utils \
+    # DNS checks
+    dnsutils \
+    # PostgreSQL checks
+    postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies for standard checks
+RUN pip install --no-cache-dir -I \
+    # SSH checks
+    "paramiko==3.5.0" \
+    # WinRM checks
+    "pywinrm>=0.5.0,<0.6" \
+    # Elasticsearch checks
+    "requests>=2.32.3,<2.33" \
+    # SMB checks
+    "pysmb>=1.2,<1.3" \
+    # Telnet checks
+    "telnetlib3==1.0.1"
+
+COPY bin/worker /app/bin/worker
+
+USER engine
+
+COPY scoring_engine /app/scoring_engine
+RUN pip install -e .
+
+CMD ["/app/bin/worker"]

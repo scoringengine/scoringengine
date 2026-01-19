@@ -103,6 +103,8 @@ services:
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
+  # Full worker with ALL check dependencies (monolith)
+  # For split deployments, use worker-standard and worker-heavy instead
   worker:
     image: scoringengine/worker
     build:
@@ -121,8 +123,59 @@ services:
       - default
     environment:
       - SCORINGENGINE_VERSION
+      - SCORINGENGINE_WORKER_QUEUE=main
       - DISPLAY=:1
     privileged: true
+
+  # Standard worker for common checks (ICMP, DNS, HTTP, SSH, MySQL, PostgreSQL, etc.)
+  # Lighter image without MSSQL, Playwright, RDP, VNC, OpenVPN, NFS dependencies
+  worker-standard:
+    image: scoringengine/worker-standard
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile.standard
+      cache_from:
+        - scoringengine/worker-standard
+        - worker-standard:latest
+    depends_on:
+      base:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      - SCORINGENGINE_VERSION
+      - SCORINGENGINE_WORKER_QUEUE=main
+    profiles:
+      - split-workers
+
+  # Heavy worker for specialized checks (MSSQL, Playwright, RDP, VNC, OpenVPN, NFS)
+  # Services using this worker should set worker_queue: heavy in competition.yaml
+  worker-heavy:
+    image: scoringengine/worker-heavy
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile.heavy
+      cache_from:
+        - scoringengine/worker-heavy
+        - worker-heavy:latest
+    depends_on:
+      base:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      - SCORINGENGINE_VERSION
+      - SCORINGENGINE_WORKER_QUEUE=heavy
+      - DISPLAY=:1
+    privileged: true
+    profiles:
+      - split-workers
   web:
     image: scoringengine/web
     build:
