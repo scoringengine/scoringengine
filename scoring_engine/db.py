@@ -58,6 +58,31 @@ def get_readable_error_message(exception):
 
     return ("unknown", f"Database error: {exception}")
 
+def test_db_connection(db_uri: str = None) -> tuple[bool, str]:
+    from sqlalchemy import create_engine, text
+    
+    uri = db_uri or config.db_uri
+    
+    try:
+        test_engine = create_engine(uri, poolclass=NullPool)
+        with test_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_logger.info("[DB] Connection test successful")
+        return (True, "Connected")
+    except (OperationalError, InterfaceError) as e:
+        error_type, readable_msg = get_readable_error_message(e)
+        db_logger.warning(f"[DB] Connection test failed: {readable_msg}")
+        if error_type == "authentication":
+            return (False, "Invalid password")
+        elif error_type == "unreachable":
+            return (False, "Host unreachable")
+        elif error_type == "database_missing":
+            return (False, "Database not found")
+        return (False, f"{readable_msg}")
+    except Exception as e:
+        db_logger.warning(f"[DB] Connection test failed with unexpected error: {e}")
+        return (False, f"Connection failed: {e}")
+
 def delete_db(session):
     from scoring_engine.models.base import Base
 
