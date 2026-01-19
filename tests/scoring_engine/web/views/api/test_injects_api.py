@@ -7,14 +7,21 @@ from unittest.mock import MagicMock, patch
 from scoring_engine.models.inject import Comment, File, Inject, Template
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from tests.scoring_engine.web.web_test import WebTest
+from scoring_engine.web import create_app
+from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestInjectsAPI(WebTest):
+class TestInjectsAPI(UnitTest):
     """Comprehensive tests for Injects API endpoints including security tests"""
 
     def setup_method(self):
         super(TestInjectsAPI, self).setup_method()
+        self.app = create_app()
+        self.app.config["TESTING"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = False
+        self.client = self.app.test_client()
+        self.ctx = self.app.app_context()
+        self.ctx.push()
         # Create test users for different teams
         self.white_team = Team(name="White Team", color="White")
         self.red_team = Team(name="Red Team", color="Red")
@@ -31,6 +38,17 @@ class TestInjectsAPI(WebTest):
 
         self.session.add_all([self.white_user, self.red_user, self.blue_user1, self.blue_user2])
         self.session.commit()
+
+    def teardown_method(self):
+        self.ctx.pop()
+        super(TestInjectsAPI, self).teardown_method()
+
+    def login(self, username, password):
+        return self.client.post(
+            "/login",
+            data={"username": username, "password": password},
+            follow_redirects=True,
+        )
 
     # Authorization Tests
     def test_api_injects_requires_auth(self):

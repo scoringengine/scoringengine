@@ -6,14 +6,21 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from tests.scoring_engine.web.web_test import WebTest
+from scoring_engine.web import create_app
+from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestFlagsAPI(WebTest):
+class TestFlagsAPI(UnitTest):
     """Test flags API authorization and complex SQL queries"""
 
     def setup_method(self):
         super(TestFlagsAPI, self).setup_method()
+        self.app = create_app()
+        self.app.config["TESTING"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = False
+        self.client = self.app.test_client()
+        self.ctx = self.app.app_context()
+        self.ctx.push()
         # Create teams
         self.white_team = Team(name="White Team", color="White")
         self.red_team = Team(name="Red Team", color="Red")
@@ -35,6 +42,17 @@ class TestFlagsAPI(WebTest):
         # Add agent show flag early setting
         self.session.add(Setting(name="agent_show_flag_early_mins", value=5))
         self.session.commit()
+
+    def teardown_method(self):
+        self.ctx.pop()
+        super(TestFlagsAPI, self).teardown_method()
+
+    def login(self, username, password):
+        return self.client.post(
+            "/login",
+            data={"username": username, "password": password},
+            follow_redirects=True,
+        )
 
     # Authorization Tests
     def test_api_flags_requires_auth(self):

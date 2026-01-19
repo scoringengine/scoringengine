@@ -9,14 +9,21 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from tests.scoring_engine.web.web_test import WebTest
+from scoring_engine.web import create_app
+from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestAdminAPI(WebTest):
+class TestAdminAPI(UnitTest):
     """Comprehensive security and functionality tests for Admin API"""
 
     def setup_method(self):
         super(TestAdminAPI, self).setup_method()
+        self.app = create_app()
+        self.app.config["TESTING"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = False
+        self.client = self.app.test_client()
+        self.ctx = self.app.app_context()
+        self.ctx.push()
         # Create teams
         self.white_team = Team(name="White Team", color="White")
         self.blue_team = Team(name="Blue Team", color="Blue")
@@ -32,6 +39,20 @@ class TestAdminAPI(WebTest):
 
         self.session.add_all([self.white_user, self.blue_user, self.red_user])
         self.session.commit()
+
+    def teardown_method(self):
+        self.ctx.pop()
+        super(TestAdminAPI, self).teardown_method()
+
+    def login(self, username, password):
+        return self.client.post(
+            "/login",
+            data={"username": username, "password": password},
+            follow_redirects=True,
+        )
+
+    def logout(self):
+        return self.client.get("/logout", follow_redirects=True)
 
     # Authorization Tests
     def test_admin_update_environment_requires_auth(self):
