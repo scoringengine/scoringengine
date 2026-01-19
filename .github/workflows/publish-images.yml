@@ -44,6 +44,7 @@ jobs:
           context: .
           file: ./docker/base/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
             ghcr.io/${{ github.repository }}/base:develop
@@ -57,6 +58,7 @@ jobs:
           context: .
           file: ./docker/bootstrap/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/bootstrap:${{ env.image_tag }}
             ghcr.io/${{ github.repository }}/bootstrap:develop
@@ -70,6 +72,7 @@ jobs:
           context: .
           file: ./docker/engine/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/engine:${{ env.image_tag }}
             ghcr.io/${{ github.repository }}/engine:develop
@@ -83,6 +86,7 @@ jobs:
           context: .
           file: ./docker/web/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/web:${{ env.image_tag }}
             ghcr.io/${{ github.repository }}/web:develop
@@ -96,6 +100,7 @@ jobs:
           context: .
           file: ./docker/worker/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/worker:${{ env.image_tag }}
             ghcr.io/${{ github.repository }}/worker:develop
