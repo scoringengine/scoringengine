@@ -1,4 +1,5 @@
-FROM scoringengine/base
+ARG BASE_IMAGE=ghcr.io/scoringengine/scoringengine/base:develop
+FROM ${BASE_IMAGE}
 
 USER root
 
