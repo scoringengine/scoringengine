@@ -6,6 +6,13 @@ on:
       - master
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      publish_latest:
+        description: 'Also publish :latest tags'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   prepare:
@@ -19,7 +26,11 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == refs/heads/master ]]; then
             echo "image_tag=develop" >> $GITHUB_OUTPUT
-            echo "extra_tags=" >> $GITHUB_OUTPUT
+            if [[ "${{ inputs.publish_latest }}" == "true" ]]; then
+              echo "extra_tags=latest" >> $GITHUB_OUTPUT
+            else
+              echo "extra_tags=" >> $GITHUB_OUTPUT
+            fi
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             version="${{ github.ref }}"
             version=${version#refs/tags/}
