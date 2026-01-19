@@ -1,5 +1,5 @@
 # codeclimate-test-reporter==0.2.1  # Deprecated and not maintained. Switch to coverage directly for local reports or GitHub Actions.
-bump-my-version==0.27.0
+bump-my-version==1.2.6
 coverage==6.1.2
 coveralls==4.0.2
 flake8==7.3.0
