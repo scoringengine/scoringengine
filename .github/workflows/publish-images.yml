@@ -27,14 +27,17 @@ jobs:
           if [[ "${{ github.ref }}" == refs/heads/master ]]; then
             echo "branch=master" >> $GITHUB_ENV
             echo "image_tag=develop" >> $GITHUB_ENV
+            echo "extra_tags=" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             version="${{ github.ref }}"  # refs/tags/vX.X.X
             version=${version#refs/tags/}  # Strip refs/tags/
             echo "branch=tag" >> $GITHUB_ENV
             echo "image_tag=$version" >> $GITHUB_ENV
+            echo "extra_tags=latest" >> $GITHUB_ENV
           else
             echo "branch=other" >> $GITHUB_ENV
             echo "image_tag=" >> $GITHUB_ENV
+            echo "extra_tags=" >> $GITHUB_ENV
           fi
 
       - name: Build and push base image
@@ -47,7 +50,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/base:develop
+            ${{ env.extra_tags != '' && format('ghcr.io/{0}/base:latest', github.repository) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -59,9 +62,11 @@ jobs:
           file: ./docker/bootstrap/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
           tags: |
             ghcr.io/${{ github.repository }}/bootstrap:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/bootstrap:develop
+            ${{ env.extra_tags != '' && format('ghcr.io/{0}/bootstrap:latest', github.repository) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -73,9 +78,11 @@ jobs:
           file: ./docker/engine/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
           tags: |
             ghcr.io/${{ github.repository }}/engine:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/engine:develop
+            ${{ env.extra_tags != '' && format('ghcr.io/{0}/engine:latest', github.repository) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,9 +94,11 @@ jobs:
           file: ./docker/web/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
           tags: |
             ghcr.io/${{ github.repository }}/web:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/web:develop
+            ${{ env.extra_tags != '' && format('ghcr.io/{0}/web:latest', github.repository) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -101,8 +110,10 @@ jobs:
           file: ./docker/worker/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
           tags: |
             ghcr.io/${{ github.repository }}/worker:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/worker:develop
+            ${{ env.extra_tags != '' && format('ghcr.io/{0}/worker:latest', github.repository) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
