@@ -21,7 +21,10 @@ class UnitTest(object):
     def teardown_method(self):
         delete_db()
         db.session.remove()
-        self.ctx.pop()
+        # Only pop context if it hasn't been popped already
+        # (some child classes may pop before calling super)
+        if hasattr(self, 'ctx') and self.ctx._cv_tokens:
+            self.ctx.pop()
 
     def create_default_settings(self):
         db.session.add(
