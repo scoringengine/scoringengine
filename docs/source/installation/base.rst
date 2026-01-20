@@ -1,13 +1,19 @@
 Base Setup
 ----------
-.. note:: Currently, the only OS we have documentation on is Ubuntu 16.04.
+.. note:: These instructions are for Ubuntu 22.04 or newer. Docker is the recommended deployment method.
+
+Requirements
+^^^^^^^^^^^^
+- **Python 3.10 or higher**
+- MariaDB/MySQL database server
+- Redis server
 
 Install dependencies via apt-get
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
   apt-get update
-  apt-get install -y python3.5 wget git python3.5-dev build-essential libmysqlclient-dev
+  apt-get install -y python3 python3-pip python3-venv wget git build-essential libmariadb-dev
 
 Create engine user
 ^^^^^^^^^^^^^^^^^^
@@ -15,23 +21,14 @@ Create engine user
 
   useradd -m engine
 
-Download and Install pip
-^^^^^^^^^^^^^^^^^^^^^^^^
+Setup virtual environment
+^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  wget -O /root/get-pip.py https://bootstrap.pypa.io/get-pip.py
-  python3.5 /root/get-pip.py
-  rm /root/get-pip.py
-
-Setup virtualenvironment
-^^^^^^^^^^^^^^^^^^^^^^^^
-::
-
-  pip install virtualenv
   su engine
   cd ~/
   mkdir /home/engine/scoring_engine
-  virtualenv -p /usr/bin/python3.5 /home/engine/scoring_engine/env
+  python3 -m venv /home/engine/scoring_engine/env
 
 Setup src directory
 ^^^^^^^^^^^^^^^^^^^

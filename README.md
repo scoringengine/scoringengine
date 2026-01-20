@@ -49,9 +49,28 @@ Custom checks can be added by creating a Python class in `scoring_engine/checks/
 
 ## Prerequisites
 
+### Docker Installation (Recommended)
+
 - [Docker](https://www.docker.com/products/overview)
 - [Docker Compose](https://docs.docker.com/compose/) (included with Docker Desktop; on Linux install separately)
 - For Windows users, ensure Docker Desktop is set to [use Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
+
+### Source Installation
+
+For installing from source without Docker:
+
+- **Python 3.10 or higher** is required
+- MariaDB/MySQL database server
+- Redis server
+
+```bash
+# Install the package
+pip install -e .
+
+# Or install with test dependencies
+pip install -e .
+pip install -r tests/requirements.txt
+```
 
 ## Quick Start
 
