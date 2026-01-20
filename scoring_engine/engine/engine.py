@@ -30,7 +30,7 @@ from scoring_engine.engine.basic_check import (
 )
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -45,6 +45,9 @@ class Engine(object):
         self.config = config
         self.checks_location = self.config.checks_location
 
+        # Keep reference to db for backward compatibility
+        self.db = db
+
         self.verify_settings()
 
         self.last_round = False
@@ -52,8 +55,6 @@ class Engine(object):
 
         signal.signal(signal.SIGINT, partial(engine_sigint_handler, obj=self))
         signal.signal(signal.SIGTERM, partial(engine_sigint_handler, obj=self))
-
-        self.session = session
 
         self.current_round = Round.get_last_round_num()
 
@@ -176,7 +177,7 @@ class Engine(object):
             self.round_running = True
             self.rounds_run += 1
 
-            services = self.session.query(Service).all()[:]
+            services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
             task_ids = {}
             for service in services:
@@ -205,8 +206,8 @@ class Engine(object):
                 task_ids_str = json.dumps(task_ids)
                 latest_kb = KB(name="task_ids", value=task_ids_str, round_num=self.current_round)
                 cleanup_items.append(latest_kb)
-                self.session.add(latest_kb)
-                self.session.commit()
+                self.db.session.add(latest_kb)
+                self.db.session.commit()
 
                 pending_tasks = self.all_pending_tasks(task_ids)
                 while pending_tasks:
@@ -223,8 +224,8 @@ class Engine(object):
                 round_end_time = datetime.now()
                 round_obj.round_end = round_end_time
                 cleanup_items.append(round_obj)
-                self.session.add(round_obj)
-                self.session.commit()
+                self.db.session.add(round_obj)
+                self.db.session.commit()
 
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
@@ -234,7 +235,7 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        environment = self.session.get(Environment, task.result["environment_id"])
+                        environment = self.db.session.get(Environment, task.result["environment_id"])
                         if task.result["errored_out"]:
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
@@ -269,8 +270,8 @@ class Engine(object):
 
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
-                    self.session.add(finished_check)
-                self.session.commit()
+                    self.db.session.add(finished_check)
+                self.db.session.commit()
 
             except Exception as e:
                 # We got an error while writing to db (could be normal docker stop command)
@@ -281,8 +282,8 @@ class Engine(object):
                 logger.error("Ending round and cleaning up the db")
                 for cleanup_item in cleanup_items:
                     try:
-                        self.session.delete(cleanup_item)
-                        self.session.commit()
+                        self.db.session.delete(cleanup_item)
+                        self.db.session.commit()
                     except Exception:
                         pass
                 sys.exit(1)

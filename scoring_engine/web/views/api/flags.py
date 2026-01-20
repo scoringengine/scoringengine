@@ -4,7 +4,7 @@ from sqlalchemy import func, case
 from sqlalchemy.sql.expression import and_, or_
 
 from scoring_engine.cache import cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.flag import Flag, Solve
@@ -19,14 +19,14 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_flags():
-    team = session.get(Team, current_user.team.id)
+    team = db.session.get(Team, current_user.team.id)
     if team is None or not current_user.team == team or not (current_user.is_red_team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     now = datetime.utcnow()
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     flags = (
-        session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
+        db.session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     )
 
     # Serialize flags and include localized times
@@ -56,11 +56,11 @@ def api_flags_solves():
 
     # Get all flags and teams
     now = datetime.utcnow()
-    active_flags = session.query(Flag).filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
+    active_flags = db.session.query(Flag).filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     active_flag_ids = [flag.id for flag in active_flags]
 
     # Flag Solve Status
-    all_hosts = session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id, Solve.flag_id.in_(active_flag_ids))).outerjoin(Flag, Flag.id == Solve.flag_id).outerjoin(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
+    all_hosts = db.session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id, Solve.flag_id.in_(active_flag_ids))).outerjoin(Flag, Flag.id == Solve.flag_id).outerjoin(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
 
     data = {}
     rows = []
@@ -95,14 +95,14 @@ def api_flags_totals():
         return jsonify({"status": "Unauthorized"}), 403
 
     totals = {}  # [ Team0, Win Score, Nix Score ]
-    blue_teams = ( session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all() )
+    blue_teams = ( db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all() )
     for blue_team in blue_teams:
         totals[blue_team.name] = [blue_team.name, 0, 0]
 
     for platform in ["windows", "nix"]:
         # Subquery 1: Determine permission level
         subquery1 = (
-            session.query(
+            db.session.query(
                 Solve.team_id,
                 Flag.platform,
                 Solve.host,
@@ -120,7 +120,7 @@ def api_flags_totals():
         
         # Subquery 2: Compute red_amt based on level
         subquery2 = (
-            session.query(
+            db.session.query(
                 (subquery1.c.team_id).label("BlueTeamId"),
                 case(
                     (subquery1.c.level.like("user"), 0.5 * func.count()),
@@ -134,7 +134,7 @@ def api_flags_totals():
         
         # Final Query: Sum red_amt per BlueTeamId
         final_query = (
-            session.query(
+            db.session.query(
                 Team.name.label("BlueTeam"),
                 func.sum(subquery2.c.red_amt).label("RedScore")
             )

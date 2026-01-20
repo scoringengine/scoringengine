@@ -1,6 +1,7 @@
 from sys import modules
 from os import path
 
+import pytest
 from tests.mock_config import MockConfig
 
 
@@ -31,3 +32,19 @@ def pytest_configure(config):
     # unit test based config file
     config_location = path.join(path.dirname(path.abspath(__file__)), local_config_location)
     modules['scoring_engine.config'] = MockConfig(config_location)
+
+
+@pytest.fixture(scope='session')
+def app_context():
+    """
+    Create a Flask application context for tests that need it.
+    This is required for Flask-SQLAlchemy to work properly.
+    Used by integration tests via their conftest fixture.
+    UnitTest-based tests create their own context in setup_method.
+    """
+    from scoring_engine.web import create_app
+    app = create_app()
+    app.config['TESTING'] = True
+
+    with app.app_context():
+        yield app
