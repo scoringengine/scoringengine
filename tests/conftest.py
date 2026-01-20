@@ -34,11 +34,13 @@ def pytest_configure(config):
     modules['scoring_engine.config'] = MockConfig(config_location)
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session')
 def app_context():
     """
-    Create a Flask application context for all tests.
+    Create a Flask application context for tests that need it.
     This is required for Flask-SQLAlchemy to work properly.
+    Used by integration tests via their conftest fixture.
+    UnitTest-based tests create their own context in setup_method.
     """
     from scoring_engine.web import create_app
     app = create_app()
