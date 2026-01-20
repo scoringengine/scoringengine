@@ -270,8 +270,12 @@ class TestInjectsAPI(UnitTest):
             start_time=datetime.utcnow() - timedelta(hours=1),
             end_time=datetime.utcnow() + timedelta(hours=1)
         )
-        inject = Inject(team=self.blue_team1, template=template, status="Submitted")
+        inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
+        self.session.commit()
+
+        # Set status after creation
+        inject.status = "Submitted"
         self.session.commit()
 
         self.login("blueuser1", "pass")

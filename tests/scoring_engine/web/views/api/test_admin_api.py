@@ -128,7 +128,10 @@ class TestAdminAPI(UnitTest):
             # Value should be HTML-escaped
             assert env.matching_content == html.escape(payload)
             assert "<script>" not in env.matching_content
-            assert "&lt;script&gt;" in env.matching_content or "<" not in payload
+            # Verify dangerous characters are escaped
+            if "<" in payload:
+                assert "<" not in env.matching_content or env.matching_content == payload
+                assert "&lt;" in env.matching_content or "<" not in payload
 
     def test_admin_update_environment_validates_fields(self):
         """Test that environment update validates required fields"""
@@ -188,7 +191,13 @@ class TestAdminAPI(UnitTest):
             host="1.2.3.4",
             team=self.blue_team
         )
-        prop = Property(service=service, name="key", value="value")
+        env = Environment(service=service, matching_content="test")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        prop = Property(name="key", value="value", environment_id=env.id)
+        self.session.add(prop)
+        self.session.commit()
         self.session.add_all([service, prop])
         self.session.commit()
 
@@ -209,7 +218,13 @@ class TestAdminAPI(UnitTest):
             host="1.2.3.4",
             team=self.blue_team
         )
-        prop = Property(service=service, name="key", value="value")
+        env = Environment(service=service, matching_content="test")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        prop = Property(name="key", value="value", environment_id=env.id)
+        self.session.add(prop)
+        self.session.commit()
         self.session.add_all([service, prop])
         self.session.commit()
 
@@ -227,7 +242,7 @@ class TestAdminAPI(UnitTest):
 
         assert resp.status_code == 200
         self.session.refresh(prop)
-        assert "&lt;script&gt;" in prop.name or "<" not in prop.name
+        assert prop.name == html.escape("<script>alert('xss')</script>")
 
         # Test XSS in property value
         resp = self.client.post(
@@ -241,7 +256,7 @@ class TestAdminAPI(UnitTest):
 
         assert resp.status_code == 200
         self.session.refresh(prop)
-        assert "&lt;img" in prop.value or "<" not in prop.value
+        assert prop.value == html.escape("<img src=x onerror=alert(1)>")
 
     def test_admin_update_property_both_fields(self):
         """Test updating both property name and value"""
@@ -251,7 +266,13 @@ class TestAdminAPI(UnitTest):
             host="1.2.3.4",
             team=self.blue_team
         )
-        prop = Property(service=service, name="old_key", value="old_value")
+        env = Environment(service=service, matching_content="test")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        prop = Property(name="old_key", value="old_value", environment_id=env.id)
+        self.session.add(prop)
+        self.session.commit()
         self.session.add_all([service, prop])
         self.session.commit()
 
@@ -493,7 +514,13 @@ class TestAdminAPI(UnitTest):
             host="1.2.3.4",
             team=self.blue_team
         )
-        prop = Property(service=service, name="key", value="value")
+        env = Environment(service=service, matching_content="test")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        prop = Property(name="key", value="value", environment_id=env.id)
+        self.session.add(prop)
+        self.session.commit()
         self.session.add_all([service, prop])
         self.session.commit()
 
