@@ -71,6 +71,16 @@ The project is **production-ready** with:
   - Provide competition.yaml templates for common scenarios
   - Create check development tutorial
 
+- [ ] **Update README with version compatibility** ([#807](https://github.com/scoringengine/scoringengine/issues/807))
+  - Document Python version requirements
+  - Add dependency version matrix
+
+### Setup & Onboarding
+
+- [ ] **Integrate injects into setup process** ([#779](https://github.com/scoringengine/scoringengine/issues/779))
+  - Allow inject configuration during bin/setup
+  - Streamline initial competition setup
+
 ---
 
 ## Phase 2: Infrastructure Modernization
@@ -139,6 +149,11 @@ The project is **production-ready** with:
   - Support file attachments for injects
   - Improve inject workflow documentation
 
+- [ ] **Incident response reporting** ([#781](https://github.com/scoringengine/scoringengine/issues/781))
+  - Enable submission of incident response reports
+  - Grading and feedback workflow
+  - Similar interface to existing injects component
+
 - [ ] **Improve team management**
   - Batch operations for team administration
   - Team import/export functionality
@@ -151,7 +166,28 @@ The project is **production-ready** with:
   - Difficulty presets
   - Quick-start competition wizard
 
+- [ ] **Flag capture admin interface** ([#778](https://github.com/scoringengine/scoringengine/issues/778))
+  - Administrative view for flag scoring
+  - Flag capture status overview
+  - Bulk flag management
+
+### Team Communication
+
+- [ ] **Authenticated team wiki** ([#782](https://github.com/scoringengine/scoringengine/issues/782))
+  - Knowledge base accessible to authenticated teams
+  - Team-specific info, credentials, network details
+  - White team editable (HTML/Markdown support)
+
+- [ ] **Competition announcement feed** ([#783](https://github.com/scoringengine/scoringengine/issues/783))
+  - Real-time updates from competition organizers
+  - Public announcement system during competition
+  - Known issues and status updates
+
 ### New Check Types
+
+- [ ] **Elasticsearch authentication support** ([#738](https://github.com/scoringengine/scoringengine/issues/738))
+  - Add optional authentication to Elasticsearch check
+  - Support modern Elasticsearch security features
 
 - [ ] **Cloud service checks**
   - AWS service health (Lambda, RDS, S3)
@@ -178,6 +214,21 @@ The project is **production-ready** with:
   - Live check result streaming
   - Notification push updates
   - Reduce polling overhead
+
+- [ ] **Service uptime dashboard** ([#804](https://github.com/scoringengine/scoringengine/issues/804))
+  - Monitoring page showing uptime percentage per host
+  - Service availability tracking
+  - Historical uptime data
+
+- [ ] **Scoreboard display modes** ([#780](https://github.com/scoringengine/scoringengine/issues/780))
+  - Admin-configurable display options
+  - All Green, All Red, Random modes
+  - Customizable scoreboard presentation
+
+- [ ] **Separate BTA uptime page** ([#786](https://github.com/scoringengine/scoringengine/issues/786))
+  - Dedicated page for Business Transaction Analysis checks
+  - Separate from functional scored services
+  - Focused uptime monitoring view
 
 - [ ] **Enhanced visualizations**
   - Historical score graphs
@@ -263,6 +314,7 @@ These items are under consideration for future development:
 
 ### Integration Ecosystem
 - CTFd integration
+- Pwnboard integration ([#785](https://github.com/scoringengine/scoringengine/issues/785))
 - Learning management system (LMS) connectors
 - Slack/Discord notifications
 - Ticketing system integration
@@ -291,6 +343,7 @@ Items are prioritized based on:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2025-01-20 | Added community-requested features from GitHub issues |
 | 1.0 | 2025-01-20 | Initial roadmap creation |
 
 ---
