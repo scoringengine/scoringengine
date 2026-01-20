@@ -50,7 +50,9 @@ scoringengine/
 │   │   │   ├── injects.py   # Inject management
 │   │   │   └── api/         # JSON API endpoints
 │   │   │       ├── admin.py # Admin API
+│   │   │       ├── agent.py # Red team agent API
 │   │   │       ├── overview.py # Overview API
+│   │   │       ├── profile.py # User profile API
 │   │   │       ├── scoreboard.py # Scoreboard API
 │   │   │       ├── service.py # Service API
 │   │   │       ├── team.py  # Team API
@@ -84,6 +86,8 @@ scoringengine/
 │   ├── base/                # Base image with Python dependencies
 │   ├── bootstrap/           # Database initialization
 │   ├── engine/              # Competition engine container
+│   ├── nginx/               # Nginx reverse proxy configuration
+│   ├── tester/              # Test runner container
 │   ├── web/                 # Web UI container
 │   ├── worker/              # Celery worker container
 │   └── testbed/             # Test services for integration tests
@@ -127,6 +131,7 @@ scoringengine/
 All models inherit from `Base` (SQLAlchemy declarative base) and follow these patterns:
 
 **Core Models:**
+- **base.py**: SQLAlchemy declarative base class
 - **team.py**: Teams competing (Red, Blue, White teams with different roles)
 - **user.py**: User accounts with bcrypt password hashing and role-based permissions
 - **service.py**: Services to be checked (web servers, SSH, DNS, etc.)
@@ -365,20 +370,22 @@ git clone https://github.com/scoringengine/scoringengine.git
 cd scoringengine
 
 # Build all services
-docker-compose build
+docker compose build
 
 # Start all services
-docker-compose up
+docker compose up
 
 # OR: Start with example data
-SCORINGENGINE_EXAMPLE=true docker-compose up
+SCORINGENGINE_EXAMPLE=true docker compose up
 
 # OR: Reset database and start fresh
-SCORINGENGINE_OVERWRITE_DB=true docker-compose up
+SCORINGENGINE_OVERWRITE_DB=true docker compose up
 
 # Access at http://localhost
 # Login credentials in README.md
 ```
+
+**Note**: The project uses `docker compose` (V2 plugin syntax) rather than the deprecated `docker-compose` command.
 
 **Using Makefile:**
 ```bash
@@ -459,6 +466,7 @@ class TestModel(UnitTest):
 - Integration tests require `--integration` flag
 - Database is reset for each test class
 - All new code MUST have tests (as per user requirement)
+- Python 3.14+ required (base image: `python:3.14.2-slim-bookworm`)
 
 ### Code Quality & Linting
 
@@ -568,10 +576,13 @@ git push --tags
    - Runs integration tests (`./tests/integration/run.sh`)
    - Uploads coverage to Coveralls
 
-2. **publish-images.yml**: Runs on version tags (`v*`)
-   - Builds Docker images
-   - Publishes to GitHub Container Registry
-   - Tags with version number
+2. **publish-images.yml**: Runs on version tags (`v*`) and master pushes
+   - Builds multi-architecture Docker images (linux/amd64, linux/arm64)
+   - Publishes to GitHub Container Registry (ghcr.io)
+   - Publishes to Docker Hub (scoringengine/*)
+   - Uses registry cache for faster builds
+   - Supports manual trigger with `publish_latest` option
+   - Tags: `develop` for master, version tag for releases, `latest` for releases
 
 3. **codeql.yml**: Security analysis
    - Scans for security vulnerabilities
@@ -601,11 +612,11 @@ cd scoringengine-airgapped
 **Manual Method:**
 ```bash
 # 1. Build all images (with internet)
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # 2. Export images
 mkdir docker-images
-docker save python:3.14.1-slim-bookworm -o docker-images/python-base.tar
+docker save python:3.14.2-slim-bookworm -o docker-images/python-base.tar
 docker save redis:7.0.4 -o docker-images/redis.tar
 docker save mariadb:10 -o docker-images/mariadb.tar
 docker save nginx:1.23.1 -o docker-images/nginx.tar
@@ -624,7 +635,7 @@ docker load -i docker-images/redis.tar
 # ... (load all images)
 
 # 5. Deploy
-docker-compose up -d
+docker compose up -d
 ```
 
 **Key Principle**: ALL dependencies must be vendored BEFORE entering airgapped environment. No internet access means:
@@ -634,6 +645,14 @@ docker-compose up -d
 - All dependencies embedded in Docker image layers
 
 See `docs/source/installation/airgapped.rst` for complete guide.
+
+**Docker Image Registries:**
+Images are published to both registries:
+- **GitHub Container Registry**: `ghcr.io/scoringengine/scoringengine/<image>:<tag>`
+- **Docker Hub**: `scoringengine/<image>:<tag>`
+
+Available images: `base`, `bootstrap`, `engine`, `web`, `worker`
+Tags: `latest`, `develop`, `v1.1.0`, etc.
 
 ## Common Development Tasks
 
@@ -940,23 +959,23 @@ elif current_user.is_red_team:
 **1. Database connection errors**
 ```bash
 # Check MySQL is running
-docker-compose ps mysql
+docker compose ps mysql
 
 # Check connection from web container
-docker-compose exec web bash
+docker compose exec web bash
 mysql -h mysql -u scoring_engine -p
 
 # Reset database
-SCORINGENGINE_OVERWRITE_DB=true docker-compose up
+SCORINGENGINE_OVERWRITE_DB=true docker compose up
 ```
 
 **2. Redis connection errors**
 ```bash
 # Check Redis is running
-docker-compose ps redis
+docker compose ps redis
 
 # Test connection
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 > PING
 PONG
 ```
@@ -964,15 +983,15 @@ PONG
 **3. Celery workers not processing tasks**
 ```bash
 # Check worker logs
-docker-compose logs -f worker
+docker compose logs -f worker
 
 # Check Redis queue
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 > KEYS *
 > LLEN celery
 
 # Restart workers
-docker-compose restart worker
+docker compose restart worker
 ```
 
 **4. Check timeouts**
@@ -998,33 +1017,33 @@ export PYTHONPATH=/path/to/scoringengine:$PYTHONPATH
 **View logs:**
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f web
-docker-compose logs -f engine
-docker-compose logs -f worker
+docker compose logs -f web
+docker compose logs -f engine
+docker compose logs -f worker
 
 # Follow new logs
-docker-compose logs -f --tail=100 web
+docker compose logs -f --tail=100 web
 ```
 
 **Access containers:**
 ```bash
 # Web container
-docker-compose exec web bash
+docker compose exec web bash
 
 # Engine container
-docker-compose exec engine bash
+docker compose exec engine bash
 
 # Database
-docker-compose exec mysql mysql -u scoring_engine -p scoringengine
+docker compose exec mysql mysql -u scoring_engine -p scoringengine
 ```
 
 **Database queries:**
 ```bash
 # Access MySQL
-docker-compose exec mysql mysql -u scoring_engine -p
+docker compose exec mysql mysql -u scoring_engine -p
 
 # Useful queries
 SHOW TABLES;
@@ -1037,7 +1056,7 @@ SELECT COUNT(*) FROM check WHERE result='Correct';
 **Redis debugging:**
 ```bash
 # Access Redis CLI
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 
 # Check keys
 KEYS *
@@ -1137,7 +1156,7 @@ logger.error("Error message")
 5. **Avoid over-engineering**: Make minimal changes to accomplish the goal
 6. **Don't add unnecessary features**: No unsolicited refactoring or improvements
 7. **Security first**: Validate input, check authorization, sanitize output
-8. **Test locally**: Use docker-compose to verify changes work
+8. **Test locally**: Use docker compose to verify changes work
 
 ### When Adding New Features
 
@@ -1214,8 +1233,8 @@ logger.error("Error message")
 - `tests/`: Mirror structure of main code
 
 **Development**:
-- Run: `docker-compose up`
-- Test: `pytest tests/`
+- Run: `docker compose up` (or `make run`)
+- Test: `pytest tests/` (or `make run-tests`)
 - Lint: `pre-commit run --all-files`
 - Version: `bump-my-version bump [patch|minor|major]`
 
