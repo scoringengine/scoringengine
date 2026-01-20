@@ -42,9 +42,19 @@ class Service(Base):
         return False
 
     def last_check_result(self):
-        if not self.checks:
-            return None
-        return self.checks[-1].result
+        """
+        Get the result of the most recent check for this service.
+        Uses a DB query to avoid session/lazy loading issues.
+        """
+        last_check = (
+            db.session.query(Check)
+            .filter(Check.service_id == self.id)
+            .order_by(desc(Check.id))
+            .first()
+        )
+        if last_check:
+            return last_check.result
+        return None
 
     @property
     def checks_reversed(self):
