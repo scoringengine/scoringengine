@@ -8,6 +8,7 @@ version = "1.1.0"
 description = "Scoring Engine for Red/White/Blue Team Competitions"
 readme = "README.md"
 license = {file = "LICENSE"}
+requires-python = ">=3.10"
 authors = [
   {name = "Brandon Myers", email = "pwnbus@mozilla.com"},
   {name = "Rusty Bower", email = "rusty@rustybower.com"},

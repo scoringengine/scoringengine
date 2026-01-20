@@ -7,6 +7,7 @@ config = {
     "download_url": "https://github.com/scoringengine/scoringengine/archive/master.zip",
     "author_email": "pwnbus@mozilla.com, rusty@rustybower.com, zallen@fastly.com",
     "version": "1.1.0",
+    "python_requires": ">=3.10",
     "install_requires": [
         "bcrypt==4.3.0",
         # 'billiard==3.5.0.4',
