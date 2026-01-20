@@ -10,6 +10,12 @@ Scoring Engine aims to be the premier open-source platform for Red/White/Blue te
 - Scalable architecture for competitions of any size
 - Easy deployment in any environment, including airgapped networks
 
+## Tracking Progress
+
+- **This document**: High-level vision and phases (available in airgapped environments)
+- **GitHub Project**: Active progress tracking at [Scoring Engine Roadmap](https://github.com/orgs/scoringengine/projects/)
+- **GitHub Issues**: Individual tasks linked to roadmap items
+
 ## Current State (v1.1.0)
 
 The project is **production-ready** with:
