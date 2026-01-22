@@ -102,7 +102,8 @@ def agent_checkin_post():
 
 
 def do_checkin(team, host, platform):
-    now = datetime.now(timezone.utc)
+    # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     # show upcoming flags a little bit early so red team can plant them
     # and implants that might stop checking in still get the next set of flags
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))

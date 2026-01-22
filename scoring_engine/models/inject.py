@@ -74,7 +74,12 @@ class Template(Base):
 
     @property
     def expired(self):
-        return datetime.now(timezone.utc) > self.end_time
+        now = datetime.now(timezone.utc)
+        end = self.end_time
+        # Handle naive datetimes from databases that don't support timezones (e.g., SQLite)
+        if end.tzinfo is None:
+            now = now.replace(tzinfo=None)
+        return now > end
 
     @property
     def localized_start_time(self):

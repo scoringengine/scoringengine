@@ -22,10 +22,15 @@ def home():
 @login_required
 def inject(inject_id):
     inject = db.session.get(Inject, inject_id)
+    now = datetime.now(timezone.utc)
+    start_time = inject.template.start_time if inject else None
+    # Handle naive datetimes from databases that don't support timezones
+    if start_time is not None and start_time.tzinfo is None:
+        now = now.replace(tzinfo=None)
     if (
         inject is None
         or not current_user.team == inject.team
-        or datetime.now(timezone.utc) < inject.template.start_time
+        or now < start_time
     ):
         return redirect(url_for("auth.unauthorized"))
 
