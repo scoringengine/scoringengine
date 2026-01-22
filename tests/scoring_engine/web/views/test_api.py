@@ -408,6 +408,7 @@ class TestAPI(WebTest):
         for i in range(1, 7):
             round_obj = Round(number=i)
             self.session.add(round_obj)
+            self.session.flush()  # Ensure round_id is assigned before creating checks
             # First 2 rounds pass, rounds 3-6 fail (4 consecutive failures)
             result = i <= 2
             check = Check(
@@ -484,6 +485,7 @@ class TestAPI(WebTest):
         for i in range(1, 6):
             round_obj = Round(number=i)
             self.session.add(round_obj)
+            self.session.flush()  # Ensure round_id is assigned before creating checks
             # Team 1: All pass
             check1 = Check(service=service1, round=round_obj, result=True, output="ok", completed=True)
             # Team 2: Pass, pass, fail, pass, fail (no consecutive >= threshold)
@@ -547,6 +549,7 @@ class TestAPI(WebTest):
         for i in range(1, 6):
             round_obj = Round(number=i)
             self.session.add(round_obj)
+            self.session.flush()  # Ensure round_id is assigned before creating checks
             result = i == 1  # Only first round passes
             check = Check(
                 service=service, round=round_obj, result=result, output="test", completed=True
@@ -620,6 +623,7 @@ class TestAPI(WebTest):
         for i in range(1, 4):
             round_obj = Round(number=i)
             self.session.add(round_obj)
+            self.session.flush()  # Ensure round_id is assigned before creating checks
             check1 = Check(
                 service=service1, round=round_obj, result=False, output="fail", completed=True
             )
@@ -725,7 +729,8 @@ class TestAPI(WebTest):
         for i in range(1, 4):
             round_obj = Round(number=i)
             self.session.add(round_obj)
-            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.flush()  # Ensure round_id is assigned before creating checks
+            check = Check(service=service, round=round_obj, result=True, output="ok", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -771,7 +776,8 @@ class TestAPI(WebTest):
         for i in range(1, 13):
             round_obj = Round(number=i)
             self.session.add(round_obj)
-            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.flush()  # Ensure round_id is assigned before creating checks
+            check = Check(service=service, round=round_obj, result=True, output="ok", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -809,7 +815,8 @@ class TestAPI(WebTest):
         for i in range(1, 4):
             round_obj = Round(number=i)
             self.session.add(round_obj)
-            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.flush()  # Ensure round_id is assigned before creating checks
+            check = Check(service=service, round=round_obj, result=True, output="ok", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -852,7 +859,8 @@ class TestAPI(WebTest):
         for i in range(1, 3):
             round_obj = Round(number=i)
             self.session.add(round_obj)
-            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.flush()  # Ensure round_id is assigned before creating checks
+            check = Check(service=service, round=round_obj, result=True, output="ok", completed=True)
             self.session.add(check)
         self.session.commit()
 
