@@ -24,7 +24,40 @@
 </table>
 
 <script>
-// Example data
+
+<!--
+    This accesses the flags from api/flags and works but cannot use to acess api/flags/solves further investigation is required 
+async function loadActiveFlags() {
+  const res = await fetchJSON("/api/flags");
+  const flags = res.data;
+
+  const container = document.querySelector(".flex-row");
+  container.innerHTML = "";
+
+  const left = document.createElement("div");
+  left.className = "box-col";
+  const right = document.createElement("div");
+  right.className = "box-col";
+    //Currently marks everything as compromised as only using solves can determine whether healthy or not 
+  flags.forEach((flag, i) => {
+    const status = "comp"; // Active flag == compromised
+        //identifies flags by levle of perm and op currently 
+    const div = document.createElement("div");
+    div.innerHTML = `
+      ${flag.platform.toUpperCase()} (${flag.perm})
+      <span class="status-pill status-${status}">
+        Compromised
+      </span>
+    `;
+
+    (i < Math.ceil(flags.length / 2) ? left : right).appendChild(div);
+  });
+
+  container.appendChild(left);
+  container.appendChild(right);
+}
+-->
+  // Example data  
 const boxes = [
   { id: 1, status: 'healthy' },
   { id: 2, status: 'healthy' },
