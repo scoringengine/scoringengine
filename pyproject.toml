@@ -23,6 +23,7 @@ dependencies = [
   "Flask==3.1.2",
   "Flask-Caching==2.3.1",
   "Flask-Login==0.6.3",
+  "Flask-SocketIO==5.4.1",
   "Flask-SQLAlchemy==3.1.1",
   "Flask-WTF==1.2.2",
   "mysqlclient==2.2.7",

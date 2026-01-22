@@ -260,6 +260,34 @@ pre-commit run --all-files
 - Use descriptive variable names
 - Add docstrings for complex functions
 
+### Documentation Requirements
+
+When making changes, update documentation as appropriate:
+
+**Update `README.md` when**:
+- Adding new features users need to know about
+- Changing installation or setup steps
+- Modifying environment variables or configuration options
+- Adding new dependencies or requirements
+- Changing default credentials or access methods
+
+**Update `docs/` (Sphinx documentation) when**:
+- Adding or modifying API endpoints
+- Changing architecture or adding new components
+- Adding new service checks (document properties and usage)
+- Modifying database models or schemas
+- Adding detailed technical documentation
+
+**Update `CLAUDE.md` when**:
+- Adding new directories or significantly restructuring the codebase
+- Introducing new development patterns or conventions
+- Adding new common tasks or workflows
+
+**General guidelines**:
+- Documentation should accompany code changes in the same PR
+- Keep examples up to date with actual behavior
+- Remove documentation for deprecated/removed features
+
 ## Testing Patterns
 
 Tests mirror the main code structure:
@@ -385,6 +413,7 @@ docker-compose exec web bash
 | Add dependencies | `pyproject.toml` |
 | Modify Docker setup | `docker/` and `docker-compose.yml` |
 | Update tests | `tests/scoring_engine/` (mirrors main structure) |
+| Update user-facing docs | `README.md` for setup/features, `docs/` for detailed docs |
 
 ---
 
