@@ -67,6 +67,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/bootstrap/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/bootstrap
         - bootstrap:latest
@@ -87,6 +89,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/engine/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/engine
         - engine:latest
@@ -108,6 +112,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/worker/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/worker
         - worker:latest
@@ -128,6 +134,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/web
         - web:latest

@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 class Service(Base):
@@ -31,7 +31,7 @@ class Service(Base):
         from scoring_engine.models.round import Round
 
         check = (
-            session.query(Check)
+            db.session.query(Check)
             .join(Round)
             .filter(Check.service_id == self.id)
             .filter(Round.number == round_num)
@@ -42,14 +42,24 @@ class Service(Base):
         return False
 
     def last_check_result(self):
-        if not self.checks:
-            return None
-        return self.checks[-1].result
+        """
+        Get the result of the most recent check for this service.
+        Uses a DB query to avoid session/lazy loading issues.
+        """
+        last_check = (
+            db.session.query(Check)
+            .filter(Check.service_id == self.id)
+            .order_by(desc(Check.id))
+            .first()
+        )
+        if last_check:
+            return last_check.result
+        return None
 
     @property
     def checks_reversed(self):
         return (
-            session.query(Check)
+            db.session.query(Check)
             .filter(Check.service_id == self.id)
             .order_by(desc(Check.round_id))
             .all()
@@ -64,7 +74,7 @@ class Service(Base):
         (see scoring_engine/web/views/api/team.py:42-62 for efficient implementation).
         """
         scores = (
-            session.query(
+            db.session.query(
                 Service.team_id,
                 func.sum(Service.points).label("score"),
             )
@@ -98,7 +108,7 @@ class Service(Base):
         WARNING: Performs DB query on each access. Cache when used multiple times.
         """
         return (
-            session.query(Check)
+            db.session.query(Check)
             .filter(Check.service_id == self.id)
             .filter(Check.result.is_(True))
             .count()
@@ -111,7 +121,7 @@ class Service(Base):
         WARNING: Performs DB query on each access. Cache when used multiple times.
         """
         return (
-            session.query(Check).filter(Check.service_id == self.id).count()
+            db.session.query(Check).filter(Check.service_id == self.id).count()
         ) * self.points
 
     @property
@@ -127,7 +137,7 @@ class Service(Base):
         Optimized to use a DB query with LIMIT instead of loading all checks into memory.
         """
         return (
-            session.query(Check)
+            db.session.query(Check)
             .filter(Check.service_id == self.id)
             .order_by(desc(Check.id))
             .limit(10)

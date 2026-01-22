@@ -7,7 +7,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 mod = Blueprint("admin", __name__)
@@ -48,8 +48,8 @@ def queues():
 @login_required
 def manage():
     if current_user.is_white_team:
-        users = session.query(User).with_entities(User.id, User.username).all()
-        teams = session.query(Team).with_entities(Team.id, Team.name).all()
+        users = db.session.query(User).with_entities(User.id, User.username).all()
+        teams = db.session.query(Team).with_entities(Team.id, Team.name).all()
         blue_teams = Team.get_all_blue_teams()
         return render_template(
             "admin/manage.html",
@@ -88,7 +88,7 @@ def inject_scores():
 @login_required
 def inject_inject(inject_id):
     if current_user.is_white_team:
-        inject = session.get(Inject, inject_id)
+        inject = db.session.get(Inject, inject_id)
         return render_template("admin/inject.html", inject=inject)
     else:
         return redirect(url_for("auth.unauthorized"))
@@ -98,7 +98,7 @@ def inject_inject(inject_id):
 @login_required
 def service(id):
     if current_user.is_white_team:
-        service = session.get(Service, id)
+        service = db.session.get(Service, id)
         blue_teams = Team.get_all_blue_teams()
         if service is None:
             return redirect(url_for("auth.unauthorized"))

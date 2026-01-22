@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 import html
 
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 from . import mod
@@ -25,8 +25,8 @@ def profile_update_password():
         if str(current_user.id) == request.form['user_id']:
             current_user.update_password(html.escape(request.form['password']))
             current_user.authenticated = False
-            session.add(current_user)
-            session.commit()
+            db.session.add(current_user)
+            db.session.commit()
             flash('Password Successfully Updated.', 'success')
             return redirect(url_for('profile.home'))
         else:

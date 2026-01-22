@@ -7,7 +7,7 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import subqueryload
 
 from scoring_engine.cache import cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -20,7 +20,7 @@ from . import make_cache_key, mod
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def services_get_team_data(team_id):
-    team = session.get(Team, team_id)
+    team = db.session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 
@@ -32,7 +32,7 @@ def services_get_team_data(team_id):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def api_services(team_id):
-    team = session.get(Team, team_id)
+    team = db.session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 
@@ -40,7 +40,7 @@ def api_services(team_id):
 
     # Do math for ranks here per service
     service_scores = (
-        session.query(Service.team_id, Service.name, func.sum(Service.points).label("score"))
+        db.session.query(Service.team_id, Service.name, func.sum(Service.points).label("score"))
         .join(Check)
         .filter(Check.result.is_(True))
         .group_by(Service.team_id, Service.name)
@@ -62,7 +62,7 @@ def api_services(team_id):
         )  # {12: 1, 3: 2, 10: 3, 4: 4, 7: 5, 5: 6, 6: 7, 11: 8, 9: 9, 8: 10}
 
     services = (
-        session.query(Service)
+        db.session.query(Service)
         .options(subqueryload(Service.checks))
         .options(subqueryload(Service.team))
         .filter(Service.team_id == team.id)
@@ -104,13 +104,13 @@ def api_services(team_id):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def team_services_status(team_id):
-    team = session.get(Team, team_id)
+    team = db.session.get(Team, team_id)
     if team is None or not current_user.team == team or not current_user.is_blue_team:
         return {"status": "Unauthorized"}, 403
 
     data = {}
 
-    round_obj = session.query(Round.id).order_by(Round.number.desc()).first()
+    round_obj = db.session.query(Round.id).order_by(Round.number.desc()).first()
 
     # We have no round data, the first round probably hasn't started yet
     if not round_obj:
@@ -119,7 +119,7 @@ def team_services_status(team_id):
     round_id = round_obj[0]
 
     checks = (
-        session.query(
+        db.session.query(
             Service.name,
             Check.service_id,
             Check.result,

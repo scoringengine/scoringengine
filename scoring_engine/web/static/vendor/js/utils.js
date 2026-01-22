@@ -19,8 +19,8 @@ var ScoringEngineUtils = (function() {
         if (value.startsWith(" ") || value.endsWith(" ")) {
             return "Input cannot start or end with a space";
         }
-        if (/^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$/.test(value) == false) {
-            return "Invalid characters detected in input. Allowed characters are AlphaNumeric and any of . , @ = : / - | ( ) ;";
+        if (/^[A-Za-z0-9\.,@=:\/\-\|\(\)\^$; !]+$/.test(value) == false) {
+            return "Invalid characters detected in input. Allowed characters are AlphaNumeric and any of . , @ = : / - | ( ) ^ $ ; space !";
         }
     }
 

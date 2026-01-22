@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, url_for, redirect
 from flask_login import login_required, current_user
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 mod = Blueprint('services', __name__)
@@ -19,7 +19,7 @@ def home():
 @mod.route('/service/<id>')
 @login_required
 def service(id):
-    service = session.get(Service, id)
+    service = db.session.get(Service, id)
     if service is None or not current_user.team == service.team:
         return redirect(url_for('auth.unauthorized'))
     modify_hostname_setting = Setting.get_setting('blue_team_update_hostname').value

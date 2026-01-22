@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scoring_engine"
-version = "1.0.0"
+version = "1.1.0"
 description = "Scoring Engine for Red/White/Blue Team Competitions"
 readme = "README.md"
 license = {file = "LICENSE"}
+requires-python = ">=3.10"
 authors = [
   {name = "Brandon Myers", email = "pwnbus@mozilla.com"},
   {name = "Rusty Bower", email = "rusty@rustybower.com"},
@@ -16,9 +17,9 @@ authors = [
 
 dependencies = [
   "bcrypt==4.3.0",
-  "celery[redis]==5.5.3",
+  "celery[redis]==5.6.2",
   "configparser==7.2.0",
-  "cryptography==44.0.1",
+  "cryptography==46.0.3",
   "Flask==3.1.2",
   "Flask-Caching==2.3.1",
   "Flask-Login==0.6.3",
@@ -29,7 +30,7 @@ dependencies = [
   "pytz==2025.2",
   "PyYAML==6.0.2",
   "ranking==0.3.2",
-  "Werkzeug==3.1.4",
+  "Werkzeug==3.1.5",
   "uWSGI==2.0.31",
 ]
 
