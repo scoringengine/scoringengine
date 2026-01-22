@@ -30,6 +30,7 @@ class TestAPI(WebTest):
             else:
                 setting.value = value
             self.session.commit()
+        Setting.clear_cache()
 
     def test_auth_required_admin_get_round_progress(self):
         self.verify_auth_required("/api/admin/get_round_progress")
