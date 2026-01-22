@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Agents{% endblock %}
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/socket.io.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="container-fluid md-page">
+    <div class="row">
+        <h2 class="text-center">Agent Status</h2>
+        <h4 class="text-center">Black Team Agent (BTA) uptime per host</h4>
+    </div>
+    <div class="row">
+        <table id="agents" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Host</th>
+                    {% for team in teams %}
+                    <th>{{ team.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+        </table>
+        <script>
+            // Populate agents table
+            var agentsTable = $('#agents').DataTable({
+                'ajax': '/api/agents/get_data',
+                'paging': false,
+                'bSort': false,
+                'info': false,
+                'searching': false,
+                'scrollX': true,
+                'columnDefs': [
+                    { "width": "15%", "targets": 0 }
+                ],
+                'createdRow': function (row, data, index) {
+                    var $cells = $(row).children('td');
+                    var cellsLength = $cells.length;
+
+                    for (var i = 0; i < cellsLength; i++) {
+                        var $cell = $($cells[i]);
+                        var value = $cell.html();
+
+                        if (i == 0) {
+                            // Host name column - bold
+                            $cell.html('<span style="font-weight:bold">' + value + '</span>');
+                        } else {
+                            // Agent status columns
+                            var icon, color;
+                            if (value === 'true' || value === 'True') {
+                                icon = 'glyphicon-ok';
+                                color = 'green';
+                            } else if (value === 'false' || value === 'False') {
+                                icon = 'glyphicon-remove';
+                                color = 'red';
+                            } else {
+                                // null or not configured
+                                icon = 'glyphicon-minus';
+                                color = 'gray';
+                            }
+                            $cell.html('<span class="glyphicon ' + icon + '" style="color:' + color + '"></span>');
+                        }
+                    }
+                }
+            });
+
+            $(document).ready(function () {
+                // Disable datatables error reporting
+                $.fn.dataTable.ext.errMode = 'none';
+
+                // Fallback polling every minute (in case WebSocket disconnects)
+                setInterval(function () {
+                    agentsTable.ajax.reload();
+                }, 60000);
+
+                // WebSocket connection for real-time updates
+                const socket = io();
+
+                socket.on('connect', function() {
+                    console.log('WebSocket connected');
+                    socket.emit('join_scoreboard');
+                });
+
+                socket.on('disconnect', function() {
+                    console.log('WebSocket disconnected');
+                });
+
+                socket.on('joined', function(data) {
+                    console.log('Joined room:', data.room);
+                });
+
+                socket.on('scoreboard_update', function(data) {
+                    console.log('Agents update received for round:', data.round);
+                    agentsTable.ajax.reload(null, false);
+                });
+
+                socket.on('connect_error', function(error) {
+                    console.error('WebSocket connection error:', error);
+                });
+            });
+        </script>
+    </div>
+</div>
+{% endblock %}

@@ -58,6 +58,9 @@
           <ul class="nav navbar-nav">
             <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
             <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
+            {% if bta_enabled %}
+            <li class="navbar-item {% if request.path == '/agents' %}active{% endif %}"><a class="nav-link" href="{{ url_for('agents.home') }}">Agents</a></li>
+            {% endif %}
             {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
               <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"
