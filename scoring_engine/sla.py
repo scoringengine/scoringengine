@@ -97,10 +97,11 @@ def get_consecutive_failures(service_id):
     from scoring_engine.models.check import Check
 
     # Query only the result column, ordered by round (most recent first)
+    # Use == True instead of .is_(True) for SQLite compatibility
     checks = (
         db.session.query(Check.result)
         .filter(Check.service_id == service_id)
-        .filter(Check.completed.is_(True))
+        .filter(Check.completed == True)  # noqa: E712
         .order_by(desc(Check.round_id))
         .all()
     )
@@ -125,10 +126,11 @@ def get_max_consecutive_failures(service_id):
     from scoring_engine.models.check import Check
 
     # Only fetch the result column, not entire Check objects
+    # Use == True instead of .is_(True) for SQLite compatibility
     checks = (
         db.session.query(Check.result)
         .filter(Check.service_id == service_id)
-        .filter(Check.completed.is_(True))
+        .filter(Check.completed == True)  # noqa: E712
         .order_by(Check.round_id)
         .all()
     )
