@@ -182,6 +182,7 @@ def admin_update_about_page_content():
             setting.value = request.form["about_page_content"]
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("about_page_content")
             flash("About Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: about_page_content not specified.", "danger")
@@ -198,6 +199,7 @@ def admin_update_welcome_page_content():
             setting.value = request.form["welcome_page_content"]
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("welcome_page_content")
             flash("Welcome Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: welcome_page_content not specified.", "danger")
@@ -218,6 +220,7 @@ def admin_update_target_round_time():
             setting.value = input_time
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("target_round_time")
             flash("Target Round Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: target_round_time not specified.", "danger")
@@ -238,6 +241,7 @@ def admin_update_worker_refresh_time():
             setting.value = input_time
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("worker_refresh_time")
             flash("Worker Refresh Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: worker_refresh_time not specified.", "danger")
@@ -256,6 +260,7 @@ def admin_update_blueteam_edit_hostname():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_hostname")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -271,6 +276,7 @@ def admin_update_blueteam_edit_port():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_port")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -286,6 +292,7 @@ def admin_update_blueteam_edit_account_usernames():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_account_usernames")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -301,6 +308,7 @@ def admin_update_blueteam_edit_account_passwords():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_account_passwords")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -316,6 +324,7 @@ def admin_update_blueteam_view_check_output():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_view_check_output")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -1017,6 +1026,7 @@ def admin_toggle_engine():
         setting.value = not setting.value
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("engine_paused")
         return {'status': "Success"}
     else:
         return {"status": "Unauthorized"}, 403
