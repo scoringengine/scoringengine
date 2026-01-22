@@ -54,59 +54,63 @@
                     // Cache row cells array for better performance
                     var $cells = $(row).children('td');
                     var cellsLength = $cells.length;
+                    // Get row label from first cell to determine row type
+                    var rowLabel = data[0];
 
                     // Process cells
                     for (var i = 0; i < cellsLength; i++) {
                         var $cell = $($cells[i]);
                         var value = $cell.html();
 
-                        switch (index) {
-                            // Current Score
-                            case 0:
-                                if (i == 0) {
-                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                        // Determine row type by label instead of index
+                        if (rowLabel === 'Current Score') {
+                            if (i == 0) {
+                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                            } else {
+                                $cell.html(parseFloat(value).toLocaleString());
+                            }
+                        } else if (rowLabel === 'Current Place') {
+                            if (i == 0) {
+                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                            } else {
+                                // Add medal ribbons for top 3
+                                var medal = '';
+                                if (value == 1) medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>';
+                                else if (value == 2) medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>';
+                                else if (value == 3) medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>';
+                                if (medal) $cell.html(value + medal);
+                            }
+                        } else if (rowLabel === 'SLA Penalties') {
+                            // SLA Penalties row - just bold the label
+                            if (i == 0) {
+                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                            }
+                            // Leave penalty values as-is (already formatted with HTML from API)
+                        } else if (rowLabel === 'Up/Down Ratio') {
+                            // Up/Down Ratio row - just bold the label
+                            if (i == 0) {
+                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                            }
+                            // Leave ratio values as-is (already formatted with HTML from API)
+                        } else {
+                            // Service status row
+                            if (i == 0) {
+                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
+                            } else {
+                                // Determine status icon and color
+                                var icon, color;
+                                if (value == 'true') {
+                                    icon = 'glyphicon-ok';
+                                    color = 'green';
+                                } else if (value == 'false') {
+                                    icon = 'glyphicon-remove';
+                                    color = 'red';
                                 } else {
-                                    $cell.html(parseFloat(value).toLocaleString());
+                                    icon = 'glyphicon-question-sign';
+                                    color = 'black';
                                 }
-                                break;
-                            // Current Place
-                            case 1:
-                                if (i == 0) {
-                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                                } else {
-                                    // Add medal ribbons for top 3
-                                    var medal = '';
-                                    if (value == 1) medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>';
-                                    else if (value == 2) medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>';
-                                    else if (value == 3) medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>';
-                                    if (medal) $cell.html(value + medal);
-                                }
-                                break;
-                            case 2:
-                                // Up and down services ratio
-                                if (i == 0) {
-                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                                }
-                                break;
-                            default:
-                                // Service status or name
-                                if (i == 0) {
-                                    $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                                } else {
-                                    // Determine status icon and color
-                                    var icon, color;
-                                    if (value == 'true') {
-                                        icon = 'glyphicon-ok';
-                                        color = 'green';
-                                    } else if (value == 'false') {
-                                        icon = 'glyphicon-remove';
-                                        color = 'red';
-                                    } else {
-                                        icon = 'glyphicon-question-sign';
-                                        color = 'black';
-                                    }
-                                    $cell.html(`<span class="glyphicon ${icon}" style="color:${color}"></span>`);
-                                }
+                                $cell.html(`<span class="glyphicon ${icon}" style="color:${color}"></span>`);
+                            }
                         }
                     }
                 }
