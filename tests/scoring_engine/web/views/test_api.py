@@ -308,3 +308,381 @@ class TestAPI(WebTest):
         resp = self.client.post(f"/api/inject/{inject.id}/comment", json={})
         assert resp.status_code == 400
         assert resp.json == {"status": "No comment"}
+
+    def test_api_scoreboard_get_bar_data_no_sla(self):
+        """Test scoreboard bar data without SLA penalties."""
+        from scoring_engine.models.setting import Setting
+
+        # Ensure SLA is disabled
+        Setting.set_setting("sla_enabled", "False")
+        Setting.clear_cache()
+
+        # Create teams and services with checks
+        team1 = Team(name="Team Alpha", color="Blue")
+        team2 = Team(name="Team Beta", color="Blue")
+        self.session.add_all([team1, team2])
+        self.session.commit()
+
+        service1 = Service(
+            name="HTTP",
+            team=team1,
+            check_name="HTTPCheck",
+            host="1.2.3.4",
+            port=80,
+            points=100,
+        )
+        service2 = Service(
+            name="SSH",
+            team=team2,
+            check_name="SSHCheck",
+            host="1.2.3.5",
+            port=22,
+            points=100,
+        )
+        self.session.add_all([service1, service2])
+
+        # Add passing checks
+        round1 = Round(number=1)
+        self.session.add(round1)
+        check1 = Check(service=service1, round=round1, result=True, output="OK")
+        check2 = Check(service=service2, round=round1, result=True, output="OK")
+        self.session.add_all([check1, check2])
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        assert "labels" in data
+        assert "service_scores" in data
+        assert "sla_penalties" in data
+        assert "adjusted_scores" in data
+        assert "sla_enabled" in data
+        assert data["sla_enabled"] is False
+        # Without SLA, penalties should be 0
+        assert all(p == "0" for p in data["sla_penalties"])
+
+    def test_api_scoreboard_get_bar_data_with_sla_penalties(self):
+        """Test scoreboard bar data with SLA penalties enabled."""
+        from scoring_engine.models.setting import Setting
+
+        # Enable SLA with threshold 3
+        Setting.set_setting("sla_enabled", "True")
+        Setting.set_setting("sla_penalty_threshold", "3")
+        Setting.set_setting("sla_penalty_percent", "10")
+        Setting.set_setting("sla_penalty_max_percent", "50")
+        Setting.set_setting("sla_penalty_mode", "additive")
+        Setting.set_setting("sla_allow_negative", "False")
+        Setting.clear_cache()
+
+        # Create team with service
+        team1 = Team(name="Team Gamma", color="Blue")
+        self.session.add(team1)
+        self.session.commit()
+
+        service1 = Service(
+            name="DNS",
+            team=team1,
+            check_name="DNSCheck",
+            host="8.8.8.8",
+            port=53,
+            points=100,
+        )
+        self.session.add(service1)
+
+        # Create 6 rounds - first 2 pass, then 4 consecutive failures
+        for i in range(1, 7):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            # First 2 rounds pass, rounds 3-6 fail (4 consecutive failures)
+            result = i <= 2
+            check = Check(
+                service=service1, round=round_obj, result=result, output="test"
+            )
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        assert data["sla_enabled"] is True
+        assert "Team Gamma" in data["labels"]
+
+        # Should have penalties since 4 consecutive failures > threshold 3
+        team_idx = data["labels"].index("Team Gamma")
+        penalty = int(data["sla_penalties"][team_idx])
+        assert penalty > 0, "Should have SLA penalty for consecutive failures"
+
+        # Adjusted score should be less than base score
+        base_score = int(data["service_scores"][team_idx])
+        adjusted_score = int(data["adjusted_scores"][team_idx])
+        assert (
+            adjusted_score < base_score
+        ), "Adjusted score should be reduced by penalty"
+
+    def test_api_scoreboard_multiple_teams_with_penalties(self):
+        """Test scoreboard with multiple teams having different penalty levels."""
+        from scoring_engine.models.setting import Setting
+
+        Setting.set_setting("sla_enabled", "True")
+        Setting.set_setting("sla_penalty_threshold", "2")
+        Setting.set_setting("sla_penalty_percent", "20")
+        Setting.set_setting("sla_penalty_max_percent", "100")
+        Setting.set_setting("sla_penalty_mode", "additive")
+        Setting.set_setting("sla_allow_negative", "False")
+        Setting.clear_cache()
+
+        # Team 1: All passes (no penalty)
+        team1 = Team(name="NoFailures", color="Blue")
+        # Team 2: Some failures but not consecutive enough
+        team2 = Team(name="FewFailures", color="Blue")
+        # Team 3: Many consecutive failures (high penalty)
+        team3 = Team(name="ManyFailures", color="Blue")
+        self.session.add_all([team1, team2, team3])
+        self.session.commit()
+
+        service1 = Service(
+            name="Web",
+            team=team1,
+            check_name="HTTPCheck",
+            host="1.1.1.1",
+            port=80,
+            points=100,
+        )
+        service2 = Service(
+            name="Web",
+            team=team2,
+            check_name="HTTPCheck",
+            host="2.2.2.2",
+            port=80,
+            points=100,
+        )
+        service3 = Service(
+            name="Web",
+            team=team3,
+            check_name="HTTPCheck",
+            host="3.3.3.3",
+            port=80,
+            points=100,
+        )
+        self.session.add_all([service1, service2, service3])
+
+        # 5 rounds
+        for i in range(1, 6):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            # Team 1: All pass
+            check1 = Check(service=service1, round=round_obj, result=True, output="ok")
+            # Team 2: Pass, pass, fail, pass, fail (no consecutive >= threshold)
+            check2_result = i not in [3, 5]
+            check2 = Check(
+                service=service2, round=round_obj, result=check2_result, output="ok"
+            )
+            # Team 3: Pass, fail, fail, fail, fail (4 consecutive failures)
+            check3_result = i == 1
+            check3 = Check(
+                service=service3, round=round_obj, result=check3_result, output="ok"
+            )
+            self.session.add_all([check1, check2, check3])
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Find team indices
+        idx1 = data["labels"].index("NoFailures")
+        idx2 = data["labels"].index("FewFailures")
+        idx3 = data["labels"].index("ManyFailures")
+
+        # Team 1 should have no penalty
+        assert int(data["sla_penalties"][idx1]) == 0
+
+        # Team 2 should have no penalty (failures not consecutive enough)
+        assert int(data["sla_penalties"][idx2]) == 0
+
+        # Team 3 should have a penalty (4 consecutive failures > threshold 2)
+        assert int(data["sla_penalties"][idx3]) > 0
+
+    def test_api_sla_summary(self):
+        """Test the SLA summary API endpoint."""
+        from scoring_engine.models.setting import Setting
+
+        self.login("testuser", "testpass")
+
+        Setting.set_setting("sla_enabled", "True")
+        Setting.set_setting("sla_penalty_threshold", "3")
+        Setting.set_setting("sla_penalty_percent", "15")
+        Setting.set_setting("sla_penalty_max_percent", "50")
+        Setting.set_setting("sla_penalty_mode", "additive")
+        Setting.set_setting("sla_allow_negative", "False")
+        Setting.clear_cache()
+
+        team = Team(name="SLA Test Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="FTP",
+            team=team,
+            check_name="FTPCheck",
+            host="5.5.5.5",
+            port=21,
+            points=100,
+        )
+        self.session.add(service)
+
+        # Create 5 rounds with 4 consecutive failures at end
+        for i in range(1, 6):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            result = i == 1  # Only first round passes
+            check = Check(
+                service=service, round=round_obj, result=result, output="test"
+            )
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/sla/summary")
+        assert resp.status_code == 200
+        data = resp.json
+
+        assert "teams" in data
+        assert len(data["teams"]) >= 1
+
+        # Find our test team
+        test_team_data = None
+        for t in data["teams"]:
+            if t["team_name"] == "SLA Test Team":
+                test_team_data = t
+                break
+
+        assert test_team_data is not None
+        assert "base_score" in test_team_data
+        assert "total_penalties" in test_team_data
+        assert "adjusted_score" in test_team_data
+        assert "services_with_violations" in test_team_data
+
+        # 4 consecutive failures > threshold 3, so should have penalty
+        assert test_team_data["total_penalties"] > 0
+        assert test_team_data["services_with_violations"] >= 1
+
+    def test_api_sla_team_details(self):
+        """Test the SLA team details API endpoint."""
+        from scoring_engine.models.setting import Setting
+        from scoring_engine.models.user import User
+
+        Setting.set_setting("sla_enabled", "True")
+        Setting.set_setting("sla_penalty_threshold", "2")
+        Setting.set_setting("sla_penalty_percent", "10")
+        Setting.set_setting("sla_penalty_max_percent", "50")
+        Setting.set_setting("sla_penalty_mode", "additive")
+        Setting.clear_cache()
+
+        team = Team(name="Team Details Test", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        # Create user on this team to view their own team's details
+        user = User(username="teamuser", password="teampass", team=team)
+        self.session.add(user)
+        self.session.commit()
+
+        service1 = Service(
+            name="SSH",
+            team=team,
+            check_name="SSHCheck",
+            host="6.6.6.6",
+            port=22,
+            points=100,
+        )
+        service2 = Service(
+            name="HTTP",
+            team=team,
+            check_name="HTTPCheck",
+            host="7.7.7.7",
+            port=80,
+            points=100,
+        )
+        self.session.add_all([service1, service2])
+
+        # Service 1: 3 consecutive failures
+        # Service 2: All passes
+        for i in range(1, 4):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            check1 = Check(
+                service=service1, round=round_obj, result=False, output="fail"
+            )
+            check2 = Check(service=service2, round=round_obj, result=True, output="ok")
+            self.session.add_all([check1, check2])
+        self.session.commit()
+
+        # Login as user on this team
+        self.login("teamuser", "teampass")
+
+        resp = self.client.get(f"/api/sla/team/{team.id}")
+        assert resp.status_code == 200
+        data = resp.json
+
+        assert "team_id" in data
+        assert "team_name" in data
+        assert "services" in data
+        assert data["team_name"] == "Team Details Test"
+
+        # Should have 2 services
+        assert len(data["services"]) == 2
+
+        # Find SSH service (should have violations)
+        ssh_service = None
+        http_service = None
+        for s in data["services"]:
+            if s["service_name"] == "SSH":
+                ssh_service = s
+            elif s["service_name"] == "HTTP":
+                http_service = s
+
+        assert ssh_service is not None
+        assert http_service is not None
+
+        # SSH has 3 consecutive failures > threshold 2
+        assert ssh_service["consecutive_failures"] == 3
+        assert ssh_service["penalty_percent"] > 0
+
+        # HTTP has all passes
+        assert http_service["consecutive_failures"] == 0
+        assert http_service["penalty_percent"] == 0
+
+    def test_api_sla_dynamic_scoring_info(self):
+        """Test the dynamic scoring info API endpoint."""
+        from scoring_engine.models.setting import Setting
+
+        self.login("testuser", "testpass")
+
+        Setting.set_setting("dynamic_scoring_enabled", "True")
+        Setting.set_setting("dynamic_scoring_early_rounds", "5")
+        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        Setting.set_setting("dynamic_scoring_late_start_round", "20")
+        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
+        Setting.clear_cache()
+
+        # Create some rounds
+        for i in range(1, 4):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+        self.session.commit()
+
+        resp = self.client.get("/api/sla/dynamic-scoring")
+        assert resp.status_code == 200
+        data = resp.json
+
+        assert data["enabled"] is True
+        assert data["current_round"] == 3
+        assert data["early_rounds"] == 5
+        assert data["early_multiplier"] == 2.0
+        assert data["late_start_round"] == 20
+        assert data["late_multiplier"] == 0.5
+        # Round 3 is in early phase (< 5)
+        assert data["current_phase"] == "early"
+        assert data["current_multiplier"] == 2.0
