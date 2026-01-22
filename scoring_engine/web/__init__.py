@@ -48,6 +48,7 @@ def create_app():
         api,
         admin,
         about,
+        agents,
     )
 
     cache.init_app(app)
@@ -80,5 +81,14 @@ def create_app():
     app.register_blueprint(api.mod)
     app.register_blueprint(admin.mod)
     app.register_blueprint(about.mod)
+    app.register_blueprint(agents.mod)
+
+    # Context processor to inject bta_enabled into all templates
+    from scoring_engine.models.setting import Setting
+
+    @app.context_processor
+    def inject_bta_enabled():
+        psk = Setting.get_setting("agent_psk")
+        return {"bta_enabled": psk and psk.value}
 
     return app
