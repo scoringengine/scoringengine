@@ -5,6 +5,8 @@ SLA API endpoints for managing SLA penalties and dynamic scoring settings.
 from flask import flash, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
 
+from scoring_engine.cache_helper import (update_overview_data,
+                                         update_scoreboard_data)
 from scoring_engine.db import db
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
@@ -109,7 +111,15 @@ def _update_setting(name, value, redirect_route="admin.sla"):
         db.session.add(setting)
         db.session.commit()
         Setting.clear_cache(name)
+        # Clear Flask cache for scoreboard/overview when SLA-related settings change
+        _clear_scoring_cache()
     return redirect(url_for(redirect_route))
+
+
+def _clear_scoring_cache():
+    """Clear Flask cache for scoreboard and overview data."""
+    update_scoreboard_data()
+    update_overview_data()
 
 
 @mod.route("/api/admin/update_sla_enabled", methods=["POST"])
@@ -127,6 +137,7 @@ def admin_update_sla_enabled():
             db.session.add(setting)
             db.session.commit()
             Setting.clear_cache("sla_enabled")
+            _clear_scoring_cache()
         return redirect(url_for("admin.sla"))
     return {"status": "Unauthorized"}, 403
 
@@ -211,6 +222,7 @@ def admin_update_sla_allow_negative():
             db.session.add(setting)
             db.session.commit()
             Setting.clear_cache("sla_allow_negative")
+            _clear_scoring_cache()
         return redirect(url_for("admin.sla"))
     return {"status": "Unauthorized"}, 403
 
@@ -234,6 +246,7 @@ def admin_update_dynamic_scoring_enabled():
             db.session.add(setting)
             db.session.commit()
             Setting.clear_cache("dynamic_scoring_enabled")
+            _clear_scoring_cache()
         return redirect(url_for("admin.sla"))
     return {"status": "Unauthorized"}, 403
 
