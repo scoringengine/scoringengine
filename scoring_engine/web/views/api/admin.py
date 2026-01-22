@@ -320,6 +320,21 @@ def admin_update_blueteam_view_check_output():
     return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/update_blueteam_view_status_page", methods=["POST"])
+@login_required
+def admin_update_blueteam_view_status_page():
+    if current_user.is_white_team:
+        setting = Setting.get_setting("blue_team_view_status_page")
+        if setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        session.add(setting)
+        session.commit()
+        return redirect(url_for("admin.permissions"))
+    return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_round_progress")
 @login_required
 def get_check_progress_total():
