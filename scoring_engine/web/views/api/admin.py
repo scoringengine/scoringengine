@@ -10,6 +10,17 @@ from flask_login import current_user, login_required
 
 import html
 
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.inject import Template, Inject
@@ -391,10 +402,10 @@ def admin_get_inject_templates_id(template_id):
             scenario=template.scenario,
             deliverable=template.deliverable,
             score=template.score,
-            start_time=template.start_time.astimezone(
+            start_time=_ensure_utc_aware(template.start_time).astimezone(
                 pytz.timezone(config.timezone)
             ).isoformat(),
-            end_time=template.end_time.astimezone(
+            end_time=_ensure_utc_aware(template.end_time).astimezone(
                 pytz.timezone(config.timezone)
             ).isoformat(),
             enabled=template.enabled,

@@ -24,6 +24,17 @@ def _utcnow_for_comparison(db_datetime):
     return now
 
 
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
+
 @mod.route("/api/injects")
 @login_required
 def api_injects():
@@ -139,7 +150,7 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
@@ -174,7 +185,7 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 

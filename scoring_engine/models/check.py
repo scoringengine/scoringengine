@@ -6,6 +6,17 @@ import pytz
 
 import html
 
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
 from scoring_engine.models.base import Base
 from scoring_engine.config import config
 
@@ -34,5 +45,4 @@ class Check(Base):
 
     @property
     def local_completed_timestamp(self):
-        completed_timezone_obj = pytz.timezone('UTC').localize(self.completed_timestamp)
-        return completed_timezone_obj.astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+        return _ensure_utc_aware(self.completed_timestamp).astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')

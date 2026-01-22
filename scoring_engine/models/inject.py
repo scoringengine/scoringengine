@@ -2,6 +2,17 @@ import pytz
 
 from datetime import datetime, timezone
 
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
 from sqlalchemy import (
     Column,
     DateTime,
@@ -84,7 +95,7 @@ class Template(Base):
     @property
     def localized_start_time(self):
         return (
-            pytz.utc.localize(self.start_time)
+            _ensure_utc_aware(self.start_time)
             .astimezone(pytz.timezone(config.timezone))
             .strftime("%Y-%m-%d %H:%M:%S %Z")
         )
@@ -92,7 +103,7 @@ class Template(Base):
     @property
     def localized_end_time(self):
         return (
-            pytz.utc.localize(self.end_time)
+            _ensure_utc_aware(self.end_time)
             .astimezone(pytz.timezone(config.timezone))
             .strftime("%Y-%m-%d %H:%M:%S %Z")
         )

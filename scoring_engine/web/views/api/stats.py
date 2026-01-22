@@ -9,6 +9,17 @@ from sqlalchemy import desc
 from sqlalchemy.sql import case, func
 
 from scoring_engine.cache import cache
+
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
 from scoring_engine.cache_helper import (update_overview_data,
                                          update_service_data,
                                          update_services_data)
@@ -66,10 +77,10 @@ def api_stats():
             stats.append(
                 {
                     "round_id": row[0],
-                    "start_time": row[1]
+                    "start_time": _ensure_utc_aware(row[1])
                     .astimezone(pytz.timezone(config.timezone))
                     .strftime("%Y-%m-%d %H:%M:%S %Z"),
-                    "end_time": row[2]
+                    "end_time": _ensure_utc_aware(row[2])
                     .astimezone(pytz.timezone(config.timezone))
                     .strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "total_seconds": (row[2] - row[1]).seconds,
@@ -109,10 +120,10 @@ def api_stats():
             stats.append(
                 {
                     "round_id": row[0],
-                    "start_time": row[1]
+                    "start_time": _ensure_utc_aware(row[1])
                     .astimezone(pytz.timezone(config.timezone))
                     .strftime("%Y-%m-%d %H:%M:%S %Z"),
-                    "end_time": row[2]
+                    "end_time": _ensure_utc_aware(row[2])
                     .astimezone(pytz.timezone(config.timezone))
                     .strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "total_seconds": (row[2] - row[1]).seconds,
