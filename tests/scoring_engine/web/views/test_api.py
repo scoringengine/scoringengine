@@ -686,3 +686,189 @@ class TestAPI(WebTest):
         # Round 3 is in early phase (< 5)
         assert data["current_phase"] == "early"
         assert data["current_multiplier"] == 2.0
+
+    def test_api_scoreboard_with_dynamic_scoring_multipliers(self):
+        """Test that dynamic scoring multipliers are applied to scores."""
+        from scoring_engine.models.setting import Setting
+
+        # Enable dynamic scoring with 2x multiplier for early rounds
+        Setting.set_setting("sla_enabled", "False")
+        Setting.set_setting("dynamic_scoring_enabled", "True")
+        Setting.set_setting("dynamic_scoring_early_rounds", "5")
+        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        Setting.set_setting("dynamic_scoring_late_start_round", "50")
+        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
+        Setting.clear_cache()
+
+        # Create a team with a service
+        team = Team(name="Dynamic Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="Web",
+            team=team,
+            check_name="HTTPCheck",
+            host="10.10.10.10",
+            port=80,
+            points=100,
+        )
+        self.session.add(service)
+
+        # Create 3 rounds (all in early phase), all checks pass
+        # Without dynamic scoring: 3 * 100 = 300
+        # With 2x early multiplier: 3 * 100 * 2 = 600
+        for i in range(1, 4):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        team_idx = data["labels"].index("Dynamic Team")
+        score = int(data["service_scores"][team_idx])
+
+        # With dynamic scoring enabled and 2x multiplier, score should be 600
+        assert score == 600, f"Expected 600 with 2x multiplier, got {score}"
+
+    def test_api_scoreboard_dynamic_scoring_late_phase(self):
+        """Test dynamic scoring in late phase reduces scores."""
+        from scoring_engine.models.setting import Setting
+
+        Setting.set_setting("sla_enabled", "False")
+        Setting.set_setting("dynamic_scoring_enabled", "True")
+        Setting.set_setting("dynamic_scoring_early_rounds", "5")
+        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        Setting.set_setting("dynamic_scoring_late_start_round", "10")
+        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
+        Setting.clear_cache()
+
+        team = Team(name="Late Phase Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="SSH",
+            team=team,
+            check_name="SSHCheck",
+            host="11.11.11.11",
+            port=22,
+            points=100,
+        )
+        self.session.add(service)
+
+        # Create rounds: 5 early (2x), 4 normal (1x), 3 late (0.5x)
+        # Early: 5 * 100 * 2.0 = 1000
+        # Normal (rounds 6-9): 4 * 100 * 1.0 = 400
+        # Late (rounds 10-12): 3 * 100 * 0.5 = 150
+        # Total: 1550
+        for i in range(1, 13):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        team_idx = data["labels"].index("Late Phase Team")
+        score = int(data["service_scores"][team_idx])
+
+        # Expected: 1000 + 400 + 150 = 1550
+        assert score == 1550, f"Expected 1550 with phased multipliers, got {score}"
+
+    def test_api_scoreboard_dynamic_scoring_disabled(self):
+        """Test that scores are normal when dynamic scoring is disabled."""
+        from scoring_engine.models.setting import Setting
+
+        Setting.set_setting("sla_enabled", "False")
+        Setting.set_setting("dynamic_scoring_enabled", "False")
+        Setting.clear_cache()
+
+        team = Team(name="Normal Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="FTP",
+            team=team,
+            check_name="FTPCheck",
+            host="12.12.12.12",
+            port=21,
+            points=100,
+        )
+        self.session.add(service)
+
+        # 3 passing checks = 300 points (no multiplier)
+        for i in range(1, 4):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        team_idx = data["labels"].index("Normal Team")
+        score = int(data["service_scores"][team_idx])
+
+        # Without dynamic scoring: 3 * 100 = 300
+        assert score == 300, f"Expected 300 without dynamic scoring, got {score}"
+
+    def test_api_overview_with_dynamic_scoring(self):
+        """Test that overview API applies dynamic scoring multipliers."""
+        from scoring_engine.models.setting import Setting
+
+        Setting.set_setting("sla_enabled", "False")
+        Setting.set_setting("dynamic_scoring_enabled", "True")
+        Setting.set_setting("dynamic_scoring_early_rounds", "5")
+        Setting.set_setting("dynamic_scoring_early_multiplier", "3.0")
+        Setting.set_setting("dynamic_scoring_late_start_round", "50")
+        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
+        Setting.clear_cache()
+
+        team = Team(name="Overview Dynamic Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="DNS",
+            team=team,
+            check_name="DNSCheck",
+            host="13.13.13.13",
+            port=53,
+            points=100,
+        )
+        self.session.add(service)
+
+        # 2 rounds in early phase with 3x multiplier
+        # Expected: 2 * 100 * 3 = 600
+        for i in range(1, 3):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            check = Check(service=service, round=round_obj, result=True, output="ok")
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Find the score row
+        current_scores_row = data["data"][0]  # First row is "Current Score"
+        assert current_scores_row[0] == "Current Score"
+
+        # Score should be 600 with 3x multiplier
+        # Team appears after "Current Score" label
+        team_score = int(current_scores_row[1])
+        assert (
+            team_score == 600
+        ), f"Expected 600 with 3x multiplier in overview, got {team_score}"

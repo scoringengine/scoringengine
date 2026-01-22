@@ -11,7 +11,8 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import calculate_team_total_penalties, get_sla_config
+from scoring_engine.sla import (apply_dynamic_scoring_to_round,
+                                calculate_team_total_penalties, get_sla_config)
 
 from . import mod
 
@@ -124,14 +125,47 @@ def overview_get_data():
     )
 
     if len(blue_team_ids) > 0:
-        team_scores = dict(
-            db.session.query(Service.team_id, func.sum(Service.points).label("score"))
-            .join(Check)
-            .filter(Check.result.is_(True))
-            .group_by(Service.team_id)
-            .order_by(desc("score"))
-            .all()
-        )
+        # Calculate team scores with dynamic scoring multipliers
+        if sla_config.dynamic_enabled:
+            # Query scores per round for dynamic scoring
+            round_scores = (
+                db.session.query(
+                    Service.team_id,
+                    Check.round_id,
+                    func.sum(Service.points).label("round_score"),
+                )
+                .join(Check)
+                .filter(Check.result.is_(True))
+                .group_by(Service.team_id, Check.round_id)
+                .all()
+            )
+
+            # Get round numbers for each round_id
+            rounds_map = {
+                r.id: r.number for r in db.session.query(Round.id, Round.number).all()
+            }
+
+            # Calculate totals with multipliers
+            team_scores = defaultdict(int)
+            for team_id, round_id, round_score in round_scores:
+                round_number = rounds_map.get(round_id, 0)
+                adjusted_score = apply_dynamic_scoring_to_round(
+                    round_number, round_score, sla_config
+                )
+                team_scores[team_id] += adjusted_score
+            team_scores = dict(team_scores)
+        else:
+            # No dynamic scoring - use simple sum
+            team_scores = dict(
+                db.session.query(
+                    Service.team_id, func.sum(Service.points).label("score")
+                )
+                .join(Check)
+                .filter(Check.result.is_(True))
+                .group_by(Service.team_id)
+                .order_by(desc("score"))
+                .all()
+            )
 
         # Calculate adjusted scores with SLA penalties
         adjusted_scores_dict = {}

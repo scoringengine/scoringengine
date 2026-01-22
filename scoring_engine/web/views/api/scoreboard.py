@@ -11,21 +11,63 @@ from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import calculate_team_total_penalties, get_sla_config
+from scoring_engine.sla import (apply_dynamic_scoring_to_round,
+                                calculate_team_total_penalties, get_sla_config)
 
 from . import mod
+
+
+def calculate_team_scores_with_dynamic_scoring(sla_config):
+    """
+    Calculate team scores with dynamic scoring multipliers applied per-round.
+
+    Returns dict mapping team_id to total score with multipliers applied.
+    """
+    if not sla_config.dynamic_enabled:
+        # No dynamic scoring - use simple sum
+        return dict(
+            db.session.query(Service.team_id, func.sum(Service.points))
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .group_by(Service.team_id)
+            .all()
+        )
+
+    # Query scores grouped by team and round
+    round_scores = (
+        db.session.query(
+            Service.team_id,
+            Check.round_id,
+            func.sum(Service.points).label("round_score"),
+        )
+        .join(Check)
+        .filter(Check.result.is_(True))
+        .group_by(Service.team_id, Check.round_id)
+        .all()
+    )
+
+    # Get round numbers for each round_id
+    rounds = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
+
+    # Calculate total with multipliers
+    team_scores = defaultdict(int)
+    for team_id, round_id, round_score in round_scores:
+        round_number = rounds.get(round_id, 0)
+        adjusted_score = apply_dynamic_scoring_to_round(
+            round_number, round_score, sla_config
+        )
+        team_scores[team_id] += adjusted_score
+
+    return dict(team_scores)
 
 
 @mod.route("/api/scoreboard/get_bar_data")
 @cache.memoize()
 def scoreboard_get_bar_data():
-    current_scores = dict(
-        db.session.query(Service.team_id, func.sum(Service.points))
-        .join(Check)
-        .filter(Check.result.is_(True))
-        .group_by(Service.team_id)
-        .all()
-    )
+    # Get SLA configuration first (needed for dynamic scoring)
+    sla_config = get_sla_config()
+
+    current_scores = calculate_team_scores_with_dynamic_scoring(sla_config)
 
     inject_scores = dict(
         db.session.query(Inject.team_id, func.sum(Inject.score))
@@ -33,9 +75,6 @@ def scoreboard_get_bar_data():
         .group_by(Inject.team_id)
         .all()
     )
-
-    # Get SLA configuration
-    sla_config = get_sla_config()
 
     team_data = {}
     team_labels = []
@@ -82,6 +121,7 @@ def scoreboard_get_bar_data():
 @cache.memoize()
 def scoreboard_get_line_data():
     last_round = Round.get_last_round_num()
+    sla_config = get_sla_config()
 
     team_data = {
         "team": [],
@@ -115,10 +155,19 @@ def scoreboard_get_line_data():
         .all()
     )
 
-    scores_dict = defaultdict(lambda: defaultdict(list))
+    # Get round numbers for dynamic scoring
+    rounds_map = {
+        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
+    }
+
+    scores_dict = defaultdict(lambda: defaultdict(int))
     for team_id, round_id, round_score in round_scores:
-        # Loop through our results and update the appropriate team's list
-        scores_dict[team_id][round_id] = round_score
+        # Apply dynamic scoring multiplier if enabled
+        round_number = rounds_map.get(round_id, 0)
+        adjusted_score = apply_dynamic_scoring_to_round(
+            round_number, round_score, sla_config
+        )
+        scores_dict[team_id][round_id] = adjusted_score
 
     for team_id, team_name, rgb_color in blue_teams:
         team_data["team"].append(
