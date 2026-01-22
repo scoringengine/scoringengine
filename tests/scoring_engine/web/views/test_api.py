@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta, timezone
 
+from scoring_engine.cache import cache
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.inject import Inject, Template
@@ -30,7 +31,9 @@ class TestAPI(WebTest):
             else:
                 setting.value = value
             self.session.commit()
+        # Clear both Setting model cache and Flask memoize cache
         Setting.clear_cache()
+        cache.clear()
 
     def test_auth_required_admin_get_round_progress(self):
         self.verify_auth_required("/api/admin/get_round_progress")
