@@ -787,14 +787,30 @@ cache.clear()
 ```
 
 **Settings Cache:**
+
+The `Setting` model uses an in-memory cache with a 60-second TTL. **IMPORTANT**: When modifying settings programmatically, you MUST clear the cache for changes to take effect immediately:
+
 ```python
 from scoring_engine.models.setting import Setting
 
-# Automatically cached
-value = Setting.get_setting('setting_name')
+# Get setting (automatically cached)
+value = Setting.get_setting('setting_name').value
 
-# Cache is invalidated when settings change
+# Modify a setting - ALWAYS clear cache after commit!
+setting = Setting.get_setting('sla_enabled')
+setting.value = True
+db.session.commit()
+Setting.clear_cache('sla_enabled')  # Clear specific setting
+
+# Or clear ALL settings cache (recommended for multiple changes)
+Setting.clear_cache()  # No argument = clear entire cache
 ```
+
+**Cache Clearing Rules:**
+- After modifying ANY `Setting` value, call `Setting.clear_cache()` or `Setting.clear_cache('setting_name')`
+- In tests, always clear the full cache with `Setting.clear_cache()` before assertions
+- The web API endpoints handle cache clearing automatically after updates
+- Cache TTL is 60 seconds, so without clearing, stale values may persist
 
 **Scoreboard Cache:**
 ```python
@@ -1102,6 +1118,7 @@ logger.error("Error message")
 | Add documentation | `docs/source/` |
 | Change version | `bump-my-version bump [patch\|minor\|major]` |
 | Modify CI/CD | `.github/workflows/` |
+| Modify SLA/penalties | `scoring_engine/sla.py`, `scoring_engine/web/views/api/sla.py` |
 
 ## Important Files to Know
 
@@ -1129,6 +1146,7 @@ logger.error("Error message")
 - **scoring_engine/cache.py**: Flask-Caching setup
 - **scoring_engine/cache_helper.py**: Cache update utilities
 - **scoring_engine/competition.py**: YAML parsing and loading
+- **scoring_engine/sla.py**: SLA penalties and dynamic scoring logic
 - **scoring_engine/version.py**: Version string
 
 ### Documentation

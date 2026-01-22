@@ -379,22 +379,30 @@ class TestServiceAndTeamScores(UnitTest):
         db.session.commit()
         return team, service1, service2
 
+    def _get_enabled_sla_config(self):
+        """Create an SLA config with SLA enabled for testing."""
+        config = SLAConfig()
+        config.sla_enabled = True
+        config.penalty_threshold = 5
+        config.penalty_percent = 10
+        config.penalty_max_percent = 50
+        config.penalty_mode = "additive"
+        config.allow_negative = False
+        return config
+
     def test_service_sla_status(self):
         """Test get_service_sla_status returns correct info."""
         team, service1, service2 = self.create_team_with_services()
 
-        # Enable SLA
-        setting = Setting.get_setting("sla_enabled")
-        setting.value = True
-        db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        # Use explicit config with SLA enabled
+        config = self._get_enabled_sla_config()
 
-        status1 = get_service_sla_status(service1)
+        status1 = get_service_sla_status(service1, config)
         assert status1["consecutive_failures"] == 0
         assert status1["sla_violation"] is False
         assert status1["penalty_percent"] == 0
 
-        status2 = get_service_sla_status(service2)
+        status2 = get_service_sla_status(service2, config)
         assert status2["consecutive_failures"] == 7
         assert status2["sla_violation"] is True
         assert status2["penalty_percent"] > 0
@@ -403,20 +411,19 @@ class TestServiceAndTeamScores(UnitTest):
         """Test adjusted score without penalty."""
         team, service1, service2 = self.create_team_with_services()
 
-        # SLA disabled by default
-        assert calculate_service_adjusted_score(service1) == service1.score_earned
+        # SLA disabled config
+        config = SLAConfig()
+        config.sla_enabled = False
+        assert calculate_service_adjusted_score(service1, config) == service1.score_earned
 
     def test_service_adjusted_score_with_penalty(self):
         """Test adjusted score with penalty applied."""
         team, service1, service2 = self.create_team_with_services()
 
-        # Enable SLA
-        setting = Setting.get_setting("sla_enabled")
-        setting.value = True
-        db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        # Use explicit config with SLA enabled
+        config = self._get_enabled_sla_config()
 
-        adjusted = calculate_service_adjusted_score(service2)
+        adjusted = calculate_service_adjusted_score(service2, config)
         base = service2.score_earned
         assert adjusted < base  # Should be lower due to penalty
 
@@ -424,13 +431,10 @@ class TestServiceAndTeamScores(UnitTest):
         """Test calculating total team penalties."""
         team, service1, service2 = self.create_team_with_services()
 
-        # Enable SLA
-        setting = Setting.get_setting("sla_enabled")
-        setting.value = True
-        db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        # Use explicit config with SLA enabled
+        config = self._get_enabled_sla_config()
 
-        total = calculate_team_total_penalties(team)
+        total = calculate_team_total_penalties(team, config)
         # Only service2 has violations, so penalty should be > 0
         assert total > 0
 
@@ -438,13 +442,10 @@ class TestServiceAndTeamScores(UnitTest):
         """Test team adjusted score."""
         team, service1, service2 = self.create_team_with_services()
 
-        # Enable SLA
-        setting = Setting.get_setting("sla_enabled")
-        setting.value = True
-        db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        # Use explicit config with SLA enabled
+        config = self._get_enabled_sla_config()
 
-        adjusted = calculate_team_adjusted_score(team)
+        adjusted = calculate_team_adjusted_score(team, config)
         base = team.current_score
         assert adjusted <= base  # Should be lower or equal due to penalties
 
@@ -498,22 +499,24 @@ class TestServiceModelSLAProperties(UnitTest):
         assert service.consecutive_failures == 3
 
     def test_service_sla_penalty_percent_property(self):
-        """Test Service.sla_penalty_percent property."""
+        """Test Service.sla_penalty_percent property with explicit config."""
         service = self.setup_service([False] * 10)
 
-        # Enable SLA with threshold 5
+        # Clear all setting caches and enable SLA
+        Setting.clear_cache()
         setting = Setting.get_setting("sla_enabled")
         setting.value = True
         db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        Setting.clear_cache()
 
+        # With 10 consecutive failures and threshold 5, penalty should be > 0
         assert service.sla_penalty_percent > 0
 
     def test_service_adjusted_score_property(self):
         """Test Service.adjusted_score property."""
         service = self.setup_service([True] * 10)
 
-        # All passing, no penalty
+        # All passing, no penalty (SLA disabled by default)
         assert service.adjusted_score == service.score_earned
 
     def test_service_sla_status_property(self):
@@ -559,11 +562,12 @@ class TestTeamModelSLAProperties(UnitTest):
         """Test Team.total_sla_penalties property."""
         team = self.create_team_with_checks()
 
-        # Enable SLA
+        # Clear all caches and enable SLA
+        Setting.clear_cache()
         setting = Setting.get_setting("sla_enabled")
         setting.value = True
         db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        Setting.clear_cache()
 
         assert team.total_sla_penalties > 0
 
@@ -571,11 +575,12 @@ class TestTeamModelSLAProperties(UnitTest):
         """Test Team.adjusted_score property."""
         team = self.create_team_with_checks()
 
-        # Enable SLA
+        # Clear all caches and enable SLA
+        Setting.clear_cache()
         setting = Setting.get_setting("sla_enabled")
         setting.value = True
         db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        Setting.clear_cache()
 
         assert team.adjusted_score <= team.current_score
 
@@ -590,11 +595,12 @@ class TestTeamModelSLAProperties(UnitTest):
         """Test Team.services_with_sla_violations property."""
         team = self.create_team_with_checks()
 
-        # Enable SLA with threshold 5
+        # Clear all caches and enable SLA with threshold 5
+        Setting.clear_cache()
         setting = Setting.get_setting("sla_enabled")
         setting.value = True
         db.session.commit()
-        Setting.clear_cache("sla_enabled")
+        Setting.clear_cache()
 
         # 7 consecutive failures > threshold 5
         assert team.services_with_sla_violations >= 1
