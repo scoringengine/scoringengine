@@ -7,4 +7,5 @@ class Machine(Base):
     id = Column(Integer, primary_key=True)
     team_id = Column(Integer, ForeignKey("teams.id"))
     name = Column(String(100), nullable=False)
-    compermised = Column(Boolean, nullable=False, default=False)
+    status = Column(String(20), nullable=False, default="unknown")
+    compromised = Column(Boolean, nullable=False, default=False)
