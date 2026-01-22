@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, url_for, redirect
 from flask_login import login_required, current_user
 from scoring_engine.models.inject import Inject, File
@@ -25,7 +25,7 @@ def inject(inject_id):
     if (
         inject is None
         or not current_user.team == inject.team
-        or datetime.utcnow() < inject.template.start_time
+        or datetime.now(timezone.utc) < inject.template.start_time
     ):
         return redirect(url_for("auth.unauthorized"))
 

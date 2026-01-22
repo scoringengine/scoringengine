@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text, DateTime, UnicodeText
 from sqlalchemy.orm import relationship
 
-from datetime import datetime
+from datetime import datetime, timezone
 import pytz
 
 import html
@@ -29,7 +29,7 @@ class Check(Base):
         self.reason = reason
         self.output = html.escape(output)
         self.completed = True
-        self.completed_timestamp = datetime.utcnow()
+        self.completed_timestamp = datetime.now(timezone.utc)
         self.command = command
 
     @property

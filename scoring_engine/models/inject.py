@@ -1,6 +1,6 @@
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column,
@@ -40,9 +40,9 @@ class Template(Base):
     deliverable = Column(UnicodeText, nullable=False)
     score = Column(Integer, nullable=False)
     start_time = Column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
     )
-    end_time = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    end_time = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     enabled = Column(Boolean, nullable=False, default=True)
 
     # Relationships
@@ -74,7 +74,7 @@ class Template(Base):
 
     @property
     def expired(self):
-        return datetime.utcnow() > self.end_time
+        return datetime.now(timezone.utc) > self.end_time
 
     @property
     def localized_start_time(self):
@@ -126,8 +126,8 @@ class Inject(Base):
     score = Column(Integer, default=0)
     status = Column(String(255), default="Draft")
     enabled = Column(Boolean, nullable=False, default=True)
-    submitted = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
-    graded = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    submitted = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    graded = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     comment = relationship("Comment", back_populates="inject", cascade="all, delete")
@@ -149,7 +149,7 @@ class Comment(Base):
     __tablename__ = "comment"
     id = Column(Integer, primary_key=True)
     comment = Column(Text, nullable=False)
-    time = Column(DateTime, nullable=False, default=datetime.utcnow)
+    time = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     is_read = Column(Boolean, default=False)
 
     # Relationships

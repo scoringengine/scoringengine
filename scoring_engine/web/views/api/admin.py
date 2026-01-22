@@ -543,7 +543,7 @@ def admin_post_inject_grade(inject_id):
         if "score" in data.keys() and data.get("score") != "":
             inject = db.session.get(Inject, inject_id)
             if inject:
-                inject.graded = datetime.utcnow()
+                inject.graded = datetime.now(timezone.utc)
                 inject.status = "Graded"
                 inject.score = data.get("score")
                 db.session.add(inject)

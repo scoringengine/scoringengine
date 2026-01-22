@@ -1,7 +1,7 @@
 import os
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import g, request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
@@ -29,7 +29,7 @@ def api_injects():
         .join(Template)
         .filter(Inject.team == team)
         .filter(Inject.enabled == True)
-        .filter(Template.start_time < datetime.utcnow())
+        .filter(Template.start_time < datetime.now(timezone.utc))
         .all()
     )
     for inject in injects:
@@ -54,10 +54,10 @@ def api_injects_submit(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if datetime.now(timezone.utc) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
     inject.status = "Submitted"
-    inject.submitted = datetime.utcnow()
+    inject.submitted = datetime.now(timezone.utc)
     db.session.commit()
     data = list()
     return jsonify(data=data)
@@ -71,7 +71,7 @@ def api_injects_file_upload(inject_id):
         return jsonify({"status": "Unauthorized"}), 403
 
     # Validate inject is still valid
-    if datetime.utcnow() > inject.template.end_time:
+    if datetime.now(timezone.utc) > inject.template.end_time:
         return "Inject has ended", 400
     # Validate inject isn't submitted yet
     if inject.status != "Draft":
@@ -178,7 +178,7 @@ def api_inject_add_comment(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if datetime.now(timezone.utc) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 400
 
     data = request.get_json()

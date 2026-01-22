@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
 
 from scoring_engine.models.inject import Template, Inject, Comment, File
@@ -63,8 +63,8 @@ class TestTemplate(UnitTest):
 
     def test_expired_property_not_expired(self):
         """Test that expired property returns False for ongoing template"""
-        start_time = datetime.utcnow() - timedelta(hours=2)
-        end_time = datetime.utcnow() + timedelta(hours=2)
+        start_time = datetime.now(timezone.utc) - timedelta(hours=2)
+        end_time = datetime.now(timezone.utc) + timedelta(hours=2)
         template = Template(
             title="Active Template",
             scenario="Test",
@@ -79,8 +79,8 @@ class TestTemplate(UnitTest):
 
     def test_expired_property_expired(self):
         """Test that expired property returns True for past template"""
-        start_time = datetime.utcnow() - timedelta(hours=4)
-        end_time = datetime.utcnow() - timedelta(hours=2)
+        start_time = datetime.now(timezone.utc) - timedelta(hours=4)
+        end_time = datetime.now(timezone.utc) - timedelta(hours=2)
         template = Template(
             title="Expired Template",
             scenario="Test",
@@ -336,7 +336,7 @@ class TestInject(UnitTest):
         self.session.commit()
 
         inject.status = "Submitted"
-        inject.submitted = datetime.utcnow()
+        inject.submitted = datetime.now(timezone.utc)
         self.session.commit()
 
         assert inject.status == "Submitted"
@@ -364,7 +364,7 @@ class TestInject(UnitTest):
 
         inject.status = "Graded"
         inject.score = 85
-        inject.graded = datetime.utcnow()
+        inject.graded = datetime.now(timezone.utc)
         self.session.commit()
 
         assert inject.status == "Graded"

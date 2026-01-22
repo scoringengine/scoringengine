@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -299,8 +299,8 @@ class TestAPI(WebTest):
             scenario="s",
             deliverable="d",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
         )
         inject = Inject(team=team, template=template)
         self.session.add_all([template, inject])

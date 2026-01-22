@@ -1,5 +1,5 @@
 """Comprehensive tests for Flags API endpoints including complex SQL queries"""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -138,8 +138,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "/tmp/past", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=2),
-            end_time=datetime.utcnow() - timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1),
             dummy=False
         )
 
@@ -149,8 +149,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "/tmp/current", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(minutes=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(minutes=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -160,8 +160,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "/tmp/future", "content": "test"},
-            start_time=datetime.utcnow() + timedelta(minutes=2),
-            end_time=datetime.utcnow() + timedelta(hours=2),
+            start_time=datetime.now(timezone.utc) + timedelta(minutes=2),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=2),
             dummy=False
         )
 
@@ -186,8 +186,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "/tmp/real", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -197,8 +197,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "/tmp/dummy", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=True
         )
 
@@ -221,8 +221,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -232,8 +232,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.nix,
             perm=Perm.root,
             data={"path": "/etc/test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -256,8 +256,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -267,8 +267,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\admin", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -337,8 +337,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -396,8 +396,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -441,8 +441,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.nix,
             perm=Perm.root,
             data={"path": "/etc/test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -486,8 +486,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\user", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -497,8 +497,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\admin", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -553,8 +553,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\test1", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
         flag2 = Flag(
@@ -562,8 +562,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\test2", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -603,8 +603,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -614,8 +614,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.nix,
             perm=Perm.root,
             data={"path": "/etc/test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
@@ -663,8 +663,8 @@ class TestFlagsAPI(UnitTest):
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\test", "content": "test"},
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False
         )
 
