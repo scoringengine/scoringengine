@@ -196,6 +196,7 @@ def overview_get_data():
         ranks = list(ranking.Ranking([s[1] for s in sorted_scores], start=1).ranks())
         ranks_dict = dict(zip([s[0] for s in sorted_scores], ranks))
 
+        has_any_penalties = False
         for blue_team_id in blue_team_ids:
             # Show adjusted score when SLA is enabled, base score otherwise
             if sla_config.sla_enabled:
@@ -204,7 +205,8 @@ def overview_get_data():
                 current_scores.append(str(team_scores.get(blue_team_id, 0)))
             current_places.append(str(ranks_dict.get(blue_team_id, 0)))
             service_ratios.append(
-                '<span class="text-success">{0} ↑</span> / <span class="text-danger">{1} ↓</span>'.format(
+                '<span class="text-success">{0} <span class="glyphicon glyphicon-arrow-up"></span></span> / '
+                '<span class="text-danger">{1} <span class="glyphicon glyphicon-arrow-down"></span></span>'.format(
                     num_up_services.get(blue_team_id, 0),
                     num_down_services.get(blue_team_id, 0),
                 )
@@ -212,6 +214,7 @@ def overview_get_data():
             # Add penalty display (negative number if penalty exists)
             penalty = penalties_dict.get(blue_team_id, 0)
             if penalty > 0:
+                has_any_penalties = True
                 sla_penalties_row.append(
                     '<span class="text-danger">-{}</span>'.format(penalty)
                 )
@@ -220,8 +223,8 @@ def overview_get_data():
 
         data.append(current_scores)
         data.append(current_places)
-        # Only show SLA penalties row when SLA is enabled
-        if sla_config.sla_enabled:
+        # Only show SLA penalties row when SLA is enabled AND there are actual penalties
+        if sla_config.sla_enabled and has_any_penalties:
             data.append(sla_penalties_row)
         data.append(service_ratios)
 
