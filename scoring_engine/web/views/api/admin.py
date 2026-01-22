@@ -1067,3 +1067,18 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+@mod.route("/api/admin/get_machines")
+@login_required
+def admin_get_machines():
+    if not current_user.is_white_team:
+        return {"status": "Unauthorized"}, 403
+
+    hosts = (
+        session.query(Service.host)
+        .distinct()
+        .order_by(Service.host)
+        .all()
+    )
+    data = [{"host": host} for (host,) in hosts]
+    return jsonify(data=data)
