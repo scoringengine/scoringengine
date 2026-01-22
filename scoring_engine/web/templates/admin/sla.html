@@ -23,116 +23,104 @@
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_enabled') }}" role="form" style="margin-bottom: 15px;">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">SLA Penalties</label>
-          </div>
-          <div class="col-xs-2">
+          <label class="col-sm-3 control-label">SLA Penalties</label>
+          <div class="col-sm-3">
             <button type="submit" class="btn btn-{% if sla_enabled %}success{% else %}default{% endif %} btn-block">
               {% if sla_enabled %}Enabled{% else %}Disabled{% endif %}
             </button>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Click to toggle SLA penalties on/off</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Click to toggle SLA penalties on/off</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_threshold') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Penalty Threshold</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Penalty Threshold</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" min="1" max="100" id="sla_penalty_threshold"
                 name="sla_penalty_threshold" value="{{ sla_penalty_threshold }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Number of consecutive failures before penalties begin</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Number of consecutive failures before penalties begin</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_percent') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Penalty Percent (%)</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Penalty Percent (%)</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" min="1" max="100" id="sla_penalty_percent"
                 name="sla_penalty_percent" value="{{ sla_penalty_percent }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Penalty percentage per failure after threshold</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Penalty percentage per failure after threshold</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_max_percent') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Max Penalty (%)</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Max Penalty (%)</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" min="1" max="200" id="sla_penalty_max_percent"
                 name="sla_penalty_max_percent" value="{{ sla_penalty_max_percent }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Maximum total penalty percentage (cap)</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Maximum total penalty percentage (cap)</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_mode') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Penalty Mode</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Penalty Mode</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <select class="form-control" id="sla_penalty_mode" name="sla_penalty_mode">
                 <option value="additive" {% if sla_penalty_mode == 'additive' %}selected{% endif %}>Additive</option>
                 <option value="flat" {% if sla_penalty_mode == 'flat' %}selected{% endif %}>Flat</option>
                 <option value="exponential" {% if sla_penalty_mode == 'exponential' %}selected{% endif %}>Exponential</option>
                 <option value="next_check_reduction" {% if sla_penalty_mode == 'next_check_reduction' %}selected{% endif %}>Next Check Reduction</option>
               </select>
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">How penalties accumulate (additive=10%,20%,30%..., flat=10%,10%..., exponential=10%,20%,40%...)</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">How penalties accumulate (additive=10%,20%,30%..., flat=10%,10%..., exponential=10%,20%,40%...)</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_sla_allow_negative') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Allow Negative Scores</label>
-          </div>
-          <div class="col-xs-2">
+          <label class="col-sm-3 control-label">Allow Negative Scores</label>
+          <div class="col-sm-3">
             <button type="submit" class="btn btn-{% if sla_allow_negative %}warning{% else %}default{% endif %} btn-block">
               {% if sla_allow_negative %}Enabled{% else %}Disabled{% endif %}
             </button>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Allow scores to go below zero from penalties</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Allow scores to go below zero from penalties</p>
           </div>
         </div>
       </form>
@@ -152,16 +140,14 @@
 
       <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_enabled') }}" role="form" style="margin-bottom: 15px;">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Dynamic Scoring</label>
-          </div>
-          <div class="col-xs-2">
+          <label class="col-sm-3 control-label">Dynamic Scoring</label>
+          <div class="col-sm-3">
             <button type="submit" class="btn btn-{% if dynamic_scoring_enabled %}success{% else %}default{% endif %} btn-block">
               {% if dynamic_scoring_enabled %}Enabled{% else %}Disabled{% endif %}
             </button>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Click to toggle dynamic scoring on/off</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Click to toggle dynamic scoring on/off</p>
           </div>
         </div>
       </form>
@@ -169,40 +155,36 @@
       <h5><strong>Early Phase (Bonus Points)</strong></h5>
       <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_early_rounds') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Early Phase Rounds</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Early Phase Rounds</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" min="1" max="1000" id="dynamic_scoring_early_rounds"
                 name="dynamic_scoring_early_rounds" value="{{ dynamic_scoring_early_rounds }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">First N rounds are considered "early phase"</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">First N rounds are considered "early phase"</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_early_multiplier') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Early Phase Multiplier</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Early Phase Multiplier</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" step="0.1" min="0.1" max="10" id="dynamic_scoring_early_multiplier"
                 name="dynamic_scoring_early_multiplier" value="{{ dynamic_scoring_early_multiplier }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Points multiplier during early phase (e.g., 2.0 = double points)</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Points multiplier during early phase (e.g., 2.0 = double points)</p>
           </div>
         </div>
       </form>
@@ -210,40 +192,36 @@
       <h5><strong>Late Phase (Reduced Points)</strong></h5>
       <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_late_start_round') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Late Phase Start Round</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Late Phase Start Round</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" min="1" max="10000" id="dynamic_scoring_late_start_round"
                 name="dynamic_scoring_late_start_round" value="{{ dynamic_scoring_late_start_round }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Round number when late phase begins</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Round number when late phase begins</p>
           </div>
         </div>
       </form>
 
       <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_late_multiplier') }}" role="form">
         <div class="form-group row">
-          <div class="col-xs-3">
-            <label class="pull-right" style="padding-top: 7px;">Late Phase Multiplier</label>
-          </div>
-          <div class="col-xs-2">
-            <div class="input-group input-group-md">
+          <label class="col-sm-3 control-label">Late Phase Multiplier</label>
+          <div class="col-sm-3">
+            <div class="input-group">
               <input class="form-control" type="number" step="0.1" min="0.1" max="10" id="dynamic_scoring_late_multiplier"
                 name="dynamic_scoring_late_multiplier" value="{{ dynamic_scoring_late_multiplier }}" required />
-              <div class="input-group-btn">
+              <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Save</button>
-              </div>
+              </span>
             </div>
           </div>
-          <div class="col-xs-6">
-            <span class="help-block">Points multiplier during late phase (e.g., 0.5 = half points)</span>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Points multiplier during late phase (e.g., 0.5 = half points)</p>
           </div>
         </div>
       </form>
