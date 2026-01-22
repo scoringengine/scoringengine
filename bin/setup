@@ -10,7 +10,8 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
-from scoring_engine.models.flag import Flag, Solve
+from scoring_engine.models.flag import Flag, Solve, FlagTypeEnum, Platform, Perm
+from scoring_engine.models.agent import Agent
 
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
@@ -170,8 +171,6 @@ with app.app_context():
                 round_start=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
                 round_end=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
             )
-            print(f"{(round_obj.round_start - round_obj.round_end).seconds}")
-            # db.session.add(round_obj)
             services = db.session.query(Service).all()
             for service in services:
                 output = ""
@@ -246,28 +245,130 @@ with app.app_context():
             db.session.add(notification)
             db.session.commit()
 
-        # Simulate Flags
-        num_flags = randint(10, 20)
+        # Simulate BTA (Black Team Agent) data
+        # Define agent hosts (Windows and Linux targets)
+        agent_hosts = [
+            ("win-dc", Platform.windows),
+            ("win-workstation", Platform.windows),
+            ("nix-web", Platform.nix),
+            ("nix-db", Platform.nix),
+        ]
+
+        # Create AgentCheck services for each blue team
+        logger.info("Creating AgentCheck services for BTA")
+        blue_teams = Team.get_all_blue_teams()
+        for team in blue_teams:
+            for host, platform in agent_hosts:
+                agent_service = Service(
+                    name=f"Agent-{host}",
+                    team=team,
+                    check_name="AgentCheck",
+                    host=host,
+                    port=0,
+                    points=50,
+                )
+                db.session.add(agent_service)
+        db.session.commit()
+
+        # Get all AgentCheck services for check simulation
+        agent_services = db.session.query(Service).filter(Service.check_name == "AgentCheck").all()
+
+        # Add checks for AgentCheck services in existing rounds
+        logger.info("Adding checks for AgentCheck services")
+        rounds = db.session.query(Round).all()
+        for round_obj in rounds:
+            for service in agent_services:
+                # Randomly decide if agent is up or down (70% up)
+                result = randint(0, 10) <= 7
+                reason = CHECK_SUCCESS_TEXT if result else CHECK_FAILURE_TEXT
+                output = "Agent checked in successfully" if result else "Agent not responding"
+                command = "agent_check"
+                check = Check(round=round_obj, service=service)
+                check.finished(result, reason, output, command)
+                db.session.add(check)
+        db.session.commit()
+
+        # Simulate Flags with proper timing and hosts
+        num_flags = randint(15, 25)
         logger.info("Simulating " + str(num_flags) + " Flags")
-        for _ in range(num_flags):
+
+        # Get all hosts from agent services for solves
+        all_agent_hosts = [host for host, platform in agent_hosts]
+
+        for i in range(num_flags):
+            # Spread flags over time - some past, some current, some future
+            if i < num_flags // 3:
+                # Past flags (ended)
+                start_offset = randint(120, 240)
+                duration = randint(30, 60)
+                start_time = datetime.now() - timedelta(minutes=start_offset)
+                end_time = start_time + timedelta(minutes=duration)
+            elif i < 2 * num_flags // 3:
+                # Current flags (active now)
+                start_offset = randint(10, 60)
+                start_time = datetime.now() - timedelta(minutes=start_offset)
+                end_time = datetime.now() + timedelta(minutes=randint(30, 120))
+            else:
+                # Future flags (not started yet)
+                start_time = datetime.now() + timedelta(minutes=randint(5, 60))
+                end_time = start_time + timedelta(minutes=randint(30, 90))
+
+            # Select platform and matching host
+            platform = choice([Platform.nix, Platform.windows])
+            platform_hosts = [h for h, p in agent_hosts if p == platform]
+
             flag = Flag(
-                start_time=datetime.now() - timedelta(minutes=randint(0, 60)),
-                end_time=datetime.now() + timedelta(minutes=randint(0, 60)),
+                start_time=start_time,
+                end_time=end_time,
             )
-            flag.platform = choice(["nix", "windows"])
-            flag.dummy = choice([False, True])
-            flag.type = choice(["file", "pipe", "net", "reg"])
-            flag.perm = choice(["user", "root"])
-            flag.data = {"path": "/tmp/flag", "content": "hi"}
+            flag.platform = platform
+            flag.dummy = choice([False, False, False, True])  # 25% dummy flags
+            flag.type = choice([FlagTypeEnum.file, FlagTypeEnum.pipe, FlagTypeEnum.net, FlagTypeEnum.reg])
+            flag.perm = choice([Perm.user, Perm.root])
+
+            # Set appropriate data based on flag type
+            if flag.type == FlagTypeEnum.file:
+                flag.data = {"path": f"/tmp/flag_{i}.txt" if platform == Platform.nix else f"C:\\temp\\flag_{i}.txt", "content": f"FLAG{i}_{flag.perm.value}"}
+            elif flag.type == FlagTypeEnum.reg:
+                flag.data = {"path": f"HKLM\\SOFTWARE\\Flag{i}", "content": f"FLAG{i}"}
+            elif flag.type == FlagTypeEnum.pipe:
+                flag.data = {"path": f"\\\\.\\pipe\\flag_{i}", "content": f"FLAG{i}"}
+            else:  # net
+                flag.data = {"path": f"tcp://127.0.0.1:{8000 + i}", "content": f"FLAG{i}"}
+
             db.session.add(flag)
             db.session.commit()
 
-            # Simulate Solves
-            for team_id in sample(team_ids, randint(1, len(team_ids))):
-                solve = Solve(
-                    flag=flag,
-                    host="127.0.0.1",
-                    team_id=team_id,
+            # Simulate Solves - only for non-dummy, active/past flags
+            if not flag.dummy and flag.start_time <= datetime.now():
+                # Get blue team IDs
+                blue_team_ids = [team.id for team in blue_teams]
+
+                # Random subset of teams solved this flag on random hosts
+                num_solves = randint(0, len(blue_team_ids))
+                solving_teams = sample(blue_team_ids, num_solves)
+
+                for team_id in solving_teams:
+                    # Pick a host matching the flag platform
+                    solve_host = choice(platform_hosts)
+                    solve = Solve(
+                        flag=flag,
+                        host=solve_host,
+                        team_id=team_id,
+                    )
+                    db.session.add(solve)
+            db.session.commit()
+
+        # Create some Agent tasks (red team agent tasks)
+        logger.info("Simulating Agent tasks")
+        for platform in [Platform.windows, Platform.nix]:
+            for i in range(randint(3, 6)):
+                agent = Agent(
+                    type=choice([FlagTypeEnum.file, FlagTypeEnum.pipe, FlagTypeEnum.net, FlagTypeEnum.reg]),
+                    platform=platform,
+                    data={"command": f"task_{platform.value}_{i}", "args": ["--test"]},
+                    start_time=datetime.now() - timedelta(minutes=randint(0, 120)),
+                    end_time=datetime.now() + timedelta(minutes=randint(30, 180)),
                 )
-                db.session.add(solve)
-                db.session.commit()
+                db.session.add(agent)
+        db.session.commit()

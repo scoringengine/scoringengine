@@ -106,10 +106,9 @@ def api_flags_totals():
                 Solve.team_id,
                 Flag.platform,
                 Solve.host,
-                func.if_(
-                    func.group_concat(func.distinct(Flag.perm), ',') == "user,root",
-                    "root",
-                    func.group_concat(func.distinct(Flag.perm))
+                case(
+                    (func.group_concat(Flag.perm.distinct()) == "user,root", "root"),
+                    else_=func.group_concat(Flag.perm.distinct())
                 ).label("level")
             )
             .join(Flag, Flag.id == Solve.flag_id)
