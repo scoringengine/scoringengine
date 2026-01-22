@@ -303,6 +303,59 @@ def calculate_team_total_penalties(team, config=None):
     return total_penalties
 
 
+def calculate_team_base_score_with_dynamic(team, config=None):
+    """
+    Calculate the team's base score with dynamic scoring multipliers applied.
+
+    Args:
+        team: Team object
+        config: SLAConfig object (if None, loads from database)
+
+    Returns:
+        Base score with dynamic multipliers applied per round
+    """
+    if config is None:
+        config = get_sla_config()
+
+    if not config.dynamic_enabled:
+        return team.current_score
+
+    from sqlalchemy.sql import func
+
+    from scoring_engine.models.check import Check
+    from scoring_engine.models.round import Round
+    from scoring_engine.models.service import Service
+
+    # Query scores per round for this team
+    round_scores = (
+        db.session.query(
+            Check.round_id,
+            func.sum(Service.points).label("round_score"),
+        )
+        .join(Service)
+        .filter(Service.team_id == team.id)
+        .filter(Check.result.is_(True))
+        .group_by(Check.round_id)
+        .all()
+    )
+
+    # Get round numbers
+    rounds_map = {
+        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
+    }
+
+    # Calculate total with multipliers
+    total_score = 0
+    for round_id, round_score in round_scores:
+        round_number = rounds_map.get(round_id, 0)
+        adjusted_score = apply_dynamic_scoring_to_round(
+            round_number, round_score, config
+        )
+        total_score += adjusted_score
+
+    return total_score
+
+
 def calculate_team_adjusted_score(team, config=None):
     """
     Calculate the adjusted score for a team after applying SLA penalties.
@@ -317,7 +370,7 @@ def calculate_team_adjusted_score(team, config=None):
     if config is None:
         config = get_sla_config()
 
-    base_score = team.current_score
+    base_score = calculate_team_base_score_with_dynamic(team, config)
     total_penalties = calculate_team_total_penalties(team, config)
 
     adjusted_score = base_score - total_penalties
@@ -386,7 +439,7 @@ def get_team_sla_summary(team, config=None):
         "team_id": team.id,
         "team_name": team.name,
         "sla_enabled": config.sla_enabled,
-        "base_score": team.current_score,
+        "base_score": calculate_team_base_score_with_dynamic(team, config),
         "total_penalties": calculate_team_total_penalties(team, config),
         "adjusted_score": calculate_team_adjusted_score(team, config),
         "services_with_violations": total_violations,
