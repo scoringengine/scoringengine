@@ -6,6 +6,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.inject import Inject, Template
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.web.views.api.service import is_valid_user_input
 from tests.scoring_engine.web.web_test import WebTest
@@ -16,6 +17,19 @@ class TestAPI(WebTest):
     def setup_method(self):
         super(TestAPI, self).setup_method()
         self.create_default_user()
+
+    def set_setting(self, name, value):
+        """Helper to update a setting value in tests."""
+        setting = Setting.get_setting(name)
+        if setting:
+            # Convert string "True"/"False" to bool for boolean settings
+            if value == "True":
+                setting.value = True
+            elif value == "False":
+                setting.value = False
+            else:
+                setting.value = value
+            self.session.commit()
 
     def test_auth_required_admin_get_round_progress(self):
         self.verify_auth_required("/api/admin/get_round_progress")
@@ -311,11 +325,9 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_get_bar_data_no_sla(self):
         """Test scoreboard bar data without SLA penalties."""
-        from scoring_engine.models.setting import Setting
 
         # Ensure SLA is disabled
-        Setting.set_setting("sla_enabled", "False")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "False")
 
         # Create teams and services with checks
         team1 = Team(name="Team Alpha", color="Blue")
@@ -364,16 +376,14 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_get_bar_data_with_sla_penalties(self):
         """Test scoreboard bar data with SLA penalties enabled."""
-        from scoring_engine.models.setting import Setting
 
         # Enable SLA with threshold 3
-        Setting.set_setting("sla_enabled", "True")
-        Setting.set_setting("sla_penalty_threshold", "3")
-        Setting.set_setting("sla_penalty_percent", "10")
-        Setting.set_setting("sla_penalty_max_percent", "50")
-        Setting.set_setting("sla_penalty_mode", "additive")
-        Setting.set_setting("sla_allow_negative", "False")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "3")
+        self.set_setting("sla_penalty_percent", "10")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("sla_allow_negative", "False")
 
         # Create team with service
         team1 = Team(name="Team Gamma", color="Blue")
@@ -423,15 +433,13 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_multiple_teams_with_penalties(self):
         """Test scoreboard with multiple teams having different penalty levels."""
-        from scoring_engine.models.setting import Setting
 
-        Setting.set_setting("sla_enabled", "True")
-        Setting.set_setting("sla_penalty_threshold", "2")
-        Setting.set_setting("sla_penalty_percent", "20")
-        Setting.set_setting("sla_penalty_max_percent", "100")
-        Setting.set_setting("sla_penalty_mode", "additive")
-        Setting.set_setting("sla_allow_negative", "False")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "2")
+        self.set_setting("sla_penalty_percent", "20")
+        self.set_setting("sla_penalty_max_percent", "100")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("sla_allow_negative", "False")
 
         # Team 1: All passes (no penalty)
         team1 = Team(name="NoFailures", color="Blue")
@@ -507,17 +515,15 @@ class TestAPI(WebTest):
 
     def test_api_sla_summary(self):
         """Test the SLA summary API endpoint."""
-        from scoring_engine.models.setting import Setting
 
         self.login("testuser", "testpass")
 
-        Setting.set_setting("sla_enabled", "True")
-        Setting.set_setting("sla_penalty_threshold", "3")
-        Setting.set_setting("sla_penalty_percent", "15")
-        Setting.set_setting("sla_penalty_max_percent", "50")
-        Setting.set_setting("sla_penalty_mode", "additive")
-        Setting.set_setting("sla_allow_negative", "False")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "3")
+        self.set_setting("sla_penalty_percent", "15")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("sla_allow_negative", "False")
 
         team = Team(name="SLA Test Team", color="Blue")
         self.session.add(team)
@@ -570,15 +576,13 @@ class TestAPI(WebTest):
 
     def test_api_sla_team_details(self):
         """Test the SLA team details API endpoint."""
-        from scoring_engine.models.setting import Setting
         from scoring_engine.models.user import User
 
-        Setting.set_setting("sla_enabled", "True")
-        Setting.set_setting("sla_penalty_threshold", "2")
-        Setting.set_setting("sla_penalty_percent", "10")
-        Setting.set_setting("sla_penalty_max_percent", "50")
-        Setting.set_setting("sla_penalty_mode", "additive")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "2")
+        self.set_setting("sla_penalty_percent", "10")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
 
         team = Team(name="Team Details Test", color="Blue")
         self.session.add(team)
@@ -656,16 +660,14 @@ class TestAPI(WebTest):
 
     def test_api_sla_dynamic_scoring_info(self):
         """Test the dynamic scoring info API endpoint."""
-        from scoring_engine.models.setting import Setting
 
         self.login("testuser", "testpass")
 
-        Setting.set_setting("dynamic_scoring_enabled", "True")
-        Setting.set_setting("dynamic_scoring_early_rounds", "5")
-        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
-        Setting.set_setting("dynamic_scoring_late_start_round", "20")
-        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
-        Setting.clear_cache()
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "20")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
 
         # Create some rounds
         for i in range(1, 4):
@@ -689,16 +691,14 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_with_dynamic_scoring_multipliers(self):
         """Test that dynamic scoring multipliers are applied to scores."""
-        from scoring_engine.models.setting import Setting
 
         # Enable dynamic scoring with 2x multiplier for early rounds
-        Setting.set_setting("sla_enabled", "False")
-        Setting.set_setting("dynamic_scoring_enabled", "True")
-        Setting.set_setting("dynamic_scoring_early_rounds", "5")
-        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
-        Setting.set_setting("dynamic_scoring_late_start_round", "50")
-        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "50")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
 
         # Create a team with a service
         team = Team(name="Dynamic Team", color="Blue")
@@ -737,15 +737,13 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_dynamic_scoring_late_phase(self):
         """Test dynamic scoring in late phase reduces scores."""
-        from scoring_engine.models.setting import Setting
 
-        Setting.set_setting("sla_enabled", "False")
-        Setting.set_setting("dynamic_scoring_enabled", "True")
-        Setting.set_setting("dynamic_scoring_early_rounds", "5")
-        Setting.set_setting("dynamic_scoring_early_multiplier", "2.0")
-        Setting.set_setting("dynamic_scoring_late_start_round", "10")
-        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "10")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
 
         team = Team(name="Late Phase Team", color="Blue")
         self.session.add(team)
@@ -785,11 +783,9 @@ class TestAPI(WebTest):
 
     def test_api_scoreboard_dynamic_scoring_disabled(self):
         """Test that scores are normal when dynamic scoring is disabled."""
-        from scoring_engine.models.setting import Setting
 
-        Setting.set_setting("sla_enabled", "False")
-        Setting.set_setting("dynamic_scoring_enabled", "False")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "False")
 
         team = Team(name="Normal Team", color="Blue")
         self.session.add(team)
@@ -825,15 +821,13 @@ class TestAPI(WebTest):
 
     def test_api_overview_with_dynamic_scoring(self):
         """Test that overview API applies dynamic scoring multipliers."""
-        from scoring_engine.models.setting import Setting
 
-        Setting.set_setting("sla_enabled", "False")
-        Setting.set_setting("dynamic_scoring_enabled", "True")
-        Setting.set_setting("dynamic_scoring_early_rounds", "5")
-        Setting.set_setting("dynamic_scoring_early_multiplier", "3.0")
-        Setting.set_setting("dynamic_scoring_late_start_round", "50")
-        Setting.set_setting("dynamic_scoring_late_multiplier", "0.5")
-        Setting.clear_cache()
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "3.0")
+        self.set_setting("dynamic_scoring_late_start_round", "50")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
 
         team = Team(name="Overview Dynamic Team", color="Blue")
         self.session.add(team)

@@ -110,7 +110,7 @@ def get_consecutive_failures(service_id):
 
     consecutive_failures = 0
     for (result,) in checks_query:
-        if result is False:
+        if not result:
             consecutive_failures += 1
         else:
             # Stop counting when we hit a successful check
@@ -143,7 +143,7 @@ def get_max_consecutive_failures(service_id):
     current_streak = 0
 
     for (result,) in checks_query:
-        if result is False:
+        if not result:
             current_streak += 1
             max_streak = max(max_streak, current_streak)
         else:
