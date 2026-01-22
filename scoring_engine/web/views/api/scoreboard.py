@@ -1,6 +1,7 @@
 from collections import defaultdict
-from flask import jsonify
 from itertools import accumulate
+
+from flask import jsonify
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
@@ -10,7 +11,7 @@ from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import get_sla_config, calculate_team_total_penalties
+from scoring_engine.sla import calculate_team_total_penalties, get_sla_config
 
 from . import mod
 
@@ -48,19 +49,25 @@ def scoreboard_get_bar_data():
     )
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
-        base_score = current_scores.get(blue_team.id, 0)
-        team_scores.append(str(base_score))
-        team_inject_scores.append(str(inject_scores.get(blue_team.id, 0)))
+        service_score = current_scores.get(blue_team.id, 0)
+        inject_score = inject_scores.get(blue_team.id, 0)
+        team_scores.append(str(service_score))
+        team_inject_scores.append(str(inject_score))
 
         # Calculate SLA penalties if enabled
+        # Total base score includes both service and inject scores
+        total_base_score = service_score + inject_score
         if sla_config.sla_enabled:
             penalty = calculate_team_total_penalties(blue_team, sla_config)
             team_sla_penalties.append(str(penalty))
-            adjusted = max(0, base_score - penalty) if not sla_config.allow_negative else base_score - penalty
+            if sla_config.allow_negative:
+                adjusted = total_base_score - penalty
+            else:
+                adjusted = max(0, total_base_score - penalty)
             team_adjusted_scores.append(str(adjusted))
         else:
             team_sla_penalties.append("0")
-            team_adjusted_scores.append(str(base_score))
+            team_adjusted_scores.append(str(total_base_score))
 
     team_data["labels"] = team_labels
     team_data["service_scores"] = team_scores
