@@ -21,7 +21,9 @@ class TestAPI(WebTest):
 
     def set_setting(self, name, value):
         """Helper to update a setting value in tests."""
-        setting = Setting.get_setting(name)
+        from scoring_engine.db import db
+        Setting.clear_cache()  # Clear cache first to ensure fresh query
+        setting = db.session.query(Setting).filter(Setting.name == name).first()
         if setting:
             # Convert string "True"/"False" to bool for boolean settings
             if value == "True":
@@ -30,7 +32,7 @@ class TestAPI(WebTest):
                 setting.value = False
             else:
                 setting.value = value
-            self.session.commit()
+            db.session.commit()
         # Clear both Setting model cache and Flask memoize cache
         Setting.clear_cache()
         cache.clear()
