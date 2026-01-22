@@ -82,6 +82,12 @@ def api_services(team_id):
                 check = "UP"
             else:
                 check = "DOWN"
+
+        # Use pre-loaded checks instead of calling last_ten_checks property
+        # Sort by id descending to get most recent first, then take last 10 and reverse
+        last_ten = sorted(service.checks, key=lambda c: c.id, reverse=True)[:10]
+        last_ten_results = [check.result for check in reversed(last_ten)]
+
         data.append(
             dict(
                 service_id=str(service.id),
@@ -94,7 +100,7 @@ def api_services(team_id):
                 max_score=max_score,
                 percent_earned=percent_earned,
                 pts_per_check=str(service.points),
-                last_ten_checks=[check.result for check in service.last_ten_checks[::-1]],
+                last_ten_checks=last_ten_results,
             )
         )
     return jsonify(data=data)

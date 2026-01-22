@@ -20,9 +20,9 @@ class Team(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     color = Column(String(10), nullable=False)
-    services = relationship("Service", back_populates="team", lazy="joined")
-    users = relationship("User", back_populates="team", lazy="joined")
-    inject = relationship("Inject", back_populates="team", lazy="joined")
+    services = relationship("Service", back_populates="team", lazy="select")
+    users = relationship("User", back_populates="team", lazy="select")
+    inject = relationship("Inject", back_populates="team", lazy="select")
     rgb_color = Column(String(30))
 
     def __init__(self, name, color):
