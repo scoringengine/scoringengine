@@ -88,12 +88,20 @@ def dynamic_scoring_info():
     config = get_sla_config()
     info = get_dynamic_scoring_info(config)
 
-    # Add current round multiplier
+    # Add current round multiplier and phase
     from scoring_engine.models.round import Round
 
     current_round = Round.get_last_round_num()
     info["current_round"] = current_round
     info["current_multiplier"] = calculate_round_multiplier(current_round, config)
+
+    # Determine current phase based on round number
+    if current_round <= config.early_rounds:
+        info["current_phase"] = "early"
+    elif current_round >= config.late_start_round:
+        info["current_phase"] = "late"
+    else:
+        info["current_phase"] = "normal"
 
     return jsonify(info)
 

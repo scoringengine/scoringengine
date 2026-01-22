@@ -93,23 +93,20 @@ def get_consecutive_failures(service_id):
 
     Returns the number of consecutive failed checks starting from the most recent.
     If the most recent check passed, returns 0.
-
-    Performance: Uses yield_per() to avoid loading all checks into memory at once,
-    and breaks early when a successful check is found.
     """
     from scoring_engine.models.check import Check
 
-    # Query checks ordered by round (most recent first), using yield_per for memory efficiency
-    checks_query = (
+    # Query only the result column, ordered by round (most recent first)
+    checks = (
         db.session.query(Check.result)
         .filter(Check.service_id == service_id)
         .filter(Check.completed.is_(True))
         .order_by(desc(Check.round_id))
-        .yield_per(100)
+        .all()
     )
 
     consecutive_failures = 0
-    for (result,) in checks_query:
+    for (result,) in checks:
         if not result:
             consecutive_failures += 1
         else:
@@ -124,25 +121,22 @@ def get_max_consecutive_failures(service_id):
     Find the maximum streak of consecutive failures for a service across all checks.
 
     This is useful for historical analysis.
-
-    Performance: Only fetches the result column and uses yield_per() to avoid
-    loading all Check objects into memory.
     """
     from scoring_engine.models.check import Check
 
     # Only fetch the result column, not entire Check objects
-    checks_query = (
+    checks = (
         db.session.query(Check.result)
         .filter(Check.service_id == service_id)
         .filter(Check.completed.is_(True))
         .order_by(Check.round_id)
-        .yield_per(100)
+        .all()
     )
 
     max_streak = 0
     current_streak = 0
 
-    for (result,) in checks_query:
+    for (result,) in checks:
         if not result:
             current_streak += 1
             max_streak = max(max_streak, current_streak)
