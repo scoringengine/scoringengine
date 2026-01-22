@@ -78,7 +78,7 @@ def api_injects_submit(inject_id):
     if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
     inject.status = "Submitted"
-    inject.submitted = datetime.now(timezone.utc)
+    inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
     data = list()
     return jsonify(data=data)

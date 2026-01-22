@@ -423,9 +423,10 @@ class TestInjectsAPI(UnitTest):
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        before = datetime.now(timezone.utc)
+        # Use naive UTC datetimes for comparison (matching what's stored in DB)
+        before = datetime.now(timezone.utc).replace(tzinfo=None)
         resp = self.client.post(f"/api/inject/{inject.id}/submit")
-        after = datetime.now(timezone.utc)
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
 
         assert resp.status_code == 200
         self.session.refresh(inject)
