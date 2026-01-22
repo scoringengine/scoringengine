@@ -10,6 +10,7 @@ from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
+from scoring_engine.sla import get_sla_config, calculate_team_total_penalties
 
 from . import mod
 
@@ -32,21 +33,41 @@ def scoreboard_get_bar_data():
         .all()
     )
 
+    # Get SLA configuration
+    sla_config = get_sla_config()
+
     team_data = {}
     team_labels = []
     team_scores = []
     team_inject_scores = []
+    team_sla_penalties = []
+    team_adjusted_scores = []
+
     blue_teams = (
         db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     )
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
-        team_scores.append(str(current_scores.get(blue_team.id, 0)))
+        base_score = current_scores.get(blue_team.id, 0)
+        team_scores.append(str(base_score))
         team_inject_scores.append(str(inject_scores.get(blue_team.id, 0)))
+
+        # Calculate SLA penalties if enabled
+        if sla_config.sla_enabled:
+            penalty = calculate_team_total_penalties(blue_team, sla_config)
+            team_sla_penalties.append(str(penalty))
+            adjusted = max(0, base_score - penalty) if not sla_config.allow_negative else base_score - penalty
+            team_adjusted_scores.append(str(adjusted))
+        else:
+            team_sla_penalties.append("0")
+            team_adjusted_scores.append(str(base_score))
 
     team_data["labels"] = team_labels
     team_data["service_scores"] = team_scores
     team_data["inject_scores"] = team_inject_scores
+    team_data["sla_penalties"] = team_sla_penalties
+    team_data["adjusted_scores"] = team_adjusted_scores
+    team_data["sla_enabled"] = sla_config.sla_enabled
     return jsonify(team_data)
 
 

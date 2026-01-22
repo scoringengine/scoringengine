@@ -143,3 +143,50 @@ class Service(Base):
             .limit(10)
             .all()
         )
+
+    @property
+    def consecutive_failures(self):
+        """
+        Count consecutive failures for this service from the most recent check.
+        Returns 0 if the most recent check passed.
+        """
+        from scoring_engine.sla import get_consecutive_failures
+
+        return get_consecutive_failures(self.id)
+
+    @property
+    def sla_penalty_percent(self):
+        """
+        Get the current SLA penalty percentage for this service.
+        """
+        from scoring_engine.sla import calculate_sla_penalty_percent, get_sla_config
+
+        config = get_sla_config()
+        return calculate_sla_penalty_percent(self.consecutive_failures, config)
+
+    @property
+    def sla_penalty_points(self):
+        """
+        Get the penalty points to deduct from this service's score.
+        """
+        from scoring_engine.sla import calculate_service_penalty_points
+
+        return calculate_service_penalty_points(self)
+
+    @property
+    def adjusted_score(self):
+        """
+        Get the score for this service after applying SLA penalties.
+        """
+        from scoring_engine.sla import calculate_service_adjusted_score
+
+        return calculate_service_adjusted_score(self)
+
+    @property
+    def sla_status(self):
+        """
+        Get comprehensive SLA status for this service.
+        """
+        from scoring_engine.sla import get_service_sla_status
+
+        return get_service_sla_status(self)

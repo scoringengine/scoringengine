@@ -202,3 +202,44 @@ class Team(Base):
         results["scores"] = scores
 
         return results
+
+    @property
+    def total_sla_penalties(self):
+        """
+        Calculate total SLA penalties for this team across all services.
+        """
+        from scoring_engine.sla import calculate_team_total_penalties
+
+        return calculate_team_total_penalties(self)
+
+    @property
+    def adjusted_score(self):
+        """
+        Get the team's score after applying SLA penalties.
+        """
+        from scoring_engine.sla import calculate_team_adjusted_score
+
+        return calculate_team_adjusted_score(self)
+
+    @property
+    def sla_summary(self):
+        """
+        Get comprehensive SLA summary for this team.
+        """
+        from scoring_engine.sla import get_team_sla_summary
+
+        return get_team_sla_summary(self)
+
+    @property
+    def services_with_sla_violations(self):
+        """
+        Get count of services with active SLA violations.
+        """
+        from scoring_engine.sla import get_sla_config
+
+        config = get_sla_config()
+        violations = 0
+        for service in self.services:
+            if service.consecutive_failures >= config.penalty_threshold:
+                violations += 1
+        return violations
