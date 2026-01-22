@@ -93,21 +93,24 @@ def get_consecutive_failures(service_id):
 
     Returns the number of consecutive failed checks starting from the most recent.
     If the most recent check passed, returns 0.
+
+    Performance: Uses yield_per() to avoid loading all checks into memory at once,
+    and breaks early when a successful check is found.
     """
     from scoring_engine.models.check import Check
 
-    # Get all checks for this service ordered by round (most recent first)
-    checks = (
-        db.session.query(Check)
+    # Query checks ordered by round (most recent first), using yield_per for memory efficiency
+    checks_query = (
+        db.session.query(Check.result)
         .filter(Check.service_id == service_id)
         .filter(Check.completed.is_(True))
         .order_by(desc(Check.round_id))
-        .all()
+        .yield_per(100)
     )
 
     consecutive_failures = 0
-    for check in checks:
-        if check.result is False:
+    for (result,) in checks_query:
+        if result is False:
             consecutive_failures += 1
         else:
             # Stop counting when we hit a successful check
@@ -121,22 +124,26 @@ def get_max_consecutive_failures(service_id):
     Find the maximum streak of consecutive failures for a service across all checks.
 
     This is useful for historical analysis.
+
+    Performance: Only fetches the result column and uses yield_per() to avoid
+    loading all Check objects into memory.
     """
     from scoring_engine.models.check import Check
 
-    checks = (
-        db.session.query(Check)
+    # Only fetch the result column, not entire Check objects
+    checks_query = (
+        db.session.query(Check.result)
         .filter(Check.service_id == service_id)
         .filter(Check.completed.is_(True))
         .order_by(Check.round_id)
-        .all()
+        .yield_per(100)
     )
 
     max_streak = 0
     current_streak = 0
 
-    for check in checks:
-        if check.result is False:
+    for (result,) in checks_query:
+        if result is False:
             current_streak += 1
             max_streak = max(max_streak, current_streak)
         else:
