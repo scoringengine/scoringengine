@@ -170,7 +170,7 @@ def overview_get_data():
                 current_scores.append(str(team_scores.get(blue_team_id, 0)))
             current_places.append(str(ranks_dict.get(blue_team_id, 0)))
             service_ratios.append(
-                '{0} <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / {1} <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>'.format(
+                '<span class="text-success">{0} ↑</span> / <span class="text-danger">{1} ↓</span>'.format(
                     num_up_services.get(blue_team_id, 0),
                     num_down_services.get(blue_team_id, 0),
                 )
