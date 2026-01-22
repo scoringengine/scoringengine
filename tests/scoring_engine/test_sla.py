@@ -841,13 +841,15 @@ class TestMultipleTeams(UnitTest):
             for i, team in enumerate(teams):
                 service = team.services[0]
                 check = Check(round=round_obj, service=service)
-                # Team 1: all pass, Team 2: 5 failures, Team 3: all failures
+                # Team 1: all pass (10 passes)
+                # Team 2: first 5 pass, then 5 failures (5 consecutive failures)
+                # Team 3: first 2 pass, then 8 failures (8 consecutive failures)
                 if i == 0:
                     result = True
                 elif i == 1:
-                    result = round_num < 5
+                    result = round_num < 5  # rounds 0-4 pass, 5-9 fail
                 else:
-                    result = False
+                    result = round_num < 2  # rounds 0-1 pass, 2-9 fail (8 failures)
                 check.finished(result, "Test", "output", "command")
                 db.session.add(check)
 
@@ -871,10 +873,13 @@ class TestMultipleTeams(UnitTest):
         # Team 1 (all pass): no penalty
         assert penalties[0] == 0
 
-        # Team 2 (5 failures): at threshold, some penalty
+        # Team 2 (5 consecutive failures): at threshold, some penalty
         assert penalties[1] > 0
 
-        # Team 3 (10 failures): more penalty than team 2
+        # Team 3 (8 consecutive failures): more failures over threshold = higher penalty %
+        # And Team 3 earned 200 points (2 passes), Team 2 earned 500 points (5 passes)
+        # Team 2: 500 * 10% = 50 penalty (5 failures, 0 over threshold, (0+1)*10=10%)
+        # Team 3: 200 * 40% = 80 penalty (8 failures, 3 over threshold, (3+1)*10=40%)
         assert penalties[2] > penalties[1]
 
     def test_team_ranking_with_penalties(self):

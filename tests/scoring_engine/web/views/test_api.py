@@ -411,7 +411,7 @@ class TestAPI(WebTest):
             # First 2 rounds pass, rounds 3-6 fail (4 consecutive failures)
             result = i <= 2
             check = Check(
-                service=service1, round=round_obj, result=result, output="test"
+                service=service1, round=round_obj, result=result, output="test", completed=True
             )
             self.session.add(check)
         self.session.commit()
@@ -485,16 +485,16 @@ class TestAPI(WebTest):
             round_obj = Round(number=i)
             self.session.add(round_obj)
             # Team 1: All pass
-            check1 = Check(service=service1, round=round_obj, result=True, output="ok")
+            check1 = Check(service=service1, round=round_obj, result=True, output="ok", completed=True)
             # Team 2: Pass, pass, fail, pass, fail (no consecutive >= threshold)
             check2_result = i not in [3, 5]
             check2 = Check(
-                service=service2, round=round_obj, result=check2_result, output="ok"
+                service=service2, round=round_obj, result=check2_result, output="ok", completed=True
             )
             # Team 3: Pass, fail, fail, fail, fail (4 consecutive failures)
             check3_result = i == 1
             check3 = Check(
-                service=service3, round=round_obj, result=check3_result, output="ok"
+                service=service3, round=round_obj, result=check3_result, output="ok", completed=True
             )
             self.session.add_all([check1, check2, check3])
         self.session.commit()
@@ -549,7 +549,7 @@ class TestAPI(WebTest):
             self.session.add(round_obj)
             result = i == 1  # Only first round passes
             check = Check(
-                service=service, round=round_obj, result=result, output="test"
+                service=service, round=round_obj, result=result, output="test", completed=True
             )
             self.session.add(check)
         self.session.commit()
@@ -621,9 +621,9 @@ class TestAPI(WebTest):
             round_obj = Round(number=i)
             self.session.add(round_obj)
             check1 = Check(
-                service=service1, round=round_obj, result=False, output="fail"
+                service=service1, round=round_obj, result=False, output="fail", completed=True
             )
-            check2 = Check(service=service2, round=round_obj, result=True, output="ok")
+            check2 = Check(service=service2, round=round_obj, result=True, output="ok", completed=True)
             self.session.add_all([check1, check2])
         self.session.commit()
 
