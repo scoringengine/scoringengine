@@ -13,6 +13,7 @@ from scoring_engine.sla import (SLAConfig, apply_dynamic_scoring_to_round,
                                 calculate_service_adjusted_score,
                                 calculate_sla_penalty_percent,
                                 calculate_team_adjusted_score,
+                                calculate_team_base_score_with_dynamic,
                                 calculate_team_total_penalties,
                                 get_consecutive_failures,
                                 get_dynamic_scoring_info,
@@ -995,3 +996,426 @@ class TestSLAStatusFields(UnitTest):
         assert summary["services_with_violations"] == 1
         assert summary["total_services"] == 1
         assert len(summary["services"]) == 1
+
+
+class TestCombinedDynamicScoringAndPenalties(UnitTest):
+    """Tests for combined dynamic scoring multipliers AND SLA penalties.
+
+    These tests verify the interaction between both features when enabled simultaneously.
+    """
+
+    def _create_combined_config(self):
+        """Create an SLAConfig with both dynamic scoring and SLA penalties enabled."""
+        config = SLAConfig()
+        # SLA penalty settings
+        config.sla_enabled = True
+        config.penalty_threshold = 5
+        config.penalty_percent = 10
+        config.penalty_max_percent = 50
+        config.penalty_mode = "additive"
+        config.allow_negative = False
+        # Dynamic scoring settings
+        config.dynamic_enabled = True
+        config.early_rounds = 10
+        config.early_multiplier = 2.0
+        config.late_start_round = 50
+        config.late_multiplier = 0.5
+        return config
+
+    def _create_team_with_rounds(self, check_results, points=100):
+        """
+        Helper to create a team with a service and checks across rounds.
+
+        Args:
+            check_results: List of booleans indicating pass/fail for each round
+            points: Points per service check
+
+        Returns:
+            Tuple of (team, service)
+        """
+        team = Team(name="Test Team", color="Blue")
+        db.session.add(team)
+
+        service = Service(
+            name="Test Service",
+            check_name="ICMP",
+            team=team,
+            host="127.0.0.1",
+            port=0,
+            points=points,
+        )
+        db.session.add(service)
+        db.session.commit()
+
+        for i, result in enumerate(check_results):
+            round_obj = Round(number=i + 1)
+            db.session.add(round_obj)
+            db.session.commit()
+
+            check = Check(round=round_obj, service=service)
+            check.finished(result, "Test", "output", "command")
+            db.session.add(check)
+
+        db.session.commit()
+        return team, service
+
+    def test_early_rounds_with_sla_penalty(self):
+        """Test that 2x early multiplier applies before SLA penalty is deducted.
+
+        Scenario: Early rounds (2x multiplier) + SLA penalty
+        - 15 rounds, all in early phase (rounds 1-10 early, 11-15 would be normal)
+        - We'll use first 10 rounds: 5 pass, then 5 fail (5 consecutive failures = at threshold)
+        - Expected: Base score with 2x multiplier, then penalty applied to that dynamic score
+        """
+        # Create checks: 5 pass + 5 fail = 10 rounds (all early phase)
+        check_results = [True] * 5 + [False] * 5
+        team, service = self._create_team_with_rounds(check_results, points=100)
+
+        config = self._create_combined_config()
+
+        # Calculate expected score:
+        # Early rounds (1-10) have 2x multiplier
+        # 5 passing checks * 100 points * 2.0 = 1000 base score with dynamic
+        # 5 consecutive failures at threshold = 10% penalty (1 * 10%)
+        # Penalty = 1000 * 10% = 100 points (penalty based on dynamic score)
+        # Adjusted = 1000 - 100 = 900
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 1000, f"Expected 1000 base with 2x early multiplier, got {base_score}"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 100, f"Expected 100 penalty (10% of 1000 dynamic), got {penalties}"
+
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == 900, f"Expected 900 adjusted score, got {adjusted_score}"
+
+    def test_late_rounds_with_sla_penalty(self):
+        """Test that 0.5x late multiplier applies with SLA penalty.
+
+        Scenario: Late rounds (0.5x multiplier) + SLA penalty
+        - Rounds 50-60 (all late phase with 0.5x)
+        - 4 pass, then 7 consecutive failures (exceeds threshold by 2)
+        """
+        team = Team(name="Late Test Team", color="Blue")
+        db.session.add(team)
+
+        service = Service(
+            name="Late Service",
+            check_name="ICMP",
+            team=team,
+            host="127.0.0.1",
+            port=0,
+            points=100,
+        )
+        db.session.add(service)
+        db.session.commit()
+
+        # Create rounds 50-60 (all in late phase)
+        check_results = [True] * 4 + [False] * 7  # 4 pass, 7 fail
+        for i, result in enumerate(check_results):
+            round_obj = Round(number=50 + i)  # Rounds 50, 51, 52...
+            db.session.add(round_obj)
+            db.session.commit()
+
+            check = Check(round=round_obj, service=service)
+            check.finished(result, "Test", "output", "command")
+            db.session.add(check)
+
+        db.session.commit()
+
+        config = self._create_combined_config()
+
+        # Calculate expected:
+        # Late rounds (50+) have 0.5x multiplier
+        # Dynamic base: 4 passing checks * 100 points * 0.5 = 200
+        # 7 consecutive failures, threshold 5 = 2 over, penalty = (2+1)*10% = 30%
+        # Penalty = 200 * 30% = 60 points (penalty based on dynamic score)
+        # Adjusted = 200 - 60 = 140
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 200, f"Expected 200 base with 0.5x late multiplier, got {base_score}"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 60, f"Expected 60 penalty (30% of 200 dynamic), got {penalties}"
+
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == 140, f"Expected 140 adjusted score, got {adjusted_score}"
+
+    def test_mixed_phases_with_sla_penalty(self):
+        """Test scoring across all three phases with SLA penalties.
+
+        Scenario: Checks spanning early, normal, and late phases with SLA violation
+        - Rounds 1-10: early phase (2x) - 10 pass
+        - Rounds 11-49: normal phase (1x) - 10 pass (rounds 11-20)
+        - Rounds 50-60: late phase (0.5x) - 3 pass, then 8 fail (consecutive)
+        """
+        team = Team(name="Mixed Phase Team", color="Blue")
+        db.session.add(team)
+
+        service = Service(
+            name="Mixed Service",
+            check_name="ICMP",
+            team=team,
+            host="127.0.0.1",
+            port=0,
+            points=100,
+        )
+        db.session.add(service)
+        db.session.commit()
+
+        # Early phase: rounds 1-10, all pass
+        for i in range(1, 11):
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+            check = Check(round=round_obj, service=service)
+            check.finished(True, "Pass", "output", "command")
+            db.session.add(check)
+
+        # Normal phase: rounds 11-20, all pass
+        for i in range(11, 21):
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+            check = Check(round=round_obj, service=service)
+            check.finished(True, "Pass", "output", "command")
+            db.session.add(check)
+
+        # Late phase: rounds 50-60, 3 pass then 8 fail
+        for i in range(50, 61):
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+            result = i < 53  # rounds 50,51,52 pass; 53-60 fail
+            check = Check(round=round_obj, service=service)
+            check.finished(result, "Test", "output", "command")
+            db.session.add(check)
+
+        db.session.commit()
+
+        config = self._create_combined_config()
+
+        # Calculate expected:
+        # Dynamic scores:
+        # Early (rounds 1-10): 10 * 100 * 2.0 = 2000
+        # Normal (rounds 11-20): 10 * 100 * 1.0 = 1000
+        # Late (rounds 50-52): 3 * 100 * 0.5 = 150
+        # Total dynamic base: 2000 + 1000 + 150 = 3150
+        #
+        # 8 consecutive failures, threshold 5 = 3 over
+        # Penalty = (3+1) * 10% = 40%
+        # Penalty points = 3150 * 40% = 1260 (based on dynamic score)
+        # Adjusted = 3150 - 1260 = 1890
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 3150, f"Expected 3150 base with mixed multipliers, got {base_score}"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 1260, f"Expected 1260 penalty (40% of 3150 dynamic), got {penalties}"
+
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == 1890, f"Expected 1890 adjusted score, got {adjusted_score}"
+
+    def test_multiple_teams_combined_scoring(self):
+        """Test relative rankings with both features across multiple teams."""
+        config = self._create_combined_config()
+
+        # Team 1: All passes in early phase (best score)
+        team1 = Team(name="Team Alpha", color="Blue")
+        db.session.add(team1)
+        service1 = Service(
+            name="Service 1", check_name="ICMP", team=team1, host="1.1.1.1", port=0, points=100
+        )
+        db.session.add(service1)
+
+        # Team 2: Some passes, no SLA violation
+        team2 = Team(name="Team Beta", color="Blue")
+        db.session.add(team2)
+        service2 = Service(
+            name="Service 2", check_name="ICMP", team=team2, host="2.2.2.2", port=0, points=100
+        )
+        db.session.add(service2)
+
+        # Team 3: Some passes, with SLA violation
+        team3 = Team(name="Team Gamma", color="Blue")
+        db.session.add(team3)
+        service3 = Service(
+            name="Service 3", check_name="ICMP", team=team3, host="3.3.3.3", port=0, points=100
+        )
+        db.session.add(service3)
+
+        db.session.commit()
+
+        # Create 10 rounds (all early phase, 2x multiplier)
+        for i in range(1, 11):
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+
+            # Team 1: All pass (10/10)
+            check1 = Check(round=round_obj, service=service1)
+            check1.finished(True, "Pass", "output", "command")
+            db.session.add(check1)
+
+            # Team 2: 8 pass, 2 fail, no consecutive streak >= 5
+            # Pattern: PPPPPPFFPP
+            result2 = i not in [7, 8]
+            check2 = Check(round=round_obj, service=service2)
+            check2.finished(result2, "Test", "output", "command")
+            db.session.add(check2)
+
+            # Team 3: 4 pass, then 6 fail (SLA violation)
+            result3 = i <= 4
+            check3 = Check(round=round_obj, service=service3)
+            check3.finished(result3, "Test", "output", "command")
+            db.session.add(check3)
+
+        db.session.commit()
+
+        # Team 1: 10 * 100 * 2.0 = 2000 dynamic, no penalty
+        score1 = calculate_team_adjusted_score(team1, config)
+        assert score1 == 2000, f"Team Alpha expected 2000, got {score1}"
+
+        # Team 2: 8 * 100 * 2.0 = 1600 dynamic, no penalty (max consecutive failures = 2)
+        score2 = calculate_team_adjusted_score(team2, config)
+        assert score2 == 1600, f"Team Beta expected 1600, got {score2}"
+
+        # Team 3 calculation:
+        # Dynamic base: 4 * 100 * 2.0 = 800
+        # 6 consecutive failures, threshold 5 = 1 over, penalty = (1+1)*10% = 20%
+        # Penalty = 800 * 20% = 160 (based on dynamic score)
+        # Adjusted = 800 - 160 = 640
+        score3 = calculate_team_adjusted_score(team3, config)
+        assert score3 == 640, f"Team Gamma expected 640, got {score3}"
+
+        # Verify rankings: Team Alpha > Team Beta > Team Gamma
+        assert score1 > score2 > score3, "Rankings should be Alpha > Beta > Gamma"
+
+    def test_penalty_exceeds_multiplied_score_clamped_to_zero(self):
+        """Test that penalty is clamped when it exceeds the dynamically-multiplied score.
+
+        With allow_negative=False, the adjusted score should not go below 0.
+        """
+        team = Team(name="Penalty Clamp Team", color="Blue")
+        db.session.add(team)
+
+        service = Service(
+            name="Clamp Service",
+            check_name="ICMP",
+            team=team,
+            host="127.0.0.1",
+            port=0,
+            points=100,
+        )
+        db.session.add(service)
+        db.session.commit()
+
+        # Create rounds: 1 pass in late phase, then many failures
+        # Late phase (0.5x): 1 * 100 * 0.5 = 50 dynamic base score
+        # 10 failures = 5 over threshold = (5+1)*10% = 60% penalty (capped at 50%)
+        # Penalty = 50 * 50% = 25 (based on dynamic score)
+        # Adjusted = 50 - 25 = 25
+
+        # Round 50: pass
+        round_pass = Round(number=50)
+        db.session.add(round_pass)
+        db.session.commit()
+        check_pass = Check(round=round_pass, service=service)
+        check_pass.finished(True, "Pass", "output", "command")
+        db.session.add(check_pass)
+
+        # Rounds 51-60: 10 consecutive failures
+        for i in range(51, 61):
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+            check = Check(round=round_obj, service=service)
+            check.finished(False, "Fail", "output", "command")
+            db.session.add(check)
+
+        db.session.commit()
+
+        config = self._create_combined_config()
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 50, f"Expected 50 dynamic base score, got {base_score}"
+
+        # 10 consecutive failures, penalty is capped at 50%
+        penalty_percent = calculate_sla_penalty_percent(10, config)
+        assert penalty_percent == 50, f"Expected 50% penalty (capped), got {penalty_percent}"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 25, f"Expected 25 penalty points (50% of 50 dynamic), got {penalties}"
+
+        # Adjusted = 50 - 25 = 25
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == 25, f"Expected 25 adjusted score, got {adjusted_score}"
+
+    def test_combined_with_allow_negative(self):
+        """Test combined scoring when allow_negative is True."""
+        config = self._create_combined_config()
+        config.allow_negative = True
+        config.penalty_max_percent = 200  # Allow penalty > 100%
+
+        # Create a team with mostly failures to generate large penalty
+        team = Team(name="Negative Score Team", color="Blue")
+        db.session.add(team)
+
+        service = Service(
+            name="Negative Service",
+            check_name="ICMP",
+            team=team,
+            host="127.0.0.1",
+            port=0,
+            points=100,
+        )
+        db.session.add(service)
+        db.session.commit()
+
+        # 2 passes in late phase (0.5x), then 15 consecutive failures
+        # Dynamic base: 2 * 100 * 0.5 = 100
+        # 15 failures, threshold 5 = 10 over, penalty = (10+1)*10% = 110%
+        # Penalty = 100 * 110% = 110 (based on dynamic score)
+        # Adjusted = 100 - 110 = -10
+
+        for i in range(50, 67):  # 17 rounds total
+            round_obj = Round(number=i)
+            db.session.add(round_obj)
+            db.session.commit()
+            result = i < 52  # rounds 50, 51 pass; 52-66 fail (15 failures)
+            check = Check(round=round_obj, service=service)
+            check.finished(result, "Test", "output", "command")
+            db.session.add(check)
+
+        db.session.commit()
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 100, f"Expected 100 dynamic base score, got {base_score}"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 110, f"Expected 110 penalty (110% of 100 dynamic), got {penalties}"
+
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == -10, f"Expected -10 with allow_negative, got {adjusted_score}"
+
+    def test_dynamic_multiplier_on_failing_checks_no_score_contribution(self):
+        """Test that failing checks don't contribute to score even with multipliers.
+
+        Failing checks should contribute 0 points regardless of multiplier.
+        Only the penalty calculation should consider the service's earned score.
+        """
+        config = self._create_combined_config()
+
+        # Create a team with all failures in early phase
+        # Should have 0 base score (no passes) and no penalty (0 to penalize)
+        check_results = [False] * 10  # 10 failures
+        team, service = self._create_team_with_rounds(check_results, points=100)
+
+        base_score = calculate_team_base_score_with_dynamic(team, config)
+        assert base_score == 0, "All failures should result in 0 base score"
+
+        penalties = calculate_team_total_penalties(team, config)
+        assert penalties == 0, "Penalty on 0 score should be 0"
+
+        adjusted_score = calculate_team_adjusted_score(team, config)
+        assert adjusted_score == 0, "Adjusted score should be 0"

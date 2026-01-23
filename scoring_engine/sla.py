@@ -227,6 +227,64 @@ def calculate_round_multiplier(round_number, config=None):
         return 1.0
 
 
+def calculate_service_base_score_with_dynamic(service, config=None):
+    """
+    Calculate the service's base score with dynamic scoring multipliers applied.
+
+    Args:
+        service: Service object
+        config: SLAConfig object (if None, loads from database)
+
+    Returns:
+        Base score with dynamic multipliers applied per round
+
+    Performance: Uses a single JOIN query instead of multiple queries.
+    Critical for high-traffic scenarios during competitions.
+    """
+    if config is None:
+        config = get_sla_config()
+
+    if not config.dynamic_enabled:
+        return service.score_earned
+
+    from scoring_engine.models.check import Check
+    from scoring_engine.models.round import Round
+
+    # Single JOIN query to get passing checks with round numbers
+    # This avoids the N+1 query problem and reduces database load
+    passing_checks_with_rounds = (
+        db.session.query(Round.number)
+        .join(Check, Check.round_id == Round.id)
+        .filter(Check.service_id == service.id)
+        .filter(Check.result.is_(True))
+        .all()
+    )
+
+    if not passing_checks_with_rounds:
+        return 0
+
+    # Calculate total with multipliers
+    # Pre-fetch config values to avoid repeated attribute access in loop
+    total_score = 0
+    service_points = service.points
+    early_rounds = config.early_rounds
+    early_multiplier = config.early_multiplier
+    late_start = config.late_start_round
+    late_multiplier = config.late_multiplier
+
+    for (round_number,) in passing_checks_with_rounds:
+        # Inline multiplier calculation for performance
+        if round_number <= early_rounds:
+            multiplier = early_multiplier
+        elif round_number >= late_start:
+            multiplier = late_multiplier
+        else:
+            multiplier = 1.0
+        total_score += int(service_points * multiplier)
+
+    return total_score
+
+
 def calculate_service_penalty_points(service, config=None):
     """
     Calculate the total penalty points to deduct from a service's score.
@@ -250,8 +308,8 @@ def calculate_service_penalty_points(service, config=None):
     if penalty_percent == 0:
         return 0
 
-    # Calculate penalty based on the service's earned score
-    base_score = service.score_earned
+    # Calculate penalty based on the service's dynamic score (potential max score)
+    base_score = calculate_service_base_score_with_dynamic(service, config)
     penalty_points = int(base_score * (penalty_percent / 100))
 
     return penalty_points
@@ -271,7 +329,7 @@ def calculate_service_adjusted_score(service, config=None):
     if config is None:
         config = get_sla_config()
 
-    base_score = service.score_earned
+    base_score = calculate_service_base_score_with_dynamic(service, config)
     penalty_points = calculate_service_penalty_points(service, config)
 
     adjusted_score = base_score - penalty_points
@@ -316,6 +374,10 @@ def calculate_team_base_score_with_dynamic(team, config=None):
 
     Returns:
         Base score with dynamic multipliers applied per round
+
+    Performance: Uses a single JOIN query with GROUP BY to aggregate scores
+    per round, avoiding N+1 queries. Only fetches rounds with passing checks.
+    Critical for high-traffic scenarios during competitions.
     """
     if config is None:
         config = get_sla_config()
@@ -329,32 +391,39 @@ def calculate_team_base_score_with_dynamic(team, config=None):
     from scoring_engine.models.round import Round
     from scoring_engine.models.service import Service
 
-    # Query scores per round for this team
+    # Single query with JOIN to get round scores with round numbers
+    # Previously queried ALL rounds which was very inefficient
     round_scores = (
         db.session.query(
-            Check.round_id,
+            Round.number,
             func.sum(Service.points).label("round_score"),
         )
-        .join(Service)
+        .select_from(Check)
+        .join(Service, Check.service_id == Service.id)
+        .join(Round, Check.round_id == Round.id)
         .filter(Service.team_id == team.id)
         .filter(Check.result.is_(True))
-        .group_by(Check.round_id)
+        .group_by(Round.number)
         .all()
     )
 
-    # Get round numbers
-    rounds_map = {
-        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-    }
-
     # Calculate total with multipliers
+    # Pre-fetch config values to avoid repeated attribute access in loop
     total_score = 0
-    for round_id, round_score in round_scores:
-        round_number = rounds_map.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, config
-        )
-        total_score += adjusted_score
+    early_rounds = config.early_rounds
+    early_multiplier = config.early_multiplier
+    late_start = config.late_start_round
+    late_multiplier = config.late_multiplier
+
+    for round_number, round_score in round_scores:
+        # Inline multiplier calculation for performance
+        if round_number <= early_rounds:
+            multiplier = early_multiplier
+        elif round_number >= late_start:
+            multiplier = late_multiplier
+        else:
+            multiplier = 1.0
+        total_score += int(round_score * multiplier)
 
     return total_score
 
@@ -409,7 +478,7 @@ def get_service_sla_status(service, config=None):
         "penalty_threshold": config.penalty_threshold,
         "penalty_percent": penalty_percent,
         "penalty_points": penalty_points,
-        "base_score": service.score_earned,
+        "base_score": calculate_service_base_score_with_dynamic(service, config),
         "adjusted_score": calculate_service_adjusted_score(service, config),
         "sla_violation": consecutive_failures >= config.penalty_threshold,
     }

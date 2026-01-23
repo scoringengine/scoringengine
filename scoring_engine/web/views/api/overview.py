@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-import ranking
 from flask import jsonify
 from sqlalchemy import desc
 from sqlalchemy.sql import func
@@ -15,6 +14,25 @@ from scoring_engine.sla import (apply_dynamic_scoring_to_round,
                                 calculate_team_total_penalties, get_sla_config)
 
 from . import mod
+
+
+def calculate_ranks(score_dict):
+    """
+    Calculate ranks for a dict of {id: score} with tie handling.
+    Returns dict of {id: rank} where ties get the same rank.
+    """
+    if not score_dict:
+        return {}
+    sorted_items = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
+    ranks = {}
+    current_rank = 1
+    prev_score = None
+    for i, (item_id, score) in enumerate(sorted_items):
+        if prev_score is not None and score < prev_score:
+            current_rank = i + 1
+        ranks[item_id] = current_rank
+        prev_score = score
+    return ranks
 
 
 def get_table_columns():
@@ -189,12 +207,8 @@ def overview_get_data():
             adjusted_scores_dict if sla_config.sla_enabled else team_scores
         )
 
-        # Sort by adjusted score descending for ranking
-        sorted_scores = sorted(
-            scores_for_ranking.items(), key=lambda x: x[1], reverse=True
-        )
-        ranks = list(ranking.Ranking([s[1] for s in sorted_scores], start=1).ranks())
-        ranks_dict = dict(zip([s[0] for s in sorted_scores], ranks))
+        # Calculate ranks with tie handling
+        ranks_dict = calculate_ranks(scores_for_ranking)
 
         for blue_team_id in blue_team_ids:
             # Show adjusted score when SLA is enabled, base score otherwise

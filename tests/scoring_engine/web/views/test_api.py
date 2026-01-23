@@ -880,3 +880,382 @@ class TestAPI(WebTest):
         assert (
             team_score == 600
         ), f"Expected 600 with 3x multiplier in overview, got {team_score}"
+
+    def test_api_service_checks_shows_earned_score(self):
+        """Test that /api/service/{id}/checks returns earned_score and multiplier fields."""
+        self.login("testuser", "testpass")
+
+        # Enable dynamic scoring
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "20")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
+
+        team = self.session.query(Team).first()
+        service = Service(
+            name="Earned Score Test",
+            team=team,
+            check_name="HTTPCheck",
+            host="20.20.20.20",
+            port=80,
+            points=100,
+        )
+        self.session.add(service)
+        self.session.commit()
+
+        # Create checks in different phases:
+        # Round 2 (early): 2x multiplier, pass -> 200 earned
+        # Round 10 (normal): 1x multiplier, pass -> 100 earned
+        # Round 25 (late): 0.5x multiplier, fail -> 0 earned
+
+        round_early = Round(number=2)
+        self.session.add(round_early)
+        self.session.flush()
+        check_early = Check(service=service, round=round_early)
+        check_early.finished(True, "Pass", "ok", "command")
+        self.session.add(check_early)
+
+        round_normal = Round(number=10)
+        self.session.add(round_normal)
+        self.session.flush()
+        check_normal = Check(service=service, round=round_normal)
+        check_normal.finished(True, "Pass", "ok", "command")
+        self.session.add(check_normal)
+
+        round_late = Round(number=25)
+        self.session.add(round_late)
+        self.session.flush()
+        check_late = Check(service=service, round=round_late)
+        check_late.finished(False, "Fail", "fail", "command")
+        self.session.add(check_late)
+
+        self.session.commit()
+
+        resp = self.client.get(f"/api/service/{service.id}/checks")
+        assert resp.status_code == 200
+        data = resp.json["data"]
+
+        # Find checks by round number
+        check_data = {c["round"]: c for c in data}
+
+        # Early phase check (round 2): passed, 2x multiplier
+        assert "earned_score" in check_data[2]
+        assert "multiplier" in check_data[2]
+        assert check_data[2]["earned_score"] == 200
+        assert check_data[2]["multiplier"] == 2.0
+
+        # Normal phase check (round 10): passed, 1x multiplier
+        assert check_data[10]["earned_score"] == 100
+        assert check_data[10]["multiplier"] == 1.0
+
+        # Late phase check (round 25): failed, 0.5x multiplier but 0 earned
+        assert check_data[25]["earned_score"] == 0
+        assert check_data[25]["multiplier"] == 0.5
+
+    def test_api_service_checks_without_dynamic_scoring(self):
+        """Test that earned_score uses 1x multiplier when dynamic scoring is disabled."""
+        self.login("testuser", "testpass")
+
+        # Disable dynamic scoring
+        self.set_setting("dynamic_scoring_enabled", "False")
+
+        team = self.session.query(Team).first()
+        service = Service(
+            name="No Dynamic Test",
+            team=team,
+            check_name="HTTPCheck",
+            host="21.21.21.21",
+            port=80,
+            points=100,
+        )
+        self.session.add(service)
+        self.session.commit()
+
+        # Create a passing check in what would be "early" phase if enabled
+        round_obj = Round(number=1)
+        self.session.add(round_obj)
+        self.session.flush()
+        check = Check(service=service, round=round_obj)
+        check.finished(True, "Pass", "ok", "command")
+        self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get(f"/api/service/{service.id}/checks")
+        assert resp.status_code == 200
+        data = resp.json["data"]
+
+        # Without dynamic scoring, multiplier should be 1.0
+        assert data[0]["earned_score"] == 100
+        assert data[0]["multiplier"] == 1.0
+
+    def test_api_service_checks_with_sla_penalty(self):
+        """Test that per-check earned_score reflects SLA penalty based on consecutive failures."""
+        self.login("testuser", "testpass")
+
+        # Enable SLA with threshold=1, 10% penalty, additive mode
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "1")
+        self.set_setting("sla_penalty_percent", "10")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("dynamic_scoring_enabled", "False")
+
+        team = self.session.query(Team).first()
+        service = Service(
+            name="SLA Penalty Test",
+            team=team,
+            check_name="ICMPCheck",
+            host="30.30.30.30",
+            port=0,
+            points=100,
+        )
+        self.session.add(service)
+        self.session.commit()
+
+        # Create check history: 3 failures, then 1 pass
+        # Round 1: Fail
+        # Round 2: Fail
+        # Round 3: Fail
+        # Round 4: Pass (should have 30% penalty: (3-1+1)*10% = 30%)
+        for i in range(1, 5):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            self.session.flush()
+            result = i == 4  # Only round 4 passes
+            check = Check(service=service, round=round_obj)
+            check.finished(result, "Test", "ok", "command")
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get(f"/api/service/{service.id}/checks")
+        assert resp.status_code == 200
+        data = resp.json["data"]
+
+        # Data is returned in descending order (most recent first)
+        # Round 4 (index 0): Pass with 30% penalty = 70 earned
+        assert data[0]["round"] == 4
+        assert data[0]["result"] is True
+        assert data[0]["earned_score"] == 70, f"Expected 70 (100 - 30% penalty), got {data[0]['earned_score']}"
+        assert data[0]["sla_penalty"] == 30
+
+        # Round 3, 2, 1: All failures with 0 earned
+        for i, round_num in enumerate([3, 2, 1], start=1):
+            assert data[i]["round"] == round_num
+            assert data[i]["result"] is False
+            assert data[i]["earned_score"] == 0
+            assert data[i]["sla_penalty"] == 0
+
+    def test_api_scoreboard_combined_dynamic_and_sla(self):
+        """Test scoreboard API with both dynamic scoring AND SLA penalties enabled."""
+
+        # Enable both features
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "3")
+        self.set_setting("sla_penalty_percent", "20")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("sla_allow_negative", "False")
+
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "20")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
+
+        # Create a team
+        team = Team(name="Combined Test Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="Combined Service",
+            team=team,
+            check_name="HTTPCheck",
+            host="22.22.22.22",
+            port=80,
+            points=100,
+        )
+        self.session.add(service)
+        self.session.commit()
+
+        # Create 8 rounds (all early phase with 2x multiplier)
+        # Rounds 1-3: pass (3 * 100 * 2 = 600)
+        # Rounds 4-8: fail (5 consecutive failures, penalty at threshold)
+        for i in range(1, 9):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            self.session.flush()
+            result = i <= 3  # First 3 pass, then 5 fail
+            check = Check(
+                service=service, round=round_obj, result=result, output="test", completed=True
+            )
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Both features should be reported as enabled
+        assert data["sla_enabled"] is True
+
+        team_idx = data["labels"].index("Combined Test Team")
+
+        # Dynamic base score: 3 passing * 100 pts * 2x = 600
+        base_score = int(data["service_scores"][team_idx])
+        assert base_score == 600, f"Expected 600 base (3*100*2), got {base_score}"
+
+        # Penalty calculation:
+        # Dynamic score: 3 * 100 * 2 = 600
+        # 5 consecutive failures, threshold 3 = 2 over
+        # Penalty = (2+1)*20% = 60% (capped at 50%)
+        # Penalty = 600 * 50% = 300 (based on dynamic score)
+        penalty = int(data["sla_penalties"][team_idx])
+        assert penalty == 300, f"Expected 300 penalty (50% of 600 dynamic), got {penalty}"
+
+        # Adjusted score: 600 - 300 = 300
+        adjusted = int(data["adjusted_scores"][team_idx])
+        assert adjusted == 300, f"Expected 300 adjusted (600-300), got {adjusted}"
+
+    def test_api_scoreboard_combined_multiple_phases(self):
+        """Test scoreboard with combined features across multiple scoring phases."""
+
+        # Enable both features
+        self.set_setting("sla_enabled", "True")
+        self.set_setting("sla_penalty_threshold", "5")
+        self.set_setting("sla_penalty_percent", "10")
+        self.set_setting("sla_penalty_max_percent", "50")
+        self.set_setting("sla_penalty_mode", "additive")
+        self.set_setting("sla_allow_negative", "False")
+
+        self.set_setting("dynamic_scoring_enabled", "True")
+        self.set_setting("dynamic_scoring_early_rounds", "5")
+        self.set_setting("dynamic_scoring_early_multiplier", "2.0")
+        self.set_setting("dynamic_scoring_late_start_round", "10")
+        self.set_setting("dynamic_scoring_late_multiplier", "0.5")
+
+        team = Team(name="Multi Phase Team", color="Blue")
+        self.session.add(team)
+        self.session.commit()
+
+        service = Service(
+            name="Phase Service",
+            team=team,
+            check_name="SSHCheck",
+            host="23.23.23.23",
+            port=22,
+            points=100,
+        )
+        self.session.add(service)
+        self.session.commit()
+
+        # Create 15 rounds spanning all phases
+        # Rounds 1-5: early (2x) - all pass = 5*100*2 = 1000
+        # Rounds 6-9: normal (1x) - all pass = 4*100*1 = 400
+        # Rounds 10-15: late (0.5x) - first pass then 5 fail = 1*100*0.5 = 50
+        # Total dynamic base: 1000 + 400 + 50 = 1450
+        #
+        # 5 consecutive failures at threshold = 10% penalty
+        # Penalty: 1450 * 10% = 145 (based on dynamic score)
+        # Adjusted: 1450 - 145 = 1305
+
+        for i in range(1, 16):
+            round_obj = Round(number=i)
+            self.session.add(round_obj)
+            self.session.flush()
+            # Pass for rounds 1-10, fail for 11-15
+            result = i <= 10
+            check = Check(
+                service=service, round=round_obj, result=result, output="test", completed=True
+            )
+            self.session.add(check)
+        self.session.commit()
+
+        resp = self.client.get("/api/scoreboard/get_bar_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        team_idx = data["labels"].index("Multi Phase Team")
+
+        # Verify dynamic base score with phase multipliers
+        base_score = int(data["service_scores"][team_idx])
+        assert base_score == 1450, f"Expected 1450 base (1000+400+50), got {base_score}"
+
+        # Verify penalty (5 failures at threshold = 10% of dynamic score)
+        penalty = int(data["sla_penalties"][team_idx])
+        assert penalty == 145, f"Expected 145 penalty (10% of 1450 dynamic), got {penalty}"
+
+        # Verify adjusted score
+        adjusted = int(data["adjusted_scores"][team_idx])
+        assert adjusted == 1305, f"Expected 1305 adjusted (1450-145), got {adjusted}"
+
+    def test_ranking_with_ties(self):
+        """Test that teams with the same score get the same rank."""
+        self.login("testuser", "testpass")
+
+        # Create 4 teams with scores that will result in ties
+        # Team A: 200 points (rank 1)
+        # Team B: 150 points (rank 2, tied)
+        # Team C: 150 points (rank 2, tied)
+        # Team D: 100 points (rank 4, skipping 3 due to tie)
+        teams_data = [
+            ("Team A", 2),   # 2 passes * 100 = 200
+            ("Team B", 1),   # 1 pass * 100 = 100... wait, need to recalculate
+            ("Team C", 1),   # 1 pass * 100 = 100
+            ("Team D", 0),   # 0 passes = 0
+        ]
+
+        # Actually, let's make this simpler - use points per service to control scores
+        team_a = Team(name="Rank Team A", color="Blue")
+        team_b = Team(name="Rank Team B", color="Blue")
+        team_c = Team(name="Rank Team C", color="Blue")
+        team_d = Team(name="Rank Team D", color="Blue")
+        self.session.add_all([team_a, team_b, team_c, team_d])
+        self.session.commit()
+
+        # Create services with same name but different teams
+        # This tests the per-service ranking in /api/team/{id}/services
+        for team, points in [(team_a, 200), (team_b, 150), (team_c, 150), (team_d, 100)]:
+            service = Service(
+                name="Rank Test Service",
+                team=team,
+                check_name="HTTPCheck",
+                host="40.40.40.40",
+                port=80,
+                points=points,
+            )
+            self.session.add(service)
+        self.session.commit()
+
+        # Create a round with passing checks for all teams
+        round_obj = Round(number=1)
+        self.session.add(round_obj)
+        self.session.flush()
+
+        for team in [team_a, team_b, team_c, team_d]:
+            service = self.session.query(Service).filter(
+                Service.team_id == team.id,
+                Service.name == "Rank Test Service"
+            ).first()
+            check = Check(service=service, round=round_obj)
+            check.finished(True, "Pass", "ok", "cmd")
+            self.session.add(check)
+        self.session.commit()
+
+        # Now test that rankings are correct
+        # Team A: 200 -> rank 1
+        # Team B: 150 -> rank 2 (tied)
+        # Team C: 150 -> rank 2 (tied)
+        # Team D: 100 -> rank 4 (skips 3)
+
+        # Test via the Service.rank property
+        service_a = self.session.query(Service).filter(Service.team_id == team_a.id).first()
+        service_b = self.session.query(Service).filter(Service.team_id == team_b.id).first()
+        service_c = self.session.query(Service).filter(Service.team_id == team_c.id).first()
+        service_d = self.session.query(Service).filter(Service.team_id == team_d.id).first()
+
+        assert service_a.rank == 1, f"Team A should be rank 1, got {service_a.rank}"
+        assert service_b.rank == 2, f"Team B should be rank 2 (tied), got {service_b.rank}"
+        assert service_c.rank == 2, f"Team C should be rank 2 (tied), got {service_c.rank}"
+        assert service_d.rank == 4, f"Team D should be rank 4 (after tie), got {service_d.rank}"
