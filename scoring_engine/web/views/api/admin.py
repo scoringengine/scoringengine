@@ -351,6 +351,7 @@ def admin_update_blueteam_view_status_page():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_view_status_page")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
