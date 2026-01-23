@@ -16,8 +16,10 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
+from scoring_engine.sla import get_sla_config, calculate_round_multiplier, calculate_sla_penalty_percent
 
 from . import make_cache_key, mod
+
 
 def is_valid_user_input(string, only_alphanumberdot, only_number):
     if only_alphanumberdot:
@@ -30,6 +32,7 @@ def is_valid_user_input(string, only_alphanumberdot, only_number):
             return False
     return bool(re.match(regex, string))
 
+
 @mod.route("/api/service/<service_id>/checks")
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
@@ -37,26 +40,66 @@ def service_get_checks(service_id):
     service = db.session.get(Service, service_id)
     if service is None or not (current_user.team == service.team or current_user.team.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
-    data = []
+
+    # Query checks ordered by round number ascending for penalty calculation
     check_output = (
         db.session.query(Check, Round.number)
         .join(Round)
         .filter(Check.service_id == service_id)
-        .order_by(Check.id.desc())
+        .order_by(Round.number.asc())
         .all()
     )
-    data = [
-        {
-            "id": check[0].id,
-            "round": check[1],
-            "result": check[0].result,
-            "timestamp": check[0].local_completed_timestamp,
-            "reason": check[0].reason,
-            "output": check[0].output,
-            "command": check[0].command,
-        }
-        for check in check_output
-    ]
+
+    # Get SLA config for dynamic scoring and penalties
+    sla_config = get_sla_config()
+    service_points = service.points
+    sla_enabled = sla_config.sla_enabled
+
+    # Process checks in chronological order to track consecutive failures
+    data = []
+    consecutive_failures = 0
+
+    for check, round_number in check_output:
+        # Calculate the round multiplier
+        multiplier = calculate_round_multiplier(round_number, sla_config)
+
+        # Calculate earned score for this check
+        if check.result:
+            # Base earned score with multiplier
+            base_earned = int(service_points * multiplier)
+
+            # Apply SLA penalty based on consecutive failures at this point
+            if sla_enabled and consecutive_failures > 0:
+                penalty_percent = calculate_sla_penalty_percent(consecutive_failures, sla_config)
+                earned_score = int(base_earned * (100 - penalty_percent) / 100)
+                sla_penalty_applied = penalty_percent
+            else:
+                earned_score = base_earned
+                sla_penalty_applied = 0
+
+            # Reset consecutive failures after a pass
+            consecutive_failures = 0
+        else:
+            earned_score = 0
+            sla_penalty_applied = 0
+            consecutive_failures += 1
+
+        data.append({
+            "id": check.id,
+            "round": round_number,
+            "result": check.result,
+            "earned_score": earned_score,
+            "multiplier": multiplier,
+            "sla_penalty": sla_penalty_applied,
+            "timestamp": check.local_completed_timestamp,
+            "reason": check.reason,
+            "output": check.output,
+            "command": check.command,
+        })
+
+    # Reverse to show most recent first (descending order)
+    data.reverse()
+
     if Setting.get_setting("blue_team_view_check_output").value is False and current_user.is_blue_team:
         for check in data:
             check["output"] = "REDACTED"
@@ -73,12 +116,12 @@ def update_service_account_info():
                     modify_usernames_setting = Setting.get_setting("blue_team_update_account_usernames")
                     if modify_usernames_setting.value is False and current_user.is_blue_team:
                         return jsonify({"error": "Incorrect permissions"})
-    
+
                 elif request.form["name"] == "password":
                     modify_passwords_setting = Setting.get_setting("blue_team_update_account_passwords")
                     if modify_passwords_setting.value is False and current_user.is_blue_team:
                         return jsonify({"error": "Incorrect permissions"})
-    
+
                 account = db.session.query(Account).get(int(request.form["pk"]))
                 if account:
                     if current_user.team == account.service.team or current_user.is_white_team:
@@ -92,7 +135,6 @@ def update_service_account_info():
             else:
                 return jsonify({"error": "Invalid input characters detected"})
 
-
     return jsonify({"error": "Incorrect permissions"})
 
 
@@ -105,7 +147,7 @@ def update_host():
                 modify_hostname_setting = Setting.get_setting("blue_team_update_hostname")
                 if modify_hostname_setting.value is False and current_user.is_blue_team:
                     return jsonify({"error": "Incorrect permissions"})
-    
+
                 service = db.session.query(Service).get(int(request.form["pk"]))
                 if service:
                     if (service.team == current_user.team or current_user.is_white_team) and request.form["name"] == "host":
@@ -131,7 +173,7 @@ def update_port():
                 modify_port_setting = Setting.get_setting("blue_team_update_port")
                 if modify_port_setting.value is False and current_user.is_blue_team:
                     return jsonify({"error": "Incorrect permissions"})
-    
+
                 service = db.session.query(Service).get(int(request.form["pk"]))
                 if service:
                     if (service.team == current_user.team or current_user.is_white_team) and request.form["name"] == "port":

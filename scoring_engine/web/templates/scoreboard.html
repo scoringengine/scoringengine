@@ -21,47 +21,101 @@
 
         const serviceScores = [];
         const injectScores = [];
-        // const totalScores = [];
+        const slaPenalties = [];
+        let slaEnabled = false;
 
         $.getJSON('/api/scoreboard/get_bar_data')
             .done(function (data) {
+                slaEnabled = data.sla_enabled || false;
+
                 // Service Scores
                 echarts.util.each(data.service_scores, function (score, index) {
                     serviceScores.push({
                         value: score,
-                        // itemStyle: {
-                        //     color: '#5470c6'
-                        // }
                     });
                 });
                 // Inject Scores
                 echarts.util.each(data.inject_scores, function (score, index) {
                     injectScores.push({
                         value: score,
-                        // itemStyle: {
-                        //     color: '#ee6666'
-                        // }
                     });
                 });
-                // Total
-                // for( var i = 0; i < serviceScores.length; i++)
-                // {
-                //     // Unary to convert to number
-                //     totalScores.push(+serviceScores[i].value + +injectScores[i].value);
-                // }
+                // SLA Penalties (as negative values for visual effect)
+                if (slaEnabled && data.sla_penalties) {
+                    echarts.util.each(data.sla_penalties, function (penalty, index) {
+                        slaPenalties.push({
+                            value: -Math.abs(parseInt(penalty) || 0),
+                            itemStyle: {
+                                color: '#c23531'
+                            }
+                        });
+                    });
+                }
+
+                // Build series array
+                var seriesData = [
+                    {
+                        name: 'Services',
+                        data: serviceScores,
+                        type: 'bar',
+                        stack: 'positive',
+                    },
+                    {
+                        name: 'Injects',
+                        data: injectScores,
+                        type: 'bar',
+                        stack: 'positive',
+                    }
+                ];
+
+                // Add SLA penalties series when enabled
+                if (slaEnabled && slaPenalties.length > 0) {
+                    seriesData.push({
+                        name: 'SLA Penalties',
+                        data: slaPenalties,
+                        type: 'bar',
+                        stack: 'negative',
+                        itemStyle: {
+                            color: '#c23531'
+                        }
+                    });
+                }
+
                 teamBarChart.hideLoading();
                 teamBarChart.setOption({
                     title: {
-                        text: 'Total Scores',
+                        text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
                         x: 'center',
                     },
                     tooltip: {
-                        trigger: 'axis'
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            var result = params[0].name + '<br/>';
+                            var total = 0;
+                            params.forEach(function(item) {
+                                var value = Math.abs(item.value) || 0;
+                                var sign = item.seriesName === 'SLA Penalties' ? '-' : '+';
+                                if (item.seriesName === 'SLA Penalties') {
+                                    result += item.marker + item.seriesName + ': <span style="color:#c23531">-' + value + '</span><br/>';
+                                    total -= value;
+                                } else {
+                                    result += item.marker + item.seriesName + ': ' + value + '<br/>';
+                                    total += value;
+                                }
+                            });
+                            result += '<strong>Adjusted Total: ' + total + '</strong>';
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: slaEnabled ? ['Services', 'Injects', 'SLA Penalties'] : ['Services', 'Injects'],
+                        top: 30
                     },
                     grid: {
                         left: '3%',
                         right: '4%',
                         bottom: '3%',
+                        top: '15%',
                         containLabel: true
                     },
                     xAxis: [
@@ -73,33 +127,7 @@
                     yAxis: {
                         type: 'value'
                     },
-                    series: [
-                        {
-                            name: 'Services',
-                            data: serviceScores,
-                            type: 'bar',
-                            stack: 'x',
-                            // label: {
-                            //     show: true
-                            // },
-                        },
-                        {
-                            name: 'Injects',
-                            data: injectScores,
-                            type: 'bar',
-                            stack: 'x',
-                            // label: {
-                            //     show: true
-                            // },
-
-                        },
-                        // {
-                        //     name: 'Total',
-                        //     data: totalScores,
-                        //     type: 'bar',
-                        //     stack: 'x',
-                        // },
-                    ]
+                    series: seriesData
                 });
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -111,7 +139,10 @@
         setInterval(function () {
             const serviceScores = [];
             const injectScores = [];
+            const slaPenalties = [];
             $.get('/api/scoreboard/get_bar_data').done(function (data) {
+                const slaEnabled = data.sla_enabled || false;
+
                 // Service Scores
                 echarts.util.each(data.service_scores, function (score, index) {
                     serviceScores.push({
@@ -124,11 +155,31 @@
                         value: score,
                     });
                 });
+                // SLA Penalties
+                if (slaEnabled && data.sla_penalties) {
+                    echarts.util.each(data.sla_penalties, function (penalty, index) {
+                        slaPenalties.push({
+                            value: -Math.abs(parseInt(penalty) || 0),
+                            itemStyle: {
+                                color: '#c23531'
+                            }
+                        });
+                    });
+                }
+
+                var seriesUpdate = [
+                    { data: serviceScores },
+                    { data: injectScores }
+                ];
+                if (slaEnabled && slaPenalties.length > 0) {
+                    seriesUpdate.push({ data: slaPenalties });
+                }
+
                 teamBarChart.setOption({
-                    series: [
-                        { data: serviceScores },
-                        { data: injectScores }
-                    ]
+                    title: {
+                        text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
+                    },
+                    series: seriesUpdate
                 });
             });
         }, 30000);

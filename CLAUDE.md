@@ -121,7 +121,7 @@ scoringengine/
 ├── README.md                # Project README
 ├── VERSION_MANAGEMENT.md    # Version management guide
 ├── AGENTS.md                # Basic agent guidelines
-└── claude.md                # Previous AI assistant guide (lowercase)
+└── CLAUDE.md                # AI assistant guide (this file)
 ```
 
 ## Key Components Deep Dive
@@ -787,14 +787,30 @@ cache.clear()
 ```
 
 **Settings Cache:**
+
+The `Setting` model uses an in-memory cache with a 60-second TTL. **IMPORTANT**: When modifying settings programmatically, you MUST clear the cache for changes to take effect immediately:
+
 ```python
 from scoring_engine.models.setting import Setting
 
-# Automatically cached
-value = Setting.get_setting('setting_name')
+# Get setting (automatically cached)
+value = Setting.get_setting('setting_name').value
 
-# Cache is invalidated when settings change
+# Modify a setting - ALWAYS clear cache after commit!
+setting = Setting.get_setting('sla_enabled')
+setting.value = True
+db.session.commit()
+Setting.clear_cache('sla_enabled')  # Clear specific setting
+
+# Or clear ALL settings cache (recommended for multiple changes)
+Setting.clear_cache()  # No argument = clear entire cache
 ```
+
+**Cache Clearing Rules:**
+- After modifying ANY `Setting` value, call `Setting.clear_cache()` or `Setting.clear_cache('setting_name')`
+- In tests, always clear the full cache with `Setting.clear_cache()` before assertions
+- The web API endpoints handle cache clearing automatically after updates
+- Cache TTL is 60 seconds, so without clearing, stale values may persist
 
 **Scoreboard Cache:**
 ```python
@@ -915,6 +931,130 @@ elif current_user.is_red_team:
 - **White Team**: Competition organizers (full access)
 - **Blue Team**: Defenders (view own services, submit flags)
 - **Red Team**: Attackers (different scoring, agent checks)
+
+## Performance Considerations
+
+**CRITICAL**: During competitions, teams may hit the server with thousands of requests per second. Performance optimization is essential for all API endpoints and scoring calculations.
+
+### High-Traffic Endpoints
+
+The following endpoints receive heavy traffic during competitions:
+- `/api/overview/get_data` - Scoreboard data (public, polled frequently)
+- `/api/team/<id>/services` - Team services status
+- `/api/service/<id>/checks` - Service check history
+- `/api/scoreboard/*` - Various scoreboard endpoints
+
+### Database Query Optimization
+
+**Use JOINs instead of multiple queries:**
+```python
+# BAD: N+1 query problem
+for service in services:
+    checks = Check.query.filter_by(service_id=service.id).all()
+
+# GOOD: Single query with JOIN
+service_check_data = (
+    db.session.query(Service.team_id, Service.name, Service.points, Round.number, Check.result)
+    .select_from(Check)
+    .join(Service, Check.service_id == Service.id)
+    .join(Round, Check.round_id == Round.id)
+    .all()
+)
+```
+
+**Pre-fetch config values:**
+```python
+# BAD: Repeated function calls in loop
+for check in checks:
+    multiplier = calculate_round_multiplier(round_number, get_sla_config())
+
+# GOOD: Fetch once, use inline
+sla_config = get_sla_config()
+early_rounds = sla_config.early_rounds
+early_multiplier = sla_config.early_multiplier
+late_start = sla_config.late_start_round
+late_multiplier = sla_config.late_multiplier
+
+for check in checks:
+    # Inline multiplier calculation
+    if round_number <= early_rounds:
+        multiplier = early_multiplier
+    elif round_number >= late_start:
+        multiplier = late_multiplier
+    else:
+        multiplier = 1.0
+```
+
+### Ranking Calculations
+
+**Use simple custom ranking instead of external libraries:**
+```python
+def calculate_ranks(score_dict):
+    """
+    Calculate ranks for a dict of {id: score} with tie handling.
+    Returns dict of {id: rank} where ties get the same rank.
+    E.g., scores [100, 90, 90, 80] -> ranks [1, 2, 2, 4]
+    """
+    if not score_dict:
+        return {}
+    sorted_items = sorted(score_dict.items(), key=lambda x: x[1], reverse=True)
+    ranks = {}
+    current_rank = 1
+    prev_score = None
+    for i, (item_id, score) in enumerate(sorted_items):
+        if prev_score is not None and score < prev_score:
+            current_rank = i + 1  # Skip ranks for ties
+        ranks[item_id] = current_rank
+        prev_score = score
+    return ranks
+```
+
+This custom implementation is used in:
+- `scoring_engine/web/views/api/team.py`
+- `scoring_engine/web/views/api/overview.py`
+- `scoring_engine/models/service.py`
+- `scoring_engine/models/team.py`
+
+### Caching Strategy
+
+**Flask-Caching with Redis:**
+- Use `@cache.cached()` or `@cache.memoize()` decorators on expensive endpoints
+- Cache is invalidated after each round via `cache_helper.py`
+- Settings use in-memory cache with 60-second TTL
+
+**Settings Cache Management:**
+```python
+from scoring_engine.models.setting import Setting
+
+# Get setting (automatically cached for 60 seconds)
+value = Setting.get_setting('setting_name').value
+
+# After modifying settings, ALWAYS clear cache
+setting = Setting.get_setting('sla_enabled')
+setting.value = True
+db.session.commit()
+Setting.clear_cache('sla_enabled')  # Clear specific setting
+# OR
+Setting.clear_cache()  # Clear entire settings cache
+```
+
+### SLA and Dynamic Scoring
+
+The SLA penalty and dynamic scoring system (`scoring_engine/sla.py`) applies:
+1. **Dynamic multipliers** per round (early=2x, normal=1x, late=0.5x)
+2. **SLA penalties** for consecutive service failures
+
+**Score calculation order**: `base_points × multiplier - penalties`
+
+For per-check display, penalties are tracked chronologically based on consecutive failures at the time of each check.
+
+### Performance Anti-Patterns to Avoid
+
+- ❌ Querying inside loops (N+1 problem)
+- ❌ Calling `get_sla_config()` repeatedly in loops
+- ❌ Using external libraries for simple calculations (like ranking)
+- ❌ Loading full objects when only IDs/counts are needed
+- ❌ Forgetting to clear settings cache after modifications
 
 ## Security Considerations
 
@@ -1102,6 +1242,7 @@ logger.error("Error message")
 | Add documentation | `docs/source/` |
 | Change version | `bump-my-version bump [patch\|minor\|major]` |
 | Modify CI/CD | `.github/workflows/` |
+| Modify SLA/dynamic scoring | `scoring_engine/sla.py`, `scoring_engine/web/views/api/sla.py` |
 
 ## Important Files to Know
 
@@ -1129,6 +1270,7 @@ logger.error("Error message")
 - **scoring_engine/cache.py**: Flask-Caching setup
 - **scoring_engine/cache_helper.py**: Cache update utilities
 - **scoring_engine/competition.py**: YAML parsing and loading
+- **scoring_engine/sla.py**: SLA penalties and dynamic scoring logic
 - **scoring_engine/version.py**: Version string
 
 ### Documentation

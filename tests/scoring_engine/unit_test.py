@@ -45,4 +45,17 @@ class UnitTest(object):
         db.session.add(Setting(name="blue_team_update_account_passwords", value=True))
         db.session.add(Setting(name="blue_team_view_check_output", value=True))
         db.session.add(Setting(name="overview_show_round_info", value=True))
+        # SLA Penalty Settings
+        db.session.add(Setting(name="sla_enabled", value=False))
+        db.session.add(Setting(name="sla_penalty_threshold", value="5"))
+        db.session.add(Setting(name="sla_penalty_percent", value="10"))
+        db.session.add(Setting(name="sla_penalty_max_percent", value="50"))
+        db.session.add(Setting(name="sla_penalty_mode", value="additive"))
+        db.session.add(Setting(name="sla_allow_negative", value=False))
+        # Dynamic Scoring Settings
+        db.session.add(Setting(name="dynamic_scoring_enabled", value=False))
+        db.session.add(Setting(name="dynamic_scoring_early_rounds", value="10"))
+        db.session.add(Setting(name="dynamic_scoring_early_multiplier", value="2.0"))
+        db.session.add(Setting(name="dynamic_scoring_late_start_round", value="50"))
+        db.session.add(Setting(name="dynamic_scoring_late_multiplier", value="0.5"))
         db.session.commit()

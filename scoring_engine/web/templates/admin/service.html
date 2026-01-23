@@ -161,6 +161,7 @@ No Environments Found.
       <th class="details-control sorting_disabled" rowspan="1" colspan="1" style="width: 51.1px;" aria-label=""></th>
       <th>Round</th>
       <th>Result</th>
+      <th>Earned</th>
       <th>Reason</th>
       <th>Command</th>
       <th>Timestamp</th>
@@ -184,7 +185,7 @@ No Environments Found.
       },
       {
         "data": "round",
-        "width": "10%"
+        "width": "8%"
       },
       {
         "data": "result",
@@ -198,19 +199,33 @@ No Environments Found.
         }
       },
       {
+        "data": "earned_score",
+        "width": "10%",
+        "render": function (data, type, row) {
+          var modifierText = '';
+          if (row.multiplier != 1.0) {
+            modifierText += ' <small class="text-muted">(' + row.multiplier + 'x)</small>';
+          }
+          if (row.sla_penalty > 0) {
+            modifierText += ' <small class="text-danger">(-' + row.sla_penalty + '%)</small>';
+          }
+          return data + modifierText;
+        }
+      },
+      {
         "data": "reason",
-        "width": "30%",
+        "width": "25%",
         "render": function (data, type, row) {
           return "<a href=\"#\" class=\"editable-textfield\" data-type=\"text\" data-pk=\"" + row['id'] + "\" data-title=\"Enter Reason\" data-url=\"{{url_for('api.admin_update_check')}}\" data-name='check_reason'>" + data + "</a>"
         }
       },
       {
         "data": "command",
-        "width": "20%",
+        "width": "17%",
       },
       {
         "data": "timestamp",
-        "width": "30%",
+        "width": "20%",
       }
       ],
       'paging': true,

@@ -143,6 +143,7 @@
               <th></th>
               <th>Round</th>
               <th>Result</th>
+              <th>Earned</th>
               <th>Reason</th>
               <th>Timestamp</th>
             </tr>
@@ -215,6 +216,19 @@
                       "data": "result",
                       "render": function( data ) {
                         return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                      }
+                    },
+                    {
+                      "data": "earned_score",
+                      "render": function( data, type, row ) {
+                        var modifierText = '';
+                        if (row.multiplier != 1.0) {
+                          modifierText += ' <small class="text-muted">(' + row.multiplier + 'x)</small>';
+                        }
+                        if (row.sla_penalty > 0) {
+                          modifierText += ' <small class="text-danger">(-' + row.sla_penalty + '%)</small>';
+                        }
+                        return data + modifierText;
                       }
                     },
                     { "data": "reason"},

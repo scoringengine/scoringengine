@@ -1,11 +1,30 @@
-import ranking
-
 from sqlalchemy import Column, Integer, String, ForeignKey, desc, func
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
 from scoring_engine.db import db
+
+
+def _get_rank_from_scores(scores, target_id):
+    """
+    Get rank for target_id from list of (id, score) tuples.
+    Handles ties: same score = same rank.
+    Returns None if target_id not in scores.
+    """
+    if not scores or target_id not in [s[0] for s in scores]:
+        return None
+
+    # scores are already sorted descending by the query
+    current_rank = 1
+    prev_score = None
+    for i, (item_id, score) in enumerate(scores):
+        if prev_score is not None and score < prev_score:
+            current_rank = i + 1
+        if item_id == target_id:
+            return current_rank
+        prev_score = score
+    return None
 
 
 class Service(Base):
@@ -86,20 +105,8 @@ class Service(Base):
             .all()
         )
 
-        # If there are no scores, return None
-        if not scores:
-            return None
-
-        ranks = list(
-            ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
-        )  # [1, 2, 2, 4, 5]
-        team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
-
-        # If the team is not in the list, return None
-        if self.team_id not in team_ids:
-            return None
-
-        return ranks[team_ids.index(self.team_id)]
+        # Scores are already sorted descending by the query
+        return _get_rank_from_scores(scores, self.team_id)
 
     @property
     def score_earned(self):
@@ -143,3 +150,50 @@ class Service(Base):
             .limit(10)
             .all()
         )
+
+    @property
+    def consecutive_failures(self):
+        """
+        Count consecutive failures for this service from the most recent check.
+        Returns 0 if the most recent check passed.
+        """
+        from scoring_engine.sla import get_consecutive_failures
+
+        return get_consecutive_failures(self.id)
+
+    @property
+    def sla_penalty_percent(self):
+        """
+        Get the current SLA penalty percentage for this service.
+        """
+        from scoring_engine.sla import calculate_sla_penalty_percent, get_sla_config
+
+        config = get_sla_config()
+        return calculate_sla_penalty_percent(self.consecutive_failures, config)
+
+    @property
+    def sla_penalty_points(self):
+        """
+        Get the penalty points to deduct from this service's score.
+        """
+        from scoring_engine.sla import calculate_service_penalty_points
+
+        return calculate_service_penalty_points(self)
+
+    @property
+    def adjusted_score(self):
+        """
+        Get the score for this service after applying SLA penalties.
+        """
+        from scoring_engine.sla import calculate_service_adjusted_score
+
+        return calculate_service_adjusted_score(self)
+
+    @property
+    def sla_status(self):
+        """
+        Get comprehensive SLA status for this service.
+        """
+        from scoring_engine.sla import get_service_sla_status
+
+        return get_service_sla_status(self)

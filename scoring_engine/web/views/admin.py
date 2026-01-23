@@ -155,3 +155,45 @@ def permissions():
         )
     else:
         return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/sla")
+@login_required
+def sla():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+
+        # Get SLA settings with defaults
+        def get_setting_value(name, default):
+            setting = Setting.get_setting(name)
+            return setting.value if setting else default
+
+        def get_setting_bool(name, default):
+            setting = Setting.get_setting(name)
+            if setting:
+                val = setting.value
+                if isinstance(val, bool):
+                    return val
+                if isinstance(val, str):
+                    return val.lower() in ("true", "1", "yes")
+            return default
+
+        return render_template(
+            "admin/sla.html",
+            blue_teams=blue_teams,
+            # SLA Penalty settings
+            sla_enabled=get_setting_bool("sla_enabled", False),
+            sla_penalty_threshold=get_setting_value("sla_penalty_threshold", "5"),
+            sla_penalty_percent=get_setting_value("sla_penalty_percent", "10"),
+            sla_penalty_max_percent=get_setting_value("sla_penalty_max_percent", "50"),
+            sla_penalty_mode=get_setting_value("sla_penalty_mode", "additive"),
+            sla_allow_negative=get_setting_bool("sla_allow_negative", False),
+            # Dynamic scoring settings
+            dynamic_scoring_enabled=get_setting_bool("dynamic_scoring_enabled", False),
+            dynamic_scoring_early_rounds=get_setting_value("dynamic_scoring_early_rounds", "10"),
+            dynamic_scoring_early_multiplier=get_setting_value("dynamic_scoring_early_multiplier", "2.0"),
+            dynamic_scoring_late_start_round=get_setting_value("dynamic_scoring_late_start_round", "50"),
+            dynamic_scoring_late_multiplier=get_setting_value("dynamic_scoring_late_multiplier", "0.5"),
+        )
+    else:
+        return redirect(url_for("auth.unauthorized"))
