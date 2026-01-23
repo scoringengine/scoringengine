@@ -40,3 +40,25 @@ Download = "https://github.com/scoringengine/scoringengine/archive/master.zip"
 
 [tool.setuptools.packages.find]
 include = ["scoring_engine*" ]
+
+[tool.bumpversion]
+current_version = "1.2.0"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+message = "Bump version: {current_version} → {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "setup.py"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "scoring_engine/version.py"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
