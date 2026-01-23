@@ -54,11 +54,17 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
-filename = "setup.py"
-search = '"version": "{current_version}"'
-replace = '"version": "{new_version}"'
-
-[[tool.bumpversion.files]]
 filename = "scoring_engine/version.py"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
+
+[tool.flake8]
+exclude = [".git", "*__init__.py"]
+ignore = ["E501"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.black]
+line-length = 120
