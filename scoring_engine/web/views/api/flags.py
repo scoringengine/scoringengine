@@ -10,7 +10,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.flag import Flag, Solve
 from scoring_engine.models.setting import Setting
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from . import make_cache_key, mod
 
@@ -23,7 +23,8 @@ def api_flags():
     if team is None or not current_user.team == team or not (current_user.is_red_team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
-    now = datetime.utcnow()
+    # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     flags = (
         db.session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
@@ -55,7 +56,8 @@ def api_flags_solves():
         return jsonify({"status": "Unauthorized"}), 403
 
     # Get all flags and teams
-    now = datetime.utcnow()
+    # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     active_flags = db.session.query(Flag).filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
     active_flag_ids = [flag.id for flag in active_flags]
 

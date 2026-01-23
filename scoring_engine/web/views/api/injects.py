@@ -1,7 +1,7 @@
 import os
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import g, request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
@@ -16,6 +16,25 @@ from scoring_engine.models.inject import Template, Inject, File, Comment
 from . import make_cache_key, mod
 
 
+def _utcnow_for_comparison(db_datetime):
+    """Get current UTC time, converting to naive if db_datetime is naive (e.g., SQLite)."""
+    now = datetime.now(timezone.utc)
+    if db_datetime is not None and db_datetime.tzinfo is None:
+        return now.replace(tzinfo=None)
+    return now
+
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
+
 @mod.route("/api/injects")
 @login_required
 def api_injects():
@@ -23,13 +42,15 @@ def api_injects():
     if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_red_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
+    # Use naive UTC time for SQLAlchemy filter comparison
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     injects = (
         db.session.query(Inject)
         .options(joinedload(Inject.template))
         .join(Template)
         .filter(Inject.team == team)
         .filter(Inject.enabled == True)
-        .filter(Template.start_time < datetime.utcnow())
+        .filter(Template.start_time < now_naive)
         .all()
     )
     for inject in injects:
@@ -54,10 +75,10 @@ def api_injects_submit(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
     inject.status = "Submitted"
-    inject.submitted = datetime.utcnow()
+    inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
     data = list()
     return jsonify(data=data)
@@ -71,7 +92,7 @@ def api_injects_file_upload(inject_id):
         return jsonify({"status": "Unauthorized"}), 403
 
     # Validate inject is still valid
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return "Inject has ended", 400
     # Validate inject isn't submitted yet
     if inject.status != "Draft":
@@ -129,7 +150,7 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
@@ -164,7 +185,7 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 
@@ -178,7 +199,7 @@ def api_inject_add_comment(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 400
 
     data = request.get_json()

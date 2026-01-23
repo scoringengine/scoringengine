@@ -1,5 +1,5 @@
 """Tests for Injects web view"""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from scoring_engine.models.inject import Inject, Template
 from scoring_engine.models.team import Team
@@ -63,8 +63,8 @@ class TestInjects(WebTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team, template=template)
         self.session.add_all([template, inject])
@@ -83,8 +83,8 @@ class TestInjects(WebTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() + timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=2)
+            start_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=2)
         )
         inject = Inject(team=self.blue_team, template=template)
         self.session.add_all([template, inject])
@@ -102,8 +102,8 @@ class TestInjects(WebTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team, template=template)
         self.session.add_all([template, inject])

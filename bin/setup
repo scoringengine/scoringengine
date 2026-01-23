@@ -159,6 +159,24 @@ with app.app_context():
     db.session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 5))
     db.session.add(Setting(name="agent_show_flag_early_mins", value=config.agent_show_flag_early_mins))
     db.session.add(Setting(name="agent_psk", value=config.agent_psk))
+
+    # SLA Penalty Settings
+    logger.info("Creating the SLA Penalty Settings")
+    db.session.add(Setting(name="sla_enabled", value=config.sla_enabled))
+    db.session.add(Setting(name="sla_penalty_threshold", value=str(config.sla_penalty_threshold)))
+    db.session.add(Setting(name="sla_penalty_percent", value=str(config.sla_penalty_percent)))
+    db.session.add(Setting(name="sla_penalty_max_percent", value=str(config.sla_penalty_max_percent)))
+    db.session.add(Setting(name="sla_penalty_mode", value=config.sla_penalty_mode))
+    db.session.add(Setting(name="sla_allow_negative", value=config.sla_allow_negative))
+
+    # Dynamic Scoring Settings
+    logger.info("Creating the Dynamic Scoring Settings")
+    db.session.add(Setting(name="dynamic_scoring_enabled", value=config.dynamic_scoring_enabled))
+    db.session.add(Setting(name="dynamic_scoring_early_rounds", value=str(config.dynamic_scoring_early_rounds)))
+    db.session.add(Setting(name="dynamic_scoring_early_multiplier", value=str(config.dynamic_scoring_early_multiplier)))
+    db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
+    db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
+
     db.session.commit()
 
     if options.example:

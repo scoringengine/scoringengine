@@ -226,9 +226,9 @@ class Competition(dict):
             start = flag.get("start_time", None)
             end = flag.get("end_time", None)
             if not start:
-                start = str(datetime.datetime.utcnow()) # TODO - This is hacky, find a better way to fix this
+                start = str(datetime.datetime.now(datetime.timezone.utc)) # TODO - This is hacky, find a better way to fix this
             if not end:
-                end = str(datetime.datetime.utcnow() + datetime.timedelta(hours=3)) # TODO - This is hacky, find a better way to fix this
+                end = str(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)) # TODO - This is hacky, find a better way to fix this
             f = Flag(
                 type=flag["type"],
                 platform=Platform(flag["platform"]),

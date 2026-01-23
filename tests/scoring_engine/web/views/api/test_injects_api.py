@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 from scoring_engine.models.inject import Comment, File, Inject, Template
@@ -84,8 +84,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject1 = Inject(team=self.blue_team1, template=template1, enabled=True)
         inject2 = Inject(team=self.blue_team2, template=template1, enabled=True)
@@ -109,8 +109,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() + timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=2)
+            start_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=2)
         )
         future_inject = Inject(team=self.blue_team1, template=future_template, enabled=True)
 
@@ -120,8 +120,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         current_inject = Inject(team=self.blue_team1, template=current_template, enabled=True)
 
@@ -143,8 +143,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         enabled_inject = Inject(team=self.blue_team1, template=template, enabled=True)
         disabled_inject = Inject(team=self.blue_team1, template=template, enabled=False)
@@ -172,8 +172,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -197,8 +197,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -242,8 +242,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=2),
-            end_time=datetime.utcnow() - timedelta(hours=1)  # Ended
+            start_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1)  # Ended
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -267,8 +267,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -296,8 +296,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -315,8 +315,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -357,8 +357,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -377,8 +377,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.red_team, template=template)
         self.session.add_all([template, inject])
@@ -396,8 +396,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=2),
-            end_time=datetime.utcnow() - timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -415,17 +415,18 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        before = datetime.utcnow()
+        # Use naive UTC datetimes for comparison (matching what's stored in DB)
+        before = datetime.now(timezone.utc).replace(tzinfo=None)
         resp = self.client.post(f"/api/inject/{inject.id}/submit")
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
 
         assert resp.status_code == 200
         self.session.refresh(inject)
@@ -446,8 +447,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -469,8 +470,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -491,8 +492,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -511,8 +512,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -533,8 +534,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=2),
-            end_time=datetime.utcnow() - timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -555,8 +556,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -592,8 +593,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         file_obj = File("test.txt", self.blue_user1, inject)
@@ -613,8 +614,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         file_obj = File("test.txt", self.blue_user1, inject)
@@ -636,8 +637,8 @@ class TestInjectsAPI(UnitTest):
             scenario="Test",
             deliverable="Test",
             score=10,
-            start_time=datetime.utcnow() - timedelta(hours=1),
-            end_time=datetime.utcnow() + timedelta(hours=1)
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])

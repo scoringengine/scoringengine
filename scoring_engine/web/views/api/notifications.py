@@ -10,6 +10,17 @@ from scoring_engine.models.notifications import Notification
 from . import mod
 
 
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
+
 def _get_notifications_data(is_read_filter=None, include_is_read=False):
     """Helper function to get notifications data with optional filtering.
 
@@ -33,7 +44,7 @@ def _get_notifications_data(is_read_filter=None, include_is_read=False):
             "id": notification.id,
             "message": notification.message,
             "target": notification.target,
-            "created": notification.created.astimezone(
+            "created": _ensure_utc_aware(notification.created).astimezone(
                 pytz.timezone(config.timezone)
             ).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }

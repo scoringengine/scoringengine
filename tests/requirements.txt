@@ -3,5 +3,5 @@ bump-my-version==1.2.6
 coverage==6.1.2
 coveralls==4.0.2
 flake8==7.3.0
-mock==5.1.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
+mock==5.2.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
 pytest==8.4.2

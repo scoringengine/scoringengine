@@ -10,6 +10,17 @@ from flask_login import current_user, login_required
 
 import html
 
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.inject import Template, Inject
@@ -182,6 +193,7 @@ def admin_update_about_page_content():
             setting.value = request.form["about_page_content"]
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("about_page_content")
             flash("About Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: about_page_content not specified.", "danger")
@@ -198,6 +210,7 @@ def admin_update_welcome_page_content():
             setting.value = request.form["welcome_page_content"]
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("welcome_page_content")
             flash("Welcome Page Content Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: welcome_page_content not specified.", "danger")
@@ -218,6 +231,7 @@ def admin_update_target_round_time():
             setting.value = input_time
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("target_round_time")
             flash("Target Round Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: target_round_time not specified.", "danger")
@@ -238,6 +252,7 @@ def admin_update_worker_refresh_time():
             setting.value = input_time
             db.session.add(setting)
             db.session.commit()
+            Setting.clear_cache("worker_refresh_time")
             flash("Worker Refresh Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: worker_refresh_time not specified.", "danger")
@@ -256,6 +271,7 @@ def admin_update_blueteam_edit_hostname():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_hostname")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -271,6 +287,7 @@ def admin_update_blueteam_edit_port():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_port")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -286,6 +303,7 @@ def admin_update_blueteam_edit_account_usernames():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_account_usernames")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -301,6 +319,7 @@ def admin_update_blueteam_edit_account_passwords():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_update_account_passwords")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -316,6 +335,7 @@ def admin_update_blueteam_view_check_output():
             setting.value = True
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("blue_team_view_check_output")
         return redirect(url_for("admin.permissions"))
     return {"status": "Unauthorized"}, 403
 
@@ -406,10 +426,10 @@ def admin_get_inject_templates_id(template_id):
             scenario=template.scenario,
             deliverable=template.deliverable,
             score=template.score,
-            start_time=template.start_time.astimezone(
+            start_time=_ensure_utc_aware(template.start_time).astimezone(
                 pytz.timezone(config.timezone)
             ).isoformat(),
-            end_time=template.end_time.astimezone(
+            end_time=_ensure_utc_aware(template.end_time).astimezone(
                 pytz.timezone(config.timezone)
             ).isoformat(),
             enabled=template.enabled,
@@ -558,7 +578,7 @@ def admin_post_inject_grade(inject_id):
         if "score" in data.keys() and data.get("score") != "":
             inject = db.session.get(Inject, inject_id)
             if inject:
-                inject.graded = datetime.utcnow()
+                inject.graded = datetime.now(timezone.utc)
                 inject.status = "Graded"
                 inject.score = data.get("score")
                 db.session.add(inject)
@@ -1032,6 +1052,7 @@ def admin_toggle_engine():
         setting.value = not setting.value
         db.session.add(setting)
         db.session.commit()
+        Setting.clear_cache("engine_paused")
         return {'status': "Success"}
     else:
         return {"status": "Unauthorized"}, 403

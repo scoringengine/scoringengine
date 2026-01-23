@@ -2,7 +2,7 @@ from flask import request, make_response, abort
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func, exists
 from sqlalchemy.sql.expression import and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Tuple
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
@@ -102,7 +102,8 @@ def agent_checkin_post():
 
 
 def do_checkin(team, host, platform):
-    now = datetime.utcnow()
+    # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     # show upcoming flags a little bit early so red team can plant them
     # and implants that might stop checking in still get the next set of flags
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
@@ -127,7 +128,7 @@ def do_checkin(team, host, platform):
                 "nanos": 0,
             }
         },
-        "timestamp": int(datetime.utcnow().timestamp()),
+        "timestamp": int(datetime.now(timezone.utc).timestamp()),
     }
 
     res_cache = {
@@ -137,7 +138,7 @@ def do_checkin(team, host, platform):
                 "nanos": 0,
             }
         },
-        "timestamp": int(datetime.utcnow().timestamp()),
+        "timestamp": int(datetime.now(timezone.utc).timestamp()),
     }
 
     # TODO - this is a gross dev hack

@@ -17,6 +17,17 @@ import pytz
 
 import html
 
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
 import uuid
 
 from scoring_engine.models.base import Base
@@ -62,21 +73,19 @@ class Flag(Base):
             "type": self.type.value,
             "data": self.data,
             "platform": self.platform.value,
-            "start_time": int(self.start_time.astimezone(pytz.utc).timestamp()),
-            "end_time": int(self.end_time.astimezone(pytz.utc).timestamp()),
+            "start_time": int(_ensure_utc_aware(self.start_time).timestamp()),
+            "end_time": int(_ensure_utc_aware(self.end_time).timestamp()),
             "perm": self.perm.value,
             "dummy": self.dummy,
         }
 
     @property
     def localize_start_time(self):
-        start_time_obj = pytz.timezone("UTC").localize(self.start_time)
-        return start_time_obj.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+        return _ensure_utc_aware(self.start_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
 
     @property
     def localize_end_time(self):
-        end_time_obj = pytz.timezone("UTC").localize(self.end_time)
-        return end_time_obj.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+        return _ensure_utc_aware(self.end_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 class Solve(Base):

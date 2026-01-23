@@ -9,7 +9,7 @@ ensure the database schema exists and contains deterministic data.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Iterable, List
 
 import scoring_engine.models  # noqa: F401 – ensure models are registered with SQLAlchemy
@@ -93,7 +93,7 @@ def _seed_team(team_index: int, rounds: Iterable[Round]) -> None:
                     reason="",
                     command="noop",
                     completed=True,
-                    completed_timestamp=datetime.utcnow(),
+                    completed_timestamp=datetime.now(timezone.utc),
                 )
             )
 
