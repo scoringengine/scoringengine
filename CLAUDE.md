@@ -490,7 +490,7 @@ pre-commit run --all-files
    - Groups: stdlib, third-party, local
 
 3. **flake8** (v7.1.1): Linter
-   - Configuration in `.flake8`
+   - Configuration in `pyproject.toml` under `[tool.flake8]`
    - Ignores: E501 (line too long - handled by black)
    - Excludes: `__init__.py`, `.git`
 
