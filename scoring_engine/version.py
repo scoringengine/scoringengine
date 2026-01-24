@@ -52,8 +52,9 @@ def get_git_info():
             if tag.startswith("v") and "." in tag:
                 is_tagged_release = True
                 tag_name = tag
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        # Git not available or not in a git repo
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, Exception):
+        # Git not available, not in a git repo, or running in restricted environment
+        # (e.g., Celery worker with soft time limits)
         pass
 
     return commit_hash, is_tagged_release, tag_name
