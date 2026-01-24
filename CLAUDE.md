@@ -112,12 +112,9 @@ scoringengine/
 │       └── snyk-container-analysis.yml # Container security
 ├── engine.conf.inc          # Default configuration template
 ├── docker-compose.yml       # Service orchestration
-├── pyproject.toml           # Python package definition and dependencies
-├── setup.py                 # Legacy setup script
+├── pyproject.toml           # Python package definition, dependencies, and tool config
 ├── Makefile                 # Common commands for build/test/run
 ├── .pre-commit-config.yaml  # Pre-commit hooks (black, isort, flake8)
-├── .flake8                  # Linter configuration
-├── .bumpversion.cfg         # Version bumping configuration
 ├── README.md                # Project README
 ├── VERSION_MANAGEMENT.md    # Version management guide
 ├── AGENTS.md                # Basic agent guidelines
@@ -493,7 +490,7 @@ pre-commit run --all-files
    - Groups: stdlib, third-party, local
 
 3. **flake8** (v7.1.1): Linter
-   - Configuration in `.flake8`
+   - Configuration in `pyproject.toml` under `[tool.flake8]`
    - Ignores: E501 (line too long - handled by black)
    - Excludes: `__init__.py`, `.git`
 
@@ -544,7 +541,6 @@ git push --tags
 
 **What Gets Updated:**
 - `pyproject.toml`: version field
-- `setup.py`: version variable
 - `scoring_engine/version.py`: version string
 - Git commit: "Bump version: X.Y.Z → X.Y.Z+1"
 - Git tag: `vX.Y.Z`
@@ -1247,12 +1243,9 @@ logger.error("Error message")
 ## Important Files to Know
 
 ### Configuration Files
-- **pyproject.toml**: Python package metadata and dependencies
-- **setup.py**: Legacy setup script (being phased out)
+- **pyproject.toml**: Python package metadata, dependencies, and tool config (flake8, isort, black, bumpversion)
 - **engine.conf.inc**: Default configuration template
-- **.flake8**: Linter configuration (ignores E501)
 - **.pre-commit-config.yaml**: Pre-commit hook setup
-- **.bumpversion.cfg**: Version bump configuration
 - **docker-compose.yml**: Service orchestration
 
 ### Entry Points
