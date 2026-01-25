@@ -26,6 +26,17 @@ You can set each environment variable before each command executed, for example:
   SCORINGENGINE_EXAMPLE=true make rebuild-new
 
 
+Optional: Playwright Worker for Advanced Web Checks
+---------------------------------------------------
+
+If your competition requires advanced browser-based checks (JavaScript execution, complex cookie/redirect scenarios), enable the optional Playwright worker:
+
+1. Uncomment the ``worker-playwright`` service in ``docker-compose.yml``
+2. Build the image: ``docker-compose build worker-playwright``
+3. Start with: ``docker-compose up -d``
+
+.. note:: The Playwright worker adds ~500MB+ to the deployment size due to the bundled Chromium browser. Only enable if needed.
+
 Production Environment
 ----------------------
 

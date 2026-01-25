@@ -129,6 +129,27 @@ services:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
     privileged: true
+  # Optional: Uncomment to enable Playwright-based browser checks
+  # worker-playwright:
+  #   image: scoringengine/worker-playwright
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/worker-playwright/Dockerfile
+  #     cache_from:
+  #       - scoringengine/worker-playwright
+  #       - worker-playwright:latest
+  #   depends_on:
+  #     worker:
+  #       condition: service_started
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - default
+  #   environment:
+  #     - SCORINGENGINE_VERSION
+  #     - DISPLAY=:1
+  #   privileged: true
   web:
     image: scoringengine/web
     build:

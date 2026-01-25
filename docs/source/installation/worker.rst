@@ -134,3 +134,15 @@ Install dependencies for Telnet check
 
   source /home/engine/scoring_engine/env/bin/activate && pip install -I "telnetlib3==1.0.1"
 
+Install dependencies for Playwright-based checks (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Playwright enables advanced browser-based checks for complex web applications that require JavaScript execution, cookie handling, or multi-step interactions.
+
+.. note:: Playwright with browsers requires significant disk space (~500MB+). Only install if you need advanced web checks.
+
+::
+
+  source /home/engine/scoring_engine/env/bin/activate && pip install -I "pytest-playwright>=0.7.0,<0.8"
+  playwright install-deps
+  playwright install chromium
