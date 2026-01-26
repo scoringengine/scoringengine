@@ -10,7 +10,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.service import Service
 from scoring_engine.models.round import Round
 from scoring_engine.models.check import Check
-from scoring_engine.models.flag import Flag, Solve
+from scoring_engine.models.flag import Flag, Solve, Platform, FlagTypeEnum, Perm
 
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
@@ -179,6 +179,22 @@ with app.app_context():
     db.session.commit()
 
     if options.example:
+        # Create AgentCheck services for flag capture status demo
+        logger.info("Creating AgentCheck services for flag demo")
+        agent_hosts = ["webserver", "database", "fileserver", "mailserver", "dns"]
+        for team in Team.get_all_blue_teams():
+            for i, host_name in enumerate(agent_hosts):
+                agent_service = Service(
+                    name=host_name.title(),
+                    check_name="AgentCheck",
+                    host=f"{host_name}.team{team.id}.local",
+                    port=8080 + i,
+                    points=50,
+                    team=team,
+                )
+                db.session.add(agent_service)
+        db.session.commit()
+
         # Simulate Rounds
         num_rounds = randint(200, 250)
         logger.info("Simulating " + str(num_rounds) + " rounds")
@@ -188,7 +204,6 @@ with app.app_context():
                 round_start=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
                 round_end=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
             )
-            print(f"{(round_obj.round_start - round_obj.round_end).seconds}")
             # db.session.add(round_obj)
             services = db.session.query(Service).all()
             for service in services:
@@ -267,24 +282,28 @@ with app.app_context():
         # Simulate Flags
         num_flags = randint(10, 20)
         logger.info("Simulating " + str(num_flags) + " Flags")
-        for _ in range(num_flags):
+        for i in range(num_flags):
             flag = Flag(
-                start_time=datetime.now() - timedelta(minutes=randint(0, 60)),
-                end_time=datetime.now() + timedelta(minutes=randint(0, 60)),
+                # Start 1-12 hours ago, end 24-48 hours from now (always active)
+                start_time=datetime.now() - timedelta(hours=randint(1, 12)),
+                end_time=datetime.now() + timedelta(hours=randint(24, 48)),
             )
-            flag.platform = choice(["nix", "windows"])
-            flag.dummy = choice([False, True])
-            flag.type = choice(["file", "pipe", "net", "reg"])
-            flag.perm = choice(["user", "root"])
-            flag.data = {"path": "/tmp/flag", "content": "hi"}
+            flag.platform = choice([Platform.nix, Platform.windows])
+            # Most flags should be non-dummy so they show up (only ~20% dummy)
+            flag.dummy = (i % 5 == 0)
+            flag.type = choice([FlagTypeEnum.file, FlagTypeEnum.pipe, FlagTypeEnum.net, FlagTypeEnum.reg])
+            flag.perm = choice([Perm.user, Perm.root])
+            flag.data = {"path": f"/tmp/flag_{i}.txt", "content": f"FLAG_{i}_CONTENT"}
             db.session.add(flag)
             db.session.commit()
 
-            # Simulate Solves
+            # Simulate Solves - use agent service hosts so capture status table works
             for team_id in sample(team_ids, randint(1, len(team_ids))):
+                # Pick a random agent host for this team
+                host = f"{choice(agent_hosts)}.team{team_id}.local"
                 solve = Solve(
                     flag=flag,
-                    host="127.0.0.1",
+                    host=host,
                     team_id=team_id,
                 )
                 db.session.add(solve)
