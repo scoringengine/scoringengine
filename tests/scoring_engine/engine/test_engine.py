@@ -47,12 +47,9 @@ class TestEngine(UnitTest):
 
         self.session.commit()
 
-        self.app = create_app()
-        self.ctx = self.app.app_context()
-        self.ctx.push()
+        # UnitTest already creates app context, no need to create another
 
     def teardown_method(self):
-        self.ctx.pop()
         super(TestEngine, self).teardown_method()
 
     def test_init(self):

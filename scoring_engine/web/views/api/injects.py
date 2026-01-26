@@ -1,7 +1,7 @@
 import os
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import g, request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
@@ -9,27 +9,48 @@ from werkzeug.utils import secure_filename
 
 from scoring_engine.cache import cache
 from scoring_engine.config import config
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Template, Inject, File, Comment
 
 from . import make_cache_key, mod
 
 
+def _utcnow_for_comparison(db_datetime):
+    """Get current UTC time, converting to naive if db_datetime is naive (e.g., SQLite)."""
+    now = datetime.now(timezone.utc)
+    if db_datetime is not None and db_datetime.tzinfo is None:
+        return now.replace(tzinfo=None)
+    return now
+
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
+
+
 @mod.route("/api/injects")
 @login_required
 def api_injects():
-    team = session.get(Team, current_user.team.id)
+    team = db.session.get(Team, current_user.team.id)
     if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_red_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
+    # Use naive UTC time for SQLAlchemy filter comparison
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     injects = (
-        session.query(Inject)
+        db.session.query(Inject)
         .options(joinedload(Inject.template))
         .join(Template)
         .filter(Inject.team == team)
         .filter(Inject.enabled == True)
-        .filter(Template.start_time < datetime.utcnow())
+        .filter(Template.start_time < now_naive)
         .all()
     )
     for inject in injects:
@@ -51,14 +72,14 @@ def api_injects():
 @mod.route("/api/inject/<inject_id>/submit", methods=["POST"])
 @login_required
 def api_injects_submit(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
     inject.status = "Submitted"
-    inject.submitted = datetime.utcnow()
-    session.commit()
+    inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.session.commit()
     data = list()
     return jsonify(data=data)
 
@@ -66,12 +87,12 @@ def api_injects_submit(inject_id):
 @mod.route("/api/inject/<inject_id>/upload", methods=["POST"])
 @login_required
 def api_injects_file_upload(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject.team is None or not current_user.team == inject.team or not current_user.is_blue_team:
         return jsonify({"status": "Unauthorized"}), 403
 
     # Validate inject is still valid
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return "Inject has ended", 400
     # Validate inject isn't submitted yet
     if inject.status != "Draft":
@@ -88,13 +109,13 @@ def api_injects_file_upload(inject_id):
         if not os.path.exists(path):
             os.makedirs(path)
         # Check if file exists already
-        if session.query(File).filter(File.name == filename).one_or_none():
+        if db.session.query(File).filter(File.name == filename).one_or_none():
             return "File name is not unique", 400
         file.save(os.path.join(path, filename))
 
         f = File(filename, current_user, inject)
-        session.add(f)
-        session.commit()
+        db.session.add(f)
+        db.session.commit()
 
         # Delete file cache for inject
         cache.delete(f"/api/inject/{inject_id}/files_{g.user.team.id}")
@@ -106,7 +127,7 @@ def api_injects_file_upload(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
@@ -117,7 +138,7 @@ def api_inject(inject_id):
 
     # Comments
     comments = (
-        session.query(Comment)
+        db.session.query(Comment)
         .options(joinedload(Comment.user).joinedload("team"))
         .filter(Comment.inject == inject)
         .order_by(Comment.time)
@@ -129,13 +150,13 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
 
     # Files
-    files = session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
+    files = db.session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
     data["files"] = [{"id": file[0], "name": file[1]} for file in files]
 
     return jsonify(data), 200
@@ -145,13 +166,13 @@ def api_inject(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_comments(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     data = []
     comments = (
-        session.query(Comment)
+        db.session.query(Comment)
         .options(joinedload(Comment.user).joinedload("team"))
         .filter(Comment.inject == inject)
         .order_by(Comment.time)
@@ -164,7 +185,7 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": comment.time.astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 
@@ -175,10 +196,10 @@ def api_inject_comments(inject_id):
 @mod.route("/api/inject/<inject_id>/comment", methods=["POST"])
 @login_required
 def api_inject_add_comment(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
-    if datetime.utcnow() > inject.template.end_time:
+    if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 400
 
     data = request.get_json()
@@ -186,8 +207,8 @@ def api_inject_add_comment(inject_id):
         return jsonify({"status": "No comment"}), 400
 
     c = Comment(data["comment"], current_user, inject)
-    session.add(c)
-    session.commit()
+    db.session.add(c)
+    db.session.commit()
 
     # Delete comment cache for inject
     cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
@@ -199,11 +220,11 @@ def api_inject_add_comment(inject_id):
 @cache.cached(make_cache_key=make_cache_key)
 @login_required
 def api_inject_files(inject_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
-    files = session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
+    files = db.session.query(File.id, File.name).filter(File.inject_id == inject_id).order_by(File.name).all()
 
     if files is None:
         return jsonify({"status": "Unauthorized"}), 403
@@ -218,11 +239,11 @@ def api_inject_files(inject_id):
 @mod.route("/api/inject/<inject_id>/files/<file_id>/download")
 @login_required
 def api_inject_download(inject_id, file_id):
-    inject = session.get(Inject, inject_id)
+    inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
-    file = session.query(File).filter(File.id == file_id).one_or_none()
+    file = db.session.query(File).filter(File.id == file_id).one_or_none()
 
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403

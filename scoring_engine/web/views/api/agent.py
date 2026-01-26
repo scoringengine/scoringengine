@@ -2,7 +2,7 @@ from flask import request, make_response, abort
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func, exists
 from sqlalchemy.sql.expression import and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Tuple
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
@@ -11,7 +11,7 @@ import json
 import os
 
 from scoring_engine.cache import agent_cache as cache
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
@@ -74,14 +74,14 @@ def agent_checkin_post():
     if team_input is None or host is None or platform is None:
         abort(400)
 
-    team = session.query(Team).filter_by(name=team_input).first()
+    team = db.session.query(Team).filter_by(name=team_input).first()
 
     if team is None or not team.is_blue_team:
         abort(400)
 
     flags = data.get("flags", [])
     if len(flags) > 0:
-        flags = session.query(Flag).filter(
+        flags = db.session.query(Flag).filter(
                 and_(
                     Flag.id.in_(flags),
                     Flag.dummy == False
@@ -95,20 +95,21 @@ def agent_checkin_post():
             )
             for flag in flags
         ]
-        session.add_all(solves)
+        db.session.add_all(solves)
 
     result = do_checkin(team, host, platform)
     return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
 
 
 def do_checkin(team, host, platform):
-    now = datetime.utcnow()
+    # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     # show upcoming flags a little bit early so red team can plant them
     # and implants that might stop checking in still get the next set of flags
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     # get unsolved flags for this team and host and for this time period
     flags = (
-        session.query(Flag)
+        db.session.query(Flag)
         .filter(
             and_(
                 Flag.platform == platform,
@@ -116,7 +117,7 @@ def do_checkin(team, host, platform):
                 now < Flag.end_time,
             )
         )
-        .filter(Flag.id.not_in(session.query(Solve.flag_id).filter(and_(Solve.host == host, Solve.team == team))))
+        .filter(Flag.id.not_in(db.session.query(Solve.flag_id).filter(and_(Solve.host == host, Solve.team == team))))
     ).all()
 
     res = {
@@ -127,7 +128,7 @@ def do_checkin(team, host, platform):
                 "nanos": 0,
             }
         },
-        "timestamp": int(datetime.utcnow().timestamp()),
+        "timestamp": int(datetime.now(timezone.utc).timestamp()),
     }
 
     res_cache = {
@@ -137,7 +138,7 @@ def do_checkin(team, host, platform):
                 "nanos": 0,
             }
         },
-        "timestamp": int(datetime.utcnow().timestamp()),
+        "timestamp": int(datetime.now(timezone.utc).timestamp()),
     }
 
     # TODO - this is a gross dev hack

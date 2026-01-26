@@ -1,6 +1,5 @@
 import itertools
 import random
-import ranking
 
 from collections import defaultdict
 from sqlalchemy import Column, Integer, String, desc, func
@@ -12,7 +11,32 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.db import session
+from scoring_engine.db import db
+
+
+def _get_rank_from_scores(scores, target_id, default=1):
+    """
+    Get rank for target_id from list of (id, score) tuples.
+    Handles ties: same score = same rank (e.g., [100, 90, 90, 80] -> [1, 2, 2, 4]).
+    Returns default if scores is empty or target_id not in scores.
+    """
+    if not scores:
+        return default
+
+    team_ids = [s[0] for s in scores]
+    if target_id not in team_ids:
+        return default
+
+    # scores are already sorted descending by the query
+    current_rank = 1
+    prev_score = None
+    for i, (item_id, score) in enumerate(scores):
+        if prev_score is not None and score < prev_score:
+            current_rank = i + 1
+        if item_id == target_id:
+            return current_rank
+        prev_score = score
+    return default
 
 
 class Team(Base):
@@ -42,7 +66,9 @@ class Team(Base):
         or using bulk queries when accessing scores for multiple teams.
         """
         score = (
-            session.query(func.sum(Service.points))
+            db.session.query(func.sum(Service.points))
+            .select_from(Team)
+            .join(Service)
             .join(Check)
             .filter(Service.team_id == self.id)
             .filter(Check.result.is_(True))
@@ -60,7 +86,8 @@ class Team(Base):
         or using bulk queries when accessing scores for multiple teams.
         """
         score = (
-            session.query(func.sum(Inject.score))
+            db.session.query(func.sum(Inject.score))
+            .join(Team)
             .filter(Inject.team_id == self.id)
             .filter(Inject.status == "Graded")
             .scalar()
@@ -79,7 +106,7 @@ class Team(Base):
         See scoring_engine/web/views/api/overview.py for an efficient batch implementation.
         """
         scores = (
-            session.query(
+            db.session.query(
                 Service.team_id,
                 func.sum(Service.points).label("score"),
             )
@@ -90,19 +117,9 @@ class Team(Base):
             .all()
         )
 
-        if scores:
-            ranks = list(
-                ranking.Ranking(scores, start=1, key=lambda x: x[1]).ranks()
-            )  # [1, 2, 2, 4, 5]
-            team_ids = [x[0] for x in scores]  # [5, 3, 6, 4, 7]
-
-            if self.id in team_ids:
-                return ranks[team_ids.index(self.id)]
-            else:
-                return 1
-        # Round 0, or no other scores available
-        else:
-            return 1
+        # Scores are already sorted descending by the query
+        # Returns 1 if no scores or team not in list
+        return _get_rank_from_scores(scores, self.id, default=1)
 
     @property
     def is_red_team(self):
@@ -118,7 +135,7 @@ class Team(Base):
 
     def get_array_of_scores(self, max_round):
         round_scores = (
-            session.query(
+            db.session.query(
                 Check.round_id,
                 func.sum(Service.points),
             )
@@ -150,7 +167,7 @@ class Team(Base):
             return 0
 
         score = (
-            session.query(func.sum(Service.points))
+            db.session.query(func.sum(Service.points))
             .join(Check)
             .join(Round)
             .filter(Service.team_id == self.id)
@@ -164,11 +181,11 @@ class Team(Base):
 
     @staticmethod
     def get_all_blue_teams():
-        return session.query(Team).filter(Team.color == "Blue").all()
+        return db.session.query(Team).filter(Team.color == "Blue").all()
 
     @staticmethod
     def get_all_red_teams():
-        return session.query(Team).filter(Team.color == "Red").all()
+        return db.session.query(Team).filter(Team.color == "Red").all()
 
     @staticmethod
     def get_all_rounds_results():
@@ -178,8 +195,8 @@ class Team(Base):
 
         rounds = []
         scores = {}
-        blue_teams = session.query(Team).filter(Team.color == "Blue").all()
-        last_round_obj = session.query(func.max(Round.number)).scalar()
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").all()
+        last_round_obj = db.session.query(func.max(Round.number)).scalar()
         if last_round_obj:
             last_round = last_round_obj
             rounds = ["Round {}".format(x) for x in range(0, last_round + 1)]
@@ -199,3 +216,44 @@ class Team(Base):
         results["scores"] = scores
 
         return results
+
+    @property
+    def total_sla_penalties(self):
+        """
+        Calculate total SLA penalties for this team across all services.
+        """
+        from scoring_engine.sla import calculate_team_total_penalties
+
+        return calculate_team_total_penalties(self)
+
+    @property
+    def adjusted_score(self):
+        """
+        Get the team's score after applying SLA penalties.
+        """
+        from scoring_engine.sla import calculate_team_adjusted_score
+
+        return calculate_team_adjusted_score(self)
+
+    @property
+    def sla_summary(self):
+        """
+        Get comprehensive SLA summary for this team.
+        """
+        from scoring_engine.sla import get_team_sla_summary
+
+        return get_team_sla_summary(self)
+
+    @property
+    def services_with_sla_violations(self):
+        """
+        Get count of services with active SLA violations.
+        """
+        from scoring_engine.sla import get_sla_config
+
+        config = get_sla_config()
+        violations = 0
+        for service in self.services:
+            if service.consecutive_failures >= config.penalty_threshold:
+                violations += 1
+        return violations
