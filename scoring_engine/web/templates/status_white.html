@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Stats{% endblock %}
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+
+<style>
+.flag-healthy {
+    background-color: #2ecc71;
+    color: white;
+    font-weight: bold;
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: inline-block;
+}
+.flag-compromised {
+    background-color: #e74c3c;
+    color: white;
+    font-weight: bold;
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: inline-block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+<div class="row">
+        <h2 class="text-center mb-4">Active Flags</h2>
+
+    <div class="table-responsive">
+        <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="row">
+</div>
+<!--
+
+Below can be used to test front end as JS is having trouble 
+<script>
+$(document).ready(function () {
+    const mockResponse = {
+        data: {
+            columns: ["Team", "Web", "SSH", "DB"],
+            rows: [
+                ["Blue Team 1", [0, 0], [1, 0], [0, 0]],
+                ["Blue Team 2", [0, 1], [0, 0], [0, 0]],
+                ["Blue Team 3", [0, 0], [0, 0], [0, 0]],
+            ]
+        }
+    };
+    $('#solves').DataTable({
+        data: mockResponse.data.rows,
+        ordering: false,
+        columns: mockResponse.data.columns.map(col => ({
+            title: col,
+            render: function (data) {
+                if (typeof data === "string") return data;
+                if (Array.isArray(data)) {
+                    return (data[0] === 1 || data[1] === 1)
+                        ? '<span class="flag-compromised">Compromised ✖</span>'
+                        : '<span class="flag-healthy">Healthy ✔</span>';
+                }
+                return "";
+            }
+        }))
+    });
+});
+</script>
+-->
+<script>
+$(document).ready(function () {
+    $.ajax({
+        url: '/api/flags/solves',
+        success: function (response) {
+            $('#solves').DataTable({
+                data: response.data.rows,
+                scrollX: true,
+                ordering: false,
+                columns: response.data.columns.map(col => ({
+                    title: col.replace("_BTA ", ""),
+                    render: function (data) {
+
+                        // Pass through labels / row headers
+                        if (typeof data === "string") {
+                            return data;
+                        }
+
+                        let compromised = false;
+
+                        // data = [user_pwn, root_pwn]
+                        if (Array.isArray(data)) {
+                            if (data[0] === 1 || data[1] === 1) {
+                                compromised = true;
+                            }
+                        }
+
+                        return compromised
+                            ? `<span class="flag-compromised">Compromised ✖</span>` 
+							: `<span class="flag-healthy">Healthy ✔</span>`;
+                    }
+                }))
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching data:", error);
+        }
+    });
+});
+</script>
+{% endblock %}

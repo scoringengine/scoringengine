@@ -1,0 +1,117 @@
+
+{% extends 'base.html' %}
+{% block title %}Blue Team Flags{% endblock %}
+
+{% block head %}
+<style>
+    .status-pill { padding: 6px 12px; color: white; border-radius: 25px; font-weight: bold; }
+    .status-healthy { background: green; }
+    .status-comp { background: red; }
+    .flex-row { display: flex; justify-content: center; gap: 50px; margin-top: 20px; }
+    .box-col { display: flex; flex-direction: column; gap: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Active Flags</h2>
+<div class="flex-row"></div>
+
+<h2>History</h2>
+<table>
+  <thead><tr></tr></thead>
+  <tbody></tbody>
+</table>
+
+<script>
+
+/* 
+    This accesses the flags from api/flags and works but cannot use to acess api/flags/solves further investigation is required 
+async function loadActiveFlags() {
+  const res = await fetchJSON("/api/flags");
+  const flags = res.data;
+
+  const container = document.querySelector(".flex-row");
+  container.innerHTML = "";
+
+  const left = document.createElement("div");
+  left.className = "box-col";
+  const right = document.createElement("div");
+  right.className = "box-col";
+    //Currently marks everything as compromised as only using solves can determine whether healthy or not 
+  flags.forEach((flag, i) => {
+    const status = "comp"; // Active flag == compromised
+        //identifies flags by levle of perm and op currently 
+    const div = document.createElement("div");
+    div.innerHTML = `
+      ${flag.platform.toUpperCase()} (${flag.perm})
+      <span class="status-pill status-${status}">
+        Compromised
+      </span>
+    `;
+
+    (i < Math.ceil(flags.length / 2) ? left : right).appendChild(div);
+  });
+
+  container.appendChild(left);
+  container.appendChild(right);
+}
+*/
+  // Example data  
+const boxes = [
+  { id: 1, status: 'healthy' },
+  { id: 2, status: 'healthy' },
+  { id: 3, status: 'healthy' },
+  { id: 4, status: 'healthy' },
+  { id: 5, status: 'comp' },
+  { id: 6, status: 'comp' },
+  { id: 7, status: 'healthy' },
+  { id: 8, status: 'healthy' },
+  { id: 9, status: 'healthy' },
+  { id: 10, status: 'comp' }
+];
+
+const history = {
+  '12:30': ['healthy','comp','healthy','healthy','comp','comp','comp','healthy','healthy','healthy'],
+  '12:00': ['comp','healthy','healthy','healthy','comp','comp','healthy','healthy','healthy','healthy'],
+  '11:30': ['healthy','healthy','comp','healthy','comp','comp','healthy','healthy','healthy','healthy'],
+  '11:00': ['healthy','healthy','comp','healthy','comp','comp','healthy','healthy','healthy','healthy'],
+  '10:30': ['healthy','healthy','healthy','healthy','comp','comp','healthy','healthy','healthy','healthy'],
+  '10:00': ['healthy','healthy','healthy','healthy','comp','comp','healthy','healthy','healthy','healthy']
+};
+
+// Populate Active Flags
+theActive = document.querySelector('.flex-row');
+theActive.innerHTML = '';
+
+const left = document.createElement('div');
+left.className = 'box-col';
+const right = document.createElement('div');
+right.className = 'box-col';
+
+boxes.forEach((b, i) => {
+  const div = document.createElement('div');
+  div.innerHTML = `Box ${b.id} <span class="status-pill status-${b.status}">${b.status === 'healthy' ? 'Healthy' : 'Compromised'}</span>`;
+  if (i < 5) left.appendChild(div); else right.appendChild(div);
+});
+
+theActive.appendChild(left);
+theActive.appendChild(right);
+
+// Populate History
+theHead = document.querySelector('table thead tr');
+theBody = document.querySelector('table tbody');
+
+theHead.innerHTML = '<th>Box</th>' + Object.keys(history).map(h => `<th>${h}</th>`).join('');
+theBody.innerHTML = '';
+
+boxes.forEach((b, idx) => {
+  const row = document.createElement('tr');
+  row.innerHTML = `<td>Box ${b.id}</td>` + Object.values(history).map(time => {
+    const st = time[idx];
+    return `<td class="status-pill status-${st}">${st === 'healthy' ? 'Healthy' : 'Compromised'}</td>`;
+  }).join('');
+  theBody.appendChild(row);
+});
+</script>
+{% endblock %}
