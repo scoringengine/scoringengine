@@ -8,3 +8,4 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.kb import KB
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.inject import Template, Inject
+from scoring_engine.models.machines import Machine
