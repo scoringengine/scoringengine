@@ -1259,3 +1259,331 @@ class TestAPI(WebTest):
         assert service_b.rank == 2, f"Team B should be rank 2 (tied), got {service_b.rank}"
         assert service_c.rank == 2, f"Team C should be rank 2 (tied), got {service_c.rank}"
         assert service_d.rank == 4, f"Team D should be rank 4 (after tie), got {service_d.rank}"
+
+    def test_overview_get_data_service_status_uses_round_number_not_id(self):
+        """Test that service status in /api/overview/get_data uses Round.number, not Round.id.
+
+        This is a regression test for a bug where the query was filtering on
+        Check.round_id == last_round, but last_round contains Round.number.
+        After round 1, these values diverge because each team's checks create
+        separate Round objects with the same number but different IDs.
+
+        The bug caused only team 1's service status to show correctly (where
+        Round.id == Round.number by coincidence), while other teams showed
+        stale or missing data.
+        """
+        # Disable all scoring features for simpler test
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "False")
+
+        # Create 3 blue teams - this is key to reproducing the bug
+        # Each team will have its own Round objects with the same numbers
+        team1 = Team(name="Bug Test Team 1", color="Blue")
+        team2 = Team(name="Bug Test Team 2", color="Blue")
+        team3 = Team(name="Bug Test Team 3", color="Blue")
+        self.session.add_all([team1, team2, team3])
+        self.session.commit()
+
+        # Create a service for each team with the same name
+        services = {}
+        for team in [team1, team2, team3]:
+            service = Service(
+                name="WebService",
+                team=team,
+                check_name="HTTPCheck",
+                host=f"50.50.50.{team.id}",
+                port=80,
+                points=100,
+            )
+            self.session.add(service)
+            services[team.name] = service
+        self.session.commit()
+
+        # Create rounds 1-3 for EACH team (simulating how the engine works)
+        # This causes Round.id != Round.number for teams 2 and 3
+        # Team 1: Round ids 1,2,3 with numbers 1,2,3
+        # Team 2: Round ids 4,5,6 with numbers 1,2,3
+        # Team 3: Round ids 7,8,9 with numbers 1,2,3
+        expected_last_round_status = {
+            "Bug Test Team 1": True,   # Team 1 passes in round 3
+            "Bug Test Team 2": False,  # Team 2 fails in round 3
+            "Bug Test Team 3": True,   # Team 3 passes in round 3
+        }
+
+        for team in [team1, team2, team3]:
+            for round_num in range(1, 4):
+                round_obj = Round(number=round_num)
+                self.session.add(round_obj)
+                self.session.flush()
+
+                # Rounds 1-2: all pass
+                # Round 3: use expected_last_round_status
+                if round_num < 3:
+                    result = True
+                else:
+                    result = expected_last_round_status[team.name]
+
+                check = Check(
+                    service=services[team.name],
+                    round=round_obj,
+                    result=result,
+                    output="test",
+                    completed=True,
+                )
+                self.session.add(check)
+            self.session.commit()
+
+        # Verify the ID/number divergence exists for team 2 and 3
+        # Query the last round (number=3) for each team to verify IDs differ
+        team2_round3 = (
+            self.session.query(Round)
+            .join(Check)
+            .filter(Check.service_id == services["Bug Test Team 2"].id)
+            .filter(Round.number == 3)
+            .first()
+        )
+        assert team2_round3.id != 3, (
+            f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
+        )
+
+        cache.clear()
+
+        # Call the API
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Find the WebService row
+        webservice_row = None
+        for row in data["data"]:
+            if row[0] == "WebService":
+                webservice_row = row
+                break
+
+        assert webservice_row is not None, (
+            f"WebService not found in response. Response data: {data}"
+        )
+
+        # Verify each team's service status matches expected
+        # Teams are ordered by team.id in the response
+        teams_by_id = sorted([team1, team2, team3], key=lambda t: t.id)
+        for i, team in enumerate(teams_by_id, start=1):
+            actual_status = webservice_row[i]
+            expected_status = expected_last_round_status[team.name]
+            assert actual_status == expected_status, (
+                f"{team.name}: expected status {expected_status}, got {actual_status}. "
+                f"This indicates the query is using Round.id instead of Round.number."
+            )
+
+    def test_overview_get_data_up_down_ratio_uses_round_number(self):
+        """Test that Up/Down ratio in /api/overview/get_data also uses Round.number correctly.
+
+        The num_up_services and num_down_services queries must also use
+        Round.number (not Round.id) to correctly count service status for
+        the current round.
+        """
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "False")
+
+        # Create 2 teams to cause Round.id divergence
+        team1 = Team(name="Ratio Team 1", color="Blue")
+        team2 = Team(name="Ratio Team 2", color="Blue")
+        self.session.add_all([team1, team2])
+        self.session.commit()
+
+        # Create 3 services for team 2 (we'll verify team 2's ratio)
+        service1 = Service(
+            name="Service1", team=team2, check_name="HTTPCheck", host="60.1.1.1", port=80, points=100
+        )
+        service2 = Service(
+            name="Service2", team=team2, check_name="HTTPCheck", host="60.1.1.2", port=80, points=100
+        )
+        service3 = Service(
+            name="Service3", team=team2, check_name="HTTPCheck", host="60.1.1.3", port=80, points=100
+        )
+        # Create 1 service for team 1 (just to create Round ID divergence)
+        service_t1 = Service(
+            name="Service1", team=team1, check_name="HTTPCheck", host="60.0.0.1", port=80, points=100
+        )
+        self.session.add_all([service1, service2, service3, service_t1])
+        self.session.commit()
+
+        # Create rounds for team 1 first (this pushes IDs ahead)
+        for round_num in range(1, 4):
+            round_obj = Round(number=round_num)
+            self.session.add(round_obj)
+            self.session.flush()
+            check = Check(service=service_t1, round=round_obj, result=True, output="ok", completed=True)
+            self.session.add(check)
+        self.session.commit()
+
+        # Now create rounds for team 2
+        # Round 3 (the last) will have id != 3
+        for round_num in range(1, 4):
+            round_obj = Round(number=round_num)
+            self.session.add(round_obj)
+            self.session.flush()
+
+            if round_num < 3:
+                # Rounds 1-2: all services up
+                for svc in [service1, service2, service3]:
+                    check = Check(service=svc, round=round_obj, result=True, output="ok", completed=True)
+                    self.session.add(check)
+            else:
+                # Round 3: 2 UP, 1 DOWN
+                check1 = Check(service=service1, round=round_obj, result=True, output="ok", completed=True)
+                check2 = Check(service=service2, round=round_obj, result=True, output="ok", completed=True)
+                check3 = Check(service=service3, round=round_obj, result=False, output="fail", completed=True)
+                self.session.add_all([check1, check2, check3])
+
+                # Verify ID divergence
+                assert round_obj.id != 3, f"Test setup: expected Round.id != 3, got {round_obj.id}"
+        self.session.commit()
+
+        cache.clear()
+
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Find Up/Down Ratio row
+        ratio_row = None
+        for row in data["data"]:
+            if row[0] == "Up/Down Ratio":
+                ratio_row = row
+                break
+
+        assert ratio_row is not None, "Up/Down Ratio row not found"
+
+        # Find team 2's index (teams ordered by id)
+        team2_idx = 2 if team1.id < team2.id else 1
+
+        # The ratio string should show "2 up / 1 down" for team 2 in round 3
+        # Format: '<span class="text-success">2 <span...></span> / <span class="text-danger">1 <span...></span>'
+        team_ratio = ratio_row[team2_idx]
+        assert ">2 <" in team_ratio, f"Expected 2 services up for team 2, got: {team_ratio}"
+        assert ">1 <" in team_ratio, f"Expected 1 service down for team 2, got: {team_ratio}"
+
+    def test_overview_get_data_multiple_teams_all_services_correct(self):
+        """Comprehensive test: multiple teams, multiple services, ID divergence.
+
+        This test creates multiple blue teams with multiple services each,
+        and verifies that ALL service statuses are correctly shown for ALL
+        teams based on the actual check results from the last round (by number).
+        """
+        self.set_setting("sla_enabled", "False")
+        self.set_setting("dynamic_scoring_enabled", "False")
+
+        # Create 3 blue teams
+        team1 = Team(name="Multi Alpha", color="Blue")
+        team2 = Team(name="Multi Beta", color="Blue")
+        team3 = Team(name="Multi Gamma", color="Blue")
+        self.session.add_all([team1, team2, team3])
+        self.session.commit()
+
+        # Create 2 services per team
+        services = {}
+        for team in [team1, team2, team3]:
+            http_svc = Service(
+                name="HTTP",
+                team=team,
+                check_name="HTTPCheck",
+                host=f"70.70.1.{team.id}",
+                port=80,
+                points=100,
+            )
+            ssh_svc = Service(
+                name="SSH",
+                team=team,
+                check_name="SSHCheck",
+                host=f"70.70.2.{team.id}",
+                port=22,
+                points=100,
+            )
+            self.session.add_all([http_svc, ssh_svc])
+            services[(team.name, "HTTP")] = http_svc
+            services[(team.name, "SSH")] = ssh_svc
+        self.session.commit()
+
+        # Create rounds for each team sequentially to cause ID divergence
+        # Expected status in the last round (round 3)
+        expected_status = {
+            ("Multi Alpha", "HTTP"): True,
+            ("Multi Alpha", "SSH"): False,
+            ("Multi Beta", "HTTP"): False,
+            ("Multi Beta", "SSH"): True,
+            ("Multi Gamma", "HTTP"): True,
+            ("Multi Gamma", "SSH"): True,
+        }
+
+        for team in [team1, team2, team3]:
+            for round_num in range(1, 4):
+                round_obj = Round(number=round_num)
+                self.session.add(round_obj)
+                self.session.flush()
+
+                for svc_name in ["HTTP", "SSH"]:
+                    service = services[(team.name, svc_name)]
+                    if round_num < 3:
+                        # Rounds 1-2: all pass
+                        result = True
+                    else:
+                        # Round 3: use expected status
+                        result = expected_status[(team.name, svc_name)]
+
+                    check = Check(
+                        service=service,
+                        round=round_obj,
+                        result=result,
+                        output="test",
+                        completed=True,
+                    )
+                    self.session.add(check)
+            self.session.commit()
+
+        # Verify ID divergence for teams 2 and 3
+        team2_round3 = (
+            self.session.query(Round)
+            .join(Check)
+            .filter(Check.service_id == services[("Multi Beta", "HTTP")].id)
+            .filter(Round.number == 3)
+            .first()
+        )
+        assert team2_round3.id != 3, (
+            f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
+        )
+
+        cache.clear()
+
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+
+        # Find HTTP and SSH service rows
+        http_row = None
+        ssh_row = None
+        for row in data["data"]:
+            if row[0] == "HTTP":
+                http_row = row
+            elif row[0] == "SSH":
+                ssh_row = row
+
+        assert http_row is not None, "HTTP service not found in response"
+        assert ssh_row is not None, "SSH service not found in response"
+
+        # Verify each team's service status
+        teams_by_id = sorted([team1, team2, team3], key=lambda t: t.id)
+        for i, team in enumerate(teams_by_id, start=1):
+            # Check HTTP
+            actual_http = http_row[i]
+            expected_http = expected_status[(team.name, "HTTP")]
+            assert actual_http == expected_http, (
+                f"{team.name} HTTP: expected {expected_http}, got {actual_http}"
+            )
+
+            # Check SSH
+            actual_ssh = ssh_row[i]
+            expected_ssh = expected_status[(team.name, "SSH")]
+            assert actual_ssh == expected_ssh, (
+                f"{team.name} SSH: expected {expected_ssh}, got {actual_ssh}"
+            )
