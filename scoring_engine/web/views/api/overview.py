@@ -243,7 +243,8 @@ def overview_get_data():
         checks = (
             db.session.query(Service.name, Check.result)
             .join(Service)
-            .filter(Check.round_id == last_round)
+            .join(Round)
+            .filter(Round.number == last_round)
             .order_by(Service.name, Service.team_id)
             .all()
         )
