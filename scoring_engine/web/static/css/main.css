@@ -37,7 +37,7 @@ body {
   padding-top: 6rem;
   padding-bottom: 6rem;
   margin-bottom: 0;
-  background-color: #fff;
+  background-color: var(--bs-body-bg);
 }
 
 .jumbotron p:last-child {
@@ -101,7 +101,7 @@ tr.shown td.details-control {
 }
 
 .md-page {
-    background: #fff;
+    background: var(--bs-body-bg);
     padding: 0px 25px 25px 25px;
     margin-top: 10px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.1);

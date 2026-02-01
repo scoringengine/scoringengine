@@ -1,6 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-bs-theme="light">
+<script>
+  // Apply saved theme immediately to prevent flash
+  (function() {
+    var savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    }
+  })();
+</script>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -16,16 +26,31 @@
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 </head>
 {% if 'unauthorized' in request.path %}
-
 <body style="background-color: red">
-  {% else %}
-
-  <body style="background-color: #f9f9f9;">
-    {% endif %}
+{% else %}
+<body class="bg-body">
+{% endif %}
     <script>
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
+        });
+
+        // Dark mode toggle
+        function updateThemeIcon() {
+          var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+          $('#theme-icon-dark').toggle(!isDark);  // Show moon when light (to switch to dark)
+          $('#theme-icon-light').toggle(isDark);  // Show sun when dark (to switch to light)
+        }
+
+        updateThemeIcon();
+
+        $('#theme-toggle').click(function() {
+          var currentTheme = document.documentElement.getAttribute('data-bs-theme');
+          var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-bs-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateThemeIcon();
         });
       });
     </script>
@@ -86,6 +111,12 @@
               </li>
               {% endif %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('about.about') }}">About</a></li>
+              <li class="nav-item">
+                <button class="btn nav-link" id="theme-toggle" title="Toggle dark mode">
+                  <i class="bi bi-moon-fill" id="theme-icon-dark" style="display: none;"></i>
+                  <i class="bi bi-sun-fill" id="theme-icon-light" style="display: none;"></i>
+                </button>
+              </li>
             </ul>
           </div>
           <!--/.nav-collapse -->
