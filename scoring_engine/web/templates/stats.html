@@ -3,8 +3,8 @@
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
@@ -39,7 +39,7 @@
             "targets": 4,
             "data": null,
             "render": function ( data, type, row, meta ) {
-                return row.num_up_services + ' <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / ' + row.num_down_services + ' <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>';
+                return row.num_up_services + ' <i class="bi bi-chevron-up" aria-hidden="true"></i> / ' + row.num_down_services + ' <i class="bi bi-chevron-down" aria-hidden="true"></i>';
             }
         }]
     } );

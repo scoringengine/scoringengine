@@ -9,11 +9,11 @@
     <form method="POST" role="form" class="form-signin">
         {{ form.csrf_token }}
         <h2 class="form-signin-heading">Please sign in</h2>
-        <label for="inputUsername" class="sr-only">Username</label>
+        <label for="inputUsername" class="visually-hidden">Username</label>
         {{ form.username() }}
-        <label for="inputPassword" class="sr-only">Password</label>
+        <label for="inputPassword" class="visually-hidden">Password</label>
         {{ form.password() }}
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary w-100" type="submit">Sign in</button>
     </form>
 </div>
 {% endblock %}

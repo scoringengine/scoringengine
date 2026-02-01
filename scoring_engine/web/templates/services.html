@@ -3,8 +3,8 @@
 {% block head %}
     {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container md-page">
@@ -76,8 +76,8 @@
                             {
                                 "data": null,
                                 "render": function( data ) {
-                                    var span_str = '<span class="label label-'
-                                    var label_level = 'default'
+                                    var span_str = '<span class="badge bg-'
+                                    var label_level = 'secondary'
                                     var label_str = 'Undetermined'
                                     if ( data.check == "UP" ) {
                                         label_level = 'success'
@@ -112,10 +112,10 @@
                                     var last_ten_checks = '<div align="right">'
                                     for (var index in data.last_ten_checks) {
                                         if ( data.last_ten_checks[index] == true ) {
-                                            last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                                            last_ten_checks += '<i class="bi bi-check-lg" style="color:green"></i>';
                                         }
                                         else {
-                                        last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                                        last_ten_checks += '<i class="bi bi-x-lg" style="color:red"></i>';
                                         }
                                     }
                                     return '</div>' + last_ten_checks;

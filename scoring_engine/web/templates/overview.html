@@ -3,8 +3,8 @@
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
@@ -75,9 +75,9 @@
                             } else {
                                 // Add medal ribbons for top 3
                                 var medal = '';
-                                if (value == 1) medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>';
-                                else if (value == 2) medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>';
-                                else if (value == 3) medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>';
+                                if (value == 1) medal = ' <i class="bi bi-award-fill" style="color: #C98910"></i>';
+                                else if (value == 2) medal = ' <i class="bi bi-award-fill" style="color: #A8A8A8"></i>';
+                                else if (value == 3) medal = ' <i class="bi bi-award-fill" style="color: #965A38"></i>';
                                 if (medal) $cell.html(value + medal);
                             }
                         } else if (rowLabel === 'SLA Penalties') {
@@ -100,16 +100,16 @@
                                 // Determine status icon and color
                                 var icon, color;
                                 if (value == 'true') {
-                                    icon = 'glyphicon-ok';
+                                    icon = 'bi-check-lg';
                                     color = 'green';
                                 } else if (value == 'false') {
-                                    icon = 'glyphicon-remove';
+                                    icon = 'bi-x-lg';
                                     color = 'red';
                                 } else {
-                                    icon = 'glyphicon-question-sign';
+                                    icon = 'bi-question-circle';
                                     color = 'black';
                                 }
-                                $cell.html(`<span class="glyphicon ${icon}" style="color:${color}"></span>`);
+                                $cell.html(`<i class="bi ${icon}" style="color:${color}"></i>`);
                             }
                         }
                     }

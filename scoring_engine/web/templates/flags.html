@@ -3,8 +3,8 @@
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
@@ -29,7 +29,7 @@
     </div>
     <div class="row">
         <h2 class="text-center">Capture Status for Active Flags</h2>
-	<h5 class="text-center"><span class='glyphicon glyphicon-minus' style='color: gray'></span> means no capture; <span class='glyphicon glyphicon-user' style='color: blue'></span> means user level capture; and <span class='glyphicon glyphicon-fire' style='color: red'></span> means root level capture</h5>
+	<h5 class="text-center"><i class='bi bi-dash-lg' style='color: gray'></i> means no capture; <i class='bi bi-person-fill' style='color: blue'></i> means user level capture; and <i class='bi bi-fire' style='color: red'></i> means root level capture</h5>
     </div>
     <div class="row">
         <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
@@ -86,11 +86,11 @@ $(document).ready(function() {
 			    return data;
 			} else if (Array.isArray(data)) {
 			    if(data[1] == 1) {
-			        return "<span class='glyphicon glyphicon-fire' style='color: red'></span>";
+			        return "<i class='bi bi-fire' style='color: red'></i>";
 			    } else if(data[0] == 1) {
-			        return "<span class='glyphicon glyphicon-user' style='color: blue'></span>";
+			        return "<i class='bi bi-person-fill' style='color: blue'></i>";
 		            } else {
-			        return "<span class='glyphicon glyphicon-minus' style='color: gray'></span>";
+			        return "<i class='bi bi-dash-lg' style='color: gray'></i>";
 			    }
 			}
                     }

@@ -3,8 +3,8 @@
 {% block head %}
     {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 
     <script src="{{ url_for('static', filename='vendor/js/bootstrap-editable.min.js') }}"></script>
@@ -128,7 +128,7 @@
                 {% if modify_account_passwords_setting == true %}
                   <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
                 {% else %}
-                  <a href="#" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
+                  <a href="#" class="btn btn-primary btn-sm" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
                   <div id="masked_password_{{account.id}}" style="display: inline-block;">**********</div><div id="show_password_{{account.id}}" style="display: none;">{{account.password}}</div>
                 {% endif %}
               </tr>
@@ -166,10 +166,10 @@
                       }
                       navbar_row_str += '">' + key;
                       if (value['result'] == 'True'){
-                        navbar_row_str += '<span class="pull-right label label-success" style="margin-top: 2px;">UP</span>'
+                        navbar_row_str += '<span class="float-end badge bg-success" style="margin-top: 2px;">UP</span>'
                       }
                       else if (value['result'] == 'False') {
-                        navbar_row_str += '<span class="pull-right label label-danger" style="margin-top: 2px;">DOWN</span>'
+                        navbar_row_str += '<span class="float-end badge bg-danger" style="margin-top: 2px;">DOWN</span>'
                       }
                       navbar_row_str += "</a>"
                       navbar_str += navbar_row_str
@@ -200,14 +200,14 @@
                       "orderable": false,
                       "data": null,
                       "render": function( data ) {
-                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
-                        var button_icon = 'glyphicon-plus'
+                        var button_text = `<a class='expand-button'><i id='span_` + data['round'] + `' class="float-end bi `;
+                        var button_icon = 'bi-plus-lg'
                         if ( window.expanded_rows ){
                             if (window.expanded_rows.indexOf(data['round']) >= 0) {
-                              button_icon = 'glyphicon-minus';
+                              button_icon = 'bi-dash-lg';
                             }
                         }
-                        button_text += button_icon + `"></span></a>`;
+                        button_text += button_icon + `"></i></a>`;
                         return button_text;
                       }
                     },
@@ -215,7 +215,7 @@
                     {
                       "data": "result",
                       "render": function( data ) {
-                        return (data == true) ? '<span class="label label-success">UP</span>' : '<span class="label label-danger">DOWN</span>';
+                        return (data == true) ? '<span class="badge bg-success">UP</span>' : '<span class="badge bg-danger">DOWN</span>';
                       }
                     },
                     {
@@ -258,19 +258,19 @@
                     }
                   }
 
-                  var icon_span = $(tr).find('span:first');
+                  var icon_span = $(tr).find('i:first');
                   if (row.child.isShown()) {
                     // Close the check output row
                     row.child.hide();
-                    icon_span.removeClass('glyphicon-minus')
-                    icon_span.addClass('glyphicon-plus')
+                    icon_span.removeClass('bi-dash-lg')
+                    icon_span.addClass('bi-plus-lg')
                   }
                   else {
                     // Open the check output row
                     var output_row = '<pre style="max-height: 350px;">' + row.data().output + '</pre>';
                     row.child(output_row).show();
-                    icon_span.removeClass('glyphicon-plus')
-                    icon_span.addClass('glyphicon-minus')
+                    icon_span.removeClass('bi-plus-lg')
+                    icon_span.addClass('bi-dash-lg')
                   }
                 });
 
@@ -284,9 +284,9 @@
                           var row = table.row(this);
                           var output_row = '<pre>' + row.data().output + '</pre>';
                           row.child(output_row).show();
-                          var icon_span = $(this).find('span:first');
-                          icon_span.removeClass('glyphicon-plus');
-                          icon_span.addClass('glyphicon-minus');
+                          var icon_span = $(this).find('i:first');
+                          icon_span.removeClass('bi-plus-lg');
+                          icon_span.addClass('bi-dash-lg');
                         }
                       });
                     }

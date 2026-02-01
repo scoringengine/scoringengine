@@ -4,71 +4,63 @@
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
       <div class="list-group text-center">
-          <button type="button" class="btn btn-default btn-lg" id="engine_toggle">
-            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
+          <button type="button" class="btn btn-secondary btn-lg" id="engine_toggle">
+            <i class="bi bi-pause-fill" aria-hidden="true"></i> Pause
           </button>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Stats <b class="pull-right glyphicon glyphicon-list-alt"></b></span>
-          </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <span>Stats <i class="bi bi-list-ul float-end"></i></span>
         </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/status' %}active{% endif %}"
             href="/admin/status" id="engine">Engine</a>
-          <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/workers' %}active{% endif %}"
             href="/admin/workers">Workers</a>
-          <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/queues' %}active{% endif %}"
             href="/admin/queues">Queues</a>
         </div>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Settings <b class="pull-right glyphicon glyphicon-cog"></b></span>
-          </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <span>Settings <i class="bi bi-gear float-end"></i></span>
         </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}"
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/settings' %}active{% endif %}"
             href="/admin/settings">Competition</a>
-          <a class="list-group-item {% if request.path == '/admin/sla' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/sla' %}active{% endif %}"
             href="/admin/sla">SLA & Scoring</a>
-          <a class="list-group-item {% if request.path == '/admin/permissions' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/permissions' %}active{% endif %}"
             href="/admin/permissions">Website Permissions</a>
-          <a class="list-group-item {% if request.path == '/admin/manage' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/manage' %}active{% endif %}"
             href="/admin/manage">Users</a>
         </div>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Injects <b class="pull-right glyphicon glyphicon-file"></b></span>
-          </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <span>Injects <i class="bi bi-file-earmark float-end"></i></span>
         </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/injects/templates' %}active{% endif %}"
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/injects/templates' %}active{% endif %}"
             href="/admin/injects/templates">Templates</a>
-          <a class="list-group-item {% if request.path == '/admin/injects/scores' %}active{% endif %}"
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/injects/scores' %}active{% endif %}"
             href="/admin/injects/scores">Scores</a>
         </div>
       </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
-          </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <span>Services <i class="bi bi-list-task float-end"></i></span>
         </div>
-        <div class="list-group">
+        <div class="list-group list-group-flush">
           {% for team in blue_teams %}
-          <a href="#" class="list-group-item" data-toggle="collapse"
-            data-target="#services_team{{team.id}}">{{team.name}}</a>
+          <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="collapse"
+            data-bs-target="#services_team{{team.id}}">{{team.name}}</a>
           <div id="services_team{{team.id}}"
-            class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
+            class="sublinks collapse {% if service and team.id == service.team.id %}show{% endif %}">
             {% for service in team.services %}
             <a href="/admin/service/{{service.id}}"
-              class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
-                class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+              class="list-group-item list-group-item-action small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><i
+                class="bi bi-chevron-right"></i> {{service.name}}</a>
             {% endfor %}
           </div>
           {% endfor %}
@@ -76,21 +68,15 @@
       </div>
     </div>
     <div class="col-sm-9">
-      <div class="panel-body">
-        <div class="panel-group">
-          <div class="panel panel-default">
-            <div class="panel-heading" style="background-color:#f9f9f9">
-              <h2 class="panel-title">
-                {% block header %}{% endblock %}
-              </h2>
-            </div>
-            <div class="panel" style="border-top: 0.5px solid gray;">
-              <div class="panel-body" style="padding-top: 0px;">
-                {% block admincontent %}
-                {% endblock %}
-              </div>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-header" style="background-color:#f9f9f9">
+          <h2 class="card-title mb-0">
+            {% block header %}{% endblock %}
+          </h2>
+        </div>
+        <div class="card-body" style="border-top: 0.5px solid gray; padding-top: 0px;">
+          {% block admincontent %}
+          {% endblock %}
         </div>
       </div>
     </div>
@@ -104,12 +90,12 @@
       dataType: 'json',
       success: function (data) {
         if (!data.paused) {
-          document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause'
+          document.getElementById('engine').innerHTML = 'Engine <span class="badge bg-success">Running</span>';
+          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-pause-fill" aria-hidden="true"></i> Pause'
           document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
         } else {
-          document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume'
+          document.getElementById('engine').innerHTML ='Engine <span class="badge bg-secondary">Paused</span>';
+          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-play-fill" aria-hidden="true"></i> Resume'
           document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
         }
       }

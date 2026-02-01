@@ -3,8 +3,8 @@
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
 <div class="container md-page">
@@ -41,13 +41,13 @@
                     <td>Inject 1</td>
                     <td>1:00:00</td>
                     <td>
-                        <span class="label label-warning">Pending</span>
+                        <span class="badge bg-warning text-dark">Pending</span>
                     </td>
                     <td>
-                        <span class="label label-danger">Not Submitted</span>
+                        <span class="badge bg-danger">Not Submitted</span>
                     </td>
                     <td>
-                        <span class="label label-danger">0%</span>
+                        <span class="badge bg-danger">0%</span>
                     </td>
                 </tr>
                 <tr>
@@ -55,13 +55,13 @@
                     <td>Inject 2</td>
                     <td>59:22</td>
                     <td>
-                        <span class="label label-success">Available</span>
+                        <span class="badge bg-success">Available</span>
                     </td>
                     <td>
-                        <span class="label label-danger">Not Submitted</span>
+                        <span class="badge bg-danger">Not Submitted</span>
                     </td>
                     <td>
-                        <span class="label label-danger">0%</span>
+                        <span class="badge bg-danger">0%</span>
                     </td>
                 </tr>
                 <tr>
@@ -69,13 +69,13 @@
                     <td>Inject 3</td>
                     <td>0:00:00</td>
                     <td>
-                        <span class="label label-danger">Unavailable</span>
+                        <span class="badge bg-danger">Unavailable</span>
                     </td>
                     <td>
-                        <span class="label label-success">Submitted</span>
+                        <span class="badge bg-success">Submitted</span>
                     </td>
                     <td>
-                        <span class="label label-success">100%</span>
+                        <span class="badge bg-success">100%</span>
                     </td>
                 </tr>
             </tbody> -->
@@ -131,16 +131,16 @@
                             var endTime = new Date(row['end_time']);
 
                             if (currentTime > endTime) {
-                                return '<span class="label label-danger">Expired</span>';
+                                return '<span class="badge bg-danger">Expired</span>';
                             } else {
-                                return '<span class="label label-warning">' + data + '</span>';
+                                return '<span class="badge bg-warning text-dark">' + data + '</span>';
                             }
                         } else if (data == "Submitted") {
-                            return '<span class="label label-success">' + data + '</span>';
+                            return '<span class="badge bg-success">' + data + '</span>';
                         } else if (data == "Graded") {
-                            return '<span class="label label-info">' + data + '</span>';
+                            return '<span class="badge bg-info text-dark">' + data + '</span>';
                         } else {
-                            return '<span class="label label-danger">' + data + '</span>';
+                            return '<span class="badge bg-danger">' + data + '</span>';
                         }
                     }
                 },
@@ -149,11 +149,11 @@
                 //     "width": "5%",
                 //     "render": function (data, type, row) {
                 //         if (data == "Submitted") {
-                //             return '<span class="label label-success">' + data + '</span>';
+                //             return '<span class="badge bg-success">' + data + '</span>';
                 //         } else if (data == "Pending") {
-                //             return '<span class="label label-warning">' + data + '</span>';
+                //             return '<span class="badge bg-warning text-dark">' + data + '</span>';
                 //         } else {
-                //             return '<span class="label label-danger">Not Submitted</span>';
+                //             return '<span class="badge bg-danger">Not Submitted</span>';
                 //         }
                 //     }
                 // },
