@@ -82,6 +82,10 @@ services:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_OVERWRITE_DB
       - SCORINGENGINE_VERSION
+      - SCORINGENGINE_DBURI=${SCORINGENGINE_DBURI:-mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4}
+    volumes:
+      - ./engine.conf.inc:/app/engine.conf.inc:ro # allow runtime config override
+      - ./bin/competition.yaml:/app/bin/competition.yaml:ro # allow competition config override
   engine:
     image: scoringengine/engine
     build:
@@ -103,6 +107,9 @@ services:
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
+      - SCORINGENGINE_DBURI=${SCORINGENGINE_DBURI:-mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4}
+    volumes:
+      - ./engine.conf.inc:/app/engine.conf.inc:ro
   worker:
     image: scoringengine/worker
     build:
@@ -122,7 +129,10 @@ services:
     environment:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
+      - SCORINGENGINE_DBURI=${SCORINGENGINE_DBURI:-mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4}
     privileged: true
+    volumes:
+      - ./engine.conf.inc:/app/engine.conf.inc:ro
   web:
     image: scoringengine/web
     build:
@@ -149,8 +159,10 @@ services:
       - default
     volumes:
       - injects:/var/uploads/
+      - ./engine.conf.inc:/app/engine.conf.inc:ro
     environment:
       - SCORINGENGINE_VERSION
+      - SCORINGENGINE_DBURI=${SCORINGENGINE_DBURI:-mysql://se_user:CHANGEME@mysql/scoring_engine?charset=utf8mb4}
 
 volumes:
   injects:

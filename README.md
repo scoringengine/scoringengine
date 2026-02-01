@@ -49,6 +49,18 @@ Run with sample data and only the web UI:
 SCORINGENGINE_EXAMPLE=true docker-compose up
 ```
 
+Change database from MySQL:
+
+PostgreSQL
+```bash
+SCORINGENGINE_DBURI="postgresql://se_user:CHANGEME@postgres/scoring_engine" docker-compose up
+```
+
+SQLite
+```bash
+SCORINGENGINE_DBURI="sqlite:////tmp/engine.db?check_same_thread=False" docker-compose up
+```
+
 Once running, access the application at [http://localhost](http://localhost/).
 
 Log in using any of the following credentials:
