@@ -68,3 +68,14 @@ dynamic_scoring_early_multiplier = 2.0
 dynamic_scoring_late_start_round = 50
 # Multiplier for late rounds (e.g., 0.5 = 0.5x points)
 dynamic_scoring_late_multiplier = 0.5
+
+# Weighted Scoring Configuration
+# When enabled, applies multipliers to balance different score types
+# Useful when services total 10000 points but injects only 100 points
+weighted_scoring_enabled = False
+# Weight applied to service uptime scores (default 1.0 = no change)
+service_weight = 1.0
+# Weight applied to inject scores (default 1.0 = no change)
+inject_weight = 1.0
+# Weight applied to flag capture scores (default 1.0 = no change)
+flag_weight = 1.0

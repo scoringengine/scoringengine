@@ -1088,3 +1088,55 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/weighted_scoring/settings", methods=["GET"])
+@login_required
+def admin_get_weighted_scoring_settings():
+    """Get current weighted scoring configuration."""
+    if current_user.is_white_team:
+        enabled = Setting.get_setting("weighted_scoring_enabled")
+        service_weight = Setting.get_setting("service_weight")
+        inject_weight = Setting.get_setting("inject_weight")
+        flag_weight = Setting.get_setting("flag_weight")
+
+        return jsonify({
+            "enabled": enabled.value if enabled else False,
+            "service_weight": float(service_weight.value) if service_weight else 1.0,
+            "inject_weight": float(inject_weight.value) if inject_weight else 1.0,
+            "flag_weight": float(flag_weight.value) if flag_weight else 1.0,
+        })
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/weighted_scoring/settings", methods=["POST"])
+@login_required
+def admin_update_weighted_scoring_settings():
+    """Update weighted scoring configuration."""
+    if current_user.is_white_team:
+        data = request.get_json() or request.form
+
+        # Update enabled setting
+        if "enabled" in data:
+            setting = Setting.get_setting("weighted_scoring_enabled")
+            if setting:
+                setting.value = str(data["enabled"]).lower() in ("true", "1", "yes", "on")
+                db.session.add(setting)
+                Setting.clear_cache("weighted_scoring_enabled")
+
+        # Update weights
+        for weight_name in ["service_weight", "inject_weight", "flag_weight"]:
+            if weight_name in data:
+                setting = Setting.get_setting(weight_name)
+                if setting:
+                    try:
+                        setting.value = str(float(data[weight_name]))
+                        db.session.add(setting)
+                        Setting.clear_cache(weight_name)
+                    except (ValueError, TypeError):
+                        pass  # Ignore invalid values
+
+        db.session.commit()
+        flash("Weighted scoring settings updated successfully.", "success")
+        return jsonify({"status": "success"})
+    return {"status": "Unauthorized"}, 403

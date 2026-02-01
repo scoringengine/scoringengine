@@ -44,6 +44,14 @@ class SLAConfig:
             "dynamic_scoring_late_multiplier", 0.5
         )
 
+        # Weighted scoring settings (balance service/inject/flag scores)
+        self.weighted_scoring_enabled = self._get_bool_setting(
+            "weighted_scoring_enabled", False
+        )
+        self.service_weight = self._get_float_setting("service_weight", 1.0)
+        self.inject_weight = self._get_float_setting("inject_weight", 1.0)
+        self.flag_weight = self._get_float_setting("flag_weight", 1.0)
+
     def _get_setting(self, name, default):
         """Get a setting value from the database."""
         setting = Setting.get_setting(name)
