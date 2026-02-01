@@ -176,6 +176,13 @@ with app.app_context():
     db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
     db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
 
+    # Webhook Settings (Slack/Discord notifications)
+    logger.info("Creating the Webhook Settings")
+    db.session.add(Setting(name="webhook_enabled", value=config.webhook_enabled))
+    db.session.add(Setting(name="webhook_url", value=config.webhook_url))
+    db.session.add(Setting(name="webhook_on_round_complete", value=config.webhook_on_round_complete))
+    db.session.add(Setting(name="webhook_on_inject_graded", value=config.webhook_on_inject_graded))
+
     db.session.commit()
 
     if options.example:

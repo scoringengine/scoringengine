@@ -224,6 +224,32 @@ class ConfigLoader(object):
             "float",
         )
 
+        # Webhook Configuration (Slack/Discord/generic notifications)
+        self.webhook_enabled = self.parse_sources(
+            "webhook_enabled",
+            self.parser["OPTIONS"].get("webhook_enabled", "false").lower() == "true",
+            "bool",
+        )
+
+        self.webhook_url = self.parse_sources(
+            "webhook_url",
+            self.parser["OPTIONS"].get("webhook_url", ""),
+        )
+
+        self.webhook_on_round_complete = self.parse_sources(
+            "webhook_on_round_complete",
+            self.parser["OPTIONS"].get("webhook_on_round_complete", "true").lower()
+            == "true",
+            "bool",
+        )
+
+        self.webhook_on_inject_graded = self.parse_sources(
+            "webhook_on_inject_graded",
+            self.parser["OPTIONS"].get("webhook_on_inject_graded", "true").lower()
+            == "true",
+            "bool",
+        )
+
     def parse_sources(self, key_name, default_value, obj_type="str"):
         """Return a configuration value using environment overrides when present.
 

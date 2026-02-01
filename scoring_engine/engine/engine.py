@@ -291,6 +291,8 @@ class Engine(object):
             logger.info("Finished Round " + str(self.current_round))
             logger.info("Round Duration " + str((round_end_time - round_start_time).seconds) + " seconds")
             logger.info("Round Stats:")
+            total_passed = 0
+            total_failed = 0
             for team_name in sorted(teams):
                 stat_string = " " + team_name
                 stat_string += " Success: " + str(len(teams[team_name]["Success"]))
@@ -298,6 +300,22 @@ class Engine(object):
                 if len(teams[team_name]["Failed"]) > 0:
                     stat_string += " (" + ", ".join(teams[team_name]["Failed"]) + ")"
                 logger.info(stat_string)
+                total_passed += len(teams[team_name]["Success"])
+                total_failed += len(teams[team_name]["Failed"])
+
+            # Send webhook notification for round completion
+            try:
+                from scoring_engine.webhooks import notify_round_complete
+                notify_round_complete(
+                    self.current_round,
+                    stats={
+                        "passed": total_passed,
+                        "failed": total_failed,
+                        "total": total_passed + total_failed,
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send round complete webhook: {e}")
 
             logger.info("Updating Caches")
             update_all_cache(current_app)
