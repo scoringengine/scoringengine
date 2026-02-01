@@ -42,6 +42,15 @@ class Service(Base):
     port = Column(Integer, default=0)
     worker_queue = Column(String(50), default="main")
 
+    # Service dependency: parent service (e.g., DNS is parent of HTTP)
+    parent_id = Column(Integer, ForeignKey("services.id"), nullable=True)
+    parent = relationship(
+        "Service",
+        remote_side=[id],
+        backref="children",
+        foreign_keys=[parent_id],
+    )
+
     def check_result_for_round(self, round_num):
         """
         Get check result for a specific round.
@@ -197,3 +206,77 @@ class Service(Base):
         from scoring_engine.sla import get_service_sla_status
 
         return get_service_sla_status(self)
+
+    def parent_is_down(self):
+        """
+        Check if this service's parent (if any) is currently down.
+        Returns False if no parent or parent is up.
+        """
+        if not self.parent:
+            return False
+        return self.parent.last_check_result() is False
+
+    def get_root_cause(self):
+        """
+        Find the root cause of this service's failure by traversing parent chain.
+        Returns the topmost failing parent service, or None if no parent is down.
+        Prevents infinite loops from circular dependencies.
+        """
+        if not self.parent:
+            return None
+
+        visited = set()
+        current = self.parent
+        root_cause = None
+
+        while current and current.id not in visited:
+            visited.add(current.id)
+            if current.last_check_result() is False:
+                root_cause = current
+            if current.parent:
+                current = current.parent
+            else:
+                break
+
+        return root_cause
+
+    def get_dependency_chain(self):
+        """
+        Get the full chain of parent services for this service.
+        Returns list of services from immediate parent to root.
+        Prevents infinite loops from circular dependencies.
+        """
+        chain = []
+        visited = set()
+        current = self.parent
+
+        while current and current.id not in visited:
+            visited.add(current.id)
+            chain.append(current)
+            current = current.parent
+
+        return chain
+
+    @property
+    def dependency_status(self):
+        """
+        Get dependency status info for this service.
+        Returns dict with parent info and root cause if applicable.
+        """
+        result = {
+            "has_parent": self.parent is not None,
+            "parent_id": self.parent_id,
+            "parent_name": self.parent.name if self.parent else None,
+            "parent_is_down": self.parent_is_down(),
+            "root_cause": None,
+        }
+
+        if result["parent_is_down"]:
+            root = self.get_root_cause()
+            if root:
+                result["root_cause"] = {
+                    "id": root.id,
+                    "name": root.name,
+                }
+
+        return result

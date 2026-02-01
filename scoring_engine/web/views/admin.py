@@ -103,8 +103,20 @@ def service(id):
         if service is None:
             return redirect(url_for("auth.unauthorized"))
 
+        # Get all services for this team (excluding current service) for dependency dropdown
+        team_services = (
+            db.session.query(Service)
+            .filter(Service.team_id == service.team_id)
+            .filter(Service.id != service.id)
+            .order_by(Service.name)
+            .all()
+        )
+
         return render_template(
-            "admin/service.html", service=service, blue_teams=blue_teams
+            "admin/service.html",
+            service=service,
+            blue_teams=blue_teams,
+            team_services=team_services,
         )
     else:
         return redirect(url_for("auth.unauthorized"))
