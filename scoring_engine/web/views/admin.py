@@ -157,6 +157,22 @@ def permissions():
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/attacks")
+@login_required
+def attacks():
+    """Attack logging and correlation view."""
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        red_teams = db.session.query(Team).filter(Team.color == "Red").all()
+        return render_template(
+            "admin/attacks.html",
+            blue_teams=blue_teams,
+            red_teams=red_teams,
+        )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/sla")
 @login_required
 def sla():
