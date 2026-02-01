@@ -120,6 +120,20 @@ class TestMyFeature(UnitTest):
 
 Integration tests: `make run-integration-tests` (requires testbed services)
 
+## Pull Request Guidelines
+
+**One feature per PR**: Always create separate branches and PRs for each distinct feature. Avoid "mono PRs" that combine multiple unrelated features.
+
+Good:
+- `feature/mobile-responsive-scoreboard` - only CSS changes for mobile
+- `feature/fog-of-war` - only fog of war logic
+- `feature/webhooks` - only webhook notifications
+
+Bad:
+- Single PR with mobile CSS + fog of war + webhooks + new scoring system
+
+**Reasoning**: Separate PRs are easier to review, test, revert, and discuss. If one feature needs changes, it doesn't block others.
+
 ## Security Checklist
 
 - Never log credentials in check output
