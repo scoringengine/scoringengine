@@ -39,6 +39,8 @@ from scoring_engine.cache_helper import (
 from scoring_engine.celery_stats import CeleryStats
 from scoring_engine.config import config
 from scoring_engine.db import db
+from scoring_engine.engine.basic_check import CHECK_FAILURE_TEXT, CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
+from scoring_engine.engine.engine import Engine
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -1413,3 +1415,109 @@ def serve_sponsor_logo(filename):
         abort(404)
     sponsors_dir = os.path.join(config.upload_folder, "sponsors")
     return send_from_directory(sponsors_dir, safe_filename)
+
+
+# Global cache for loaded check classes (loaded once per app lifecycle)
+_check_classes = None
+
+
+def _get_check_classes():
+    """Load and cache all check classes."""
+    global _check_classes
+    if _check_classes is None:
+        _check_classes = {}
+        loaded_checks = Engine.load_check_files(config.checks_location)
+        for check_class in loaded_checks:
+            _check_classes[check_class.__name__] = check_class
+    return _check_classes
+
+
+@mod.route("/api/admin/check/dry_run", methods=["POST"])
+@login_required
+def admin_check_dry_run():
+    """
+    Run a service check without recording results to the database.
+    Dispatches to a Celery worker so the check runs in an environment
+    that has the required tools (SSH client, DNS utils, etc.).
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data or "service_id" not in data:
+        return jsonify({"status": "error", "message": "service_id is required"}), 400
+
+    service_id = data.get("service_id")
+    environment_id = data.get("environment_id")
+
+    service = db.session.get(Service, int(service_id))
+    if not service:
+        return jsonify({"status": "error", "message": f"Service with id {service_id} not found"}), 404
+
+    # Get environment (specific or random)
+    if environment_id:
+        environment = db.session.get(Environment, int(environment_id))
+        if not environment or environment.service_id != service.id:
+            return jsonify({"status": "error", "message": f"Environment {environment_id} not found for service"}), 404
+    else:
+        if not service.environments:
+            return jsonify({"status": "error", "message": "Service has no environments configured"}), 400
+        import random
+
+        environment = random.choice(service.environments)
+
+    # Load check class and generate command
+    check_classes = _get_check_classes()
+    check_class = check_classes.get(service.check_name)
+    if not check_class:
+        return jsonify({"status": "error", "message": f"Check class '{service.check_name}' not found"}), 404
+
+    try:
+        check_obj = check_class(environment)
+        command = check_obj.command()
+    except LookupError as e:
+        return jsonify({"status": "error", "message": f"Check configuration error: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error instantiating check: {str(e)}"}), 500
+
+    # Dispatch to a Celery worker via the service's worker queue
+    import time
+
+    job = {"command": command}
+    start_time = time.time()
+    try:
+        result = execute_command.apply_async(args=[job], queue=service.worker_queue)
+        completed_job = result.get(timeout=35)
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Worker execution failed: {str(e)}"}), 500
+    execution_time_ms = int((time.time() - start_time) * 1000)
+
+    # Evaluate result against matching_content
+    if completed_job.get("errored_out"):
+        check_result = False
+        reason = CHECK_TIMED_OUT_TEXT
+    else:
+        output = completed_job.get("output", "")
+        if re.search(environment.matching_content, output):
+            check_result = True
+            reason = CHECK_SUCCESS_TEXT
+        else:
+            check_result = False
+            reason = CHECK_FAILURE_TEXT
+
+    return jsonify(
+        {
+            "status": "success",
+            "result": check_result,
+            "reason": reason,
+            "output": completed_job.get("output", "")[:35000],
+            "command": command,
+            "execution_time_ms": execution_time_ms,
+            "service_name": service.name,
+            "team_name": service.team.name,
+            "host": service.host,
+            "port": service.port,
+            "matching_content": environment.matching_content,
+            "environment_id": environment.id,
+        }
+    )
