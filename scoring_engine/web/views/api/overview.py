@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from flask import jsonify
+from flask_login import current_user
 from sqlalchemy import desc
 from sqlalchemy.sql import func
 
@@ -9,11 +10,22 @@ from scoring_engine.db import db
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
+
+
+def is_fog_of_war_active():
+    """Check if fog of war is enabled and user is not white team."""
+    fog_setting = Setting.get_setting("fog_of_war_enabled")
+    if fog_setting and fog_setting.value:
+        # White team can always see scores
+        if current_user.is_authenticated and current_user.is_white_team:
+            return False
+        return True
+    return False
 
 
 def calculate_ranks(score_dict):
@@ -72,9 +84,7 @@ def overview_data():
             .subquery()
         )
         res = (
-            db.session.query(
-                Team.name, Service.name, Service.host, Service.port, checks.c.result
-            )
+            db.session.query(Team.name, Service.name, Service.host, Service.port, checks.c.result)
             .join(Team)
             .filter(checks.c.service_id == Service.id)
             .all()
@@ -97,13 +107,89 @@ def overview_get_columns():
 
 
 @mod.route("/api/overview/get_data")
-@cache.memoize()
 def overview_get_data():
+    # Check fog of war - if active, use fog of war version
+    if is_fog_of_war_active():
+        return _overview_get_data_fog_of_war()
+    return _overview_get_data_cached()
+
+
+def _overview_get_data_fog_of_war():
+    """Return overview data with scores hidden (fog of war mode)."""
+    data = []
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
+    blue_team_ids = [team.id for team in blue_teams]
+    last_round = Round.get_last_round_num()
+
+    # Hidden scores and places
+    current_scores = ["Current Score"] + ["?" for _ in blue_team_ids]
+    current_places = ["Current Place"] + ["?" for _ in blue_team_ids]
+
+    num_up_services = dict(
+        db.session.query(
+            Service.team_id,
+            func.count(Service.team_id),
+        )
+        .join(Check)
+        .join(Round)
+        .filter(Check.result.is_(True))
+        .filter(Round.number == last_round)
+        .group_by(Service.team_id)
+        .all()
+    )
+
+    num_down_services = dict(
+        db.session.query(
+            Service.team_id,
+            func.count(Service.team_id),
+        )
+        .join(Check)
+        .join(Round)
+        .filter(Check.result.is_(False))
+        .filter(Round.number == last_round)
+        .group_by(Service.team_id)
+        .all()
+    )
+
+    service_ratios = ["Up/Down Ratio"]
+    for blue_team_id in blue_team_ids:
+        service_ratios.append(
+            '<span class="text-success">{0} <span class="glyphicon glyphicon-arrow-up"></span></span> / '
+            '<span class="text-danger">{1} <span class="glyphicon glyphicon-arrow-down"></span></span>'.format(
+                num_up_services.get(blue_team_id, 0),
+                num_down_services.get(blue_team_id, 0),
+            )
+        )
+
+    data.append(current_scores)
+    data.append(current_places)
+    data.append(service_ratios)
+
+    # Still show service status
+    checks = (
+        db.session.query(Service.name, Check.result)
+        .join(Service)
+        .join(Round)
+        .filter(Round.number == last_round)
+        .order_by(Service.name, Service.team_id)
+        .all()
+    )
+
+    service_dict = defaultdict(list)
+    for service, status in checks:
+        service_dict[service].append(status)
+
+    for k, v in service_dict.items():
+        data.append([k] + v)
+
+    return jsonify(data=data, fog_of_war=True)
+
+
+@cache.memoize()
+def _overview_get_data_cached():
     # columns = get_table_columns()
     data = []
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     blue_team_ids = [team.id for team in blue_teams]
     blue_teams_dict = {team.id: team for team in blue_teams}
     last_round = Round.get_last_round_num()
@@ -159,25 +245,19 @@ def overview_get_data():
             )
 
             # Get round numbers for each round_id
-            rounds_map = {
-                r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-            }
+            rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
             # Calculate totals with multipliers
             team_scores = defaultdict(int)
             for team_id, round_id, round_score in round_scores:
                 round_number = rounds_map.get(round_id, 0)
-                adjusted_score = apply_dynamic_scoring_to_round(
-                    round_number, round_score, sla_config
-                )
+                adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
                 team_scores[team_id] += adjusted_score
             team_scores = dict(team_scores)
         else:
             # No dynamic scoring - use simple sum
             team_scores = dict(
-                db.session.query(
-                    Service.team_id, func.sum(Service.points).label("score")
-                )
+                db.session.query(Service.team_id, func.sum(Service.points).label("score"))
                 .join(Check)
                 .filter(Check.result.is_(True))
                 .group_by(Service.team_id)
@@ -203,9 +283,7 @@ def overview_get_data():
                 adjusted_scores_dict[blue_team_id] = base_score
 
         # Use adjusted scores for ranking when SLA is enabled
-        scores_for_ranking = (
-            adjusted_scores_dict if sla_config.sla_enabled else team_scores
-        )
+        scores_for_ranking = adjusted_scores_dict if sla_config.sla_enabled else team_scores
 
         # Calculate ranks with tie handling
         ranks_dict = calculate_ranks(scores_for_ranking)
@@ -227,9 +305,7 @@ def overview_get_data():
             # Add penalty display (negative number if penalty exists)
             penalty = penalties_dict.get(blue_team_id, 0)
             if penalty > 0:
-                sla_penalties_row.append(
-                    '<span class="text-danger">-{}</span>'.format(penalty)
-                )
+                sla_penalties_row.append('<span class="text-danger">-{}</span>'.format(penalty))
             else:
                 sla_penalties_row.append("0")
 
@@ -269,9 +345,7 @@ def overview_get_data():
 
         # Loop through dictionary to create datatables formatted list
         for k, v in service_dict.items():
-            data.append(
-                [k] + v
-            )  # ['SERVICE', True, False, False, False, False, False, False, True, False, False]
+            data.append([k] + v)  # ['SERVICE', True, False, False, False, False, False, False, True, False, False]
         return jsonify(data=data)
     else:
         return "{}"

@@ -1,31 +1,24 @@
 #!/usr/bin/env python
+import optparse
+import os
 from datetime import datetime, timedelta
 from random import choice, randint, sample
 
-import optparse
-import os
-
-from scoring_engine.models.inject import Template, Inject
-from scoring_engine.models.team import Team
-from scoring_engine.models.service import Service
-from scoring_engine.models.round import Round
-from scoring_engine.models.check import Check
-from scoring_engine.models.flag import Flag, Solve, Platform, FlagTypeEnum, Perm
-
-from scoring_engine.models.notifications import Notification
-from scoring_engine.models.setting import Setting
-from scoring_engine.db import db, init_db, delete_db, verify_db_ready
-from scoring_engine.config import config
 from scoring_engine.competition import Competition
+from scoring_engine.config import config
+from scoring_engine.db import db, delete_db, init_db, verify_db_ready
+from scoring_engine.engine.basic_check import CHECK_FAILURE_TEXT, CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
 from scoring_engine.logger import logger
+from scoring_engine.models.check import Check
+from scoring_engine.models.flag import Flag, FlagTypeEnum, Perm, Platform, Solve
+from scoring_engine.models.inject import Inject, Template
+from scoring_engine.models.notifications import Notification
+from scoring_engine.models.round import Round
+from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
 from scoring_engine.version import version
 from scoring_engine.web import create_app
-from scoring_engine.engine.basic_check import (
-    CHECK_SUCCESS_TEXT,
-    CHECK_FAILURE_TEXT,
-    CHECK_TIMED_OUT_TEXT,
-)
-
 
 parser = optparse.OptionParser()
 parser.add_option("--overwrite-db", action="store_true", default=False)
@@ -176,6 +169,11 @@ with app.app_context():
     db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
     db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
 
+    # Fog of War Settings (hide scores from non-admin users)
+    logger.info("Creating the Fog of War Settings")
+    db.session.add(Setting(name="fog_of_war_enabled", value=config.fog_of_war_enabled))
+    db.session.add(Setting(name="overview_show_round_info", value=config.overview_show_round_info))
+
     db.session.commit()
 
     if options.example:
@@ -290,7 +288,7 @@ with app.app_context():
             )
             flag.platform = choice([Platform.nix, Platform.windows])
             # Most flags should be non-dummy so they show up (only ~20% dummy)
-            flag.dummy = (i % 5 == 0)
+            flag.dummy = i % 5 == 0
             flag.type = choice([FlagTypeEnum.file, FlagTypeEnum.pipe, FlagTypeEnum.net, FlagTypeEnum.reg])
             flag.perm = choice([Perm.user, Perm.root])
             flag.data = {"path": f"/tmp/flag_{i}.txt", "content": f"FLAG_{i}_CONTENT"}

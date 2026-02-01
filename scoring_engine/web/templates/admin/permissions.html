@@ -8,6 +8,31 @@
     <div class="row">
       <div class="col-xs-12 col-sm-6 col-md-4">
         <div class="panel panel-default">
+          <div class="panel-heading">Fog of War</div>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <form id="fog_of_war_form" method="POST" action="{{ url_for('api.admin_update_fog_of_war') }}" role="form">
+                Hide Scores (Fog of War)
+                <div class="permission-switch pull-right">
+                  <input id="fog_of_war_enabled" type="checkbox" onchange="$('#fog_of_war_form').submit();" {{ 'checked' if fog_of_war_enabled == true }}/>
+                  <label for="fog_of_war_enabled" class="label-primary"></label>
+                </div>
+              </form>
+            </li>
+            <li class="list-group-item">
+              <form id="overview_show_round_info_form" method="POST" action="{{ url_for('api.admin_update_overview_show_round_info') }}" role="form">
+                Show Round Info on Overview
+                <div class="permission-switch pull-right">
+                  <input id="overview_show_round_info" type="checkbox" onchange="$('#overview_show_round_info_form').submit();" {{ 'checked' if overview_show_round_info == true }}/>
+                  <label for="overview_show_round_info" class="label-primary"></label>
+                </div>
+              </form>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="panel panel-default">
           <div class="panel-heading">Blue Teams</div>
           <ul class="list-group">
             <li class="list-group-item">
