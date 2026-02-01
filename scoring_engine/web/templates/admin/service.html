@@ -49,6 +49,28 @@
 
   $(document).ready(function () {
     $('.password').text("************");
+
+    // Handle dependency save
+    $('#save_dependency').click(function() {
+      var parentId = $('#parent_service').val();
+      var statusEl = $('#dependency_status');
+      statusEl.text('Saving...').removeClass('text-success text-danger');
+
+      $.ajax({
+        url: '/api/admin/service/{{ service.id }}/dependency',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ parent_id: parentId }),
+        success: function(response) {
+          statusEl.text('Saved!').addClass('text-success');
+          setTimeout(function() { location.reload(); }, 1000);
+        },
+        error: function(xhr) {
+          var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Error saving';
+          statusEl.text(msg).addClass('text-danger');
+        }
+      });
+    });
   });
 </script>
 {% endblock %}
@@ -100,6 +122,36 @@
       <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}"
         data-title="Enter Points per successful check" data-name="points"
         data-url="{{url_for('api.admin_update_points')}}">{{service.points}}</a>
+    </td>
+    <td style="padding-left: 30px;">
+      <h4>Dependencies</h4>
+      <div class="form-group">
+        <label for="parent_service">Parent Service (if this fails, consider parent as root cause)</label>
+        <select id="parent_service" class="form-control" style="width: 200px;">
+          <option value=""{% if not service.parent %} selected{% endif %}>None</option>
+          {% for team_service in team_services %}
+          <option value="{{ team_service.id }}"{% if service.parent_id == team_service.id %} selected{% endif %}>{{ team_service.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" id="save_dependency" class="btn btn-sm btn-primary" style="margin-top: 5px;">Save</button>
+        <span id="dependency_status" style="margin-left: 10px;"></span>
+      </div>
+      {% if service.parent %}
+      <p><small>Current parent: <strong>{{ service.parent.name }}</strong>
+        {% if service.parent.last_check_result() == False %}
+        <span class="label label-danger">DOWN</span>
+        {% elif service.parent.last_check_result() == True %}
+        <span class="label label-success">UP</span>
+        {% endif %}
+      </small></p>
+      {% endif %}
+      {% if service.children %}
+      <p><small>Dependent services:
+        {% for child in service.children %}
+        <a href="{{ url_for('admin.service', id=child.id) }}">{{ child.name }}</a>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </small></p>
+      {% endif %}
     </td>
   </tr>
 </table>

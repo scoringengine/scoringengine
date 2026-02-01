@@ -368,3 +368,200 @@ class TestService(UnitTest):
         assert team_1.services[0].rank == 1
         assert team_2.services[0].rank == 1
         assert team_3.services[0].rank == None
+
+    # Service Dependency Tests
+
+    def test_service_no_parent(self):
+        """Test service with no parent dependency."""
+        service = generate_sample_model_tree('Service', self.session)
+        assert service.parent is None
+        assert service.parent_id is None
+        assert service.parent_is_down() is False
+        assert service.get_root_cause() is None
+        assert service.get_dependency_chain() == []
+
+    def test_service_with_parent(self):
+        """Test setting a parent service."""
+        team = generate_sample_model_tree('Team', self.session)
+        parent_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        child_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(parent_service)
+        self.session.add(child_service)
+        self.session.commit()
+
+        child_service.parent = parent_service
+        self.session.commit()
+
+        assert child_service.parent == parent_service
+        assert child_service.parent_id == parent_service.id
+        assert parent_service.children == [child_service]
+
+    def test_parent_is_down_when_parent_fails(self):
+        """Test parent_is_down returns True when parent's last check failed."""
+        team = generate_sample_model_tree('Team', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
+
+        parent_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        child_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(parent_service)
+        self.session.add(child_service)
+        self.session.commit()
+
+        child_service.parent = parent_service
+        # Parent service check fails
+        check = Check(round=round_obj, service=parent_service, result=False, output='Failed')
+        self.session.add(check)
+        self.session.commit()
+
+        assert child_service.parent_is_down() is True
+
+    def test_parent_is_down_when_parent_passes(self):
+        """Test parent_is_down returns False when parent's last check passed."""
+        team = generate_sample_model_tree('Team', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
+
+        parent_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        child_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(parent_service)
+        self.session.add(child_service)
+        self.session.commit()
+
+        child_service.parent = parent_service
+        # Parent service check passes
+        check = Check(round=round_obj, service=parent_service, result=True, output='OK')
+        self.session.add(check)
+        self.session.commit()
+
+        assert child_service.parent_is_down() is False
+
+    def test_get_root_cause_with_failing_parent(self):
+        """Test get_root_cause returns the failing parent."""
+        team = generate_sample_model_tree('Team', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
+
+        dns_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        http_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(dns_service)
+        self.session.add(http_service)
+        self.session.commit()
+
+        http_service.parent = dns_service
+        # DNS fails
+        check = Check(round=round_obj, service=dns_service, result=False, output='Failed')
+        self.session.add(check)
+        self.session.commit()
+
+        root_cause = http_service.get_root_cause()
+        assert root_cause == dns_service
+
+    def test_get_root_cause_with_chain(self):
+        """Test get_root_cause finds topmost failing parent in chain."""
+        team = generate_sample_model_tree('Team', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
+
+        network_service = Service(name="Network", team=team, check_name="ICMP Check", host='127.0.0.1')
+        dns_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        http_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(network_service)
+        self.session.add(dns_service)
+        self.session.add(http_service)
+        self.session.commit()
+
+        dns_service.parent = network_service
+        http_service.parent = dns_service
+
+        # Network fails (root cause)
+        check1 = Check(round=round_obj, service=network_service, result=False, output='Failed')
+        self.session.add(check1)
+        # DNS also fails
+        check2 = Check(round=round_obj, service=dns_service, result=False, output='Failed')
+        self.session.add(check2)
+        self.session.commit()
+
+        root_cause = http_service.get_root_cause()
+        assert root_cause == network_service
+
+    def test_get_dependency_chain(self):
+        """Test get_dependency_chain returns all parent services."""
+        team = generate_sample_model_tree('Team', self.session)
+
+        network_service = Service(name="Network", team=team, check_name="ICMP Check", host='127.0.0.1')
+        dns_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        http_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(network_service)
+        self.session.add(dns_service)
+        self.session.add(http_service)
+        self.session.commit()
+
+        dns_service.parent = network_service
+        http_service.parent = dns_service
+        self.session.commit()
+
+        chain = http_service.get_dependency_chain()
+        assert len(chain) == 2
+        assert chain[0] == dns_service
+        assert chain[1] == network_service
+
+    def test_dependency_chain_prevents_circular(self):
+        """Test that dependency chain traversal prevents infinite loops."""
+        team = generate_sample_model_tree('Team', self.session)
+
+        service_a = Service(name="Service A", team=team, check_name="Check A", host='127.0.0.1')
+        service_b = Service(name="Service B", team=team, check_name="Check B", host='127.0.0.1')
+        self.session.add(service_a)
+        self.session.add(service_b)
+        self.session.commit()
+
+        # Create circular dependency (normally prevented by API, but test model safety)
+        service_a.parent_id = service_b.id
+        service_b.parent_id = service_a.id
+        self.session.commit()
+
+        # Should not hang - returns partial chain
+        chain = service_a.get_dependency_chain()
+        assert len(chain) <= 2  # Should stop at cycle
+
+    def test_dependency_status_property(self):
+        """Test dependency_status property returns correct info."""
+        team = generate_sample_model_tree('Team', self.session)
+        round_obj = generate_sample_model_tree('Round', self.session)
+
+        dns_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        http_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        self.session.add(dns_service)
+        self.session.add(http_service)
+        self.session.commit()
+
+        http_service.parent = dns_service
+        # DNS fails
+        check = Check(round=round_obj, service=dns_service, result=False, output='Failed')
+        self.session.add(check)
+        self.session.commit()
+
+        status = http_service.dependency_status
+        assert status["has_parent"] is True
+        assert status["parent_id"] == dns_service.id
+        assert status["parent_name"] == "DNS"
+        assert status["parent_is_down"] is True
+        assert status["root_cause"]["id"] == dns_service.id
+        assert status["root_cause"]["name"] == "DNS"
+
+    def test_children_relationship(self):
+        """Test children backref returns all child services."""
+        team = generate_sample_model_tree('Team', self.session)
+
+        dns_service = Service(name="DNS", team=team, check_name="DNS Check", host='127.0.0.1')
+        http_service = Service(name="HTTP", team=team, check_name="HTTP Check", host='127.0.0.1')
+        smtp_service = Service(name="SMTP", team=team, check_name="SMTP Check", host='127.0.0.1')
+        self.session.add(dns_service)
+        self.session.add(http_service)
+        self.session.add(smtp_service)
+        self.session.commit()
+
+        http_service.parent = dns_service
+        smtp_service.parent = dns_service
+        self.session.commit()
+
+        assert len(dns_service.children) == 2
+        assert http_service in dns_service.children
+        assert smtp_service in dns_service.children
