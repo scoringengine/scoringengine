@@ -4,8 +4,8 @@
 {% block head %}
     {{ super() }}
     <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet" />
 {% endblock %}
 {% block header %}Queue Stats{% endblock %}
 
@@ -47,7 +47,7 @@
               "render": function( data ) {
                 var text = "";
                 if (data.length == 0) {
-                  text = 'None <span class="glyphicon glyphicon-alert" style="color:red" title="No workers are setup to run service checks from this queue. This will prevent the engine from working correctly."></span>';
+                  text = 'None <span class="bi bi-exclamation-triangle-fill" style="color:red" title="No workers are setup to run service checks from this queue. This will prevent the engine from working correctly."></span>';
                 }
                 else {
                   for (var key in data) {
