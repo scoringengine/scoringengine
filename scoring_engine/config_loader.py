@@ -126,6 +126,12 @@ class ConfigLoader(object):
             "bool",
         )
 
+        self.anonymize_team_names = self.parse_sources(
+            "anonymize_team_names",
+            self.parser["OPTIONS"].get("anonymize_team_names", "false").lower() == "true",
+            "bool",
+        )
+
         self.worker_queue = self.parse_sources(
             "worker_queue",
             self.parser["OPTIONS"]["worker_queue"],

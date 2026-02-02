@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 <div class="container md-page">
-    <div id="teamBar" style="width: 100%; height:400px;"></div>
+    <div id="teamBar" style="width: 100%; min-height:400px;"></div>
     <hr>
     <div id="teamLine" style="width: 100%; height:400px;"></div>
     <script>
@@ -24,67 +24,47 @@
             teamBarChart.resize();
         });
 
-        const serviceScores = [];
-        const injectScores = [];
-        const slaPenalties = [];
+        let serviceScoresRaw = [];  // For tooltip breakdown
+        let injectScoresRaw = [];   // For tooltip breakdown
+        let slaPenaltiesRaw = [];   // For tooltip breakdown
+        let adjustedScores = [];    // For bar display
         let slaEnabled = false;
 
         $.getJSON('/api/scoreboard/get_bar_data')
             .done(function (data) {
                 slaEnabled = data.sla_enabled || false;
 
-                // Service Scores
-                echarts.util.each(data.service_scores, function (score, index) {
-                    serviceScores.push({
-                        value: score,
-                    });
+                // Store raw values for tooltip breakdown
+                serviceScoresRaw = data.service_scores.map(function(s) {
+                    return parseInt(s) || 0;
                 });
-                // Inject Scores
-                echarts.util.each(data.inject_scores, function (score, index) {
-                    injectScores.push({
-                        value: score,
-                    });
+                injectScoresRaw = data.inject_scores.map(function(s) {
+                    return parseInt(s) || 0;
                 });
-                // SLA Penalties (as negative values for visual effect)
-                if (slaEnabled && data.sla_penalties) {
-                    echarts.util.each(data.sla_penalties, function (penalty, index) {
-                        slaPenalties.push({
-                            value: -Math.abs(parseInt(penalty) || 0),
-                            itemStyle: {
-                                color: '#c23531'
-                            }
-                        });
+                if (data.sla_penalties) {
+                    slaPenaltiesRaw = data.sla_penalties.map(function(p) {
+                        return Math.abs(parseInt(p) || 0);
                     });
                 }
 
-                // Build series array
+                // Use adjusted scores for bar display (accounts for SLA deductions)
+                adjustedScores = data.adjusted_scores.map(function(s) {
+                    return { value: parseInt(s) || 0 };
+                });
+
+                // Single bar showing adjusted total
                 var seriesData = [
                     {
-                        name: 'Services',
-                        data: serviceScores,
+                        name: 'Total Score',
+                        data: adjustedScores,
                         type: 'bar',
-                        stack: 'positive',
-                    },
-                    {
-                        name: 'Injects',
-                        data: injectScores,
-                        type: 'bar',
-                        stack: 'positive',
                     }
                 ];
 
-                // Add SLA penalties series when enabled
-                if (slaEnabled && slaPenalties.length > 0) {
-                    seriesData.push({
-                        name: 'SLA Penalties',
-                        data: slaPenalties,
-                        type: 'bar',
-                        stack: 'negative',
-                        itemStyle: {
-                            color: '#c23531'
-                        }
-                    });
-                }
+                // Dynamic height: 40px per team, minimum 400px
+                var chartHeight = Math.max(400, data.labels.length * 40 + 100);
+                document.getElementById('teamBar').style.height = chartHeight + 'px';
+                teamBarChart.resize();
 
                 teamBarChart.hideLoading();
                 teamBarChart.setOption({
@@ -95,44 +75,47 @@
                     },
                     tooltip: {
                         trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
                         formatter: function(params) {
+                            var idx = params[0].dataIndex;
                             var result = params[0].name + '<br/>';
-                            var total = 0;
-                            params.forEach(function(item) {
-                                var value = Math.abs(item.value) || 0;
-                                var sign = item.seriesName === 'SLA Penalties' ? '-' : '+';
-                                if (item.seriesName === 'SLA Penalties') {
-                                    result += item.marker + item.seriesName + ': <span style="color:#c23531">-' + value + '</span><br/>';
-                                    total -= value;
-                                } else {
-                                    result += item.marker + item.seriesName + ': ' + value + '<br/>';
-                                    total += value;
-                                }
-                            });
-                            result += '<strong>Adjusted Total: ' + total + '</strong>';
+                            // Show breakdown from raw values
+                            var services = serviceScoresRaw[idx] || 0;
+                            var injects = injectScoresRaw[idx] || 0;
+                            var penalty = slaPenaltiesRaw[idx] || 0;
+                            var total = params[0].value || 0;
+
+                            result += '● Services: ' + services.toLocaleString() + '<br/>';
+                            result += '● Injects: ' + injects.toLocaleString() + '<br/>';
+                            if (slaEnabled && penalty > 0) {
+                                result += '<span style="color:#c23531">● SLA Penalties: -' + penalty.toLocaleString() + '</span><br/>';
+                            }
+                            result += '<strong>Total: ' + total.toLocaleString() + '</strong>';
                             return result;
                         }
                     },
                     legend: {
-                        data: slaEnabled ? ['Services', 'Injects', 'SLA Penalties'] : ['Services', 'Injects'],
-                        top: 30,
-                        textStyle: { color: getTextColor() }
+                        show: false
                     },
                     grid: {
                         left: '3%',
-                        right: '4%',
-                        bottom: '3%',
-                        top: '15%',
+                        right: '5%',
+                        bottom: '5%',
+                        top: 80,
                         containLabel: true
                     },
-                    xAxis: [
-                        {
-                            type: 'category',
-                            data: data.labels,
-                            axisLabel: { color: getTextColor() }
-                        }
-                    ],
                     yAxis: {
+                        type: 'category',
+                        data: data.labels,
+                        axisLabel: {
+                            color: getTextColor(),
+                            interval: 0,
+                            overflow: 'truncate',
+                            width: 200
+                        },
+                        inverse: true
+                    },
+                    xAxis: {
                         type: 'value',
                         axisLabel: { color: getTextColor() }
                     },
@@ -146,49 +129,29 @@
 
         // Update chart every 30 seconds
         setInterval(function () {
-            const serviceScores = [];
-            const injectScores = [];
-            const slaPenalties = [];
             $.get('/api/scoreboard/get_bar_data').done(function (data) {
-                const slaEnabled = data.sla_enabled || false;
+                slaEnabled = data.sla_enabled || false;
 
-                // Service Scores
-                echarts.util.each(data.service_scores, function (score, index) {
-                    serviceScores.push({
-                        value: score,
-                    });
+                // Update raw values for tooltip
+                serviceScoresRaw = data.service_scores.map(function(s) {
+                    return parseInt(s) || 0;
                 });
-                // Inject Scores
-                echarts.util.each(data.inject_scores, function (score, index) {
-                    injectScores.push({
-                        value: score,
-                    });
+                injectScoresRaw = data.inject_scores.map(function(s) {
+                    return parseInt(s) || 0;
                 });
-                // SLA Penalties
-                if (slaEnabled && data.sla_penalties) {
-                    echarts.util.each(data.sla_penalties, function (penalty, index) {
-                        slaPenalties.push({
-                            value: -Math.abs(parseInt(penalty) || 0),
-                            itemStyle: {
-                                color: '#c23531'
-                            }
-                        });
+                if (data.sla_penalties) {
+                    slaPenaltiesRaw = data.sla_penalties.map(function(p) {
+                        return Math.abs(parseInt(p) || 0);
                     });
                 }
 
-                var seriesUpdate = [
-                    { data: serviceScores },
-                    { data: injectScores }
-                ];
-                if (slaEnabled && slaPenalties.length > 0) {
-                    seriesUpdate.push({ data: slaPenalties });
-                }
+                // Update adjusted scores for bar display
+                adjustedScores = data.adjusted_scores.map(function(s) {
+                    return { value: parseInt(s) || 0 };
+                });
 
                 teamBarChart.setOption({
-                    title: {
-                        text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
-                    },
-                    series: seriesUpdate
+                    series: [{ data: adjustedScores }]
                 });
             });
         }, 30000);

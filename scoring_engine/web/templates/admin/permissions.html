@@ -6,7 +6,7 @@
 {% block admincontent %}
   <div class="container pt-3">
     <div class="row">
-      <div class="col-12 col-sm-6 col-md-5">
+      <div class="col-12 col-sm-6 col-md-5 mb-3">
         <div class="card">
           <div class="card-header">Blue Teams</div>
           <ul class="list-group list-group-flush">
@@ -48,6 +48,24 @@
                 <input class="form-check-input permission-toggle" type="checkbox" role="switch"
                        data-url="{{ url_for('api.admin_update_blueteam_view_check_output') }}"
                        {{ 'checked' if blue_team_view_check_output == true }}>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-5 mb-3">
+        <div class="card">
+          <div class="card-header">Scoreboard</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <span>Anonymize Team Names</span>
+                <small class="d-block text-muted">Show random codenames (e.g., "Swift Falcon") instead of real names</small>
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_anonymize_team_names') }}"
+                       {{ 'checked' if anonymize_team_names == true }}>
               </div>
             </li>
           </ul>

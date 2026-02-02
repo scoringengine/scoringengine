@@ -152,6 +152,11 @@ def permissions():
             blue_team_view_check_output=Setting.get_setting(
                 "blue_team_view_check_output"
             ).value,
+            anonymize_team_names=(
+                Setting.get_setting("anonymize_team_names").value
+                if Setting.get_setting("anonymize_team_names")
+                else False
+            ),
         )
     else:
         return redirect(url_for("auth.unauthorized"))

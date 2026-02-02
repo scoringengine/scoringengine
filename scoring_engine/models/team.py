@@ -133,6 +133,81 @@ class Team(Base):
     def is_blue_team(self):
         return self.color == "Blue"
 
+    # Adjectives and animals for anonymous team names
+    # 50 adjectives × 30 animals = 1500 unique combinations
+    _ADJECTIVES = [
+        "Swift", "Brave", "Mighty", "Silent", "Cunning",
+        "Bold", "Fierce", "Noble", "Stealthy", "Shadow",
+        "Iron", "Golden", "Crystal", "Storm", "Frost",
+        "Crimson", "Thunder", "Phantom", "Blazing", "Savage",
+        "Lunar", "Solar", "Cyber", "Primal", "Spectral",
+        "Ancient", "Emerald", "Sapphire", "Onyx", "Obsidian",
+        "Rapid", "Rogue", "Eternal", "Mystic", "Stealth",
+        "Elite", "Prime", "Alpha", "Omega", "Delta",
+        "Apex", "Neon", "Arctic", "Inferno", "Venom",
+        "Titan", "Dusk", "Tempest", "Wraith", "Chaos",
+    ]
+    _ANIMALS = [
+        "Falcon", "Wolf", "Tiger", "Panther", "Eagle",
+        "Bear", "Lion", "Viper", "Phoenix", "Dragon",
+        "Hawk", "Cobra", "Raven", "Jaguar", "Shark",
+        "Lynx", "Scorpion", "Stallion", "Raptor", "Hydra",
+        "Griffin", "Serpent", "Kraken", "Mantis", "Barracuda",
+        "Wyvern", "Basilisk", "Chimera", "Sphinx", "Cerberus",
+    ]
+
+    @classmethod
+    def _get_anonymous_name(cls, index):
+        """
+        Generate a deterministic, unique anonymous name based on index.
+        First 30 teams get unique adjectives and animals (1:1 mapping).
+        Beyond 30, combinations cycle through all 1500 unique pairs.
+        """
+        num_animals = len(cls._ANIMALS)
+        num_adjectives = len(cls._ADJECTIVES)
+
+        if index < min(num_adjectives, num_animals):
+            # First N teams get 1:1 unique adjective + animal
+            adj_idx = index
+            animal_idx = index
+        else:
+            # Beyond that, use divmod to generate unique combinations
+            # This gives us num_adjectives × num_animals unique pairs
+            adj_idx = index % num_adjectives
+            animal_idx = (index // num_adjectives) % num_animals
+            # Add offset to avoid repeating the first N combinations
+            if adj_idx == animal_idx and adj_idx < min(num_adjectives, num_animals):
+                animal_idx = (animal_idx + 1) % num_animals
+
+        return f"{cls._ADJECTIVES[adj_idx]} {cls._ANIMALS[animal_idx]}"
+
+    @classmethod
+    def get_team_name_mapping(cls, anonymize=False, show_both=False):
+        """
+        Get a mapping of team IDs to display names.
+
+        Args:
+            anonymize: If True, returns only anonymous names (e.g., "Swift Falcon")
+            show_both: If True, returns "RealName (Codename)" format for white team
+
+        Returns: dict mapping team_id -> display_name
+        """
+        teams = db.session.query(cls).filter(cls.color == "Blue").order_by(cls.id).all()
+        mapping = {}
+        for idx, team in enumerate(teams):
+            anon_name = cls._get_anonymous_name(idx)
+            if anonymize:
+                mapping[team.id] = anon_name
+                mapping[team.name] = anon_name
+            elif show_both:
+                display_name = f"{team.name} ({anon_name})"
+                mapping[team.id] = display_name
+                mapping[team.name] = display_name
+            else:
+                mapping[team.id] = team.name
+                mapping[team.name] = team.name
+        return mapping
+
     def get_array_of_scores(self, max_round):
         round_scores = (
             db.session.query(

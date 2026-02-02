@@ -155,6 +155,7 @@ with app.app_context():
     db.session.add(Setting(name="blue_team_update_account_usernames", value=config.blue_team_update_account_usernames))
     db.session.add(Setting(name="blue_team_update_account_passwords", value=config.blue_team_update_account_passwords))
     db.session.add(Setting(name="blue_team_view_check_output", value=config.blue_team_view_check_output))
+    db.session.add(Setting(name="anonymize_team_names", value=config.anonymize_team_names))
     db.session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 5))
     db.session.add(Setting(name="agent_show_flag_early_mins", value=config.agent_show_flag_early_mins))
     db.session.add(Setting(name="agent_psk", value=config.agent_psk))

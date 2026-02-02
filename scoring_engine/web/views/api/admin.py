@@ -340,6 +340,25 @@ def admin_update_blueteam_view_check_output():
     return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/update_anonymize_team_names", methods=["POST"])
+@login_required
+def admin_update_anonymize_team_names():
+    if current_user.is_white_team:
+        setting = Setting.get_setting("anonymize_team_names")
+        if setting is None:
+            # Create the setting if it doesn't exist
+            setting = Setting(name="anonymize_team_names", value=True)
+        elif setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("anonymize_team_names")
+        return redirect(url_for("admin.permissions"))
+    return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_round_progress")
 @login_required
 def get_check_progress_total():
