@@ -3,7 +3,7 @@ from flask import flash, redirect, request, url_for, g, Blueprint, render_templa
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
 
-from wtforms import PasswordField, StringField
+from wtforms import BooleanField, PasswordField, StringField
 from wtforms.validators import InputRequired
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -50,6 +50,7 @@ class LoginForm(FlaskForm):
         [InputRequired()],
         render_kw={"class": "form-control", "placeholder": "Password", "required": "true"},
     )
+    remember = BooleanField("Remember Me")
 
 
 @mod.route("/login", methods=["GET", "POST"])
@@ -74,16 +75,18 @@ def login():
             flash("Invalid username or password. Please try again.", "danger")
             return render_template("login.html", form=form)
 
-        if User.generate_hash(password, user.password) == user.password:
+        if user.check_password(password):
             user.authenticated = True
             db.session.add(user)
             db.session.commit()
-            login_user(user, remember=True)
+            login_user(user, remember=form.remember.data)
 
             if user.is_white_team:
                 return redirect(request.values.get("next") or url_for("admin.status"))
             elif user.is_blue_team:
                 return redirect(request.values.get("next") or url_for("services.home"))
+            elif user.is_red_team:
+                return redirect(request.values.get("next") or url_for("flags.home"))
             else:
                 return redirect(request.values.get("next") or url_for("overview.home"))
         else:

@@ -2,7 +2,7 @@
 {% block title %}Inject{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
@@ -163,13 +163,27 @@
 
         var navbar = "";
 
-        // Append navabar elements
+        // Append navbar elements
         $.each(result.data, function (index, value) {
-          navbar += '<a href="/inject/' + value.id + '" class="list-group-item';
+          navbar += '<a href="/inject/' + value.id + '" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center';
           if ($(location).attr("pathname") == "/inject/" + value.id) {
             navbar += ' active';
           }
-          navbar += '">' + value.title + '</a>';
+          navbar += '">' + value.title + ' ';
+
+          // Add status badge
+          var currentTime = new Date();
+          var endTime = new Date(value.end_time);
+          if (value.status == "Graded") {
+            navbar += '<span class="badge bg-info">Graded</span>';
+          } else if (value.status == "Submitted") {
+            navbar += '<span class="badge bg-success">Submitted</span>';
+          } else if (currentTime > endTime) {
+            navbar += '<span class="badge bg-danger">Expired</span>';
+          } else {
+            navbar += '<span class="badge bg-warning text-dark">Draft</span>';
+          }
+          navbar += '</a>';
         });
 
         // Update navbar

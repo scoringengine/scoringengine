@@ -3,7 +3,7 @@
 <div class="container md-page">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
-      <div class="list-group text-center">
+      <div class="list-group text-center mb-3">
           <button type="button" class="btn btn-secondary btn-lg" id="engine_toggle">
             <i class="bi bi-pause-fill" aria-hidden="true"></i> Pause
           </button>
@@ -69,12 +69,12 @@
     </div>
     <div class="col-sm-9">
       <div class="card">
-        <div class="card-header" style="background-color:#f9f9f9">
+        <div class="card-header bg-body-secondary">
           <h2 class="card-title mb-0">
             {% block header %}{% endblock %}
           </h2>
         </div>
-        <div class="card-body" style="border-top: 0.5px solid gray; padding-top: 0px;">
+        <div class="card-body border-top pt-0">
           {% block admincontent %}
           {% endblock %}
         </div>

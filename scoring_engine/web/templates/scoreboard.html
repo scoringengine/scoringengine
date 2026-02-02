@@ -10,6 +10,11 @@
     <hr>
     <div id="teamLine" style="width: 100%; height:400px;"></div>
     <script>
+        // Get text color based on current theme
+        function getTextColor() {
+            return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e9ecef' : '#333';
+        }
+
         // Bar chart for all teams
         var teamBarChart = echarts.init(document.getElementById('teamBar'));
         teamBarChart.showLoading();
@@ -86,6 +91,7 @@
                     title: {
                         text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
                         x: 'center',
+                        textStyle: { color: getTextColor() }
                     },
                     tooltip: {
                         trigger: 'axis',
@@ -109,7 +115,8 @@
                     },
                     legend: {
                         data: slaEnabled ? ['Services', 'Injects', 'SLA Penalties'] : ['Services', 'Injects'],
-                        top: 30
+                        top: 30,
+                        textStyle: { color: getTextColor() }
                     },
                     grid: {
                         left: '3%',
@@ -122,10 +129,12 @@
                         {
                             type: 'category',
                             data: data.labels,
+                            axisLabel: { color: getTextColor() }
                         }
                     ],
                     yAxis: {
-                        type: 'value'
+                        type: 'value',
+                        axisLabel: { color: getTextColor() }
                     },
                     series: seriesData
                 });
@@ -213,6 +222,7 @@
                     title: {
                         text: 'Service Scores',
                         x: 'center',
+                        textStyle: { color: getTextColor() }
                     },
                     tooltip: {
                         trigger: 'axis'
@@ -226,10 +236,12 @@
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
-                        data: data.rounds
+                        data: data.rounds,
+                        axisLabel: { color: getTextColor() }
                     },
                     yAxis: {
-                        type: 'value'
+                        type: 'value',
+                        axisLabel: { color: getTextColor() }
                     },
                     series: seriesList,
                     // label: {
@@ -258,6 +270,27 @@
                 });
             });
         }, 30000);
+
+        // Update chart colors when theme changes
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'data-bs-theme') {
+                    var textColor = getTextColor();
+                    teamBarChart.setOption({
+                        title: { textStyle: { color: textColor } },
+                        legend: { textStyle: { color: textColor } },
+                        xAxis: { axisLabel: { color: textColor } },
+                        yAxis: { axisLabel: { color: textColor } }
+                    });
+                    teamLineChart.setOption({
+                        title: { textStyle: { color: textColor } },
+                        xAxis: { axisLabel: { color: textColor } },
+                        yAxis: { axisLabel: { color: textColor } }
+                    });
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
     </script>
 </div>
 {% endblock %}

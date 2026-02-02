@@ -1088,3 +1088,36 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_competition_summary")
+@login_required
+def admin_get_competition_summary():
+    if current_user.is_white_team:
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").all()
+        total_services = db.session.query(Service).join(Team).filter(Team.color == "Blue").count()
+        total_checks = db.session.query(Check).count()
+        passed_checks = db.session.query(Check).filter_by(result=True).count()
+
+        overall_uptime = 0.0
+        if total_checks > 0:
+            overall_uptime = round((passed_checks / total_checks) * 100, 1)
+
+        last_round = Round.get_last_round_num()
+        currently_passing = 0
+        if last_round > 0:
+            currently_passing = (
+                db.session.query(Check)
+                .join(Round)
+                .filter(Round.number == last_round, Check.result == True)
+                .count()
+            )
+
+        return jsonify({
+            "blue_teams": len(blue_teams),
+            "total_services": total_services,
+            "currently_passing": currently_passing,
+            "overall_uptime": overall_uptime
+        })
+    else:
+        return {"status": "Unauthorized"}, 403

@@ -26,9 +26,9 @@
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 </head>
 {% if 'unauthorized' in request.path %}
-<body style="background-color: red">
+<body style="background-color: red" class="d-flex flex-column min-vh-100">
 {% else %}
-<body class="bg-body">
+<body class="bg-body d-flex flex-column min-vh-100{% if current_user.is_authenticated %} {% if current_user.is_white_team %}team-white{% elif current_user.is_blue_team %}team-blue{% elif current_user.is_red_team %}team-red{% endif %}{% endif %}">
 {% endif %}
     <script>
       $(document).ready(function () {
@@ -75,11 +75,11 @@
             <li class="nav-item"><a class="nav-link {% if request.path == '/overview' %}active{% endif %}" href="{{ url_for('overview.home') }}">Overview</a></li>
             {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
-              <li class="nav-item"><a class="nav-link {% if request.path == '/services' %}active{% endif %}"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/services' or request.path.startswith('/service/') %}active{% endif %}"
                   href="{{ url_for('services.home') }}">Services</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_red_team %}
-              <li class="nav-item"><a class="nav-link {% if request.path == '/injects' %}active{% endif %}"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/injects' or request.path.startswith('/inject') %}active{% endif %}"
                   href="{{ url_for('injects.home') }}">Injects</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_white_team %}
@@ -101,8 +101,15 @@
               <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
               {% else %}
               <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" style="margin-right: 20px;">{{
-                  current_user.get_username }}</a>
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" style="margin-right: 20px;">
+                  {% if current_user.is_white_team %}
+                  <span class="badge bg-light text-dark me-1">White</span>
+                  {% elif current_user.is_blue_team %}
+                  <span class="badge bg-primary me-1">Blue</span>
+                  {% elif current_user.is_red_team %}
+                  <span class="badge bg-danger me-1">Red</span>
+                  {% endif %}
+                  {{ current_user.get_username }}</a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="{{ url_for('profile.home') }}">Profile</a></li>
                   <li><hr class="dropdown-divider"></li>
@@ -123,8 +130,19 @@
         </div>
         <!--/.container-fluid -->
       </nav>
+      <main class="flex-grow-1">
       {% block content %}
       {% endblock %}
+      </main>
+      <footer class="text-center text-muted py-3 border-top mt-auto">
+        <small>
+          <i class="bi bi-tag-fill"></i> v{{version_info.base_version}}{% if version_info.commit %} (<a href="https://github.com/scoringengine/scoringengine/commit/{{version_info.commit}}" class="text-muted">{{version_info.commit[:7]}}</a>){% endif %}{% if version_info.is_dev %} <span class="badge bg-warning text-dark">dev</span>{% endif %}
+          <span class="mx-2">|</span>
+          <a href="https://scoringengine.readthedocs.io" class="text-muted text-decoration-none"><i class="bi bi-book"></i> Docs</a>
+          <span class="mx-2">|</span>
+          <a href="https://github.com/scoringengine/scoringengine" class="text-muted text-decoration-none"><i class="bi bi-github"></i> GitHub</a>
+        </small>
+      </footer>
   </body>
 
 </html>

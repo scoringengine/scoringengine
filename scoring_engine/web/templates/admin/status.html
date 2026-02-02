@@ -11,28 +11,96 @@ Round Stats
 {% endblock %}
 
 {% block admincontent %}
-<div class="engine_stats">
-  <h4>Engine Stats</h4>
-  <table class="table table-striped table-bordered table-compact">
-    <tbody>
-      <tr>
-        <td>Round</td>
-        <td id="round_number"></td>
-      </tr>
-      <tr>
-        <td>Passed Checks</td>
-        <td id="num_passed_checks"></td>
-      </tr>
-      <tr>
-        <td>Failed Checks</td>
-        <td id="num_failed_checks"></td>
-      </tr>
-      <tr>
-        <td>Total Checks</td>
-        <td id="total_checks"></td>
-      </tr>
-    </tbody>
-  </table>
+<div class="row mb-4 pt-3">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-people-fill"></i> Blue Teams</h6>
+        <h3 id="comp_blue_teams" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-hdd-network-fill"></i> Total Services</h6>
+        <h3 id="comp_total_services" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-check-circle-fill"></i> Currently Passing</h6>
+        <h3 id="comp_currently_passing" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-graph-up"></i> Overall Uptime</h6>
+        <h3 id="comp_overall_uptime" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  function getCompetitionSummary() {
+    $.ajax({
+      cache: false,
+      url: '/api/admin/get_competition_summary',
+      dataType: 'json',
+      success: function (data) {
+        $('#comp_blue_teams').text(data.blue_teams);
+        $('#comp_total_services').text(data.total_services);
+        $('#comp_currently_passing').text(data.currently_passing);
+        $('#comp_overall_uptime').text(data.overall_uptime + '%');
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    getCompetitionSummary();
+    setInterval(function () {
+      getCompetitionSummary()
+    }, 5000);
+  });
+</script>
+<h5 class="mb-3">Engine Stats</h5>
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-arrow-repeat"></i> Round</h6>
+        <h3 id="round_number" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-check-lg text-success"></i> Passed Checks</h6>
+        <h3 id="num_passed_checks" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-x-lg text-danger"></i> Failed Checks</h6>
+        <h3 id="num_failed_checks" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted"><i class="bi bi-list-ol"></i> Total Checks</h6>
+        <h3 id="total_checks" class="mb-0">-</h3>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
   function getEngineStats() {

@@ -218,8 +218,8 @@ def overview_get_data():
                 current_scores.append(str(team_scores.get(blue_team_id, 0)))
             current_places.append(str(ranks_dict.get(blue_team_id, 0)))
             service_ratios.append(
-                '<span class="text-success">{0} <span class="glyphicon glyphicon-arrow-up"></span></span> / '
-                '<span class="text-danger">{1} <span class="glyphicon glyphicon-arrow-down"></span></span>'.format(
+                '<span class="text-success">{0} <i class="bi bi-arrow-up"></i></span> / '
+                '<span class="text-danger">{1} <i class="bi bi-arrow-down"></i></span>'.format(
                     num_up_services.get(blue_team_id, 0),
                     num_down_services.get(blue_team_id, 0),
                 )

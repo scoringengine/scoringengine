@@ -13,6 +13,10 @@
         {{ form.username() }}
         <label for="inputPassword" class="visually-hidden">Password</label>
         {{ form.password() }}
+        <div class="form-check my-3">
+            {{ form.remember(class="form-check-input") }}
+            <label class="form-check-label" for="remember">Remember me</label>
+        </div>
         <button class="btn btn-lg btn-primary w-100" type="submit">Sign in</button>
     </form>
 </div>

@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from scoring_engine.cache import cache, agent_cache
 from scoring_engine.config import config
 from scoring_engine.db import db
+from scoring_engine.version import version_info
 
 
 SECRET_KEY = os.urandom(128)
@@ -18,6 +19,13 @@ def create_app():
     app.config.update(DEBUG=config.debug)
     app.config.update(UPLOAD_FOLDER=config.upload_folder)
     app.secret_key = SECRET_KEY
+
+    # Static file caching: 1 hour in debug mode, 1 week in production
+    # Browsers will cache CSS/JS/images and not re-request until max-age expires
+    if config.debug:
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3600  # 1 hour
+    else:
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800  # 1 week
 
     # Configure Flask-SQLAlchemy
     app.config['SQLALCHEMY_DATABASE_URI'] = config.db_uri
@@ -80,5 +88,9 @@ def create_app():
     app.register_blueprint(api.mod)
     app.register_blueprint(admin.mod)
     app.register_blueprint(about.mod)
+
+    @app.context_processor
+    def inject_version():
+        return {'version_info': version_info}
 
     return app

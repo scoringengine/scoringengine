@@ -1,5 +1,14 @@
-body {
-  min-height: 75rem; /* Can be removed; just added for demo purposes */
+/* Team accent colors */
+body.team-blue { --team-accent: #0d6efd; }
+body.team-red { --team-accent: #dc3545; }
+body.team-white { --team-accent: #6c757d; }
+
+/* Team accent underline on navbar brand */
+body.team-blue .navbar-brand,
+body.team-red .navbar-brand,
+body.team-white .navbar-brand {
+  border-bottom: 2px solid var(--team-accent);
+  padding-bottom: 2px;
 }
 
 .navbar {
@@ -52,22 +61,6 @@ body {
   max-width: 40rem;
 }
 
-.card {
-  float: left;
-  width: 33.333%;
-  padding: .75rem;
-  margin-bottom: 2rem;
-  border: 0;
-}
-
-.card > img {
-  margin-bottom: .75rem;
-}
-
-.card-text {
-  font-size: 85%;
-}
-
 footer {
   padding-top: 3rem;
   padding-bottom: 3rem;
@@ -106,7 +99,6 @@ tr.shown td.details-control {
     margin-top: 10px;
     box-shadow: 0 3px 3px rgba(0,0,0,0.1);
     max-width: 95%;
-    margin-bottom: 15px;
 }
 
 a.editable-click {
@@ -119,51 +111,6 @@ a.editable-click {
 
 .settings_middle_column {
   width: 18%;
-}
-
-.permission-switch > input[type="checkbox"] {
-    display: none;
-}
-
-.permission-switch > label {
-    cursor: pointer;
-    height: 0px;
-    position: relative;
-    width: 40px;
-}
-
-.permission-switch > label::before {
-    background: rgb(0, 0, 0);
-    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    content: '';
-    height: 16px;
-    margin-top: -8px;
-    position:absolute;
-    opacity: 0.3;
-    transition: all 0.4s ease-in-out;
-    width: 40px;
-}
-.permission-switch > label::after {
-    background: rgb(255, 255, 255);
-    border-radius: 16px;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
-    content: '';
-    height: 24px;
-    left: -4px;
-    margin-top: -8px;
-    position: absolute;
-    top: -4px;
-    transition: all 0.3s ease-in-out;
-    width: 24px;
-}
-.permission-switch > input[type="checkbox"]:checked + label::before {
-    background: inherit;
-    opacity: 0.5;
-}
-.permission-switch > input[type="checkbox"]:checked + label::after {
-    background: inherit;
-    left: 20px;
 }
 
 .lefthand-nav {

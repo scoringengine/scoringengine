@@ -4,60 +4,86 @@
 {% block header %}Website Permissions{% endblock %}
 
 {% block admincontent %}
-  <div class="container" style="padding-top: 10px;">
+  <div class="container pt-3">
     <div class="row">
-      <div class="col-12 col-sm-6 col-md-4">
+      <div class="col-12 col-sm-6 col-md-5">
         <div class="card">
           <div class="card-header">Blue Teams</div>
           <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <form id="modify_service_hostname_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_hostname') }}" role="form">
-                Modify Service Hostname/IP
-                <div class="permission-switch float-end">
-                  <input id="modify_service_hostname" type="checkbox" onchange="$('#modify_service_hostname_form').submit();" {{ 'checked' if blue_team_update_hostname == true }}/>
-                  <label for="modify_service_hostname" class="label-primary"></label>
-                </div>
-              </form>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Modify Service Hostname/IP</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_blueteam_edit_hostname') }}"
+                       {{ 'checked' if blue_team_update_hostname == true }}>
+              </div>
             </li>
-            <li class="list-group-item">
-              <form id="modify_service_port_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_port') }}" role="form">
-                Modify Service Port
-                <div class="permission-switch float-end">
-                  <input id="modify_service_port" type="checkbox" onchange="$('#modify_service_port_form').submit();" {{ 'checked' if blue_team_update_port == true }}/>
-                  <label for="modify_service_port" class="label-primary"></label>
-                </div>
-              </form>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Modify Service Port</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_blueteam_edit_port') }}"
+                       {{ 'checked' if blue_team_update_port == true }}>
+              </div>
             </li>
-            <li class="list-group-item">
-              <form id="modify_service_account_usernames_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_usernames') }}" role="form">
-                Modify Service Account Usernames
-                <div class="permission-switch float-end">
-                  <input id="modify_service_account_usernames" type="checkbox" onchange="$('#modify_service_account_usernames_form').submit();" {{ 'checked' if blue_team_update_account_usernames == true }}/>
-                  <label for="modify_service_account_usernames" class="label-primary"></label>
-                </div>
-              </form>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Modify Service Account Usernames</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_blueteam_edit_account_usernames') }}"
+                       {{ 'checked' if blue_team_update_account_usernames == true }}>
+              </div>
             </li>
-            <li class="list-group-item">
-              <form id="modify_service_account_passwords_form" method="POST" action="{{ url_for('api.admin_update_blueteam_edit_account_passwords') }}" role="form">
-                Modify Service Account Passwords
-                <div class="permission-switch float-end">
-                  <input id="modify_service_account_passwords" type="checkbox" onchange="$('#modify_service_account_passwords_form').submit();" {{ 'checked' if blue_team_update_account_passwords == true }}/>
-                  <label for="modify_service_account_passwords" class="label-primary"></label>
-                </div>
-              </form>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Modify Service Account Passwords</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_blueteam_edit_account_passwords') }}"
+                       {{ 'checked' if blue_team_update_account_passwords == true }}>
+              </div>
             </li>
-            <li class="list-group-item">
-              <form id="view_check_output_form" method="POST" action="{{ url_for('api.admin_update_blueteam_view_check_output') }}" role="form">
-                View Check Output
-                <div class="permission-switch float-end">
-                  <input id="view_check_output_passwords" type="checkbox" onchange="$('#view_check_output_form').submit();" {{ 'checked' if blue_team_view_check_output == true }}/>
-                  <label for="view_check_output_passwords" class="label-primary"></label>
-                </div>
-              </form>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>View Check Output</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_update_blueteam_view_check_output') }}"
+                       {{ 'checked' if blue_team_view_check_output == true }}>
+              </div>
             </li>
           </ul>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    $(document).ready(function() {
+      $('.permission-toggle').on('change', function() {
+        var $toggle = $(this);
+        var url = $toggle.data('url');
+
+        // Disable while saving
+        $toggle.prop('disabled', true);
+
+        $.ajax({
+          url: url,
+          type: 'POST',
+          success: function(response) {
+            $toggle.prop('disabled', false);
+            // Brief visual feedback
+            $toggle.closest('.form-check').addClass('text-success');
+            setTimeout(function() {
+              $toggle.closest('.form-check').removeClass('text-success');
+            }, 1000);
+          },
+          error: function(xhr) {
+            $toggle.prop('disabled', false);
+            // Revert the toggle on error
+            $toggle.prop('checked', !$toggle.prop('checked'));
+            alert('Error updating permission');
+          }
+        });
+      });
+    });
+  </script>
 {% endblock %}

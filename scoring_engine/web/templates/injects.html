@@ -2,7 +2,7 @@
 {% block title %}Injects{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
@@ -12,7 +12,8 @@
         <h3>{{ current_user.team.name }}</h3>
     </div>
     <div class="row">
-        <table id="injects" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <div class="table-responsive">
+        <table id="injects" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
                     <th>
@@ -35,51 +36,8 @@
                     </th>
                 </tr>
             </thead>
-            <!-- <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Inject 1</td>
-                    <td>1:00:00</td>
-                    <td>
-                        <span class="badge bg-warning text-dark">Pending</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-danger">Not Submitted</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-danger">0%</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Inject 2</td>
-                    <td>59:22</td>
-                    <td>
-                        <span class="badge bg-success">Available</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-danger">Not Submitted</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-danger">0%</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>Inject 3</td>
-                    <td>0:00:00</td>
-                    <td>
-                        <span class="badge bg-danger">Unavailable</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-success">Submitted</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-success">100%</span>
-                    </td>
-                </tr>
-            </tbody> -->
         </table>
+        </div>
     </div>
 </div>
 <script>
