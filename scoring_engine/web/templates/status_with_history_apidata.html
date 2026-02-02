@@ -77,7 +77,7 @@
 const MAX_COLUMNS = 12;
 const UPDATE_INTERVAL = 30000; // 30 seconds for testing 1800000 for 30
 
-// Boxes and currentStatus start empty and get initialized dynamically
+// Boxes and currentStatus start empty and get initialized by api
 let boxes = [];
 let currentStatus = [];
 
@@ -126,7 +126,7 @@ function renderActive() {
   });
 }
 
-/* ---------------- ERROR BANNER ---------------- */
+// Create banner if there is an error
 
 function showErrorBanner() {
   document.getElementById('backendError').style.display = 'block';
@@ -136,7 +136,7 @@ function clearErrorBanner() {
   document.getElementById('backendError').style.display = 'none';
 }
 
-/* ---------------- FETCH REAL STATUS ---------------- */
+// fetch API 
 
 async function fetchCurrentStatus() {
   try {
@@ -182,7 +182,7 @@ async function fetchCurrentStatus() {
   }
 }
 
-/* ---------------- HISTORY ---------------- */
+// history creating new columns 
 
 function addHistoryColumn() {
   const timestamp = new Date().toLocaleTimeString();
@@ -209,7 +209,7 @@ function addHistoryColumn() {
   }
 }
 
-/* ---------------- START ---------------- */
+// Creating everything 
 
 (async function main() {
   // Initial fetch + UI setup
@@ -225,3 +225,4 @@ function addHistoryColumn() {
 </script>
 
 {% endblock %}
+
