@@ -11,28 +11,28 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
-def _announcements_cache_key():
-    """Cache key based on user visibility context."""
+def _announcements_cache_key_prefix():
+    """Cache key prefix based on user visibility context."""
     if not current_user.is_authenticated:
-        return "/api/announcements_anonymous"
+        return "anonymous"
     if current_user.is_white_team:
-        return "/api/announcements_white"
+        return "white"
     if current_user.is_red_team:
-        return "/api/announcements_red"
-    return f"/api/announcements_team_{current_user.team.id}"
+        return "red"
+    return f"team_{current_user.team.id}"
 
 
-@mod.route("/api/announcements")
-@cache.cached(make_cache_key=_announcements_cache_key)
-def get_announcements():
-    """
-    Get all announcements visible to the current user.
-    Pinned announcements appear first, then ordered by created_at descending.
-    Read tracking is handled client-side via localStorage.
-    """
+def _announcements_cache_key():
+    return f"/api/announcements_{_announcements_cache_key_prefix()}"
+
+
+def _announcements_ids_cache_key():
+    return f"/api/announcements/ids_{_announcements_cache_key_prefix()}"
+
+
+def _get_visible_announcements():
+    """Query visible announcements for the current user (uncached helper)."""
     user = current_user if current_user.is_authenticated else None
-
-    # Query all active announcements
     announcements = (
         db.session.query(Announcement)
         .filter(Announcement.is_active.is_(True))
@@ -41,11 +41,29 @@ def get_announcements():
         )
         .all()
     )
+    return [a for a in announcements if a.is_visible_to_user(user)]
 
-    # Filter by visibility
-    visible = [a for a in announcements if a.is_visible_to_user(user)]
 
+@mod.route("/api/announcements")
+@cache.cached(make_cache_key=_announcements_cache_key)
+def get_announcements():
+    """
+    Get all announcements visible to the current user.
+    Full data - only used on the announcements page.
+    """
+    visible = _get_visible_announcements()
     return jsonify(data=[a.to_dict() for a in visible])
+
+
+@mod.route("/api/announcements/ids")
+@cache.cached(make_cache_key=_announcements_ids_cache_key)
+def get_announcement_ids():
+    """
+    Get just the IDs of visible announcements.
+    Lightweight endpoint for badge polling on every page.
+    """
+    visible = _get_visible_announcements()
+    return jsonify(ids=[a.id for a in visible])
 
 
 @mod.route("/api/admin/announcements", methods=["GET"])

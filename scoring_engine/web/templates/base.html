@@ -45,13 +45,13 @@
       function updateAnnouncementsBadge() {
         $.ajax({
           cache: false,
-          url: '/api/announcements',
+          url: '/api/announcements/ids',
           dataType: 'json',
           success: function(resp) {
             var localRead = getLocalReadIds();
             var count = 0;
-            for (var i = 0; i < resp.data.length; i++) {
-              if (localRead.indexOf(resp.data[i].id) === -1) {
+            for (var i = 0; i < resp.ids.length; i++) {
+              if (localRead.indexOf(resp.ids[i]) === -1) {
                 count++;
               }
             }
