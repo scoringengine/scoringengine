@@ -34,7 +34,7 @@ def home():
             db.session, user.id
         )
 
-    has_unread = any(a.id not in read_ids for a in visible_announcements) if user and user.is_authenticated else False
+    has_unread = any(a.id not in read_ids for a in visible_announcements) if user and user.is_authenticated else len(visible_announcements) > 0
 
     return render_template(
         "announcements.html",

@@ -54,26 +54,54 @@
         });
 
         // Announcements badge polling
+        var isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+        var lastBadgeCount = -1;
+        function getLocalReadIds() {
+          try {
+            return JSON.parse(localStorage.getItem('announcements_read') || '[]');
+          } catch (e) {
+            return [];
+          }
+        }
+
         function updateAnnouncementsBadge() {
           $.ajax({
             cache: false,
             url: '/api/announcements/unread_count',
             dataType: 'json',
             success: function(data) {
+              var count = data.count;
+              // For anonymous users, subtract locally-read announcements
+              if (!isAuthenticated && data.ids) {
+                var localRead = getLocalReadIds();
+                count = 0;
+                for (var i = 0; i < data.ids.length; i++) {
+                  if (localRead.indexOf(data.ids[i]) === -1) {
+                    count++;
+                  }
+                }
+              }
               var badge = $('#announcements-badge');
-              if (data.count > 0) {
-                badge.text(data.count > 99 ? '99+' : data.count);
+              if (count > 0) {
+                badge.text(count > 99 ? '99+' : count);
                 badge.removeClass('d-none');
+                // Pulse if count increased (new announcements arrived)
+                if (lastBadgeCount >= 0 && count > lastBadgeCount) {
+                  badge.removeClass('pulse');
+                  void badge[0].offsetWidth; // force reflow
+                  badge.addClass('pulse');
+                }
               } else {
                 badge.addClass('d-none');
               }
+              lastBadgeCount = count;
             }
           });
         }
 
-        // Initial check and poll every 60 seconds
+        // Initial check and poll every 30 seconds
         updateAnnouncementsBadge();
-        setInterval(updateAnnouncementsBadge, 60000);
+        setInterval(updateAnnouncementsBadge, 30000);
       });
     </script>
 

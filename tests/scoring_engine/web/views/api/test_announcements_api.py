@@ -242,6 +242,28 @@ class TestAnnouncementsAPI(UnitTest):
         resp = self.client.get("/api/announcements/unread_count")
         assert resp.json["count"] == 0
 
+    def test_unread_count_anonymous_includes_ids(self):
+        """Anonymous unread_count response includes announcement IDs for localStorage"""
+        ann1 = Announcement(title="A1", content="C", audience="global")
+        ann2 = Announcement(title="A2", content="C", audience="global")
+        self.session.add_all([ann1, ann2])
+        self.session.commit()
+        resp = self.client.get("/api/announcements/unread_count")
+        assert resp.json["count"] == 2
+        assert "ids" in resp.json
+        assert set(resp.json["ids"]) == {ann1.id, ann2.id}
+
+    def test_unread_count_authenticated_no_ids(self):
+        """Authenticated unread_count does not include ids (not needed)"""
+        self.session.add(Announcement(
+            title="A1", content="C", audience="global"
+        ))
+        self.session.commit()
+        self.login("blueuser1")
+        resp = self.client.get("/api/announcements/unread_count")
+        assert resp.json["count"] == 1
+        assert "ids" not in resp.json
+
     def test_unread_count_only_counts_visible(self):
         """Unread count only includes announcements visible to user"""
         self.session.add(Announcement(

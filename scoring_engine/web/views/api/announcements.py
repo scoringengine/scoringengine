@@ -96,7 +96,7 @@ def get_unread_count():
     visible = [a for a in announcements if a.is_visible_to_user(user)]
 
     if not user or not user.is_authenticated:
-        return jsonify({"count": len(visible)})
+        return jsonify({"count": len(visible), "ids": [a.id for a in visible]})
 
     read_ids = AnnouncementRead.get_read_announcement_ids(db.session, user.id)
     unread_count = sum(1 for a in visible if a.id not in read_ids)
