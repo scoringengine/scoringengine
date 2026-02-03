@@ -68,3 +68,9 @@ dynamic_scoring_early_multiplier = 2.0
 dynamic_scoring_late_start_round = 50
 # Multiplier for late rounds (e.g., 0.5 = 0.5x points)
 dynamic_scoring_late_multiplier = 0.5
+
+# Fog of War Configuration
+# When enabled, hides scores from non-admin users
+fog_of_war_enabled = False
+# Whether to show round info on the overview page
+overview_show_round_info = True

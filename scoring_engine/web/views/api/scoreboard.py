@@ -2,6 +2,7 @@ from collections import defaultdict
 from itertools import accumulate
 
 from flask import jsonify
+from flask_login import current_user
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
@@ -10,11 +11,22 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
+
+
+def is_fog_of_war_active():
+    """Check if fog of war is enabled and user is not white team."""
+    fog_setting = Setting.get_setting("fog_of_war_enabled")
+    if fog_setting and fog_setting.value:
+        # White team can always see scores
+        if current_user.is_authenticated and current_user.is_white_team:
+            return False
+        return True
+    return False
 
 
 def calculate_team_scores_with_dynamic_scoring(sla_config):
@@ -53,17 +65,37 @@ def calculate_team_scores_with_dynamic_scoring(sla_config):
     team_scores = defaultdict(int)
     for team_id, round_id, round_score in round_scores:
         round_number = rounds.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         team_scores[team_id] += adjusted_score
 
     return dict(team_scores)
 
 
 @mod.route("/api/scoreboard/get_bar_data")
-@cache.memoize()
 def scoreboard_get_bar_data():
+    # Check fog of war first (before caching)
+    if is_fog_of_war_active():
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
+        team_labels = [team.name for team in blue_teams]
+        hidden_scores = ["?" for _ in blue_teams]
+        return jsonify(
+            {
+                "labels": team_labels,
+                "service_scores": hidden_scores,
+                "inject_scores": hidden_scores,
+                "sla_penalties": ["0" for _ in blue_teams],
+                "adjusted_scores": hidden_scores,
+                "sla_enabled": False,
+                "fog_of_war": True,
+            }
+        )
+
+    # Use cached version for normal operation
+    return _scoreboard_get_bar_data_cached()
+
+
+@cache.memoize()
+def _scoreboard_get_bar_data_cached():
     # Get SLA configuration first (needed for dynamic scoring)
     sla_config = get_sla_config()
 
@@ -83,9 +115,7 @@ def scoreboard_get_bar_data():
     team_sla_penalties = []
     team_adjusted_scores = []
 
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
         service_score = current_scores.get(blue_team.id, 0)
@@ -118,8 +148,26 @@ def scoreboard_get_bar_data():
 
 
 @mod.route("/api/scoreboard/get_line_data")
-@cache.memoize()
 def scoreboard_get_line_data():
+    # Check fog of war first (before caching)
+    if is_fog_of_war_active():
+        last_round = Round.get_last_round_num()
+        blue_teams = (
+            db.session.query(Team.id, Team.name, Team.rgb_color).filter(Team.color == "Blue").order_by(Team.id).all()
+        )
+        return jsonify(
+            {
+                "team": [{"name": name, "scores": [], "color": rgb_color} for _, name, rgb_color in blue_teams],
+                "rounds": [f"Round {r}" for r in range(last_round + 1)],
+                "fog_of_war": True,
+            }
+        )
+
+    return _scoreboard_get_line_data_cached()
+
+
+@cache.memoize()
+def _scoreboard_get_line_data_cached():
     last_round = Round.get_last_round_num()
     sla_config = get_sla_config()
 
@@ -129,10 +177,7 @@ def scoreboard_get_line_data():
     }
 
     blue_teams = (
-        db.session.query(Team.id, Team.name, Team.rgb_color)
-        .filter(Team.color == "Blue")
-        .order_by(Team.id)
-        .all()
+        db.session.query(Team.id, Team.name, Team.rgb_color).filter(Team.color == "Blue").order_by(Team.id).all()
     )
 
     """
@@ -156,17 +201,13 @@ def scoreboard_get_line_data():
     )
 
     # Get round numbers for dynamic scoring
-    rounds_map = {
-        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-    }
+    rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
     scores_dict = defaultdict(lambda: defaultdict(int))
     for team_id, round_id, round_score in round_scores:
         # Apply dynamic scoring multiplier if enabled
         round_number = rounds_map.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         scores_dict[team_id][round_id] = adjusted_score
 
     for team_id, team_name, rgb_color in blue_teams:

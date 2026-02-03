@@ -1,14 +1,14 @@
-from flask import Blueprint, redirect, render_template, url_for
-from flask_login import current_user, login_required
 from operator import itemgetter
 
-from scoring_engine.models.user import User
-from scoring_engine.models.team import Team
+from flask import Blueprint, redirect, render_template, url_for
+from flask_login import current_user, login_required
+
+from scoring_engine.db import db
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import db
-
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 
 mod = Blueprint("admin", __name__)
 
@@ -67,9 +67,7 @@ def inject_templates():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
         red_teams = Team.get_all_red_teams()
-        return render_template(
-            "admin/templates.html", blue_teams=blue_teams, red_teams=red_teams
-        )
+        return render_template("admin/templates.html", blue_teams=blue_teams, red_teams=red_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 
@@ -103,9 +101,7 @@ def service(id):
         if service is None:
             return redirect(url_for("auth.unauthorized"))
 
-        return render_template(
-            "admin/service.html", service=service, blue_teams=blue_teams
-        )
+        return render_template("admin/service.html", service=service, blue_teams=blue_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 
@@ -139,19 +135,19 @@ def permissions():
         return render_template(
             "admin/permissions.html",
             blue_teams=blue_teams,
-            blue_team_update_hostname=Setting.get_setting(
-                "blue_team_update_hostname"
-            ).value,
+            blue_team_update_hostname=Setting.get_setting("blue_team_update_hostname").value,
             blue_team_update_port=Setting.get_setting("blue_team_update_port").value,
-            blue_team_update_account_usernames=Setting.get_setting(
-                "blue_team_update_account_usernames"
-            ).value,
-            blue_team_update_account_passwords=Setting.get_setting(
-                "blue_team_update_account_passwords"
-            ).value,
-            blue_team_view_check_output=Setting.get_setting(
-                "blue_team_view_check_output"
-            ).value,
+            blue_team_update_account_usernames=Setting.get_setting("blue_team_update_account_usernames").value,
+            blue_team_update_account_passwords=Setting.get_setting("blue_team_update_account_passwords").value,
+            blue_team_view_check_output=Setting.get_setting("blue_team_view_check_output").value,
+            fog_of_war_enabled=(
+                Setting.get_setting("fog_of_war_enabled").value if Setting.get_setting("fog_of_war_enabled") else False
+            ),
+            overview_show_round_info=(
+                Setting.get_setting("overview_show_round_info").value
+                if Setting.get_setting("overview_show_round_info")
+                else True
+            ),
         )
     else:
         return redirect(url_for("auth.unauthorized"))
