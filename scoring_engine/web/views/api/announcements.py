@@ -59,11 +59,12 @@ def get_announcements():
 @cache.cached(make_cache_key=_announcements_ids_cache_key)
 def get_announcement_count():
     """
-    Get the count of visible announcements.
-    Lightweight endpoint for badge polling on every page.
+    Get IDs of visible announcements.
+    Lightweight endpoint for badge polling - client computes
+    unread count by diffing against localStorage read IDs.
     """
     visible = _get_visible_announcements()
-    return jsonify(count=len(visible))
+    return jsonify(ids=[a.id for a in visible])
 
 
 @mod.route("/api/admin/announcements", methods=["GET"])

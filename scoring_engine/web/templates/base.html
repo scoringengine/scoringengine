@@ -33,6 +33,15 @@
     <script>
       // Announcements badge - global scope for child templates
       var _lastBadgeCount = -1;
+      var _LS_KEY = 'announcements_read';
+
+      function _getReadIds() {
+        try {
+          return JSON.parse(localStorage.getItem(_LS_KEY) || '[]');
+        } catch (e) {
+          return [];
+        }
+      }
 
       function updateAnnouncementsBadge() {
         $.ajax({
@@ -40,13 +49,20 @@
           url: '/api/announcements/count',
           dataType: 'json',
           success: function(resp) {
-            var count = resp.count;
+            var allIds = resp.ids || [];
+            var readIds = _getReadIds();
+            var unreadCount = 0;
+            for (var i = 0; i < allIds.length; i++) {
+              if (readIds.indexOf(allIds[i]) === -1) {
+                unreadCount++;
+              }
+            }
             var badge = $('#announcements-badge');
-            if (count > 0) {
-              badge.text(count > 99 ? '99+' : count);
+            if (unreadCount > 0) {
+              badge.text(unreadCount > 99 ? '99+' : unreadCount);
               badge.removeClass('d-none');
-              // Pulse if count increased (new announcements arrived)
-              if (_lastBadgeCount >= 0 && count > _lastBadgeCount) {
+              // Pulse if unread count increased (new announcements arrived)
+              if (_lastBadgeCount >= 0 && unreadCount > _lastBadgeCount) {
                 badge.removeClass('pulse');
                 void badge[0].offsetWidth; // force reflow
                 badge.addClass('pulse');
@@ -54,7 +70,7 @@
             } else {
               badge.addClass('d-none');
             }
-            _lastBadgeCount = count;
+            _lastBadgeCount = unreadCount;
           }
         });
       }
