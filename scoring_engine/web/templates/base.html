@@ -53,18 +53,18 @@
           updateThemeIcon();
         });
 
-        // Announcements badge polling
+        // Announcements badge polling (global scope for child templates)
         var isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
         var lastBadgeCount = -1;
-        function getLocalReadIds() {
+        window.getLocalReadIds = function() {
           try {
             return JSON.parse(localStorage.getItem('announcements_read') || '[]');
           } catch (e) {
             return [];
           }
-        }
+        };
 
-        function updateAnnouncementsBadge() {
+        window.updateAnnouncementsBadge = function() {
           $.ajax({
             cache: false,
             url: '/api/announcements/unread_count',
