@@ -41,6 +41,7 @@ from scoring_engine.cache_helper import (
     update_service_data,
     update_team_stats,
     update_services_data,
+    update_all_cache,
 )
 from scoring_engine.celery_stats import CeleryStats
 
@@ -1088,3 +1089,239 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/rollback", methods=["POST"])
+@login_required
+def admin_rollback():
+    """
+    Rollback competition data to a specific round.
+
+    Deletes all rounds, checks, and KB entries from the specified round onwards.
+    This is a destructive operation - use with caution.
+
+    Request JSON:
+    {
+        "round_number": 10,  // Delete this round and all after it
+        "confirm": true      // Required to confirm destructive action
+    }
+
+    Response JSON:
+    {
+        "status": "success" | "error",
+        "message": "...",
+        "deleted": {
+            "rounds": 5,
+            "checks": 250,
+            "kb_entries": 5
+        }
+    }
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Request body required"
+        }), 400
+
+    round_number = data.get("round_number")
+    confirm = data.get("confirm", False)
+
+    if round_number is None:
+        return jsonify({
+            "status": "error",
+            "message": "round_number is required"
+        }), 400
+
+    try:
+        round_number = int(round_number)
+    except (ValueError, TypeError):
+        return jsonify({
+            "status": "error",
+            "message": "round_number must be an integer"
+        }), 400
+
+    if round_number < 1:
+        return jsonify({
+            "status": "error",
+            "message": "round_number must be >= 1"
+        }), 400
+
+    if not confirm:
+        return jsonify({
+            "status": "error",
+            "message": "confirm=true required for destructive operation"
+        }), 400
+
+    # Get current round count for validation
+    current_round = Round.get_last_round_num()
+    if current_round == 0:
+        return jsonify({
+            "status": "error",
+            "message": "No rounds exist to rollback"
+        }), 400
+
+    if round_number > current_round:
+        return jsonify({
+            "status": "error",
+            "message": f"round_number ({round_number}) exceeds current "
+                       f"round ({current_round})"
+        }), 400
+
+    # Get rounds to delete
+    rounds_to_delete = (
+        db.session.query(Round)
+        .filter(Round.number >= round_number)
+        .all()
+    )
+    round_ids = [r.id for r in rounds_to_delete]
+
+    # Count checks to delete
+    checks_count = (
+        db.session.query(Check)
+        .filter(Check.round_id.in_(round_ids))
+        .count()
+    )
+
+    # Count KB entries to delete
+    kb_count = (
+        db.session.query(KB)
+        .filter(KB.round_num >= round_number)
+        .count()
+    )
+
+    # Delete checks first (foreign key constraint)
+    db.session.query(Check).filter(Check.round_id.in_(round_ids)).delete(
+        synchronize_session=False
+    )
+
+    # Delete KB entries
+    db.session.query(KB).filter(KB.round_num >= round_number).delete(
+        synchronize_session=False
+    )
+
+    # Delete rounds
+    rounds_count = len(rounds_to_delete)
+    for round_obj in rounds_to_delete:
+        db.session.delete(round_obj)
+
+    db.session.commit()
+
+    # Clear all caches to force recalculation
+    from flask import current_app
+    update_all_cache(current_app)
+
+    return jsonify({
+        "status": "success",
+        "message": f"Rolled back to before round {round_number}",
+        "deleted": {
+            "rounds": rounds_count,
+            "checks": checks_count,
+            "kb_entries": kb_count,
+        },
+        "new_current_round": Round.get_last_round_num(),
+    })
+
+
+@mod.route("/api/admin/rollback/preview", methods=["POST"])
+@login_required
+def admin_rollback_preview():
+    """
+    Preview what would be deleted by a rollback operation.
+
+    Request JSON:
+    {
+        "round_number": 10
+    }
+
+    Response JSON:
+    {
+        "status": "success",
+        "current_round": 15,
+        "round_number": 10,
+        "will_delete": {
+            "rounds": 6,
+            "checks": 300,
+            "kb_entries": 6
+        }
+    }
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Request body required"
+        }), 400
+
+    round_number = data.get("round_number")
+    if round_number is None:
+        return jsonify({
+            "status": "error",
+            "message": "round_number is required"
+        }), 400
+
+    try:
+        round_number = int(round_number)
+    except (ValueError, TypeError):
+        return jsonify({
+            "status": "error",
+            "message": "round_number must be an integer"
+        }), 400
+
+    if round_number < 1:
+        return jsonify({
+            "status": "error",
+            "message": "round_number must be >= 1"
+        }), 400
+
+    current_round = Round.get_last_round_num()
+    if current_round == 0:
+        return jsonify({
+            "status": "success",
+            "current_round": 0,
+            "round_number": round_number,
+            "will_delete": {
+                "rounds": 0,
+                "checks": 0,
+                "kb_entries": 0,
+            }
+        })
+
+    # Get rounds that would be deleted
+    rounds_to_delete = (
+        db.session.query(Round)
+        .filter(Round.number >= round_number)
+        .all()
+    )
+    round_ids = [r.id for r in rounds_to_delete]
+
+    # Count checks
+    checks_count = (
+        db.session.query(Check)
+        .filter(Check.round_id.in_(round_ids))
+        .count()
+    ) if round_ids else 0
+
+    # Count KB entries
+    kb_count = (
+        db.session.query(KB)
+        .filter(KB.round_num >= round_number)
+        .count()
+    )
+
+    return jsonify({
+        "status": "success",
+        "current_round": current_round,
+        "round_number": round_number,
+        "will_delete": {
+            "rounds": len(rounds_to_delete),
+            "checks": checks_count,
+            "kb_entries": kb_count,
+        }
+    })
