@@ -2,6 +2,8 @@ from dateutil.parser import parse
 from flask import jsonify, request
 from flask_login import current_user, login_required
 
+from scoring_engine.cache import cache
+from scoring_engine.cache_helper import update_announcements_data
 from scoring_engine.db import db
 from scoring_engine.models.announcement import Announcement
 from scoring_engine.models.team import Team
@@ -9,7 +11,19 @@ from scoring_engine.models.team import Team
 from . import mod
 
 
+def _announcements_cache_key():
+    """Cache key based on user visibility context."""
+    if not current_user.is_authenticated:
+        return "/api/announcements_anonymous"
+    if current_user.is_white_team:
+        return "/api/announcements_white"
+    if current_user.is_red_team:
+        return "/api/announcements_red"
+    return f"/api/announcements_team_{current_user.team.id}"
+
+
 @mod.route("/api/announcements")
+@cache.cached(make_cache_key=_announcements_cache_key)
 def get_announcements():
     """
     Get all announcements visible to the current user.
@@ -85,6 +99,7 @@ def admin_create_announcement():
 
     db.session.add(announcement)
     db.session.commit()
+    update_announcements_data()
 
     return jsonify({"status": "Success", "data": announcement.to_dict()}), 201
 
@@ -148,6 +163,7 @@ def admin_update_announcement(announcement_id):
 
     db.session.add(announcement)
     db.session.commit()
+    update_announcements_data()
 
     return jsonify({"status": "Success", "data": announcement.to_dict()})
 
@@ -168,6 +184,7 @@ def admin_delete_announcement(ann_id):
 
     db.session.delete(announcement)
     db.session.commit()
+    update_announcements_data()
 
     return jsonify({"status": "Success"})
 
@@ -191,6 +208,7 @@ def admin_toggle_pin_announcement(ann_id):
     announcement.is_pinned = not announcement.is_pinned
     db.session.add(announcement)
     db.session.commit()
+    update_announcements_data()
 
     return jsonify({"status": "Success", "is_pinned": announcement.is_pinned})
 
@@ -214,6 +232,7 @@ def admin_toggle_active_announcement(ann_id):
     announcement.is_active = not announcement.is_active
     db.session.add(announcement)
     db.session.commit()
+    update_announcements_data()
 
     return jsonify({"status": "Success", "is_active": announcement.is_active})
 

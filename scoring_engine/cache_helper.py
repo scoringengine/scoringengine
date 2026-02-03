@@ -94,6 +94,13 @@ def update_services_data(team_id=None):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
+def update_announcements_data():
+    """Clear cached announcement data for all visibility contexts."""
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/announcements_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
 # TODO - Break this into an API cache expiration
 def update_stats():
     from scoring_engine.web.views.stats import home
