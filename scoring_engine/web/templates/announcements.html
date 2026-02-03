@@ -15,9 +15,8 @@
 
       {% if announcements %}
         {% for announcement in announcements %}
-        {% set is_unread = last_read_at and announcement.created_at and announcement.created_at > last_read_at %}
-        {% set is_unread = is_unread or (current_user.is_authenticated and last_read_at is none) %}
-        <div class="card mb-3 announcement-card {% if announcement.is_pinned %}border-warning{% endif %} {% if is_unread %}border-primary border-2 unread{% endif %}" data-id="{{ announcement.id }}" data-created="{{ announcement.created_at.isoformat() if announcement.created_at else '' }}">
+        {% set is_unread = current_user.is_authenticated and announcement.id not in read_ids %}
+        <div class="card mb-3 announcement-card {% if announcement.is_pinned %}border-warning{% endif %} {% if is_unread %}border-primary border-2 unread{% endif %}" data-id="{{ announcement.id }}">
           <div class="card-header d-flex justify-content-between align-items-center {% if announcement.is_pinned %}bg-warning bg-opacity-25{% endif %}">
             <div>
               {% if announcement.is_pinned %}
@@ -75,8 +74,9 @@ $(document).ready(function() {
   $('.mark-read-btn').click(function(e) {
     e.preventDefault();
     var card = $(this).closest('.announcement-card');
+    var annId = card.data('id');
     $.ajax({
-      url: '/api/announcements/mark_read',
+      url: '/api/announcements/' + annId + '/mark_read',
       method: 'POST',
       success: function() {
         markCardAsRead(card);
@@ -89,7 +89,7 @@ $(document).ready(function() {
     var btn = $(this);
     btn.prop('disabled', true);
     $.ajax({
-      url: '/api/announcements/mark_read',
+      url: '/api/announcements/mark_all_read',
       method: 'POST',
       success: function() {
         $('.announcement-card.unread').each(function() {

@@ -14,6 +14,7 @@ def get_announcements():
     """
     Get all announcements visible to the current user.
     Pinned announcements appear first, then ordered by created_at descending.
+    Does NOT auto-mark as read; users must explicitly mark announcements.
     """
     user = current_user if current_user.is_authenticated else None
 
@@ -28,25 +29,51 @@ def get_announcements():
     )
 
     # Filter by visibility
-    visible_announcements = [
-        a.to_dict() for a in announcements if a.is_visible_to_user(user)
+    visible = [a for a in announcements if a.is_visible_to_user(user)]
+
+    # Include read status per announcement
+    read_ids = set()
+    if user and user.is_authenticated:
+        read_ids = AnnouncementRead.get_read_announcement_ids(
+            db.session, user.id
+        )
+
+    result = []
+    for a in visible:
+        d = a.to_dict()
+        d["is_read"] = a.id in read_ids
+        result.append(d)
+
+    return jsonify(data=result)
+
+
+@mod.route("/api/announcements/<int:announcement_id>/mark_read", methods=["POST"])
+@login_required
+def mark_announcement_read(announcement_id):
+    """Mark a single announcement as read for the current user."""
+    announcement = db.session.get(Announcement, announcement_id)
+    if not announcement:
+        return jsonify({"status": "Error", "message": "Not found"}), 404
+
+    AnnouncementRead.mark_as_read(db.session, current_user.id, announcement_id)
+    return jsonify({"status": "Success"})
+
+
+@mod.route("/api/announcements/mark_all_read", methods=["POST"])
+@login_required
+def mark_all_announcements_read():
+    """Mark all visible announcements as read for the current user."""
+    announcements = (
+        db.session.query(Announcement)
+        .filter(Announcement.is_active.is_(True))
+        .all()
+    )
+
+    visible_ids = [
+        a.id for a in announcements if a.is_visible_to_user(current_user)
     ]
 
-    # If user is authenticated, mark as read
-    if user and user.is_authenticated:
-        AnnouncementRead.mark_as_read(db.session, user.id)
-
-    return jsonify(data=visible_announcements)
-
-
-@mod.route("/api/announcements/mark_read", methods=["POST"])
-@login_required
-def mark_announcements_read():
-    """
-    Explicitly mark all announcements as read for the current user.
-    Used by the badge dismiss button.
-    """
-    AnnouncementRead.mark_as_read(db.session, current_user.id)
+    AnnouncementRead.mark_many_as_read(db.session, current_user.id, visible_ids)
     return jsonify({"status": "Success"})
 
 
@@ -69,27 +96,10 @@ def get_unread_count():
     visible = [a for a in announcements if a.is_visible_to_user(user)]
 
     if not user or not user.is_authenticated:
-        # For unauthenticated users, all global announcements are "unread"
-        # but we don't track read status, so return total count
         return jsonify({"count": len(visible)})
 
-    # Get the user's last read timestamp
-    read_record = (
-        db.session.query(AnnouncementRead)
-        .filter(AnnouncementRead.user_id == user.id)
-        .first()
-    )
-
-    if read_record is None:
-        # User has never viewed announcements, all are unread
-        return jsonify({"count": len(visible)})
-
-    # Count announcements created after last read
-    unread_count = sum(
-        1
-        for a in visible
-        if a.created_at and a.created_at > read_record.last_read_at
-    )
+    read_ids = AnnouncementRead.get_read_announcement_ids(db.session, user.id)
+    unread_count = sum(1 for a in visible if a.id not in read_ids)
 
     return jsonify({"count": unread_count})
 

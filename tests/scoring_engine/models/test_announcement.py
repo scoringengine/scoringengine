@@ -1,5 +1,4 @@
 import datetime
-from unittest.mock import MagicMock
 
 from scoring_engine.models.announcement import Announcement, AnnouncementRead
 from scoring_engine.models.team import Team
@@ -282,8 +281,6 @@ class TestAnnouncement(UnitTest):
         )
         self.session.add(ann)
         self.session.commit()
-        # White team doesn't match all_blue directly, but the
-        # fallthrough lets white team see non-matching audiences
         assert ann.is_visible_to_user(admin) is True
 
     # --- Visibility: inactive / expired ---
@@ -346,65 +343,121 @@ class TestAnnouncement(UnitTest):
 
 class TestAnnouncementRead(UnitTest):
 
-    def test_init(self):
-        """Test creating an announcement read record"""
+    def _make_user(self):
         team = Team(name="Blue 1", color="Blue")
         self.session.add(team)
         user = User(username="b1", password="p", team=team)
         self.session.add(user)
         self.session.commit()
-        read = AnnouncementRead(user_id=user.id)
+        return user
+
+    def _make_announcement(self, title="Test"):
+        ann = Announcement(title=title, content="Content")
+        self.session.add(ann)
+        self.session.commit()
+        return ann
+
+    def test_init(self):
+        """Test creating an announcement read record"""
+        user = self._make_user()
+        ann = self._make_announcement()
+        read = AnnouncementRead(user_id=user.id, announcement_id=ann.id)
         self.session.add(read)
         self.session.commit()
         assert read.id is not None
         assert read.user_id == user.id
-        assert read.last_read_at is not None
+        assert read.announcement_id == ann.id
+        assert read.read_at is not None
 
-    def test_get_or_create_new(self):
-        """Test get_or_create creates a new record"""
-        team = Team(name="Blue 1", color="Blue")
-        self.session.add(team)
-        user = User(username="b1", password="p", team=team)
-        self.session.add(user)
-        self.session.commit()
-        read = AnnouncementRead.get_or_create(self.session, user.id)
+    def test_is_read_false(self):
+        """Test is_read returns False for unread announcement"""
+        user = self._make_user()
+        ann = self._make_announcement()
+        assert AnnouncementRead.is_read(self.session, user.id, ann.id) is False
+
+    def test_is_read_true(self):
+        """Test is_read returns True after marking as read"""
+        user = self._make_user()
+        ann = self._make_announcement()
+        AnnouncementRead.mark_as_read(self.session, user.id, ann.id)
+        assert AnnouncementRead.is_read(self.session, user.id, ann.id) is True
+
+    def test_get_read_announcement_ids_empty(self):
+        """Test get_read_announcement_ids returns empty set initially"""
+        user = self._make_user()
+        ids = AnnouncementRead.get_read_announcement_ids(self.session, user.id)
+        assert ids == set()
+
+    def test_get_read_announcement_ids(self):
+        """Test get_read_announcement_ids returns correct IDs"""
+        user = self._make_user()
+        ann1 = self._make_announcement("A1")
+        ann2 = self._make_announcement("A2")
+        ann3 = self._make_announcement("A3")
+        AnnouncementRead.mark_as_read(self.session, user.id, ann1.id)
+        AnnouncementRead.mark_as_read(self.session, user.id, ann3.id)
+        ids = AnnouncementRead.get_read_announcement_ids(self.session, user.id)
+        assert ids == {ann1.id, ann3.id}
+
+    def test_mark_as_read_creates_record(self):
+        """Test mark_as_read creates a new read record"""
+        user = self._make_user()
+        ann = self._make_announcement()
+        read = AnnouncementRead.mark_as_read(self.session, user.id, ann.id)
         assert read.id is not None
         assert read.user_id == user.id
+        assert read.announcement_id == ann.id
 
-    def test_get_or_create_existing(self):
-        """Test get_or_create returns existing record"""
-        team = Team(name="Blue 1", color="Blue")
-        self.session.add(team)
-        user = User(username="b1", password="p", team=team)
-        self.session.add(user)
-        self.session.commit()
-        read1 = AnnouncementRead.get_or_create(self.session, user.id)
-        read2 = AnnouncementRead.get_or_create(self.session, user.id)
+    def test_mark_as_read_idempotent(self):
+        """Test marking the same announcement as read twice returns existing record"""
+        user = self._make_user()
+        ann = self._make_announcement()
+        read1 = AnnouncementRead.mark_as_read(self.session, user.id, ann.id)
+        read2 = AnnouncementRead.mark_as_read(self.session, user.id, ann.id)
         assert read1.id == read2.id
 
-    def test_mark_as_read(self):
-        """Test marking announcements as read updates timestamp"""
-        team = Team(name="Blue 1", color="Blue")
-        self.session.add(team)
-        user = User(username="b1", password="p", team=team)
-        self.session.add(user)
-        self.session.commit()
-        before = datetime.datetime.utcnow()
-        read = AnnouncementRead.mark_as_read(self.session, user.id)
-        assert read.last_read_at >= before
+    def test_mark_many_as_read(self):
+        """Test marking multiple announcements as read at once"""
+        user = self._make_user()
+        ann1 = self._make_announcement("A1")
+        ann2 = self._make_announcement("A2")
+        ann3 = self._make_announcement("A3")
+        AnnouncementRead.mark_many_as_read(
+            self.session, user.id, [ann1.id, ann2.id, ann3.id]
+        )
+        ids = AnnouncementRead.get_read_announcement_ids(self.session, user.id)
+        assert ids == {ann1.id, ann2.id, ann3.id}
 
-    def test_mark_as_read_updates_existing(self):
-        """Test that marking as read again updates the timestamp"""
+    def test_mark_many_as_read_skips_already_read(self):
+        """Test mark_many_as_read doesn't duplicate existing records"""
+        user = self._make_user()
+        ann1 = self._make_announcement("A1")
+        ann2 = self._make_announcement("A2")
+        # Mark ann1 first
+        AnnouncementRead.mark_as_read(self.session, user.id, ann1.id)
+        # Now mark both
+        AnnouncementRead.mark_many_as_read(
+            self.session, user.id, [ann1.id, ann2.id]
+        )
+        ids = AnnouncementRead.get_read_announcement_ids(self.session, user.id)
+        assert ids == {ann1.id, ann2.id}
+        # Only 2 records total, not 3
+        count = (
+            self.session.query(AnnouncementRead)
+            .filter(AnnouncementRead.user_id == user.id)
+            .count()
+        )
+        assert count == 2
+
+    def test_per_user_isolation(self):
+        """Test that read status is tracked per user"""
         team = Team(name="Blue 1", color="Blue")
         self.session.add(team)
-        user = User(username="b1", password="p", team=team)
-        self.session.add(user)
+        user1 = User(username="u1", password="p", team=team)
+        user2 = User(username="u2", password="p", team=team)
+        self.session.add_all([user1, user2])
         self.session.commit()
-        read1 = AnnouncementRead.mark_as_read(self.session, user.id)
-        old_time = read1.last_read_at
-        # Force a small time difference
-        read1.last_read_at = old_time - datetime.timedelta(seconds=10)
-        self.session.commit()
-        read2 = AnnouncementRead.mark_as_read(self.session, user.id)
-        assert read2.last_read_at > old_time - datetime.timedelta(seconds=10)
-        assert read1.id == read2.id
+        ann = self._make_announcement()
+        AnnouncementRead.mark_as_read(self.session, user1.id, ann.id)
+        assert AnnouncementRead.is_read(self.session, user1.id, ann.id) is True
+        assert AnnouncementRead.is_read(self.session, user2.id, ann.id) is False

@@ -183,8 +183,8 @@ class TestAnnouncementsAPI(UnitTest):
         resp = self.client.get("/api/announcements")
         assert len(resp.json["data"]) == 0
 
-    def test_get_announcements_marks_as_read(self):
-        """Viewing announcements marks them as read for the user"""
+    def test_get_announcements_does_not_auto_mark_read(self):
+        """Viewing announcements does NOT auto-mark them as read"""
         self.session.add(Announcement(
             title="Test", content="T", audience="global"
         ))
@@ -196,7 +196,21 @@ class TestAnnouncementsAPI(UnitTest):
             .filter_by(user_id=self.blue_user1.id)
             .first()
         )
-        assert read is not None
+        assert read is None
+
+    def test_get_announcements_includes_is_read(self):
+        """GET /api/announcements includes is_read boolean per announcement"""
+        ann = Announcement(title="Test", content="T", audience="global")
+        self.session.add(ann)
+        self.session.commit()
+        self.login("blueuser1")
+        # Before marking
+        resp = self.client.get("/api/announcements")
+        assert resp.json["data"][0]["is_read"] is False
+        # Mark as read
+        self.client.post(f"/api/announcements/{ann.id}/mark_read")
+        resp = self.client.get("/api/announcements")
+        assert resp.json["data"][0]["is_read"] is True
 
     # --- Public API: GET /api/announcements/unread_count ---
 
@@ -213,15 +227,18 @@ class TestAnnouncementsAPI(UnitTest):
         resp = self.client.get("/api/announcements/unread_count")
         assert resp.json["count"] == 2
 
-    def test_unread_count_after_read(self):
-        """Count is zero after viewing announcements"""
-        self.session.add(Announcement(
-            title="A1", content="C", audience="global"
-        ))
+    def test_unread_count_after_mark_read(self):
+        """Count decreases after explicitly marking announcements as read"""
+        ann = Announcement(title="A1", content="C", audience="global")
+        self.session.add(ann)
         self.session.commit()
         self.login("blueuser1")
-        # View to mark as read
+        # Still unread after viewing
         self.client.get("/api/announcements")
+        resp = self.client.get("/api/announcements/unread_count")
+        assert resp.json["count"] == 1
+        # Explicitly mark as read
+        self.client.post(f"/api/announcements/{ann.id}/mark_read")
         resp = self.client.get("/api/announcements/unread_count")
         assert resp.json["count"] == 0
 
@@ -239,31 +256,82 @@ class TestAnnouncementsAPI(UnitTest):
         # Blue user should only see global, not red
         assert resp.json["count"] == 1
 
-    # --- Public API: POST /api/announcements/mark_read ---
+    # --- Public API: POST /api/announcements/<id>/mark_read ---
 
-    def test_mark_read_requires_auth(self):
+    def test_mark_single_read_requires_auth(self):
         """mark_read endpoint requires authentication"""
-        resp = self.client.post("/api/announcements/mark_read")
+        ann = Announcement(title="T", content="C", audience="global")
+        self.session.add(ann)
+        self.session.commit()
+        resp = self.client.post(f"/api/announcements/{ann.id}/mark_read")
         assert resp.status_code == 302
         assert "/login?" in resp.location
 
-    def test_mark_read_clears_badge(self):
-        """Explicitly marking as read clears unread count"""
+    def test_mark_single_read_success(self):
+        """Mark a single announcement as read"""
+        ann = Announcement(title="A1", content="C", audience="global")
+        self.session.add(ann)
+        self.session.commit()
+        self.login("blueuser1")
+        resp = self.client.post(f"/api/announcements/{ann.id}/mark_read")
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Success"
+        # Verify it's recorded
+        assert AnnouncementRead.is_read(
+            self.session, self.blue_user1.id, ann.id
+        )
+
+    def test_mark_single_read_not_found(self):
+        """mark_read returns 404 for nonexistent announcement"""
+        self.login("blueuser1")
+        resp = self.client.post("/api/announcements/99999/mark_read")
+        assert resp.status_code == 404
+
+    # --- Public API: POST /api/announcements/mark_all_read ---
+
+    def test_mark_all_read_requires_auth(self):
+        """mark_all_read endpoint requires authentication"""
+        resp = self.client.post("/api/announcements/mark_all_read")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+    def test_mark_all_read_clears_badge(self):
+        """Marking all as read clears unread count"""
         self.session.add(Announcement(
             title="A1", content="C", audience="global"
+        ))
+        self.session.add(Announcement(
+            title="A2", content="C", audience="global"
         ))
         self.session.commit()
         self.login("blueuser1")
         # Verify unread first
         resp = self.client.get("/api/announcements/unread_count")
-        assert resp.json["count"] == 1
-        # Mark as read
-        resp = self.client.post("/api/announcements/mark_read")
+        assert resp.json["count"] == 2
+        # Mark all as read
+        resp = self.client.post("/api/announcements/mark_all_read")
         assert resp.status_code == 200
         assert resp.json["status"] == "Success"
         # Verify cleared
         resp = self.client.get("/api/announcements/unread_count")
         assert resp.json["count"] == 0
+
+    def test_mark_all_read_only_marks_visible(self):
+        """mark_all_read only marks announcements visible to the user"""
+        self.session.add(Announcement(
+            title="Global", content="C", audience="global"
+        ))
+        self.session.add(Announcement(
+            title="Red Only", content="C", audience="all_red"
+        ))
+        self.session.commit()
+        self.login("blueuser1")
+        self.client.post("/api/announcements/mark_all_read")
+        # Blue user should only have 1 read record (global), not red
+        read_ids = AnnouncementRead.get_read_announcement_ids(
+            self.session, self.blue_user1.id
+        )
+        assert len(read_ids) == 1
 
     # --- Admin API: Create ---
 

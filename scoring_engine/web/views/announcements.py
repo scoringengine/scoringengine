@@ -27,31 +27,18 @@ def home():
         a for a in announcements if a.is_visible_to_user(user)
     ]
 
-    # Get last read timestamp for highlighting new announcements
-    last_read_at = None
+    # Get per-announcement read status
+    read_ids = set()
     if user and user.is_authenticated:
-        read_record = (
-            db.session.query(AnnouncementRead)
-            .filter(AnnouncementRead.user_id == user.id)
-            .first()
+        read_ids = AnnouncementRead.get_read_announcement_ids(
+            db.session, user.id
         )
-        if read_record:
-            last_read_at = read_record.last_read_at
 
-    # Count unread announcements
-    has_unread = False
-    if last_read_at is not None:
-        has_unread = any(
-            a.created_at and a.created_at > last_read_at
-            for a in visible_announcements
-        )
-    elif user and user.is_authenticated:
-        # No read record means all are unread
-        has_unread = len(visible_announcements) > 0
+    has_unread = any(a.id not in read_ids for a in visible_announcements) if user and user.is_authenticated else False
 
     return render_template(
         "announcements.html",
         announcements=visible_announcements,
-        last_read_at=last_read_at,
+        read_ids=read_ids,
         has_unread=has_unread,
     )

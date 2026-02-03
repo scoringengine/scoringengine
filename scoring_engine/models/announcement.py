@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
     UnicodeText,
 )
 from sqlalchemy.orm import relationship
@@ -112,35 +113,64 @@ class Announcement(Base):
 
 class AnnouncementRead(Base):
     __tablename__ = "announcement_reads"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(
-        Integer, ForeignKey("users.id"), nullable=False, unique=True
+    __table_args__ = (
+        UniqueConstraint("user_id", "announcement_id", name="uq_user_announcement"),
     )
-    last_read_at = Column(DateTime, default=datetime.datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    announcement_id = Column(
+        Integer, ForeignKey("announcements.id"), nullable=False
+    )
+    read_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", foreign_keys=[user_id])
+    announcement = relationship("Announcement", foreign_keys=[announcement_id])
 
-    def __init__(self, user_id):
+    def __init__(self, user_id, announcement_id):
         self.user_id = user_id
-        self.last_read_at = datetime.datetime.utcnow()
+        self.announcement_id = announcement_id
+        self.read_at = datetime.datetime.utcnow()
 
     @classmethod
-    def get_or_create(cls, db_session, user_id):
-        """Get existing read record or create a new one."""
-        read_record = (
-            db_session.query(cls).filter(cls.user_id == user_id).first()
+    def is_read(cls, db_session, user_id, announcement_id):
+        """Check if a specific announcement has been read by a user."""
+        return (
+            db_session.query(cls)
+            .filter(cls.user_id == user_id, cls.announcement_id == announcement_id)
+            .first()
+            is not None
         )
-        if read_record is None:
-            read_record = cls(user_id=user_id)
-            db_session.add(read_record)
-            db_session.commit()
-        return read_record
 
     @classmethod
-    def mark_as_read(cls, db_session, user_id):
-        """Mark all announcements as read for a user."""
-        read_record = cls.get_or_create(db_session, user_id)
-        read_record.last_read_at = datetime.datetime.utcnow()
+    def get_read_announcement_ids(cls, db_session, user_id):
+        """Get set of announcement IDs that a user has read."""
+        rows = (
+            db_session.query(cls.announcement_id)
+            .filter(cls.user_id == user_id)
+            .all()
+        )
+        return {row[0] for row in rows}
+
+    @classmethod
+    def mark_as_read(cls, db_session, user_id, announcement_id):
+        """Mark a single announcement as read for a user."""
+        existing = (
+            db_session.query(cls)
+            .filter(cls.user_id == user_id, cls.announcement_id == announcement_id)
+            .first()
+        )
+        if existing:
+            return existing
+        read_record = cls(user_id=user_id, announcement_id=announcement_id)
         db_session.add(read_record)
         db_session.commit()
         return read_record
+
+    @classmethod
+    def mark_many_as_read(cls, db_session, user_id, announcement_ids):
+        """Mark multiple announcements as read for a user."""
+        already_read = cls.get_read_announcement_ids(db_session, user_id)
+        for ann_id in announcement_ids:
+            if ann_id not in already_read:
+                db_session.add(cls(user_id=user_id, announcement_id=ann_id))
+        db_session.commit()
