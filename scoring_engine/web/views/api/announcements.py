@@ -55,15 +55,15 @@ def get_announcements():
     return jsonify(data=[a.to_dict() for a in visible])
 
 
-@mod.route("/api/announcements/ids")
+@mod.route("/api/announcements/count")
 @cache.cached(make_cache_key=_announcements_ids_cache_key)
-def get_announcement_ids():
+def get_announcement_count():
     """
-    Get just the IDs of visible announcements.
+    Get the count of visible announcements.
     Lightweight endpoint for badge polling on every page.
     """
     visible = _get_visible_announcements()
-    return jsonify(ids=[a.id for a in visible])
+    return jsonify(count=len(visible))
 
 
 @mod.route("/api/admin/announcements", methods=["GET"])
