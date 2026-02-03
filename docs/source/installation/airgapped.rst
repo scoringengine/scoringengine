@@ -96,6 +96,9 @@ Save all built images to tar files for transfer:
   docker save scoringengine/worker -o docker-images/scoringengine-worker.tar
   docker save scoringengine/web -o docker-images/scoringengine-web.tar
 
+  # Optional: Export Playwright worker if using advanced web checks
+  # docker save scoringengine/worker-playwright -o docker-images/scoringengine-worker-playwright.tar
+
 4. Create Transfer Package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -131,6 +134,9 @@ Package everything needed for airgapped deployment:
   docker load -i docker-images/scoringengine-engine.tar
   docker load -i docker-images/scoringengine-worker.tar
   docker load -i docker-images/scoringengine-web.tar
+
+  # Optional: Load Playwright worker if exported
+  # docker load -i docker-images/scoringengine-worker-playwright.tar
 
   echo "All images loaded successfully!"
   docker images | grep -E "(scoringengine|redis|mariadb|nginx|python)"
@@ -199,6 +205,12 @@ If you prefer to save all images in a single command:
     scoringengine/web \
     -o all-images.tar
 
+  # Include Playwright worker if needed for advanced web checks:
+  # docker save \
+  #   ... \
+  #   scoringengine/worker-playwright \
+  #   -o all-images.tar
+
   # Then load on the airgapped system:
   docker load -i all-images.tar
 
@@ -247,6 +259,7 @@ You should see:
 - ``scoringengine/engine``
 - ``scoringengine/worker``
 - ``scoringengine/web``
+- ``scoringengine/worker-playwright`` (optional, if using advanced web checks)
 
 4. Configure Competition
 ~~~~~~~~~~~~~~~~~~~~~~~~~
