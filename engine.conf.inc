@@ -57,6 +57,13 @@ sla_penalty_mode = additive
 # Allow scores to go negative from penalties
 sla_allow_negative = False
 
+# Persistence Tracking Configuration
+# Timeout in seconds before a session is considered stale (no recent checkin)
+persistence_timeout_seconds = 300
+# PSK for external C2 beacon integration (Cobalt Strike, etc.)
+# Leave empty to disable external beacon API
+persistence_beacon_psk =
+
 # Dynamic Scoring (Time-Based) Configuration
 # Enable/disable dynamic scoring multipliers
 dynamic_scoring_enabled = False

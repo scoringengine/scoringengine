@@ -1,0 +1,348 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Persistence Tracking{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+  .session-active { color: #5cb85c; font-weight: bold; }
+  .session-stale { color: #f0ad4e; }
+  .session-ended { color: #999; }
+  .stats-card { text-align: center; padding: 15px; margin-bottom: 15px; }
+  .stats-card h2 { margin: 0; font-size: 2.5em; }
+  .stats-card small { color: #777; }
+  .beacon-example { background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; overflow-x: auto; }
+</style>
+{% endblock %}
+
+{% block header %}
+Persistence Tracking
+{% endblock %}
+
+{% block admincontent %}
+<!-- Summary Stats -->
+<div class="row">
+  <div class="col-md-3">
+    <div class="panel panel-success stats-card">
+      <h2 id="active-count">-</h2>
+      <small>Active Sessions</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="panel panel-warning stats-card">
+      <h2 id="stale-count">-</h2>
+      <small>Stale Sessions</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="panel panel-default stats-card">
+      <h2 id="ended-count">-</h2>
+      <small>Ended Sessions</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="panel panel-info stats-card">
+      <h2 id="total-count">-</h2>
+      <small>Total Sessions</small>
+    </div>
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4>Actions</h4>
+  </div>
+  <div class="panel-body">
+    <button class="btn btn-warning" id="detect-stale-btn">
+      <span class="glyphicon glyphicon-time"></span> Detect & End Stale Sessions
+    </button>
+    <button class="btn btn-default" id="refresh-btn">
+      <span class="glyphicon glyphicon-refresh"></span> Refresh
+    </button>
+    <span id="action-result" class="text-muted" style="margin-left: 15px;"></span>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4>Settings</h4>
+  </div>
+  <div class="panel-body">
+    <form id="persistence-settings-form">
+      <div class="form-group">
+        <label for="timeout">Session Timeout (seconds)</label>
+        <input type="number" class="form-control" id="timeout" name="persistence_timeout_seconds"
+               value="{{ persistence_timeout_seconds }}" min="60" max="3600">
+        <p class="help-block">Sessions with no check-in for this long are considered stale (default: 300 = 5 minutes)</p>
+      </div>
+      <div class="form-group">
+        <label for="beacon-psk">External Beacon API PSK</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="beacon-psk" name="persistence_beacon_psk"
+                 value="{{ persistence_beacon_psk }}" placeholder="Leave empty to disable">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" id="generate-psk-btn">Generate</button>
+          </span>
+        </div>
+        <p class="help-block">PSK for Cobalt Strike / external C2 beacon integration. Leave empty to disable.</p>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+  </div>
+</div>
+
+<!-- External Beacon API Info -->
+{% if persistence_beacon_psk %}
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <h4>External C2 Integration (Cobalt Strike, etc.)</h4>
+  </div>
+  <div class="panel-body">
+    <p>Send beacon check-ins from external C2 frameworks using the following API:</p>
+
+    <h5>Beacon Check-in (POST /api/persistence/beacon)</h5>
+    <div class="beacon-example">
+curl -X POST {{ request.url_root }}api/persistence/beacon \
+  -H "Authorization: Bearer YOUR_PSK" \
+  -H "Content-Type: application/json" \
+  -d '{"team": "Team 1", "host": "webserver.local", "platform": "win", "beacon_id": "abc123"}'
+    </div>
+
+    <h5 style="margin-top: 15px;">End Beacon Session (POST /api/persistence/beacon/end)</h5>
+    <div class="beacon-example">
+curl -X POST {{ request.url_root }}api/persistence/beacon/end \
+  -H "Authorization: Bearer YOUR_PSK" \
+  -H "Content-Type: application/json" \
+  -d '{"team": "Team 1", "host": "webserver.local", "beacon_id": "abc123", "reason": "exit"}'
+    </div>
+
+    <h5 style="margin-top: 15px;">Aggressor Script Example (Cobalt Strike)</h5>
+    <div class="beacon-example">
+on beacon_initial {
+    $bid = $1;
+    $host = beacon_info($bid, "computer");
+    $user = beacon_info($bid, "user");
+    # Extract team from host naming convention (e.g., web.team1.local -> Team 1)
+    # Customize this regex for your competition
+    $url = "{{ request.url_root }}api/persistence/beacon";
+    $body = '{"team": "Team 1", "host": "' . $host . '", "platform": "win", "beacon_id": "' . $bid . '"}';
+    # Use Cobalt Strike's web client or external script to POST
+}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Active Sessions Table -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4>Active Persistence Sessions</h4>
+  </div>
+  <div class="panel-body">
+    <table class="table table-striped table-bordered" id="sessions-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Host</th>
+          <th>Team (Victim)</th>
+          <th>Platform</th>
+          <th>Started</th>
+          <th>Last Check-in</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="sessions-body">
+        <tr><td colspan="9" class="text-center">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sessions by Team -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4>Sessions by Team</h4>
+  </div>
+  <div class="panel-body">
+    <table class="table table-striped table-bordered" id="team-summary-table">
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Total Sessions</th>
+          <th>Active Now</th>
+        </tr>
+      </thead>
+      <tbody id="team-summary-body">
+        <tr><td colspan="3" class="text-center">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function loadSummary() {
+  $.getJSON('/api/persistence/summary', function(data) {
+    $('#active-count').text(data.active_sessions);
+    $('#stale-count').text(data.stale_sessions);
+    $('#ended-count').text(data.ended_sessions);
+    $('#total-count').text(data.total_sessions);
+
+    // Team summary
+    var teamHtml = '';
+    var activeByTeam = {};
+    data.active_by_team.forEach(function(t) {
+      activeByTeam[t.team] = t.count;
+    });
+
+    data.by_team.forEach(function(t) {
+      teamHtml += '<tr><td>' + escapeHtml(t.team) + '</td><td>' + t.count + '</td><td>' + (activeByTeam[t.team] || 0) + '</td></tr>';
+    });
+
+    if (teamHtml === '') {
+      teamHtml = '<tr><td colspan="3" class="text-center text-muted">No sessions yet</td></tr>';
+    }
+    $('#team-summary-body').html(teamHtml);
+  });
+}
+
+function loadSessions() {
+  $.getJSON('/api/persistence/sessions?limit=50', function(data) {
+    var html = '';
+    data.data.forEach(function(s) {
+      var statusClass = s.is_active ? (s.is_stale ? 'session-stale' : 'session-active') : 'session-ended';
+      var statusText = s.is_active ? (s.is_stale ? 'Stale' : 'Active') : 'Ended';
+      if (s.end_reason) {
+        statusText += ' (' + s.end_reason + ')';
+      }
+
+      html += '<tr class="' + statusClass + '">';
+      html += '<td>' + s.id + '</td>';
+      html += '<td>' + escapeHtml(s.host) + '</td>';
+      html += '<td>' + escapeHtml(s.team_name || '-') + '</td>';
+      html += '<td>' + (s.platform || '-') + '</td>';
+      html += '<td>' + escapeHtml(s.started_at_local) + '</td>';
+      html += '<td>' + escapeHtml(s.last_checkin_local) + '</td>';
+      html += '<td>' + escapeHtml(s.duration_formatted) + '</td>';
+      html += '<td>' + statusText + '</td>';
+      html += '<td>';
+      if (s.is_active) {
+        html += '<button class="btn btn-xs btn-danger end-session-btn" data-id="' + s.id + '">End</button>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+
+    if (html === '') {
+      html = '<tr><td colspan="9" class="text-center text-muted">No persistence sessions</td></tr>';
+    }
+    $('#sessions-body').html(html);
+
+    // Bind end buttons
+    $('.end-session-btn').click(function() {
+      var sessionId = $(this).data('id');
+      endSession(sessionId);
+    });
+  });
+}
+
+function endSession(sessionId) {
+  $.ajax({
+    url: '/api/persistence/session/' + sessionId + '/end',
+    method: 'POST',
+    success: function(data) {
+      $('#action-result').text('Session ' + sessionId + ' ended (' + data.duration_formatted + ')');
+      loadSessions();
+      loadSummary();
+    },
+    error: function(xhr) {
+      $('#action-result').text('Error: ' + (xhr.responseJSON?.error || 'Unknown error'));
+    }
+  });
+}
+
+function detectStale() {
+  $.ajax({
+    url: '/api/persistence/detect_stale',
+    method: 'POST',
+    success: function(data) {
+      $('#action-result').text('Ended ' + data.sessions_ended + ' stale sessions');
+      loadSessions();
+      loadSummary();
+    },
+    error: function(xhr) {
+      $('#action-result').text('Error: ' + (xhr.responseJSON?.error || 'Unknown error'));
+    }
+  });
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
+}
+
+function generatePSK() {
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var psk = '';
+  for (var i = 0; i < 32; i++) {
+    psk += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  $('#beacon-psk').val(psk);
+}
+
+$(document).ready(function() {
+  loadSummary();
+  loadSessions();
+
+  // Auto-refresh every 10 seconds
+  setInterval(function() {
+    loadSummary();
+    loadSessions();
+  }, 10000);
+
+  $('#refresh-btn').click(function() {
+    loadSummary();
+    loadSessions();
+    $('#action-result').text('Refreshed');
+  });
+
+  $('#detect-stale-btn').click(function() {
+    detectStale();
+  });
+
+  $('#generate-psk-btn').click(function() {
+    generatePSK();
+  });
+
+  $('#persistence-settings-form').submit(function(e) {
+    e.preventDefault();
+    var timeout = $('#timeout').val();
+    var psk = $('#beacon-psk').val();
+
+    $.ajax({
+      url: '/api/admin/update_settings',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        persistence_timeout_seconds: timeout,
+        persistence_beacon_psk: psk
+      }),
+      success: function() {
+        $('#action-result').text('Settings saved');
+        // Reload page to update the API documentation
+        if (psk && !{{ 'true' if persistence_beacon_psk else 'false' }}) {
+          location.reload();
+        }
+      },
+      error: function(xhr) {
+        $('#action-result').text('Error saving: ' + (xhr.responseJSON?.error || 'Unknown error'));
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

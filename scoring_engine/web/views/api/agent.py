@@ -1,28 +1,30 @@
-from flask import request, make_response, abort
-from flask_login import current_user, login_required
-from sqlalchemy import desc, func, exists
-from sqlalchemy.sql.expression import and_
-from datetime import datetime, timedelta, timezone
-from typing import Tuple
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.exceptions import InvalidTag
-from hashlib import sha256
 import json
 import os
+from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from typing import Tuple
+
+from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from flask import abort, make_response, request
+from flask_login import current_user, login_required
+from sqlalchemy import desc, exists, func
+from sqlalchemy.sql.expression import and_
 
 from scoring_engine.cache import agent_cache as cache
 from scoring_engine.db import db
-from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
+from scoring_engine.models.flag import Flag, PersistenceSession, Platform, Solve
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.models.team import Team
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
 
 from . import mod
 
 cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
 AESGCM_NONCE_LENGTH = 12
+
 
 class BtaPayloadEncryption:
     def __init__(self, psk: str, team_name: str):
@@ -59,7 +61,7 @@ def agent_checkin_post():
     psk = Setting.get_setting("agent_psk").value
     crypter = BtaPayloadEncryption(psk, team_input)
     try:
-      data = crypter.loads(request.get_data())
+        data = crypter.loads(request.get_data())
     except InvalidTag:
         # bad decryption
         abort(417)
@@ -81,12 +83,7 @@ def agent_checkin_post():
 
     flags = data.get("flags", [])
     if len(flags) > 0:
-        flags = db.session.query(Flag).filter(
-                and_(
-                    Flag.id.in_(flags),
-                    Flag.dummy == False
-                )
-            ).all()
+        flags = db.session.query(Flag).filter(and_(Flag.id.in_(flags), Flag.dummy == False)).all()
         solves = [
             Solve(
                 host=host,
@@ -98,7 +95,7 @@ def agent_checkin_post():
         db.session.add_all(solves)
 
     result = do_checkin(team, host, platform)
-    return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
+    return make_response(crypter.dumps(result), 200, {"Content-Type": "application/octet-stream"})
 
 
 def do_checkin(team, host, platform):
@@ -119,6 +116,9 @@ def do_checkin(team, host, platform):
         )
         .filter(Flag.id.not_in(db.session.query(Solve.flag_id).filter(and_(Solve.host == host, Solve.team == team))))
     ).all()
+
+    # Track persistence session
+    update_persistence_session(team, host, platform, now)
 
     res = {
         "flags": [f.as_dict() for f in flags],
@@ -151,3 +151,41 @@ def do_checkin(team, host, platform):
         # print(cache.get(host))
 
     return res
+
+
+def update_persistence_session(team, host, platform, now):
+    """
+    Update or create a persistence session for this host.
+
+    If there's an active session, update last_checkin.
+    If no active session, create a new one.
+    """
+    # Find active session for this host/team
+    active_session = (
+        db.session.query(PersistenceSession)
+        .filter(
+            and_(
+                PersistenceSession.host == host,
+                PersistenceSession.team_id == team.id,
+                PersistenceSession.ended_at.is_(None),
+            )
+        )
+        .first()
+    )
+
+    if active_session:
+        # Update existing session
+        active_session.last_checkin = now
+        active_session.platform = platform  # Update in case it changed
+    else:
+        # Create new session
+        session = PersistenceSession(
+            host=host,
+            team_id=team.id,
+            platform=platform,
+            started_at=now,
+            last_checkin=now,
+        )
+        db.session.add(session)
+
+    db.session.commit()

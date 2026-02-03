@@ -22,9 +22,7 @@ class ConfigLoader(object):
             Path to the configuration file relative to this module. Defaults to
             ``"../engine.conf"``.
         """
-        config_location = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), location
-        )
+        config_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), location)
 
         self.parser = configparser.ConfigParser()
         # Attempt to read the supplied configuration file.  In the test
@@ -50,9 +48,7 @@ class ConfigLoader(object):
         if not self.parser.has_section("OPTIONS"):
             self.parser.add_section("OPTIONS")
 
-        self.debug = self.parse_sources(
-            "debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool"
-        )
+        self.debug = self.parse_sources("debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool")
 
         self.checks_location = self.parse_sources(
             "checks_location",
@@ -131,31 +127,19 @@ class ConfigLoader(object):
             self.parser["OPTIONS"]["worker_queue"],
         )
 
-        self.timezone = self.parse_sources(
-            "timezone", self.parser["OPTIONS"]["timezone"]
-        )
+        self.timezone = self.parse_sources("timezone", self.parser["OPTIONS"]["timezone"])
 
-        self.upload_folder = self.parse_sources(
-            "upload_folder", self.parser["OPTIONS"]["upload_folder"]
-        )
+        self.upload_folder = self.parse_sources("upload_folder", self.parser["OPTIONS"]["upload_folder"])
 
         self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
 
-        self.cache_type = self.parse_sources(
-            "cache_type", self.parser["OPTIONS"]["cache_type"]
-        )
+        self.cache_type = self.parse_sources("cache_type", self.parser["OPTIONS"]["cache_type"])
 
-        self.redis_host = self.parse_sources(
-            "redis_host", self.parser["OPTIONS"]["redis_host"]
-        )
+        self.redis_host = self.parse_sources("redis_host", self.parser["OPTIONS"]["redis_host"])
 
-        self.redis_port = self.parse_sources(
-            "redis_port", int(self.parser["OPTIONS"]["redis_port"]), "int"
-        )
+        self.redis_port = self.parse_sources("redis_port", int(self.parser["OPTIONS"]["redis_port"]), "int")
 
-        self.redis_password = self.parse_sources(
-            "redis_password", self.parser["OPTIONS"]["redis_password"]
-        )
+        self.redis_password = self.parse_sources("redis_password", self.parser["OPTIONS"]["redis_password"])
 
         # SLA Penalty Configuration
         self.sla_enabled = self.parse_sources(
@@ -191,6 +175,18 @@ class ConfigLoader(object):
             "sla_allow_negative",
             self.parser["OPTIONS"].get("sla_allow_negative", "false").lower() == "true",
             "bool",
+        )
+
+        # Persistence Tracking Configuration
+        self.persistence_timeout_seconds = self.parse_sources(
+            "persistence_timeout_seconds",
+            int(self.parser["OPTIONS"].get("persistence_timeout_seconds", "300")),
+            "int",
+        )
+
+        self.persistence_beacon_psk = self.parse_sources(
+            "persistence_beacon_psk",
+            self.parser["OPTIONS"].get("persistence_beacon_psk", ""),
         )
 
         # Dynamic Scoring Configuration
