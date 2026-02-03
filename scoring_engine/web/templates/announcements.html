@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+<div class="container md-page">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-megaphone"></i> Announcements</h1>
+        {% if current_user.is_authenticated and has_unread %}
+        <button class="btn btn-sm btn-outline-primary" id="mark-all-read">
+          <i class="bi bi-check2-all"></i> Mark All Read
+        </button>
+        {% endif %}
+      </div>
+
+      {% if announcements %}
+        {% for announcement in announcements %}
+        {% set is_unread = last_read_at and announcement.created_at and announcement.created_at > last_read_at %}
+        {% set is_unread = is_unread or (current_user.is_authenticated and last_read_at is none) %}
+        <div class="card mb-3 announcement-card {% if announcement.is_pinned %}border-warning{% endif %} {% if is_unread %}border-primary border-2 unread{% endif %}" data-id="{{ announcement.id }}" data-created="{{ announcement.created_at.isoformat() if announcement.created_at else '' }}">
+          <div class="card-header d-flex justify-content-between align-items-center {% if announcement.is_pinned %}bg-warning bg-opacity-25{% endif %}">
+            <div>
+              {% if announcement.is_pinned %}
+              <i class="bi bi-pin-angle-fill text-warning me-1" title="Pinned"></i>
+              {% endif %}
+              {% if is_unread %}
+              <span class="badge bg-primary me-1 new-badge">New</span>
+              {% endif %}
+              <strong>{{ announcement.title }}</strong>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              {% if is_unread and current_user.is_authenticated %}
+              <button class="btn btn-sm btn-outline-secondary mark-read-btn" title="Mark as read">
+                <i class="bi bi-check2"></i>
+              </button>
+              {% endif %}
+              <small class="text-muted">
+                {% if announcement.author %}
+                <i class="bi bi-person"></i> {{ announcement.author.username }} &bull;
+                {% endif %}
+                <i class="bi bi-clock"></i>
+                <span title="{{ announcement.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if announcement.created_at else '' }}">
+                  {{ announcement.created_at.strftime('%b %d, %Y %H:%M') if announcement.created_at else 'Unknown' }}
+                </span>
+              </small>
+            </div>
+          </div>
+          <div class="card-body">
+            {{ announcement.content|safe }}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> No announcements at this time.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  function markCardAsRead(card) {
+    card.removeClass('border-primary border-2 unread');
+    card.find('.new-badge').remove();
+    card.find('.mark-read-btn').remove();
+    // Hide "Mark All Read" if no more unread
+    if ($('.announcement-card.unread').length === 0) {
+      $('#mark-all-read').fadeOut();
+    }
+  }
+
+  // Mark individual announcement as read
+  $('.mark-read-btn').click(function(e) {
+    e.preventDefault();
+    var card = $(this).closest('.announcement-card');
+    $.ajax({
+      url: '/api/announcements/mark_read',
+      method: 'POST',
+      success: function() {
+        markCardAsRead(card);
+      }
+    });
+  });
+
+  // Mark all as read
+  $('#mark-all-read').click(function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $.ajax({
+      url: '/api/announcements/mark_read',
+      method: 'POST',
+      success: function() {
+        $('.announcement-card.unread').each(function() {
+          markCardAsRead($(this));
+        });
+        btn.fadeOut();
+      },
+      complete: function() {
+        btn.prop('disabled', false);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

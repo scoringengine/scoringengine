@@ -1,8 +1,6 @@
 import json
 import pytz
 
-from tempfile import template
-
 from datetime import datetime, timezone
 from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify
@@ -43,6 +41,10 @@ from scoring_engine.cache_helper import (
     update_services_data,
 )
 from scoring_engine.celery_stats import CeleryStats
+from scoring_engine.models.welcome import (
+    get_welcome_config,
+    save_welcome_config,
+)
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
@@ -1140,3 +1142,106 @@ def admin_get_competition_summary():
         })
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/config", methods=["GET"])
+@login_required
+def admin_get_welcome_config():
+    """Get the welcome page configuration."""
+    if current_user.is_white_team:
+        config = get_welcome_config()
+        return jsonify(data=config)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/config", methods=["PUT"])
+@login_required
+def admin_update_welcome_config():
+    """Update the welcome page configuration."""
+    if current_user.is_white_team:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "status": "Error",
+                "message": "No data provided",
+            }), 400
+
+        try:
+            config = save_welcome_config(data)
+            return jsonify({"status": "Success", "data": config})
+        except ValueError as e:
+            return jsonify({"status": "Error", "message": str(e)}), 400
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/upload_logo", methods=["POST"])
+@login_required
+def admin_upload_sponsor_logo():
+    """Upload a sponsor logo image."""
+    import os
+    from werkzeug.utils import secure_filename
+
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    if "file" not in request.files:
+        return jsonify({
+            "status": "Error",
+            "message": "No file provided",
+        }), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({
+            "status": "Error",
+            "message": "No file selected",
+        }), 400
+
+    # Validate file extension
+    allowed = {"png", "jpg", "jpeg", "gif", "svg", "webp"}
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed:
+        return jsonify({
+            "status": "Error",
+            "message": "File type not allowed. Use: "
+            + ", ".join(sorted(allowed)),
+        }), 400
+
+    filename = secure_filename(file.filename)
+
+    # Save to the shared upload folder (Docker volume), not the static dir.
+    # Static files are served by nginx from a separate container/mount,
+    # so uploads to the web container's static/ dir would be inaccessible.
+    sponsors_dir = os.path.join(config.upload_folder, "sponsors")
+    os.makedirs(sponsors_dir, exist_ok=True)
+
+    # Avoid overwriting: add suffix if file exists
+    filepath = os.path.join(sponsors_dir, filename)
+    if os.path.exists(filepath):
+        name, dot_ext = os.path.splitext(filename)
+        counter = 1
+        while os.path.exists(filepath):
+            filename = f"{name}_{counter}{dot_ext}"
+            filepath = os.path.join(sponsors_dir, filename)
+            counter += 1
+
+    file.save(filepath)
+
+    url = f"/api/admin/welcome/sponsor_logo/{filename}"
+    return jsonify({"status": "Success", "url": url})
+
+
+@mod.route("/api/admin/welcome/sponsor_logo/<filename>")
+def serve_sponsor_logo(filename):
+    """Serve a sponsor logo from the upload folder."""
+    import os
+    from flask import send_from_directory, abort
+    from werkzeug.utils import secure_filename
+
+    safe_filename = secure_filename(filename)
+    if not safe_filename:
+        abort(404)
+    sponsors_dir = os.path.join(config.upload_folder, "sponsors")
+    return send_from_directory(sponsors_dir, safe_filename)

@@ -162,6 +162,26 @@ def permissions():
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/announcements")
+@login_required
+def announcements():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/announcements.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/welcome")
+@login_required
+def welcome():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/welcome.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/sla")
 @login_required
 def sla():

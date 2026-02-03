@@ -14,6 +14,7 @@ from scoring_engine.models.flag import Flag, Solve, Platform, FlagTypeEnum, Perm
 
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.announcement import Announcement
 from scoring_engine.db import db, init_db, delete_db, verify_db_ready
 from scoring_engine.config import config
 from scoring_engine.competition import Competition
@@ -177,6 +178,19 @@ with app.app_context():
     db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
     db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
 
+    # Welcome Page Configuration
+    logger.info("Creating the Welcome Page Configuration")
+    import json
+    welcome_config = {
+        "welcome_message": "<h2 class='text-center'>Welcome to the Competition!</h2><p class='text-center lead'>Good luck to all teams. Check back here for updates and sponsor information.</p>",
+        "sponsor_tiers": [
+            {"name": "Diamond", "display_order": 1, "sponsors": []},
+            {"name": "Platinum", "display_order": 2, "sponsors": []},
+            {"name": "Gold", "display_order": 3, "sponsors": []},
+        ]
+    }
+    db.session.add(Setting(name="welcome_config", value=json.dumps(welcome_config)))
+
     db.session.commit()
 
     if options.example:
@@ -264,6 +278,131 @@ with app.app_context():
                 inject.status = choice(["Draft", "Submitted", "Graded"])
                 db.session.add(inject)
             db.session.commit()
+
+        # Simulate Announcements
+        logger.info("Simulating Announcements")
+        blue_team_ids = [t.id for t in Team.get_all_blue_teams()]
+        sample_announcements = [
+            {
+                "title": "Welcome to the Competition!",
+                "content": (
+                    "<p>Welcome competitors! The competition has officially begun.</p>"
+                    "<p>Please check the scoreboard regularly for updates. "
+                    "Remember to monitor your services and respond quickly to any issues.</p>"
+                    "<ul><li>Competition runs from 9:00 AM to 5:00 PM</li>"
+                    "<li>Lunch break: 12:00 PM - 1:00 PM</li>"
+                    "<li>Final scores announced at 5:30 PM</li></ul>"
+                ),
+                "audience": "global",
+                "is_pinned": True,
+            },
+            {
+                "title": "Rules & Code of Conduct",
+                "content": (
+                    "<p><strong>All participants must follow these rules:</strong></p>"
+                    "<ol><li>No attacking the scoring infrastructure</li>"
+                    "<li>No denial-of-service attacks against other teams</li>"
+                    "<li>All exploits must be documented for the debrief</li>"
+                    "<li>Report any issues to White Team immediately</li></ol>"
+                ),
+                "audience": "global",
+                "is_pinned": True,
+            },
+            {
+                "title": "SLA Penalties Now Active",
+                "content": (
+                    "<p>SLA penalties are now in effect. Services that remain down "
+                    "for more than 5 consecutive rounds will incur point deductions.</p>"
+                    "<p>Check the <a href='/stats'>Stats</a> page to monitor your "
+                    "service uptime and avoid penalties.</p>"
+                ),
+                "audience": "all_blue",
+                "is_pinned": False,
+            },
+            {
+                "title": "Service Configuration Reminder",
+                "content": (
+                    "<p>Blue teams: Make sure you've reviewed your service configurations. "
+                    "Default credentials should be changed immediately.</p>"
+                    "<p>You can update account passwords from the "
+                    "<a href='/services'>Services</a> page.</p>"
+                ),
+                "audience": "all_blue",
+                "is_pinned": False,
+            },
+            {
+                "title": "Red Team Engagement Rules",
+                "content": (
+                    "<p>Red team members: Please remember to document all attack vectors "
+                    "and compromised services for the post-competition debrief.</p>"
+                    "<p>Flags are available in the <a href='/flags'>Flags</a> section. "
+                    "New flags rotate periodically.</p>"
+                ),
+                "audience": "all_red",
+                "is_pinned": False,
+            },
+            {
+                "title": "Network Topology Change",
+                "content": (
+                    "<p>A firewall rule update has been applied to the competition network. "
+                    "Some services may need to be restarted. Please verify your services "
+                    "are still reachable.</p>"
+                ),
+                "audience": "all_blue",
+                "is_pinned": False,
+            },
+            {
+                "title": "Lunch Break - Cafeteria Open",
+                "content": (
+                    "<p>Lunch is now being served in the main cafeteria.</p>"
+                    "<p>The competition will continue during lunch &mdash; "
+                    "make sure someone on your team is monitoring services!</p>"
+                ),
+                "audience": "global",
+                "is_pinned": False,
+            },
+            {
+                "title": "Inject Deadline Approaching",
+                "content": (
+                    "<p>Reminder: The first inject is due in 2 hours. "
+                    "Make sure your team has reviewed the requirements and "
+                    "started working on the deliverable.</p>"
+                ),
+                "audience": "all_blue",
+                "is_pinned": False,
+            },
+        ]
+        # Add a team-specific announcement if there are blue teams
+        if len(blue_team_ids) >= 2:
+            sample_announcements.append({
+                "title": "DNS Issue Resolved",
+                "content": (
+                    "<p>The DNS resolution issue affecting your team has been resolved. "
+                    "Please verify your DNS service is passing checks.</p>"
+                ),
+                "audience": f"team:{blue_team_ids[0]}",
+                "is_pinned": False,
+            })
+            sample_announcements.append({
+                "title": "Scoring Adjustment",
+                "content": (
+                    "<p>A scoring adjustment has been applied to your teams due to "
+                    "the infrastructure issue earlier. Two failed checks have been "
+                    "marked as passing.</p>"
+                ),
+                "audience": f"teams:{blue_team_ids[0]},{blue_team_ids[1]}",
+                "is_pinned": False,
+            })
+
+        for ann_data in sample_announcements:
+            announcement = Announcement(
+                title=ann_data["title"],
+                content=ann_data["content"],
+                audience=ann_data["audience"],
+            )
+            announcement.is_pinned = ann_data.get("is_pinned", False)
+            db.session.add(announcement)
+        db.session.commit()
 
         # Simulate Notifications
         num_notifications = randint(50, 100)

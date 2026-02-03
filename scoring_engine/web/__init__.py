@@ -56,6 +56,7 @@ def create_app():
         api,
         admin,
         about,
+        announcements,
     )
 
     cache.init_app(app)
@@ -88,6 +89,7 @@ def create_app():
     app.register_blueprint(api.mod)
     app.register_blueprint(admin.mod)
     app.register_blueprint(about.mod)
+    app.register_blueprint(announcements.mod)
 
     @app.context_processor
     def inject_version():

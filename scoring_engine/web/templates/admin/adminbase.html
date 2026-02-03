@@ -38,6 +38,17 @@
       </div>
       <div class="card mb-3">
         <div class="card-header">
+          <span>Communication <i class="bi bi-megaphone float-end"></i></span>
+        </div>
+        <div class="list-group list-group-flush">
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/announcements' %}active{% endif %}"
+            href="/admin/announcements">Announcements</a>
+          <a class="list-group-item list-group-item-action {% if request.path == '/admin/welcome' %}active{% endif %}"
+            href="/admin/welcome">Welcome Page</a>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header">
           <span>Injects <i class="bi bi-file-earmark float-end"></i></span>
         </div>
         <div class="list-group list-group-flush">
