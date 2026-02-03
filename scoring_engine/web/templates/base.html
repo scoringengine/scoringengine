@@ -31,6 +31,53 @@
 <body class="bg-body d-flex flex-column min-vh-100{% if current_user.is_authenticated %} {% if current_user.is_white_team %}team-white{% elif current_user.is_blue_team %}team-blue{% elif current_user.is_red_team %}team-red{% endif %}{% endif %}">
 {% endif %}
     <script>
+      // Announcements badge - global scope for child templates
+      var _badgeAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+      var _lastBadgeCount = -1;
+
+      function getLocalReadIds() {
+        try {
+          return JSON.parse(localStorage.getItem('announcements_read') || '[]');
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function updateAnnouncementsBadge() {
+        $.ajax({
+          cache: false,
+          url: '/api/announcements/unread_count',
+          dataType: 'json',
+          success: function(data) {
+            var count = data.count;
+            // For anonymous users, subtract locally-read announcements
+            if (!_badgeAuthenticated && data.ids) {
+              var localRead = getLocalReadIds();
+              count = 0;
+              for (var i = 0; i < data.ids.length; i++) {
+                if (localRead.indexOf(data.ids[i]) === -1) {
+                  count++;
+                }
+              }
+            }
+            var badge = $('#announcements-badge');
+            if (count > 0) {
+              badge.text(count > 99 ? '99+' : count);
+              badge.removeClass('d-none');
+              // Pulse if count increased (new announcements arrived)
+              if (_lastBadgeCount >= 0 && count > _lastBadgeCount) {
+                badge.removeClass('pulse');
+                void badge[0].offsetWidth; // force reflow
+                badge.addClass('pulse');
+              }
+            } else {
+              badge.addClass('d-none');
+            }
+            _lastBadgeCount = count;
+          }
+        });
+      }
+
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
@@ -53,53 +100,7 @@
           updateThemeIcon();
         });
 
-        // Announcements badge polling (global scope for child templates)
-        var isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
-        var lastBadgeCount = -1;
-        window.getLocalReadIds = function() {
-          try {
-            return JSON.parse(localStorage.getItem('announcements_read') || '[]');
-          } catch (e) {
-            return [];
-          }
-        };
-
-        window.updateAnnouncementsBadge = function() {
-          $.ajax({
-            cache: false,
-            url: '/api/announcements/unread_count',
-            dataType: 'json',
-            success: function(data) {
-              var count = data.count;
-              // For anonymous users, subtract locally-read announcements
-              if (!isAuthenticated && data.ids) {
-                var localRead = getLocalReadIds();
-                count = 0;
-                for (var i = 0; i < data.ids.length; i++) {
-                  if (localRead.indexOf(data.ids[i]) === -1) {
-                    count++;
-                  }
-                }
-              }
-              var badge = $('#announcements-badge');
-              if (count > 0) {
-                badge.text(count > 99 ? '99+' : count);
-                badge.removeClass('d-none');
-                // Pulse if count increased (new announcements arrived)
-                if (lastBadgeCount >= 0 && count > lastBadgeCount) {
-                  badge.removeClass('pulse');
-                  void badge[0].offsetWidth; // force reflow
-                  badge.addClass('pulse');
-                }
-              } else {
-                badge.addClass('d-none');
-              }
-              lastBadgeCount = count;
-            }
-          });
-        }
-
-        // Initial check and poll every 30 seconds
+        // Initial badge check and poll every 30 seconds
         updateAnnouncementsBadge();
         setInterval(updateAnnouncementsBadge, 30000);
       });
