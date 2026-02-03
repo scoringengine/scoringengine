@@ -1,4 +1,5 @@
 import uuid
+from urllib.parse import urlparse
 from flask import flash, redirect, request, url_for, g, Blueprint, render_template
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
@@ -81,14 +82,20 @@ def login():
             db.session.commit()
             login_user(user, remember=form.remember.data)
 
+            next_url = request.values.get("next")
+            if next_url:
+                parsed = urlparse(next_url)
+                if parsed.netloc or parsed.scheme:
+                    next_url = None
+
             if user.is_white_team:
-                return redirect(request.values.get("next") or url_for("admin.status"))
+                return redirect(next_url or url_for("admin.status"))
             elif user.is_blue_team:
-                return redirect(request.values.get("next") or url_for("services.home"))
+                return redirect(next_url or url_for("services.home"))
             elif user.is_red_team:
-                return redirect(request.values.get("next") or url_for("flags.home"))
+                return redirect(next_url or url_for("flags.home"))
             else:
-                return redirect(request.values.get("next") or url_for("overview.home"))
+                return redirect(next_url or url_for("overview.home"))
         else:
             flash("Invalid username or password. Please try again.", "danger")
             return render_template("login.html", form=form)
