@@ -26,6 +26,17 @@ During competitions, endpoints receive thousands of requests/second:
 - Pre-fetch config values before loops (don't call `get_sla_config()` in loops)
 - Use custom ranking instead of external libraries
 
+### Client-Side Rendering via APIs (IMPORTANT)
+Pages MUST load dynamic content from cached JSON API endpoints, NOT from server-rendered Jinja templates. Flask views should serve empty template shells; JavaScript fetches data from `/api/` endpoints.
+
+**Why**: Data visibility varies by team role (white/blue/red) and team ID. Server-rendered pages risk serving cached content from one team's context to another. API endpoints use per-visibility cache keys (e.g., `anonymous`, `white`, `red`, `team_5`) so caching is safe. This also avoids duplicate uncached DB queries between the view and its corresponding API.
+
+**Pattern**:
+- View: `return render_template("page.html")` — no DB queries
+- Template: empty container + JS that calls `/api/...`
+- API: `@cache.cached(make_cache_key=...)` with visibility-context key
+- Cache flush: add to `cache_helper.py`, call after mutations
+
 ### Airgapped Deployments
 Many competitions run offline. Use `./bin/create-airgapped-package.sh` to package everything. All dependencies must be in Docker images - no pip/apt/docker pull available.
 
