@@ -3,7 +3,7 @@ from flask import jsonify, request
 from flask_login import current_user, login_required
 
 from scoring_engine.db import db
-from scoring_engine.models.announcement import Announcement, AnnouncementRead
+from scoring_engine.models.announcement import Announcement
 from scoring_engine.models.team import Team
 
 from . import mod
@@ -14,7 +14,7 @@ def get_announcements():
     """
     Get all announcements visible to the current user.
     Pinned announcements appear first, then ordered by created_at descending.
-    Does NOT auto-mark as read; users must explicitly mark announcements.
+    Read tracking is handled client-side via localStorage.
     """
     user = current_user if current_user.is_authenticated else None
 
@@ -31,77 +31,7 @@ def get_announcements():
     # Filter by visibility
     visible = [a for a in announcements if a.is_visible_to_user(user)]
 
-    # Include read status per announcement
-    read_ids = set()
-    if user and user.is_authenticated:
-        read_ids = AnnouncementRead.get_read_announcement_ids(
-            db.session, user.id
-        )
-
-    result = []
-    for a in visible:
-        d = a.to_dict()
-        d["is_read"] = a.id in read_ids
-        result.append(d)
-
-    return jsonify(data=result)
-
-
-@mod.route("/api/announcements/<int:announcement_id>/mark_read", methods=["POST"])
-@login_required
-def mark_announcement_read(announcement_id):
-    """Mark a single announcement as read for the current user."""
-    announcement = db.session.get(Announcement, announcement_id)
-    if not announcement:
-        return jsonify({"status": "Error", "message": "Not found"}), 404
-
-    AnnouncementRead.mark_as_read(db.session, current_user.id, announcement_id)
-    return jsonify({"status": "Success"})
-
-
-@mod.route("/api/announcements/mark_all_read", methods=["POST"])
-@login_required
-def mark_all_announcements_read():
-    """Mark all visible announcements as read for the current user."""
-    announcements = (
-        db.session.query(Announcement)
-        .filter(Announcement.is_active.is_(True))
-        .all()
-    )
-
-    visible_ids = [
-        a.id for a in announcements if a.is_visible_to_user(current_user)
-    ]
-
-    AnnouncementRead.mark_many_as_read(db.session, current_user.id, visible_ids)
-    return jsonify({"status": "Success"})
-
-
-@mod.route("/api/announcements/unread_count")
-def get_unread_count():
-    """
-    Get the count of unread announcements for the current user.
-    Used for the notification badge.
-    """
-    user = current_user if current_user.is_authenticated else None
-
-    # Query all active announcements
-    announcements = (
-        db.session.query(Announcement)
-        .filter(Announcement.is_active.is_(True))
-        .all()
-    )
-
-    # Filter by visibility
-    visible = [a for a in announcements if a.is_visible_to_user(user)]
-
-    if not user or not user.is_authenticated:
-        return jsonify({"count": len(visible), "ids": [a.id for a in visible]})
-
-    read_ids = AnnouncementRead.get_read_announcement_ids(db.session, user.id)
-    unread_count = sum(1 for a in visible if a.id not in read_ids)
-
-    return jsonify({"count": unread_count})
+    return jsonify(data=[a.to_dict() for a in visible])
 
 
 @mod.route("/api/admin/announcements", methods=["GET"])

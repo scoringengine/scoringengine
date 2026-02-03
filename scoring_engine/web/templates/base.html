@@ -32,7 +32,6 @@
 {% endif %}
     <script>
       // Announcements badge - global scope for child templates
-      var _badgeAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
       var _lastBadgeCount = -1;
 
       function getLocalReadIds() {
@@ -46,18 +45,14 @@
       function updateAnnouncementsBadge() {
         $.ajax({
           cache: false,
-          url: '/api/announcements/unread_count',
+          url: '/api/announcements',
           dataType: 'json',
-          success: function(data) {
-            var count = data.count;
-            // For anonymous users, subtract locally-read announcements
-            if (!_badgeAuthenticated && data.ids) {
-              var localRead = getLocalReadIds();
-              count = 0;
-              for (var i = 0; i < data.ids.length; i++) {
-                if (localRead.indexOf(data.ids[i]) === -1) {
-                  count++;
-                }
+          success: function(resp) {
+            var localRead = getLocalReadIds();
+            var count = 0;
+            for (var i = 0; i < resp.data.length; i++) {
+              if (localRead.indexOf(resp.data[i].id) === -1) {
+                count++;
               }
             }
             var badge = $('#announcements-badge');

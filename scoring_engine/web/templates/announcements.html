@@ -6,37 +6,26 @@
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0"><i class="bi bi-megaphone"></i> Announcements</h1>
-        {% if has_unread %}
-        <button class="btn btn-sm btn-outline-primary {% if not current_user.is_authenticated %}d-none{% endif %}" id="mark-all-read">
+        <button class="btn btn-sm btn-outline-primary d-none" id="mark-all-read">
           <i class="bi bi-check2-all"></i> Mark All Read
         </button>
-        {% endif %}
       </div>
 
       {% if announcements %}
         {% for announcement in announcements %}
-        {% if current_user.is_authenticated %}
-          {% set is_unread = announcement.id not in read_ids %}
-        {% else %}
-          {% set is_unread = True %}
-        {% endif %}
-        <div class="card mb-3 announcement-card {% if announcement.is_pinned %}border-warning{% endif %} {% if is_unread %}border-primary border-2 unread{% endif %}" data-id="{{ announcement.id }}">
+        <div class="card mb-3 announcement-card border-primary border-2 unread {% if announcement.is_pinned %}border-warning{% endif %}" data-id="{{ announcement.id }}">
           <div class="card-header d-flex justify-content-between align-items-center {% if announcement.is_pinned %}bg-warning bg-opacity-25{% endif %}">
             <div>
               {% if announcement.is_pinned %}
               <i class="bi bi-pin-angle-fill text-warning me-1" title="Pinned"></i>
               {% endif %}
-              {% if is_unread %}
               <span class="badge bg-primary me-1 new-badge">New</span>
-              {% endif %}
               <strong>{{ announcement.title }}</strong>
             </div>
             <div class="d-flex align-items-center gap-2">
-              {% if is_unread %}
               <button class="btn btn-sm btn-outline-secondary mark-read-btn" title="Mark as read">
                 <i class="bi bi-check2"></i>
               </button>
-              {% endif %}
               <small class="text-muted">
                 {% if announcement.author %}
                 <i class="bi bi-person"></i> {{ announcement.author.username }} &bull;
@@ -64,10 +53,9 @@
 
 <script>
 $(document).ready(function() {
-  var isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
   var LS_KEY = 'announcements_read';
 
-  function getLocalReadIds() {
+  function getReadIds() {
     try {
       return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
     } catch (e) {
@@ -75,39 +63,11 @@ $(document).ready(function() {
     }
   }
 
-  function saveLocalReadId(annId) {
-    var ids = getLocalReadIds();
+  function saveReadId(annId) {
+    var ids = getReadIds();
     if (ids.indexOf(annId) === -1) {
       ids.push(annId);
       localStorage.setItem(LS_KEY, JSON.stringify(ids));
-    }
-  }
-
-  function saveLocalReadIds(annIds) {
-    var ids = getLocalReadIds();
-    for (var i = 0; i < annIds.length; i++) {
-      if (ids.indexOf(annIds[i]) === -1) {
-        ids.push(annIds[i]);
-      }
-    }
-    localStorage.setItem(LS_KEY, JSON.stringify(ids));
-  }
-
-  // For anonymous users, apply localStorage read state on page load
-  if (!isAuthenticated) {
-    var readIds = getLocalReadIds();
-    $('.announcement-card').each(function() {
-      var card = $(this);
-      var annId = card.data('id');
-      if (readIds.indexOf(annId) !== -1) {
-        card.removeClass('border-primary border-2 unread');
-        card.find('.new-badge').remove();
-        card.find('.mark-read-btn').remove();
-      }
-    });
-    // Show/hide "Mark All Read" based on remaining unread
-    if ($('.announcement-card.unread').length > 0) {
-      $('#mark-all-read').removeClass('d-none');
     }
   }
 
@@ -120,52 +80,43 @@ $(document).ready(function() {
     }
   }
 
+  // Apply localStorage read state on page load
+  var readIds = getReadIds();
+  $('.announcement-card').each(function() {
+    var card = $(this);
+    if (readIds.indexOf(card.data('id')) !== -1) {
+      markCardAsRead(card);
+    }
+  });
+
+  // Show "Mark All Read" if there are unread announcements
+  if ($('.announcement-card.unread').length > 0) {
+    $('#mark-all-read').removeClass('d-none');
+  }
+
   // Mark individual announcement as read
   $('.mark-read-btn').click(function(e) {
     e.preventDefault();
     var card = $(this).closest('.announcement-card');
-    var annId = card.data('id');
-    if (isAuthenticated) {
-      $.ajax({
-        url: '/api/announcements/' + annId + '/mark_read',
-        method: 'POST',
-        success: function() {
-          markCardAsRead(card);
-          updateAnnouncementsBadge();
-        }
-      });
-    } else {
-      saveLocalReadId(annId);
-      markCardAsRead(card);
-      updateAnnouncementsBadge();
-    }
+    saveReadId(card.data('id'));
+    markCardAsRead(card);
+    updateAnnouncementsBadge();
   });
 
   // Mark all as read
   $('#mark-all-read').click(function() {
     var btn = $(this);
-    btn.prop('disabled', true);
-    if (isAuthenticated) {
-      $.ajax({
-        url: '/api/announcements/mark_all_read',
-        method: 'POST',
-        success: function() {
-          $('.announcement-card.unread').each(function() { markCardAsRead($(this)); });
-          btn.fadeOut();
-          updateAnnouncementsBadge();
-        },
-        complete: function() { btn.prop('disabled', false); }
-      });
-    } else {
-      var allIds = [];
-      $('.announcement-card.unread').each(function() {
-        allIds.push($(this).data('id'));
-        markCardAsRead($(this));
-      });
-      saveLocalReadIds(allIds);
-      btn.fadeOut();
-      updateAnnouncementsBadge();
-    }
+    var ids = getReadIds();
+    $('.announcement-card.unread').each(function() {
+      var annId = $(this).data('id');
+      if (ids.indexOf(annId) === -1) {
+        ids.push(annId);
+      }
+      markCardAsRead($(this));
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(ids));
+    btn.fadeOut();
+    updateAnnouncementsBadge();
   });
 });
 </script>
