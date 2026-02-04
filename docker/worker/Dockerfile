@@ -53,6 +53,8 @@ RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/conf
         apt-get install -y --no-install-recommends freerdp) \
     && rm -rf /var/lib/apt/lists/*
 
+# Worker-specific Python packages + Playwright in a single pip layer
+# Note: update docker/engine/Dockerfile as well when changing playwright version
 RUN pip install --no-cache-dir -I \
     # SSH checks
     "paramiko==3.5.0" \
@@ -63,11 +65,10 @@ RUN pip install --no-cache-dir -I \
     # SMB checks
     "pysmb>=1.2,<1.3" \
     # Telnet checks
-    "telnetlib3==1.0.1"
-    
-# Playwright-based advanced web checks
-# Note: update docker/engine/Dockerfile as well when changing playwright version
-RUN pip install -I "pytest-playwright>=0.7.0,<0.8"
+    "telnetlib3==1.0.1" \
+    # Playwright-based advanced web checks
+    "pytest-playwright>=0.7.0,<0.8"
+
 RUN playwright install-deps
 
 COPY bin/worker /app/bin/worker
@@ -76,7 +77,6 @@ COPY docker/worker/sudoers /etc/sudoers
 USER engine
 
 COPY scoring_engine /app/scoring_engine
-RUN pip install -e .
 RUN playwright install chromium
 
 # Xvfb is a virtual X server which tricks freerdp2
