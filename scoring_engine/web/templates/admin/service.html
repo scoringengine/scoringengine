@@ -56,6 +56,139 @@
 {% block header %}{{service.team.name}} - {{service.name}}{% endblock %}
 
 {% block admincontent %}
+<!-- Test Check (Dry Run) Section -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="bi bi-play-circle"></i> Test Check (Dry Run)
+      <small class="text-muted">- Validate configuration without recording results</small>
+    </h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4">
+        <label for="dryRunEnvironment" class="form-label">Environment</label>
+        <select id="dryRunEnvironment" class="form-select">
+          <option value="">Random (default)</option>
+          {% for environment in service.environments %}
+          <option value="{{ environment.id }}">Environment #{{ environment.id }} - {{ environment.matching_content[:30] }}...</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">&nbsp;</label>
+        <button id="runDryRunBtn" class="btn btn-primary d-block w-100">
+          <span id="dryRunSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+          Run Test
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Area -->
+    <div id="dryRunResults" class="mt-3 d-none">
+      <hr>
+      <div class="row">
+        <div class="col-md-6">
+          <h6>Result</h6>
+          <p>
+            <span id="dryRunResultBadge" class="badge"></span>
+            <span id="dryRunReason" class="ms-2"></span>
+          </p>
+          <p><strong>Execution Time:</strong> <span id="dryRunTime"></span>ms</p>
+          <p><strong>Host:</strong> <span id="dryRunHost"></span>:<span id="dryRunPort"></span></p>
+        </div>
+        <div class="col-md-6">
+          <h6>Matching Content (Regex)</h6>
+          <code id="dryRunMatching"></code>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-12">
+          <h6>Command</h6>
+          <pre id="dryRunCommand" class="bg-light p-2 rounded" style="max-height: 100px; overflow-y: auto;"></pre>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-12">
+          <h6>Output</h6>
+          <pre id="dryRunOutput" class="bg-light p-2 rounded" style="max-height: 300px; overflow-y: auto;"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Area -->
+    <div id="dryRunError" class="alert alert-danger mt-3 d-none"></div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  $('#runDryRunBtn').click(function() {
+    var btn = $(this);
+    var spinner = $('#dryRunSpinner');
+    var resultsDiv = $('#dryRunResults');
+    var errorDiv = $('#dryRunError');
+    var environmentId = $('#dryRunEnvironment').val();
+
+    // Reset state
+    resultsDiv.addClass('d-none');
+    errorDiv.addClass('d-none');
+    btn.prop('disabled', true);
+    spinner.removeClass('d-none');
+
+    var payload = {
+      service_id: {{ service.id }}
+    };
+    if (environmentId) {
+      payload.environment_id = parseInt(environmentId);
+    }
+
+    $.ajax({
+      url: '/api/admin/check/dry_run',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      success: function(data) {
+        spinner.addClass('d-none');
+        btn.prop('disabled', false);
+
+        if (data.status === 'success') {
+          resultsDiv.removeClass('d-none');
+
+          // Update result badge
+          var badge = $('#dryRunResultBadge');
+          if (data.result) {
+            badge.removeClass('bg-danger').addClass('bg-success').text('PASS');
+          } else {
+            badge.removeClass('bg-success').addClass('bg-danger').text('FAIL');
+          }
+
+          $('#dryRunReason').text(data.reason);
+          $('#dryRunTime').text(data.execution_time_ms);
+          $('#dryRunHost').text(data.host);
+          $('#dryRunPort').text(data.port);
+          $('#dryRunMatching').text(data.matching_content);
+          $('#dryRunCommand').text(data.command);
+          $('#dryRunOutput').text(data.output || '(no output)');
+        } else {
+          errorDiv.removeClass('d-none').text('Error: ' + data.message);
+        }
+      },
+      error: function(xhr) {
+        spinner.addClass('d-none');
+        btn.prop('disabled', false);
+        var msg = 'An error occurred';
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          msg = resp.message || resp.status || msg;
+        } catch(e) {}
+        errorDiv.removeClass('d-none').text('Error: ' + msg);
+      }
+    });
+  });
+});
+</script>
+
 <table>
   <tr>
     <td style="width: 250px; padding-right: 30px;">
