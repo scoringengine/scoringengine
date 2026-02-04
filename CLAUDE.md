@@ -104,6 +104,11 @@ class TestMyFeature(UnitTest):
         pass  # self.session available for DB
 ```
 
+## Complex Changes
+
+For non-trivial work, use Architect → Implement → Review phases via Task tool.
+Architect designs (read-only), Implementer codes to spec, Reviewer verifies.
+
 ## PRs
 
 One feature per PR. Separate PRs are easier to review, test, and revert.
