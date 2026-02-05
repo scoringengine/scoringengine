@@ -32,6 +32,15 @@ from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpage
 from scoring_engine.checks.telnet import TelnetCheck
 from scoring_engine.checks.winrm import WinRMCheck
 
+from scoring_engine.engine.basic_check import (
+    CHECK_FAILURE_TEXT,
+    CHECK_AUTH_FAILED_TEXT,
+    CHECK_CONNECTION_REFUSED_TEXT,
+    CHECK_CONNECTION_TIMEOUT_TEXT,
+    CHECK_HOST_UNREACHABLE_TEXT,
+    CHECK_COMMAND_FAILED_TEXT,
+)
+
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -146,6 +155,46 @@ class TestEngine(UnitTest):
         engine = Engine(total_rounds=1)
         engine.rounds_run = 1
         assert engine.is_last_round() is True
+
+    def test_classify_check_failure_auth_failed(self):
+        engine = Engine()
+        output = "AUTH_FAILED: Authentication failed for user 'admin': Invalid password"
+        assert engine.classify_check_failure(output) == CHECK_AUTH_FAILED_TEXT
+
+    def test_classify_check_failure_connection_refused(self):
+        engine = Engine()
+        output = "CONNECTION_REFUSED: Connection refused to 192.168.1.1:22"
+        assert engine.classify_check_failure(output) == CHECK_CONNECTION_REFUSED_TEXT
+
+    def test_classify_check_failure_connection_timeout(self):
+        engine = Engine()
+        output = "CONNECTION_TIMEOUT: Connection timed out"
+        assert engine.classify_check_failure(output) == CHECK_CONNECTION_TIMEOUT_TEXT
+
+    def test_classify_check_failure_host_unreachable(self):
+        engine = Engine()
+        output = "HOST_UNREACHABLE: Could not resolve host 'invalid.host'"
+        assert engine.classify_check_failure(output) == CHECK_HOST_UNREACHABLE_TEXT
+
+    def test_classify_check_failure_command_failed(self):
+        engine = Engine()
+        output = "COMMAND_FAILED: Command ran unsuccessfully: rm -rf /"
+        assert engine.classify_check_failure(output) == CHECK_COMMAND_FAILED_TEXT
+
+    def test_classify_check_failure_ssh_error(self):
+        engine = Engine()
+        output = "SSH_ERROR: Unexpected error: Something went wrong"
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
+
+    def test_classify_check_failure_unknown(self):
+        engine = Engine()
+        output = "Some random output that doesn't match any pattern"
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
+
+    def test_classify_check_failure_empty_output(self):
+        engine = Engine()
+        output = ""
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
 
     # todo figure out how to test the remaining functionality of engine
     # where we're waiting for the worker queues to finish and everything
