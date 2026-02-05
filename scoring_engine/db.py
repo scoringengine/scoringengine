@@ -83,8 +83,9 @@ def test_db_connection(db_uri: str = None) -> tuple[bool, str]:
         db_logger.warning(f"[DB] Connection test failed with unexpected error: {e}")
         return (False, f"Connection failed: {e}")
 
-def delete_db(session):
-    from scoring_engine.models.base import Base
+def delete_db():
+    """Drop all database tables"""
+    db.drop_all()
 
     try:
         Base.metadata.drop_all(session.bind)
@@ -99,9 +100,10 @@ def delete_db(session):
         db_logger.error(f"  Details: {e}")
         raise
 
+def init_db():
+    """Create all database tables"""
+    db.create_all()
 
-def init_db(session):
-    from scoring_engine.models.base import Base
 
     try:
         Base.metadata.create_all(session.bind)

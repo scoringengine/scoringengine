@@ -7,7 +7,7 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 
 mod = Blueprint("admin", __name__)
@@ -48,8 +48,8 @@ def queues():
 @login_required
 def manage():
     if current_user.is_white_team:
-        users = session.query(User).with_entities(User.id, User.username).all()
-        teams = session.query(Team).with_entities(Team.id, Team.name).all()
+        users = db.session.query(User).with_entities(User.id, User.username).all()
+        teams = db.session.query(Team).with_entities(Team.id, Team.name).all()
         blue_teams = Team.get_all_blue_teams()
         return render_template(
             "admin/manage.html",
@@ -88,7 +88,7 @@ def inject_scores():
 @login_required
 def inject_inject(inject_id):
     if current_user.is_white_team:
-        inject = session.get(Inject, inject_id)
+        inject = db.session.get(Inject, inject_id)
         return render_template("admin/inject.html", inject=inject)
     else:
         return redirect(url_for("auth.unauthorized"))
@@ -98,7 +98,7 @@ def inject_inject(inject_id):
 @login_required
 def service(id):
     if current_user.is_white_team:
-        service = session.get(Service, id)
+        service = db.session.get(Service, id)
         blue_teams = Team.get_all_blue_teams()
         if service is None:
             return redirect(url_for("auth.unauthorized"))
@@ -152,6 +152,51 @@ def permissions():
             blue_team_view_check_output=Setting.get_setting(
                 "blue_team_view_check_output"
             ).value,
+            blue_team_view_status_page=Setting.get_setting(
+                "blue_team_view_status_page"
+            ).value,
+        )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/sla")
+@login_required
+def sla():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+
+        # Get SLA settings with defaults
+        def get_setting_value(name, default):
+            setting = Setting.get_setting(name)
+            return setting.value if setting else default
+
+        def get_setting_bool(name, default):
+            setting = Setting.get_setting(name)
+            if setting:
+                val = setting.value
+                if isinstance(val, bool):
+                    return val
+                if isinstance(val, str):
+                    return val.lower() in ("true", "1", "yes")
+            return default
+
+        return render_template(
+            "admin/sla.html",
+            blue_teams=blue_teams,
+            # SLA Penalty settings
+            sla_enabled=get_setting_bool("sla_enabled", False),
+            sla_penalty_threshold=get_setting_value("sla_penalty_threshold", "5"),
+            sla_penalty_percent=get_setting_value("sla_penalty_percent", "10"),
+            sla_penalty_max_percent=get_setting_value("sla_penalty_max_percent", "50"),
+            sla_penalty_mode=get_setting_value("sla_penalty_mode", "additive"),
+            sla_allow_negative=get_setting_bool("sla_allow_negative", False),
+            # Dynamic scoring settings
+            dynamic_scoring_enabled=get_setting_bool("dynamic_scoring_enabled", False),
+            dynamic_scoring_early_rounds=get_setting_value("dynamic_scoring_early_rounds", "10"),
+            dynamic_scoring_early_multiplier=get_setting_value("dynamic_scoring_early_multiplier", "2.0"),
+            dynamic_scoring_late_start_round=get_setting_value("dynamic_scoring_late_start_round", "50"),
+            dynamic_scoring_late_multiplier=get_setting_value("dynamic_scoring_late_multiplier", "0.5"),
         )
     else:
         return redirect(url_for("auth.unauthorized"))

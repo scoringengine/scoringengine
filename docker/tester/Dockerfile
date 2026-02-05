@@ -7,7 +7,6 @@ RUN \
   chmod +x /usr/bin/cc-test-reporter
 
 COPY bin /app/bin
-COPY .flake8 /app/.flake8
 
 # Set permissions for volume to be mounted
 RUN \

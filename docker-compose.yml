@@ -17,10 +17,10 @@ services:
   mysql:
     image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-CHANGEME}
       - MYSQL_DATABASE=scoring_engine
       - MYSQL_USER=se_user
-      - MYSQL_PASSWORD=CHANGEME
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-CHANGEME}
     restart: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -67,6 +67,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/bootstrap/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/bootstrap
         - bootstrap:latest
@@ -87,6 +89,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/engine/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/engine
         - engine:latest
@@ -108,6 +112,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/worker/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/worker
         - worker:latest
@@ -128,6 +134,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile
+      args:
+        BASE_IMAGE: scoringengine/base
       cache_from:
         - scoringengine/web
         - web:latest

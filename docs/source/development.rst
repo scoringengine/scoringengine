@@ -1,7 +1,7 @@
 Development
 ***********
 
-.. note:: Currently we support 2 ways of working on the Scoring Engine. You can either use the existing `Docker environment <installation/docker.html>`_, or you can run each service locally using python 3. If you choose to do your development locally, we recommend using `virtual environments. <http://docs.python-guide.org/en/latest/dev/virtualenvs/#lower-level-virtualenv>`_
+.. note:: Currently we support 2 ways of working on the Scoring Engine. You can either use the existing `Docker environment <installation/docker.html>`_, or you can run each service locally using Python 3.10 or higher. If you choose to do your development locally, we recommend using `virtual environments. <http://docs.python-guide.org/en/latest/dev/virtualenvs/#lower-level-virtualenv>`_
 
 
 Initial Setup

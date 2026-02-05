@@ -8,6 +8,7 @@ Table of Contents
   overview
   installation
   configuration
+  sla
   checks
   development
   create_new_check

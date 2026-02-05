@@ -8,7 +8,7 @@ from scoring_engine.config import config
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.team import Team
-from scoring_engine.db import session
+from scoring_engine.db import db
 
 import pytz
 

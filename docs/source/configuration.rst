@@ -54,6 +54,8 @@ Configuration Keys
      - A boolean indicating if blue teams should be allowed to change passwords of scored users
    * - blue_team_view_check_output
      - A boolean indicating if blue teams should be allowed to view verbose output from checks
+   * - blue_team_view_status_page
+     - A boolean indicating if blue teams should be allowed to view the status page containing information about compromised machines
    * - timezone
      - Local timezone of the competition
    * - debug
@@ -68,3 +70,25 @@ Configuration Keys
      - The port of the redis server
    * - redis_password
      - The password used to connect to redis (if no password, leave empty)
+   * - sla_enabled
+     - A boolean to enable/disable SLA penalties for consecutive service failures
+   * - sla_penalty_threshold
+     - Number of consecutive failures before penalties begin (default: 5)
+   * - sla_penalty_percent
+     - Penalty percentage per failure after threshold (default: 10)
+   * - sla_penalty_max_percent
+     - Maximum total penalty percentage cap (default: 50)
+   * - sla_penalty_mode
+     - Penalty calculation mode: additive, flat, exponential, or next_check_reduction
+   * - sla_allow_negative
+     - A boolean to allow scores to go negative from penalties
+   * - dynamic_scoring_enabled
+     - A boolean to enable/disable time-based scoring multipliers
+   * - dynamic_scoring_early_rounds
+     - Number of rounds in the early phase (default: 10)
+   * - dynamic_scoring_early_multiplier
+     - Points multiplier for early phase (default: 2.0)
+   * - dynamic_scoring_late_start_round
+     - Round number when late phase begins (default: 50)
+   * - dynamic_scoring_late_multiplier
+     - Points multiplier for late phase (default: 0.5)

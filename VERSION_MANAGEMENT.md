@@ -56,7 +56,6 @@ When you run a bump command, the following happens automatically:
 
 1. **Version updated** in these files:
    - `pyproject.toml`
-   - `setup.py`
    - `scoring_engine/version.py`
 
 2. **Git commit created** with message: `Bump version: X.Y.Z → X.Y.Z+1`
@@ -132,7 +131,7 @@ bump-my-version bump --dry-run --verbose patch
 
 ## Configuration
 
-Version bumping is configured in `.bumpversion.cfg`. This file specifies:
+Version bumping is configured in `pyproject.toml` under `[tool.bumpversion]`. This section specifies:
 
 - Current version
 - Files to update
@@ -172,4 +171,4 @@ Then bump to the correct version.
 
 ### Files out of sync
 
-If version files get out of sync, manually edit `.bumpversion.cfg` to set the correct `current_version`, then run a bump.
+If version files get out of sync, manually edit the `current_version` in the `[tool.bumpversion]` section of `pyproject.toml`, then run a bump.

@@ -4,100 +4,133 @@ on:
   push:
     branches:
       - master
-    tags:
-      - 'v*'
+    paths:
+      - "scoring_engine/**"
+      - "docker/**"
+      - "pyproject.toml"
+      - ".github/workflows/publish-images.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_latest:
+        description: 'Also publish :latest tags'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  docker:
+  setup:
     runs-on: ubuntu-latest
-
+    outputs:
+      image-prefix: ${{ steps.prefix.outputs.value }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Compute image prefix
+        id: prefix
+        run: echo "value=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+  build-base:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      base-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - uses: docker/setup-qemu-action@v3
 
-      - name: Extract version and tag
-        id: vars
-        run: |
-          if [[ "${{ github.ref }}" == refs/heads/master ]]; then
-            echo "branch=master" >> $GITHUB_ENV
-            echo "image_tag=develop" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            version="${{ github.ref }}"  # refs/tags/vX.X.X
-            version=${version#refs/tags/}  # Strip refs/tags/
-            echo "branch=tag" >> $GITHUB_ENV
-            echo "image_tag=$version" >> $GITHUB_ENV
-          else
-            echo "branch=other" >> $GITHUB_ENV
-            echo "image_tag=" >> $GITHUB_ENV
-          fi
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build and push base image
-        if: env.image_tag != ''
-        uses: docker/build-push-action@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/base
+            scoringengine/base
+          tags: |
+            type=raw,value=develop,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' || inputs.publish_latest == true }}
+            type=semver,pattern={{version}}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v6
+        id: build
         with:
           context: .
           file: ./docker/base/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/base:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/base:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=base
+          cache-to: type=gha,scope=base,mode=max
 
-      - name: Build and push bootstrap image
-        if: env.image_tag != ''
-        uses: docker/build-push-action@v4
+  build-images:
+    needs: [setup, build-base]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [bootstrap, engine, web, worker]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/${{ matrix.image }}
+            scoringengine/${{ matrix.image }}
+          tags: |
+            type=raw,value=develop,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' || inputs.publish_latest == true }}
+            type=semver,pattern={{version}}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./docker/bootstrap/Dockerfile
+          file: ./docker/${{ matrix.image }}/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/bootstrap:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/bootstrap:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push engine image
-        if: env.image_tag != ''
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./docker/engine/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/engine:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/engine:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push web image
-        if: env.image_tag != ''
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./docker/web/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/web:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/web:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push worker image
-        if: env.image_tag != ''
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./docker/worker/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/worker:${{ env.image_tag }}
-            ghcr.io/${{ github.repository }}/worker:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/base@${{ needs.build-base.outputs.base-digest }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,scope=${{ matrix.image }},mode=max

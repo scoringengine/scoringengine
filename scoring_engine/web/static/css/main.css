@@ -169,3 +169,58 @@ a.editable-click {
 .lefthand-nav {
     width: 20%;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .md-page {
+        padding: 0px 10px 15px 10px;
+        max-width: 100%;
+        margin: 5px;
+    }
+
+    .lefthand-nav {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .settings_middle_column {
+        width: 100%;
+    }
+
+    .card {
+        width: 100%;
+        float: none;
+    }
+
+    /* Ensure charts are readable on mobile */
+    #teamBar, #teamLine {
+        height: 300px !important;
+        min-height: 250px;
+    }
+
+    /* Better table handling on mobile */
+    .table-responsive {
+        border: none;
+    }
+
+    /* Adjust admin sidebar for mobile */
+    .panel-group {
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .md-page {
+        padding: 0px 5px 10px 5px;
+        margin: 2px;
+    }
+
+    #teamBar, #teamLine {
+        height: 250px !important;
+    }
+
+    /* Stack navbar items better */
+    .navbar-nav {
+        padding: 10px 0;
+    }
+}

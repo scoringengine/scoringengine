@@ -4,10 +4,21 @@ from flask import jsonify
 from flask_login import current_user, login_required
 
 from scoring_engine.config import config
-from scoring_engine.db import session
+from scoring_engine.db import db
 from scoring_engine.models.notifications import Notification
 
 from . import mod
+
+
+def _ensure_utc_aware(dt):
+    """Ensure datetime is timezone-aware in UTC. Handles both naive and aware datetimes."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Naive datetime - assume UTC
+        return pytz.utc.localize(dt)
+    # Already aware - convert to UTC
+    return dt.astimezone(pytz.utc)
 
 
 def _get_notifications_data(is_read_filter=None, include_is_read=False):
@@ -20,7 +31,7 @@ def _get_notifications_data(is_read_filter=None, include_is_read=False):
     Returns:
         List of notification dictionaries
     """
-    query = session.query(Notification).filter(Notification.team_id == current_user.team_id)
+    query = db.session.query(Notification).filter(Notification.team_id == current_user.team_id)
 
     if is_read_filter is not None:
         query = query.filter(Notification.is_read == is_read_filter)
@@ -33,7 +44,7 @@ def _get_notifications_data(is_read_filter=None, include_is_read=False):
             "id": notification.id,
             "message": notification.message,
             "target": notification.target,
-            "created": notification.created.astimezone(
+            "created": _ensure_utc_aware(notification.created).astimezone(
                 pytz.timezone(config.timezone)
             ).strftime("%Y-%m-%d %H:%M:%S %Z"),
         }

@@ -1,0 +1,280 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - SLA & Dynamic Scoring Settings{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block header %}SLA & Dynamic Scoring Settings{% endblock %}
+
+{% block admincontent %}
+<div style="padding-top: 20px;">
+  <!-- SLA Penalties Section -->
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h4 class="panel-title">SLA Penalty Configuration</h4>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted">
+        Configure penalties for services that fail consecutive health checks.
+        When enabled, teams are penalized for services that remain down.
+      </p>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_enabled') }}" role="form" style="margin-bottom: 15px;">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">SLA Penalties</label>
+          <div class="col-sm-3">
+            <button type="submit" class="btn btn-{% if sla_enabled %}success{% else %}default{% endif %} btn-block">
+              {% if sla_enabled %}Enabled{% else %}Disabled{% endif %}
+            </button>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Click to toggle SLA penalties on/off</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_threshold') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Penalty Threshold</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" min="1" max="100" id="sla_penalty_threshold"
+                name="sla_penalty_threshold" value="{{ sla_penalty_threshold }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Number of consecutive failures before penalties begin</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_percent') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Penalty Percent (%)</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" min="1" max="100" id="sla_penalty_percent"
+                name="sla_penalty_percent" value="{{ sla_penalty_percent }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Penalty percentage per failure after threshold</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_max_percent') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Max Penalty (%)</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" min="1" max="200" id="sla_penalty_max_percent"
+                name="sla_penalty_max_percent" value="{{ sla_penalty_max_percent }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Maximum total penalty percentage (cap)</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_penalty_mode') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Penalty Mode</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <select class="form-control" id="sla_penalty_mode" name="sla_penalty_mode">
+                <option value="additive" {% if sla_penalty_mode == 'additive' %}selected{% endif %}>Additive</option>
+                <option value="flat" {% if sla_penalty_mode == 'flat' %}selected{% endif %}>Flat</option>
+                <option value="exponential" {% if sla_penalty_mode == 'exponential' %}selected{% endif %}>Exponential</option>
+                <option value="next_check_reduction" {% if sla_penalty_mode == 'next_check_reduction' %}selected{% endif %}>Next Check Reduction</option>
+              </select>
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">How penalties accumulate (additive=10%,20%,30%..., flat=10%,10%..., exponential=10%,20%,40%...)</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_sla_allow_negative') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Allow Negative Scores</label>
+          <div class="col-sm-3">
+            <button type="submit" class="btn btn-{% if sla_allow_negative %}warning{% else %}default{% endif %} btn-block">
+              {% if sla_allow_negative %}Enabled{% else %}Disabled{% endif %}
+            </button>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Allow scores to go below zero from penalties</p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dynamic Scoring Section -->
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h4 class="panel-title">Dynamic Scoring Configuration</h4>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted">
+        Configure time-based scoring multipliers. Points can be worth more or less
+        during different phases of the competition.
+      </p>
+
+      <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_enabled') }}" role="form" style="margin-bottom: 15px;">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Dynamic Scoring</label>
+          <div class="col-sm-3">
+            <button type="submit" class="btn btn-{% if dynamic_scoring_enabled %}success{% else %}default{% endif %} btn-block">
+              {% if dynamic_scoring_enabled %}Enabled{% else %}Disabled{% endif %}
+            </button>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Click to toggle dynamic scoring on/off</p>
+          </div>
+        </div>
+      </form>
+
+      <h5><strong>Early Phase (Bonus Points)</strong></h5>
+      <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_early_rounds') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Early Phase Rounds</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" min="1" max="1000" id="dynamic_scoring_early_rounds"
+                name="dynamic_scoring_early_rounds" value="{{ dynamic_scoring_early_rounds }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">First N rounds are considered "early phase"</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_early_multiplier') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Early Phase Multiplier</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" step="0.1" min="0.1" max="10" id="dynamic_scoring_early_multiplier"
+                name="dynamic_scoring_early_multiplier" value="{{ dynamic_scoring_early_multiplier }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Points multiplier during early phase (e.g., 2.0 = double points)</p>
+          </div>
+        </div>
+      </form>
+
+      <h5><strong>Late Phase (Reduced Points)</strong></h5>
+      <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_late_start_round') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Late Phase Start Round</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" min="1" max="10000" id="dynamic_scoring_late_start_round"
+                name="dynamic_scoring_late_start_round" value="{{ dynamic_scoring_late_start_round }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Round number when late phase begins</p>
+          </div>
+        </div>
+      </form>
+
+      <form method="POST" action="{{ url_for('api.admin_update_dynamic_scoring_late_multiplier') }}" role="form">
+        <div class="form-group row">
+          <label class="col-sm-3 control-label">Late Phase Multiplier</label>
+          <div class="col-sm-3">
+            <div class="input-group">
+              <input class="form-control" type="number" step="0.1" min="0.1" max="10" id="dynamic_scoring_late_multiplier"
+                name="dynamic_scoring_late_multiplier" value="{{ dynamic_scoring_late_multiplier }}" required />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <p class="form-control-static text-muted">Points multiplier during late phase (e.g., 0.5 = half points)</p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Current SLA Status -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">Current SLA Status</h4>
+    </div>
+    <div class="panel-body">
+      <div id="sla-status-container">
+        <p class="text-muted">Loading SLA status...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  // Load SLA status
+  $.ajax({
+    cache: false,
+    url: '/api/sla/summary',
+    dataType: 'json',
+    success: function(data) {
+      var html = '';
+      if (data.teams && data.teams.length > 0) {
+        html += '<table class="table table-striped table-condensed">';
+        html += '<thead><tr><th>Team</th><th>Base Score</th><th>Penalties</th><th>Adjusted Score</th><th>Violations</th></tr></thead>';
+        html += '<tbody>';
+        for (var i = 0; i < data.teams.length; i++) {
+          var team = data.teams[i];
+          var rowClass = team.total_penalties > 0 ? 'warning' : '';
+          html += '<tr class="' + rowClass + '">';
+          html += '<td>' + team.team_name + '</td>';
+          html += '<td>' + team.base_score + '</td>';
+          html += '<td class="text-danger">' + (team.total_penalties > 0 ? '-' + team.total_penalties : '0') + '</td>';
+          html += '<td><strong>' + team.adjusted_score + '</strong></td>';
+          html += '<td>' + team.services_with_violations + '/' + team.total_services + '</td>';
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+      } else {
+        html = '<p class="text-muted">No team data available.</p>';
+      }
+      $('#sla-status-container').html(html);
+    },
+    error: function() {
+      $('#sla-status-container').html('<p class="text-danger">Error loading SLA status.</p>');
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -126,6 +126,12 @@ class ConfigLoader(object):
             "bool",
         )
 
+        self.blue_team_view_status_page = self.parse_sources(
+            "blue_team_view_status_page",
+            self.parser["OPTIONS"]["blue_team_view_status_page"].lower() == "true",
+            "bool",
+        )
+
         self.worker_queue = self.parse_sources(
             "worker_queue",
             self.parser["OPTIONS"]["worker_queue"],
@@ -157,6 +163,73 @@ class ConfigLoader(object):
             "redis_password", self.parser["OPTIONS"]["redis_password"]
         )
 
+        # SLA Penalty Configuration
+        self.sla_enabled = self.parse_sources(
+            "sla_enabled",
+            self.parser["OPTIONS"].get("sla_enabled", "false").lower() == "true",
+            "bool",
+        )
+
+        self.sla_penalty_threshold = self.parse_sources(
+            "sla_penalty_threshold",
+            int(self.parser["OPTIONS"].get("sla_penalty_threshold", "5")),
+            "int",
+        )
+
+        self.sla_penalty_percent = self.parse_sources(
+            "sla_penalty_percent",
+            int(self.parser["OPTIONS"].get("sla_penalty_percent", "10")),
+            "int",
+        )
+
+        self.sla_penalty_max_percent = self.parse_sources(
+            "sla_penalty_max_percent",
+            int(self.parser["OPTIONS"].get("sla_penalty_max_percent", "50")),
+            "int",
+        )
+
+        self.sla_penalty_mode = self.parse_sources(
+            "sla_penalty_mode",
+            self.parser["OPTIONS"].get("sla_penalty_mode", "additive"),
+        )
+
+        self.sla_allow_negative = self.parse_sources(
+            "sla_allow_negative",
+            self.parser["OPTIONS"].get("sla_allow_negative", "false").lower() == "true",
+            "bool",
+        )
+
+        # Dynamic Scoring Configuration
+        self.dynamic_scoring_enabled = self.parse_sources(
+            "dynamic_scoring_enabled",
+            self.parser["OPTIONS"].get("dynamic_scoring_enabled", "false").lower() == "true",
+            "bool",
+        )
+
+        self.dynamic_scoring_early_rounds = self.parse_sources(
+            "dynamic_scoring_early_rounds",
+            int(self.parser["OPTIONS"].get("dynamic_scoring_early_rounds", "10")),
+            "int",
+        )
+
+        self.dynamic_scoring_early_multiplier = self.parse_sources(
+            "dynamic_scoring_early_multiplier",
+            float(self.parser["OPTIONS"].get("dynamic_scoring_early_multiplier", "2.0")),
+            "float",
+        )
+
+        self.dynamic_scoring_late_start_round = self.parse_sources(
+            "dynamic_scoring_late_start_round",
+            int(self.parser["OPTIONS"].get("dynamic_scoring_late_start_round", "50")),
+            "int",
+        )
+
+        self.dynamic_scoring_late_multiplier = self.parse_sources(
+            "dynamic_scoring_late_multiplier",
+            float(self.parser["OPTIONS"].get("dynamic_scoring_late_multiplier", "0.5")),
+            "float",
+        )
+
     def parse_sources(self, key_name, default_value, obj_type="str"):
         """Return a configuration value using environment overrides when present.
 
@@ -183,6 +256,8 @@ class ConfigLoader(object):
             env_val = os.environ[environment_key]
             if obj_type.lower() == "int":
                 return int(env_val)
+            elif obj_type.lower() == "float":
+                return float(env_val)
             elif obj_type.lower() == "bool":
                 return env_val.lower() in ("true", "1", "yes")
             else:

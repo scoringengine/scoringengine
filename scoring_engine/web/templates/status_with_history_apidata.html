@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block title %}Blue Team Flags{% endblock %}
+
+{% block head %}
+<style>
+  .status-pill {
+    padding: 6px 14px;
+    color: white;
+    border-radius: 25px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 110px;
+    display: inline-block;
+  }
+
+  .status-healthy { background: #2ecc71; }
+  .status-comp { background: #e74c3c; }
+
+  .flex-row {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 20px;
+  }
+
+  .box-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  table {
+    margin: auto;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 6px;
+    text-align: center;
+  }
+
+  /* Error banner style */
+  #backendError {
+    display: none;
+    background: #f39c12;
+    color: white;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2 class="text-center">Active Flags</h2>
+
+<!-- Backend error notification -->
+<div id="backendError">Backend unavailable – displaying last known state</div>
+
+<div class="flex-row"></div>
+
+<h2 class="text-center">History</h2>
+<table id="historyTable">
+  <thead>
+    <tr id="timeRow">
+      <th>Box</th>
+    </tr>
+  </thead>
+  <tbody id="historyBody"></tbody>
+</table>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+
+const MAX_COLUMNS = 10;
+const UPDATE_INTERVAL = 30000; // 30 seconds for testing 1800000 for 30
+
+// Boxes and currentStatus start empty and get initialized by api
+let boxes = [];
+let currentStatus = [];
+
+// backend error handleling
+let backendHealthy = true;
+// Start UI 
+
+function init() {
+  const active = document.querySelector('.flex-row');
+  active.innerHTML = '';
+
+  const left = document.createElement('div');
+  const right = document.createElement('div');
+  left.className = right.className = 'box-col';
+
+  boxes.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.id = `active-${i}`;
+    div.innerHTML = `
+      Box ${b.id}
+      <span class="status-pill"></span>
+    `;
+    (i < boxes.length / 2 ? left : right).appendChild(div);
+  });
+
+  active.appendChild(left);
+  active.appendChild(right);
+
+  const body = document.getElementById('historyBody');
+  body.innerHTML = '';
+  boxes.forEach((b, i) => {
+    const tr = document.createElement('tr');
+    tr.dataset.index = i;
+    tr.innerHTML = `<td>Box ${b.id}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+// Render current status
+
+function renderActive() {
+  currentStatus.forEach((st, i) => {
+    const pill = document.querySelector(`#active-${i} .status-pill`);
+    pill.className = `status-pill status-${st}`;
+    pill.textContent = st === 'healthy' ? 'Healthy' : 'Compromised';
+  });
+}
+
+// Create banner if there is an error
+
+function showErrorBanner() {
+  document.getElementById('backendError').style.display = 'block';
+}
+
+function clearErrorBanner() {
+  document.getElementById('backendError').style.display = 'none';
+}
+
+// fetch API 
+
+async function fetchCurrentStatus() {
+  try {
+    const res = await fetch('/api/flags/solves');
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const json = await res.json();
+
+    if (!json.data || !json.data.rows.length) {
+      throw new Error('Invalid API response');
+    }
+
+    backendHealthy = true;
+    clearErrorBanner();
+
+    // Extract box names (columns) and corresponding data row (first team)
+    const columns = json.data.columns.slice(1); // skip "Team"
+    const row = json.data.rows[0].slice(1);
+
+    // Initialize boxes and UI if first time or if box count changed
+    if (boxes.length !== columns.length || boxes.some((b, i) => b.id !== columns[i])) {
+      boxes = columns.map(name => ({ id: name }));
+      currentStatus = new Array(boxes.length).fill('healthy');
+      init();
+    }
+
+    // Map API cell data to status string
+    currentStatus = row.map(cell =>
+      Array.isArray(cell) && (cell[0] === 1 || cell[1] === 1)
+        ? 'comp'
+        : 'healthy'
+    );
+
+    renderActive();
+    return true;
+
+  } catch (err) {
+    console.error('Backend error:', err);
+    backendHealthy = false;
+    showErrorBanner();
+    return false;
+  }
+}
+
+// history creating new columns 
+
+function addHistoryColumn() {
+  const timestamp = new Date().toLocaleTimeString();
+  const timeRow = document.getElementById('timeRow');
+
+  const th = document.createElement('th');
+  th.textContent = timestamp;
+  timeRow.insertBefore(th, timeRow.children[1]);
+
+  document.querySelectorAll('#historyBody tr').forEach((row, i) => {
+    const td = document.createElement('td');
+    const st = currentStatus[i];
+    td.className = `status-pill status-${st}`;
+    td.textContent = st === 'healthy' ? 'Healthy ✔' : 'Compromised ✖';
+    row.insertBefore(td, row.children[1]);
+  });
+
+  // Trim old columns to keep table manageable
+  while (timeRow.children.length > MAX_COLUMNS + 1) {
+    timeRow.removeChild(timeRow.lastChild);
+    document.querySelectorAll('#historyBody tr').forEach(row => {
+      row.removeChild(row.lastChild);
+    });
+  }
+}
+
+// Creating everything 
+
+(async function main() {
+  // Initial fetch + UI setup
+  const ok = await fetchCurrentStatus();
+  if (ok) addHistoryColumn();
+
+  // Periodic refresh + history update only if fetch succeeds
+  setInterval(async () => {
+    const success = await fetchCurrentStatus();
+    if (success) addHistoryColumn();
+  }, UPDATE_INTERVAL);
+})();
+</script>
+
+{% endblock %}
+
+

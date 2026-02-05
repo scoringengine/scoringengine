@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Status{% endblock %}
+{% block content %}
+<div class="container">
+  {% if is_blue_team == true %}
+    <p>Can only see status of own machines</p>
+  {% else %}
+    <p>Can see status of all machines</p>
+  {% endif %}
+</div>
+{% endblock %}
