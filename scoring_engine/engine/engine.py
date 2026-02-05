@@ -27,11 +27,6 @@ from scoring_engine.engine.basic_check import (
     CHECK_SUCCESS_TEXT,
     CHECK_FAILURE_TEXT,
     CHECK_TIMED_OUT_TEXT,
-    CHECK_AUTH_FAILED_TEXT,
-    CHECK_CONNECTION_REFUSED_TEXT,
-    CHECK_CONNECTION_TIMEOUT_TEXT,
-    CHECK_HOST_UNREACHABLE_TEXT,
-    CHECK_COMMAND_FAILED_TEXT,
 )
 from scoring_engine.logger import logger
 from scoring_engine.cache_helper import update_all_cache
@@ -79,24 +74,6 @@ class Engine(object):
         else:
             logger.warning("Shutting down now.")
         self.last_round = True
-
-    def classify_check_failure(self, output):
-        # Error prefix to reason mapping
-        error_classifications = [
-            ("AUTH_FAILED:", CHECK_AUTH_FAILED_TEXT),
-            ("CONNECTION_REFUSED:", CHECK_CONNECTION_REFUSED_TEXT),
-            ("CONNECTION_TIMEOUT:", CHECK_CONNECTION_TIMEOUT_TEXT),
-            ("HOST_UNREACHABLE:", CHECK_HOST_UNREACHABLE_TEXT),
-            ("COMMAND_FAILED:", CHECK_COMMAND_FAILED_TEXT),
-            ("SSH_ERROR:", CHECK_FAILURE_TEXT),
-        ]
-
-        for prefix, reason in error_classifications:
-            if prefix in output:
-                return reason
-
-        # Default to generic failure if no specific prefix matched
-        return CHECK_FAILURE_TEXT
 
     def add_check(self, check_obj):
         self.checks.append(check_obj)
@@ -263,14 +240,13 @@ class Engine(object):
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
                         else:
-                            output = task.result["output"]
-                            if re.search(environment.matching_content, output):
+                            if re.search(environment.matching_content, task.result["output"]):
                                 result = True
                                 reason = CHECK_SUCCESS_TEXT
                             else:
                                 result = False
-                                # Classify the failure based on output prefixes
-                                reason = self.classify_check_failure(output)
+                                reason = CHECK_FAILURE_TEXT
+
                         if environment.service.team.name not in teams:
                             teams[environment.service.team.name] = {
                                 "Success": [],
