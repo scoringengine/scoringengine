@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Blue Team Flags{% endblock %}
+
+{% block head %}
+<style>
+  .status-pill {
+    padding: 6px 12px;
+    color: white;
+    border-radius: 25px;
+    font-weight: bold;
+    text-align: center;
+  }
+  .status-healthy { background: green; }
+  .status-comp { background: red; }
+
+  .flex-row {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 20px;
+  }
+  .box-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  table {
+    margin: auto;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 6px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h2>Active Flags</h2>
+<div class="flex-row"></div>
+
+<h2>History</h2>
+<table id="historyTable">
+  <thead>
+    <tr id="timeRow">
+      <th>Box</th>
+    </tr>
+  </thead>
+  <tbody id="historyBody"></tbody>
+</table>
+
+<script>
+const MAX_COLUMNS = 10;
+
+/* Active Flags eventually pull list from api this is template with mock data and history idea*/
+
+const boxes = [
+  { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 },
+  { id: 6 }, { id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }
+];
+
+// initial history state (one entry per box)
+let currentStatus = boxes.map(() => Math.random() > 0.3 ? 'healthy' : 'comp');
+
+// build Active Flags + history rows
+function init() {
+  const active = document.querySelector('.flex-row');
+  active.innerHTML = '';
+
+  const left = document.createElement('div');
+  const right = document.createElement('div');
+  left.className = right.className = 'box-col';
+
+  boxes.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.id = `active-${i}`;
+    div.innerHTML = `
+      Box ${b.id}
+      <span class="status-pill"></span>
+    `;
+    (i < boxes.length / 2 ? left : right).appendChild(div);
+  });
+
+  active.appendChild(left);
+  active.appendChild(right);
+
+  // history rows
+  const body = document.getElementById('historyBody');
+  body.innerHTML = '';
+  boxes.forEach((b, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>Box ${b.id}</td>`;
+    tr.dataset.index = i;
+    body.appendChild(tr);
+  });
+
+  renderActive();
+}
+
+function renderActive() {
+  currentStatus.forEach((st, i) => {
+    const pill = document.querySelector(`#active-${i} .status-pill`);
+    pill.className = `status-pill status-${st}`;
+    pill.textContent = st === 'healthy' ? 'Healthy' : 'Compromised';
+  });
+}
+
+// adding new column at update time
+
+function addHistoryColumn() {
+  const timestamp = new Date().toLocaleTimeString();
+  const timeRow = document.getElementById('timeRow');
+
+  // add new time header (to the left)
+  const th = document.createElement('th');
+  th.textContent = timestamp;
+  timeRow.insertBefore(th, timeRow.children[1]);
+
+  // update statuses (placeholder logic)
+  currentStatus = currentStatus.map(() =>
+    Math.random() > 0.3 ? 'healthy' : 'comp'
+  );
+
+  // add cells to each row
+  document.querySelectorAll('#historyBody tr').forEach((row, i) => {
+    const td = document.createElement('td');
+    const st = currentStatus[i];
+    td.className = `status-pill status-${st}`;
+    td.textContent = st === 'healthy' ? 'Healthy' : 'Compromised';
+    row.insertBefore(td, row.children[1]);
+  });
+
+  renderActive();
+
+  // trim old columns
+  while (timeRow.children.length > MAX_COLUMNS + 1) {
+    timeRow.removeChild(timeRow.lastChild);
+    document.querySelectorAll('#historyBody tr').forEach(row => {
+      row.removeChild(row.lastChild);
+    });
+  }
+}
+
+//starting
+
+init();
+// setInterval(addHistoryColumn, 1800000); // real timing
+setInterval(addHistoryColumn, 5000);       // demo
+</script>
+
+{% endblock %}
+
+
+
