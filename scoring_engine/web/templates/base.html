@@ -1,6 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="midnight" data-bs-theme="dark">
+<script>
+  // Apply saved theme immediately to prevent flash (always dark mode)
+  (function() {
+    var t = localStorage.getItem('se-theme') || 'midnight';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,106 +14,221 @@
   {% block head %}
   <title>Scoring Engine - {% block title %}{% endblock %}</title>
   <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/js/bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/utils.js') }}"></script>
   {% endblock %}
   <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='vendor/css/bootstrap-glyphicons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/css/bootstrap-icons.min.css') }}" rel="stylesheet">
   <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 </head>
 {% if 'unauthorized' in request.path %}
-
-<body style="background-color: red">
-  {% else %}
-
-  <body style="background-color: #f9f9f9;">
-    {% endif %}
+<body style="background-color: red" class="d-flex flex-column min-vh-100">
+{% else %}
+<body class="bg-body d-flex flex-column min-vh-100{% if current_user.is_authenticated %} {% if current_user.is_white_team %}team-white{% elif current_user.is_blue_team %}team-blue{% elif current_user.is_red_team %}team-red{% endif %}{% endif %}">
+{% endif %}
     <script>
+      // Announcements badge - global scope for child templates
+      var _lastBadgeCount = -1;
+      var _LS_KEY = 'announcements_read';
+
+      function _getReadIds() {
+        try {
+          return JSON.parse(localStorage.getItem(_LS_KEY) || '[]');
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function updateAnnouncementsBadge() {
+        $.ajax({
+          cache: false,
+          url: '/api/announcements/count',
+          dataType: 'json',
+          success: function(resp) {
+            var allIds = resp.ids || [];
+            var readIds = _getReadIds();
+            var unreadCount = 0;
+            for (var i = 0; i < allIds.length; i++) {
+              if (readIds.indexOf(allIds[i]) === -1) {
+                unreadCount++;
+              }
+            }
+            var badge = $('#announcements-badge');
+            if (unreadCount > 0) {
+              badge.text(unreadCount > 99 ? '99+' : unreadCount);
+              badge.removeClass('d-none');
+              // Pulse if unread count increased (new announcements arrived)
+              if (_lastBadgeCount >= 0 && unreadCount > _lastBadgeCount) {
+                badge.removeClass('pulse');
+                void badge[0].offsetWidth; // force reflow
+                badge.addClass('pulse');
+              }
+            } else {
+              badge.addClass('d-none');
+            }
+            _lastBadgeCount = unreadCount;
+          }
+        });
+      }
+
+      // Theme picker logic
+      function setVisualTheme(themeId) {
+        document.documentElement.setAttribute('data-theme', themeId);
+        localStorage.setItem('se-theme', themeId);
+        updateThemePickerUI();
+      }
+
+      function updateThemePickerUI() {
+        var currentTheme = document.documentElement.getAttribute('data-theme') || 'midnight';
+        $('.theme-option').each(function() {
+          var check = $(this).find('.theme-check');
+          if ($(this).data('theme') === currentTheme) {
+            check.removeClass('d-none');
+          } else {
+            check.addClass('d-none');
+          }
+        });
+      }
+
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
         });
+
+        // Theme option clicks
+        $(document).on('click', '.theme-option', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setVisualTheme($(this).data('theme'));
+        });
+
+        updateThemePickerUI();
+
+        // Initial badge check and poll every 30 seconds
+        updateAnnouncementsBadge();
+        setInterval(updateAnnouncementsBadge, 30000);
       });
     </script>
 
     {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="alert alert-{{category}} alert-dismissable alert-fixed" id="alert-info" role="alert"
+    <div class="alert alert-{{category}} alert-dismissible alert-fixed" id="alert-info" role="alert"
       style="margin-bottom: 0px">
-      <button type="button" class="close" data-dismiss="alert">x</button>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       <strong>{{ message }}</strong>
     </div>
     {% endfor %}
 
-    {% if "admin" in request.path %}
-    <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
-    <!-- <nav class="collapse navbar-collapse navbar-inverse" style="border-radius: 0 !important">-->
-    {% else %}
-    <nav class="navbar navbar-collapse navbar-inverse" style="border-radius: 0 !important">
-    {% endif %}
+    <nav class="navbar navbar-expand-md navbar-dark">
       <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Scoring Engine</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="">
-          <ul class="nav navbar-nav">
-            <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
-            <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
+        <a class="navbar-brand" href="/"><span class="brand-icon">SE</span> Scoring Engine</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item"><a class="nav-link {% if request.path == '/scoreboard' %}active{% endif %}" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/overview' %}active{% endif %}" href="{{ url_for('overview.home') }}">Overview</a></li>
             {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
-              <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/services' or request.path.startswith('/service/') %}active{% endif %}"
                   href="{{ url_for('services.home') }}">Services</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_red_team %}
-              <li class="navbar-item {% if request.path == '/injects' %}active{% endif %}"><a class="nav-link"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/injects' or request.path.startswith('/inject') %}active{% endif %}"
                   href="{{ url_for('injects.home') }}">Injects</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_white_team %}
-              <li class="navbar-item {% if request.path == '/stats' %}active{% endif %}"><a class="nav-link"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/stats' %}active{% endif %}"
                   href="{{ url_for('stats.home') }}">Stats</a></li>
               {% endif %}
               {% if current_user.is_red_team or current_user.is_white_team %}
-              <li class="navbar-item {% if request.path == '/flags' %}active{% endif %}"><a class="nav-link"
+              <li class="nav-item"><a class="nav-link {% if request.path == '/flags' %}active{% endif %}"
                   href="{{ url_for('flags.home') }}">Flags</a></li>
               {% endif %}
               {% if current_user.is_white_team %}
-              <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"
+              <li class="nav-item"><a class="nav-link {% if 'admin' in request.path %}active{% endif %}"
                   href="{{ url_for('admin.status') }}">Admin</a></li>
               {% endif %}
-              {% endif %}
+            {% endif %}
             </ul>
-            <ul class="nav navbar-nav navbar-right">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link {% if request.path == '/announcements' %}active{% endif %}" href="{{ url_for('announcements.home') }}" id="announcements-link" title="Announcements">
+                  <i class="bi bi-megaphone"></i>
+                  <span class="badge rounded-pill bg-danger d-none" id="announcements-badge">
+                    0
+                    <span class="visually-hidden">unread announcements</span>
+                  </span>
+                </a>
+              </li>
               {% if not current_user.is_authenticated %}
-              <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
               {% else %}
-              <!-- <li class="navbar-item">
-                <a href="{{ url_for('notifications.unread') }}">Notifications {% if notification_count %}<span
-                    class="badge">{{ notification_count}}</span>{% endif %}</a>
-              </li> -->
-              <li class="dropdown">
-                <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{
-                  current_user.get_username }} <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
-                  <li class="divider"></li>
-                  <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+              <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" style="margin-right: 20px;">
+                  {% if current_user.is_white_team %}
+                  <span class="badge bg-light text-dark me-1">White</span>
+                  {% elif current_user.is_blue_team %}
+                  <span class="badge bg-primary me-1">Blue</span>
+                  {% elif current_user.is_red_team %}
+                  <span class="badge bg-danger me-1">Red</span>
+                  {% endif %}
+                  {{ current_user.get_username }}</a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{{ url_for('profile.home') }}">Profile</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
                 </ul>
               </li>
               {% endif %}
-              <li class="navbar-item"><a href="{{ url_for('about.about') }}">About</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('about.about') }}">About</a></li>
+              <li class="nav-item dropdown">
+                <button class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Theme">
+                  <i class="bi bi-palette"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="theme-picker-menu">
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="midnight">
+                    <span class="theme-swatch" style="background:#0a0a0a"></span>
+                    Midnight Clean
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="glass">
+                    <span class="theme-swatch" style="background:#0c0e14"></span>
+                    Glass
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="carbon">
+                    <span class="theme-swatch" style="background:#161616"></span>
+                    Carbon
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="warroom">
+                    <span class="theme-swatch" style="background:#060a10"></span>
+                    War Room
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                </ul>
+              </li>
             </ul>
           </div>
           <!--/.nav-collapse -->
         </div>
         <!--/.container-fluid -->
       </nav>
+      <main class="flex-grow-1">
       {% block content %}
       {% endblock %}
+      </main>
+      <footer class="text-center text-muted py-3 border-top mt-auto">
+        <small>
+          <i class="bi bi-tag-fill"></i> v{{version_info.base_version}}{% if version_info.commit %} (<a href="https://github.com/scoringengine/scoringengine/commit/{{version_info.commit}}" class="text-muted">{{version_info.commit[:7]}}</a>){% endif %}{% if version_info.is_dev %} <span class="badge bg-warning text-dark">dev</span>{% endif %}
+          <span class="mx-2">|</span>
+          <a href="https://scoringengine.readthedocs.io" class="text-muted text-decoration-none"><i class="bi bi-book"></i> Docs</a>
+          <span class="mx-2">|</span>
+          <a href="https://github.com/scoringengine/scoringengine" class="text-muted text-decoration-none"><i class="bi bi-github"></i> GitHub</a>
+        </small>
+      </footer>
   </body>
 
 </html>

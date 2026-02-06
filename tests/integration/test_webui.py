@@ -35,7 +35,7 @@ class TestWebUI(object):
     pages = [
         {
             'page': '',
-            'matching_text': 'Diamond',
+            'matching_text': 'Welcome to the Competition',
         },
         {
             'page': 'scoreboard',

@@ -1,0 +1,616 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Welcome Page{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block header %}Welcome Page Configuration{% endblock %}
+
+{% block admincontent %}
+<div class="pt-3">
+  <ul class="nav nav-tabs mb-3" id="welcomeTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="message-tab" data-bs-toggle="tab" data-bs-target="#message-content" type="button" role="tab">
+        Welcome Message
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="sponsors-tab" data-bs-toggle="tab" data-bs-target="#sponsors-content" type="button" role="tab">
+        Sponsors
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="welcomeTabsContent">
+    <!-- Welcome Message Tab -->
+    <div class="tab-pane fade show active" id="message-content" role="tabpanel">
+      <form id="welcome-message-form">
+        <div class="mb-3">
+          <label for="welcome-message" class="form-label">Welcome Message</label>
+          <textarea class="form-control" id="welcome-message" rows="8" placeholder="Enter HTML content for the welcome message"></textarea>
+          <div class="form-text">HTML is supported. This message appears at the top of the welcome page.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Save Message
+        </button>
+      </form>
+    </div>
+
+    <!-- Sponsors Tab -->
+    <div class="tab-pane fade" id="sponsors-content" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted mb-0">Manage sponsor tiers and sponsors displayed on the welcome page.</p>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTierModal">
+          <i class="bi bi-plus-lg"></i> Add Tier
+        </button>
+      </div>
+
+      <div id="sponsor-tiers-list">
+        <div class="text-center py-4">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Tier Modal -->
+<div class="modal fade" id="addTierModal" tabindex="-1" aria-labelledby="addTierModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTierModalLabel">Add Sponsor Tier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-tier-form">
+          <div class="mb-3">
+            <label for="tier-name" class="form-label">Tier Name</label>
+            <input type="text" class="form-control" id="tier-name" required placeholder="e.g., Diamond, Platinum, Gold">
+          </div>
+          <div class="mb-3">
+            <label for="tier-order" class="form-label">Display Order</label>
+            <input type="number" class="form-control" id="tier-order" value="1" min="1">
+            <div class="form-text">Lower numbers appear first. Existing tiers at or after this position will be shifted down.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-tier-btn">Add Tier</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Tier Modal -->
+<div class="modal fade" id="editTierModal" tabindex="-1" aria-labelledby="editTierModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editTierModalLabel">Edit Sponsor Tier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-tier-form">
+          <input type="hidden" id="edit-tier-original-name">
+          <div class="mb-3">
+            <label for="edit-tier-name" class="form-label">Tier Name</label>
+            <input type="text" class="form-control" id="edit-tier-name" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-tier-order" class="form-label">Display Order</label>
+            <input type="number" class="form-control" id="edit-tier-order" min="1">
+            <div class="form-text">Lower numbers appear first. Other tiers will be reordered accordingly.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="update-tier-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sponsor Modal -->
+<div class="modal fade" id="addSponsorModal" tabindex="-1" aria-labelledby="addSponsorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addSponsorModalLabel">Add Sponsor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-sponsor-form">
+          <input type="hidden" id="sponsor-tier-name">
+          <div class="mb-3">
+            <label for="sponsor-name" class="form-label">Sponsor Name</label>
+            <input type="text" class="form-control" id="sponsor-name" required>
+          </div>
+          <div class="mb-3">
+            <label for="sponsor-logo-file" class="form-label">Logo Image</label>
+            <input type="file" class="form-control mb-2" id="sponsor-logo-file" accept="image/*">
+            <div class="form-text">Or enter a URL manually:</div>
+            <input type="text" class="form-control mt-1" id="sponsor-logo" placeholder="/static/images/sponsors/logo.png">
+            <img id="sponsor-logo-preview" class="mt-2 d-none" style="max-height: 80px;" alt="Preview">
+          </div>
+          <div class="mb-3">
+            <label for="sponsor-website" class="form-label">Website URL</label>
+            <input type="url" class="form-control" id="sponsor-website" placeholder="https://example.com">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-sponsor-btn">Add Sponsor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sponsor Modal -->
+<div class="modal fade" id="editSponsorModal" tabindex="-1" aria-labelledby="editSponsorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editSponsorModalLabel">Edit Sponsor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-sponsor-form">
+          <input type="hidden" id="edit-sponsor-tier">
+          <input type="hidden" id="edit-sponsor-index">
+          <div class="mb-3">
+            <label for="edit-sponsor-name" class="form-label">Sponsor Name</label>
+            <input type="text" class="form-control" id="edit-sponsor-name" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-sponsor-logo-file" class="form-label">Logo Image</label>
+            <input type="file" class="form-control mb-2" id="edit-sponsor-logo-file" accept="image/*">
+            <div class="form-text">Or enter a URL manually:</div>
+            <input type="text" class="form-control mt-1" id="edit-sponsor-logo" placeholder="/static/images/sponsors/logo.png">
+            <img id="edit-sponsor-logo-preview" class="mt-2 d-none" style="max-height: 80px;" alt="Preview">
+          </div>
+          <div class="mb-3">
+            <label for="edit-sponsor-website" class="form-label">Website URL</label>
+            <input type="url" class="form-control" id="edit-sponsor-website" placeholder="https://example.com">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="update-sponsor-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var welcomeConfig = null;
+
+function loadWelcomeConfig() {
+  $.ajax({
+    url: '/api/admin/welcome/config',
+    method: 'GET',
+    success: function(data) {
+      welcomeConfig = data.data;
+      $('#welcome-message').val(welcomeConfig.welcome_message || '');
+      renderSponsorTiers();
+    },
+    error: function() {
+      $('#sponsor-tiers-list').html('<div class="alert alert-danger">Error loading configuration.</div>');
+    }
+  });
+}
+
+function sponsorLabel(count) {
+  return count === 1 ? '1 Sponsor' : count + ' Sponsors';
+}
+
+function renderSponsorTiers() {
+  var html = '';
+  var tiers = welcomeConfig.sponsor_tiers || [];
+
+  if (tiers.length === 0) {
+    html = '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No sponsor tiers configured. Add a tier to get started.</div>';
+  } else {
+    tiers.forEach(function(tier, tierIndex) {
+      var escapedName = $('<div>').text(tier.name).html();
+      var jsName = tier.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += '<div class="card mb-3">';
+      html += '<div class="card-header d-flex justify-content-between align-items-center">';
+      html += '<div>';
+      html += '<strong>' + escapedName + '</strong>';
+      html += '<small class="text-muted ms-2">(Order: ' + tier.display_order + ' &middot; ' + sponsorLabel(tier.sponsors ? tier.sponsors.length : 0) + ')</small>';
+      html += '</div>';
+      html += '<div>';
+      // Move up button (disabled for first tier)
+      if (tierIndex > 0) {
+        html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="moveTier(' + tierIndex + ', -1)" title="Move Up"><i class="bi bi-arrow-up"></i></button>';
+      } else {
+        html += '<button class="btn btn-sm btn-outline-secondary me-1" disabled title="Move Up"><i class="bi bi-arrow-up"></i></button>';
+      }
+      // Move down button (disabled for last tier)
+      if (tierIndex < tiers.length - 1) {
+        html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="moveTier(' + tierIndex + ', 1)" title="Move Down"><i class="bi bi-arrow-down"></i></button>';
+      } else {
+        html += '<button class="btn btn-sm btn-outline-secondary me-1" disabled title="Move Down"><i class="bi bi-arrow-down"></i></button>';
+      }
+      html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="editTier(\'' + jsName + '\')" title="Edit Tier"><i class="bi bi-pencil"></i></button>';
+      html += '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAddSponsorModal(\'' + jsName + '\')" title="Add Sponsor"><i class="bi bi-plus-lg"></i> Add Sponsor</button>';
+      html += '<button class="btn btn-sm btn-outline-danger" onclick="removeTier(\'' + jsName + '\')" title="Remove Tier"><i class="bi bi-trash"></i></button>';
+      html += '</div>';
+      html += '</div>';
+      html += '<div class="card-body">';
+
+      if (tier.sponsors && tier.sponsors.length > 0) {
+        html += '<div class="table-responsive"><table class="table table-sm mb-0">';
+        html += '<thead><tr><th>Logo</th><th>Name</th><th>Website</th><th>Actions</th></tr></thead>';
+        html += '<tbody>';
+        tier.sponsors.forEach(function(sponsor, sponsorIndex) {
+          html += '<tr>';
+          html += '<td style="width: 60px;">';
+          if (sponsor.logo_url) {
+            html += '<img src="' + sponsor.logo_url + '" alt="" style="max-height: 40px; max-width: 50px; object-fit: contain;">';
+          } else {
+            html += '<i class="bi bi-image text-muted"></i>';
+          }
+          html += '</td>';
+          html += '<td>' + $('<div>').text(sponsor.name).html() + '</td>';
+          html += '<td>';
+          if (sponsor.website) {
+            html += '<a href="' + sponsor.website + '" target="_blank" class="text-truncate d-inline-block" style="max-width: 200px;">' + sponsor.website + '</a>';
+          } else {
+            html += '<span class="text-muted">-</span>';
+          }
+          html += '</td>';
+          html += '<td>';
+          html += '<button class="btn btn-sm btn-outline-primary me-1" onclick="editSponsor(\'' + jsName + '\', ' + sponsorIndex + ')" title="Edit"><i class="bi bi-pencil"></i></button>';
+          html += '<button class="btn btn-sm btn-outline-danger" onclick="removeSponsor(\'' + jsName + '\', ' + sponsorIndex + ')" title="Remove"><i class="bi bi-trash"></i></button>';
+          html += '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      } else {
+        html += '<p class="text-muted mb-0"><i class="bi bi-info-circle"></i> No sponsors in this tier yet.</p>';
+      }
+
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+
+  $('#sponsor-tiers-list').html(html);
+}
+
+function saveConfig() {
+  $.ajax({
+    url: '/api/admin/welcome/config',
+    method: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(welcomeConfig),
+    success: function() {
+      loadWelcomeConfig();
+    },
+    error: function(xhr) {
+      alert('Error saving configuration: ' + (xhr.responseJSON ? xhr.responseJSON.message : 'Unknown error'));
+    }
+  });
+}
+
+// Renumber all tiers sequentially (1, 2, 3, ...) based on current array order
+function renumberTiers() {
+  welcomeConfig.sponsor_tiers.forEach(function(tier, i) {
+    tier.display_order = i + 1;
+  });
+}
+
+function uploadLogo(fileInput) {
+  return new Promise(function(resolve, reject) {
+    var file = fileInput.files[0];
+    if (!file) { resolve(null); return; }
+    var formData = new FormData();
+    formData.append('file', file);
+    $.ajax({
+      url: '/api/admin/welcome/upload_logo',
+      method: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function(data) { resolve(data.url); },
+      error: function(xhr) {
+        var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Upload failed';
+        alert('Logo upload failed: ' + msg);
+        reject(msg);
+      }
+    });
+  });
+}
+
+function setupLogoPreview(fileId, previewId, urlId) {
+  $('#' + fileId).on('change', function() {
+    var file = this.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        $('#' + previewId).attr('src', e.target.result).removeClass('d-none');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  $('#' + urlId).on('input', function() {
+    var url = $(this).val().trim();
+    if (url) {
+      $('#' + previewId).attr('src', url).removeClass('d-none');
+    } else {
+      $('#' + previewId).addClass('d-none');
+    }
+  });
+}
+
+function openAddSponsorModal(tierName) {
+  $('#sponsor-tier-name').val(tierName);
+  $('#sponsor-name').val('');
+  $('#sponsor-logo').val('');
+  $('#sponsor-logo-file').val('');
+  $('#sponsor-logo-preview').addClass('d-none');
+  $('#sponsor-website').val('');
+  $('#addSponsorModal').modal('show');
+}
+
+function editSponsor(tierName, sponsorIndex) {
+  var tier = welcomeConfig.sponsor_tiers.find(t => t.name === tierName);
+  if (tier && tier.sponsors[sponsorIndex]) {
+    var sponsor = tier.sponsors[sponsorIndex];
+    $('#edit-sponsor-tier').val(tierName);
+    $('#edit-sponsor-index').val(sponsorIndex);
+    $('#edit-sponsor-name').val(sponsor.name);
+    $('#edit-sponsor-logo').val(sponsor.logo_url || '');
+    $('#edit-sponsor-logo-file').val('');
+    $('#edit-sponsor-website').val(sponsor.website || '');
+    if (sponsor.logo_url) {
+      $('#edit-sponsor-logo-preview').attr('src', sponsor.logo_url).removeClass('d-none');
+    } else {
+      $('#edit-sponsor-logo-preview').addClass('d-none');
+    }
+    $('#editSponsorModal').modal('show');
+  }
+}
+
+function editTier(tierName) {
+  var tier = welcomeConfig.sponsor_tiers.find(t => t.name === tierName);
+  if (tier) {
+    $('#edit-tier-original-name').val(tier.name);
+    $('#edit-tier-name').val(tier.name);
+    $('#edit-tier-order').val(tier.display_order);
+    $('#editTierModal').modal('show');
+  }
+}
+
+function moveTier(tierIndex, direction) {
+  var tiers = welcomeConfig.sponsor_tiers;
+  var newIndex = tierIndex + direction;
+  if (newIndex < 0 || newIndex >= tiers.length) return;
+
+  // Swap the two tiers in the array
+  var temp = tiers[tierIndex];
+  tiers[tierIndex] = tiers[newIndex];
+  tiers[newIndex] = temp;
+
+  // Renumber so display_order stays sequential
+  renumberTiers();
+  saveConfig();
+}
+
+function removeSponsor(tierName, sponsorIndex) {
+  if (!confirm('Are you sure you want to remove this sponsor?')) return;
+
+  var tier = welcomeConfig.sponsor_tiers.find(t => t.name === tierName);
+  if (tier) {
+    tier.sponsors.splice(sponsorIndex, 1);
+    saveConfig();
+  }
+}
+
+function removeTier(tierName) {
+  if (!confirm('Are you sure you want to remove this tier and all its sponsors?')) return;
+
+  welcomeConfig.sponsor_tiers = welcomeConfig.sponsor_tiers.filter(t => t.name !== tierName);
+  renumberTiers();
+  saveConfig();
+}
+
+$(document).ready(function() {
+  loadWelcomeConfig();
+
+  // Save welcome message
+  $('#welcome-message-form').submit(function(e) {
+    e.preventDefault();
+    welcomeConfig.welcome_message = $('#welcome-message').val();
+    $.ajax({
+      url: '/api/admin/welcome/config',
+      method: 'PUT',
+      contentType: 'application/json',
+      data: JSON.stringify(welcomeConfig),
+      success: function() {
+        alert('Welcome message saved successfully!');
+      },
+      error: function(xhr) {
+        alert('Error saving message: ' + (xhr.responseJSON ? xhr.responseJSON.message : 'Unknown error'));
+      }
+    });
+  });
+
+  // Add tier - insert at requested position, shift others down
+  $('#save-tier-btn').click(function() {
+    var name = $('#tier-name').val().trim();
+    var order = parseInt($('#tier-order').val()) || 1;
+
+    if (!name) {
+      alert('Please enter a tier name.');
+      return;
+    }
+
+    // Check for duplicate
+    if (welcomeConfig.sponsor_tiers.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+      alert('A tier with this name already exists.');
+      return;
+    }
+
+    // Clamp order to valid range
+    if (order < 1) order = 1;
+    if (order > welcomeConfig.sponsor_tiers.length + 1) order = welcomeConfig.sponsor_tiers.length + 1;
+
+    // Insert at the correct array position (order is 1-based)
+    var insertIndex = order - 1;
+    welcomeConfig.sponsor_tiers.splice(insertIndex, 0, {
+      name: name,
+      display_order: order,
+      sponsors: []
+    });
+
+    // Renumber all tiers sequentially
+    renumberTiers();
+
+    $('#addTierModal').modal('hide');
+    $('#tier-name').val('');
+    $('#tier-order').val('1');
+    saveConfig();
+  });
+
+  // Update tier (name and/or order)
+  $('#update-tier-btn').click(function() {
+    var originalName = $('#edit-tier-original-name').val();
+    var newName = $('#edit-tier-name').val().trim();
+    var newOrder = parseInt($('#edit-tier-order').val()) || 1;
+
+    if (!newName) {
+      alert('Please enter a tier name.');
+      return;
+    }
+
+    // Check for duplicate name (excluding self)
+    if (newName.toLowerCase() !== originalName.toLowerCase() &&
+        welcomeConfig.sponsor_tiers.some(t => t.name.toLowerCase() === newName.toLowerCase())) {
+      alert('A tier with this name already exists.');
+      return;
+    }
+
+    var tier = welcomeConfig.sponsor_tiers.find(t => t.name === originalName);
+    if (!tier) return;
+
+    // Update the name
+    tier.name = newName;
+
+    // Move to new position if order changed
+    if (newOrder < 1) newOrder = 1;
+    if (newOrder > welcomeConfig.sponsor_tiers.length) newOrder = welcomeConfig.sponsor_tiers.length;
+
+    // Remove from current position
+    var currentIndex = welcomeConfig.sponsor_tiers.indexOf(tier);
+    welcomeConfig.sponsor_tiers.splice(currentIndex, 1);
+
+    // Insert at new position (newOrder is 1-based)
+    var newIndex = newOrder - 1;
+    welcomeConfig.sponsor_tiers.splice(newIndex, 0, tier);
+
+    // Renumber sequentially
+    renumberTiers();
+
+    $('#editTierModal').modal('hide');
+    saveConfig();
+  });
+
+  // Add sponsor
+  $('#save-sponsor-btn').click(function() {
+    var tierName = $('#sponsor-tier-name').val();
+    var name = $('#sponsor-name').val().trim();
+    var logo = $('#sponsor-logo').val().trim();
+    var website = $('#sponsor-website').val().trim();
+    var fileInput = document.getElementById('sponsor-logo-file');
+
+    if (!name) {
+      alert('Please enter a sponsor name.');
+      return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    function addSponsor(logoUrl) {
+      var tier = welcomeConfig.sponsor_tiers.find(t => t.name === tierName);
+      if (tier) {
+        tier.sponsors.push({
+          name: name,
+          logo_url: logoUrl,
+          website: website
+        });
+        $('#addSponsorModal').modal('hide');
+        saveConfig();
+      }
+      btn.prop('disabled', false);
+    }
+
+    if (fileInput.files.length > 0) {
+      uploadLogo(fileInput).then(function(url) {
+        addSponsor(url);
+      }).catch(function() {
+        btn.prop('disabled', false);
+      });
+    } else {
+      addSponsor(logo);
+    }
+  });
+
+  // Update sponsor
+  $('#update-sponsor-btn').click(function() {
+    var tierName = $('#edit-sponsor-tier').val();
+    var sponsorIndex = parseInt($('#edit-sponsor-index').val());
+    var name = $('#edit-sponsor-name').val().trim();
+    var logo = $('#edit-sponsor-logo').val().trim();
+    var website = $('#edit-sponsor-website').val().trim();
+    var fileInput = document.getElementById('edit-sponsor-logo-file');
+
+    if (!name) {
+      alert('Please enter a sponsor name.');
+      return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    function updateSponsor(logoUrl) {
+      var tier = welcomeConfig.sponsor_tiers.find(t => t.name === tierName);
+      if (tier && tier.sponsors[sponsorIndex]) {
+        tier.sponsors[sponsorIndex] = {
+          name: name,
+          logo_url: logoUrl,
+          website: website
+        };
+        $('#editSponsorModal').modal('hide');
+        saveConfig();
+      }
+      btn.prop('disabled', false);
+    }
+
+    if (fileInput.files.length > 0) {
+      uploadLogo(fileInput).then(function(url) {
+        updateSponsor(url);
+      }).catch(function() {
+        btn.prop('disabled', false);
+      });
+    } else {
+      updateSponsor(logo);
+    }
+  });
+
+  // Setup logo previews
+  setupLogoPreview('sponsor-logo-file', 'sponsor-logo-preview', 'sponsor-logo');
+  setupLogoPreview('edit-sponsor-logo-file', 'edit-sponsor-logo-preview', 'edit-sponsor-logo');
+});
+</script>
+{% endblock %}

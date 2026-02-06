@@ -1,9 +1,10 @@
 import uuid
+from urllib.parse import urlparse
 from flask import flash, redirect, request, url_for, g, Blueprint, render_template
 from flask_login import current_user, login_user, logout_user, LoginManager, login_required
 from flask_wtf import FlaskForm
 
-from wtforms import PasswordField, StringField
+from wtforms import BooleanField, PasswordField, StringField
 from wtforms.validators import InputRequired
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -33,10 +34,6 @@ def get_current_user():
     g.user = current_user
 
 
-@mod.before_request
-def get_current_user():
-    g.user = current_user
-
 
 # Creating our login form
 class LoginForm(FlaskForm):
@@ -50,6 +47,7 @@ class LoginForm(FlaskForm):
         [InputRequired()],
         render_kw={"class": "form-control", "placeholder": "Password", "required": "true"},
     )
+    remember = BooleanField("Remember Me")
 
 
 @mod.route("/login", methods=["GET", "POST"])
@@ -74,18 +72,26 @@ def login():
             flash("Invalid username or password. Please try again.", "danger")
             return render_template("login.html", form=form)
 
-        if User.generate_hash(password, user.password) == user.password:
+        if user.check_password(password):
             user.authenticated = True
             db.session.add(user)
             db.session.commit()
-            login_user(user, remember=True)
+            login_user(user, remember=form.remember.data)
+
+            next_url = request.values.get("next")
+            if next_url:
+                parsed = urlparse(next_url)
+                if parsed.netloc or parsed.scheme:
+                    next_url = None
 
             if user.is_white_team:
-                return redirect(request.values.get("next") or url_for("admin.status"))
+                return redirect(next_url or url_for("admin.status"))
             elif user.is_blue_team:
-                return redirect(request.values.get("next") or url_for("services.home"))
+                return redirect(next_url or url_for("services.home"))
+            elif user.is_red_team:
+                return redirect(next_url or url_for("flags.home"))
             else:
-                return redirect(request.values.get("next") or url_for("overview.home"))
+                return redirect(next_url or url_for("overview.home"))
         else:
             flash("Invalid username or password. Please try again.", "danger")
             return render_template("login.html", form=form)

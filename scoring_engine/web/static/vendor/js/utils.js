@@ -2,50 +2,8 @@
  * Shared JavaScript utilities for the Scoring Engine application
  */
 
-// Common validation functions for editable fields
 var ScoringEngineUtils = (function() {
     'use strict';
-
-    /**
-     * Validates text field input for editable fields
-     * Checks for empty values, leading/trailing spaces, and invalid characters
-     * @param {string} value - The value to validate
-     * @returns {string|undefined} - Error message if validation fails, undefined if valid
-     */
-    function validateTextField(value) {
-        if ($.trim(value) == '') {
-            return 'This field is required';
-        }
-        if (value.startsWith(" ") || value.endsWith(" ")) {
-            return "Input cannot start or end with a space";
-        }
-        if (/^[A-Za-z0-9\.,@=:\/\-\|\(\)\^$; !]+$/.test(value) == false) {
-            return "Invalid characters detected in input. Allowed characters are AlphaNumeric and any of . , @ = : / - | ( ) ^ $ ; space !";
-        }
-    }
-
-    /**
-     * Validates dropdown/select field input
-     * Checks for empty values
-     * @param {string} value - The value to validate
-     * @returns {string|undefined} - Error message if validation fails, undefined if valid
-     */
-    function validateDropdownField(value) {
-        if ($.trim(value) == '') {
-            return 'This field is required';
-        }
-    }
-
-    /**
-     * Standard success handler for editable field updates
-     * @param {Object} response - The response from the server
-     * @returns {string|undefined} - Error message if response contains error, undefined otherwise
-     */
-    function editableSuccessHandler(response) {
-        if (response.error) {
-            return "Unable to update value due to error: " + response.error;
-        }
-    }
 
     /**
      * Sanitize string for use in jQuery selectors
@@ -57,11 +15,43 @@ var ScoringEngineUtils = (function() {
         return str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
     }
 
+    /**
+     * Animate a numeric counter from previous value to target value.
+     * Skips animation if the value hasn't changed.
+     * @param {HTMLElement} el - The element to animate
+     * @param {number} target - The target number
+     * @param {number} duration - Animation duration in ms (default 800)
+     */
+    function animateCounter(el, target, duration) {
+        duration = duration || 800;
+        target = parseInt(target) || 0;
+        var prev = el._counterPrev;
+        if (prev !== undefined && prev === target) return;
+        var from = (prev !== undefined) ? prev : 0;
+        el._counterPrev = target;
+        var startTime = null;
+        function step(ts) {
+            if (!startTime) startTime = ts;
+            var p = Math.min((ts - startTime) / duration, 1);
+            el.textContent = Math.floor(from + (target - from) * p).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    /**
+     * Set text content only if the value has changed.
+     * @param {HTMLElement} el - The element to update
+     * @param {string} text - The new text content
+     */
+    function setText(el, text) {
+        if (el.textContent !== text) el.textContent = text;
+    }
+
     // Public API
     return {
-        validateTextField: validateTextField,
-        validateDropdownField: validateDropdownField,
-        editableSuccessHandler: editableSuccessHandler,
-        sanitizeSelector: sanitizeSelector
+        sanitizeSelector: sanitizeSelector,
+        animateCounter: animateCounter,
+        setText: setText
     };
 })();

@@ -2,19 +2,48 @@
 {% block title %}Services{% endblock %}
 {% block head %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
-<div class="container md-page">
-    <div class="row">
-        <h3>{{ current_user.team.name }}</h3>
-        <h5 id="team_place">Place: </h5>
-        <h5 id="team_current_score">Score: </h5>
+<div class="page-wrap">
+    <div class="stat-cards-row">
+        <div class="stat-card">
+            <div class="stat-label">Team</div>
+            <div class="stat-value" id="team_name" style="font-size:1.5rem">{{ current_user.team.name }}</div>
+            <div class="stat-detail" id="team_color_bar">&nbsp;</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Place</div>
+            <div class="stat-value" id="team_place">-</div>
+            <div class="stat-detail">current rank</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Score</div>
+            <div class="stat-value" id="team_current_score">-</div>
+            <div class="stat-detail">total points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Up</div>
+            <div class="stat-value text-success" id="services_up">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Down</div>
+            <div class="stat-value text-danger" id="services_down">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Uptime</div>
+            <div class="stat-value" id="overall_uptime">-</div>
+            <div class="stat-detail">overall</div>
+        </div>
     </div>
-    <div class="row">
-        <table id="services" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+
+    <h3 class="section-header">Services</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
+        <table id="services" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
                     <th><div title="Name of Service">Service</div></th>
@@ -32,17 +61,44 @@
             <tbody>
             </tbody>
         </table>
-        <script>
+    </div>
+
+    <script>
             function refreshteamdata() {
                 $.ajax({
                     cache: false,
                     url: '/api/team/{{ current_user.team.id }}/stats',
                     dataType: 'json',
                     success: function(data) {
-                        $('#team_place').text("Place: " + data.place);
-                        $('#team_current_score').text("Score: " + parseFloat(data.current_score).toLocaleString());
+                        ScoringEngineUtils.animateCounter(document.getElementById('team_place'), parseInt(data.place) || 0);
+                        ScoringEngineUtils.animateCounter(document.getElementById('team_current_score'), parseFloat(data.current_score) || 0);
                     }
                 });
+            }
+
+            function updateHealthSummary(data) {
+                var servicesUp = 0;
+                var servicesDown = 0;
+                var totalEarned = 0;
+                var totalMax = 0;
+
+                if (data && data.data) {
+                    data.data.forEach(function(service) {
+                        if (service.check === "UP") {
+                            servicesUp++;
+                        } else if (service.check === "DOWN") {
+                            servicesDown++;
+                        }
+                        totalEarned += parseFloat(service.score_earned) || 0;
+                        totalMax += parseFloat(service.max_score) || 0;
+                    });
+                }
+
+                ScoringEngineUtils.animateCounter(document.getElementById('services_up'), servicesUp);
+                ScoringEngineUtils.animateCounter(document.getElementById('services_down'), servicesDown);
+
+                var uptime = totalMax > 0 ? ((totalEarned / totalMax) * 100).toFixed(1) + '%' : '-';
+                ScoringEngineUtils.setText(document.getElementById('overall_uptime'), uptime);
             }
 
             $(document).ready(function() {
@@ -62,7 +118,13 @@
                         'paging': false,
                         'bFilter': false,
                         'bInfo': false,
-                        "ajax": "/api/team/{{ current_user.team.id }}/services",
+                        "ajax": {
+                            "url": "/api/team/{{ current_user.team.id }}/services",
+                            "dataSrc": function(json) {
+                                updateHealthSummary(json);
+                                return json.data;
+                            }
+                        },
                         "order": [],
                         "columns": [
                             {
@@ -76,8 +138,8 @@
                             {
                                 "data": null,
                                 "render": function( data ) {
-                                    var span_str = '<span class="label label-'
-                                    var label_level = 'default'
+                                    var span_str = '<span class="badge bg-'
+                                    var label_level = 'secondary'
                                     var label_str = 'Undetermined'
                                     if ( data.check == "UP" ) {
                                         label_level = 'success'
@@ -112,10 +174,10 @@
                                     var last_ten_checks = '<div align="right">'
                                     for (var index in data.last_ten_checks) {
                                         if ( data.last_ten_checks[index] == true ) {
-                                            last_ten_checks += '<span class="glyphicon glyphicon-ok" style="color:green"></span>';
+                                            last_ten_checks += '<i class="bi bi-check-lg" style="color:green"></i>';
                                         }
                                         else {
-                                        last_ten_checks += '<span class="glyphicon glyphicon-remove" style="color:red"></span>';
+                                        last_ten_checks += '<i class="bi bi-x-lg" style="color:red"></i>';
                                         }
                                     }
                                     return '</div>' + last_ten_checks;
@@ -127,7 +189,6 @@
                     table.ajax.reload();
                 }, 30000 );
             } );
-        </script>
-    </div>
+    </script>
 </div>
 {% endblock %}
