@@ -37,6 +37,7 @@ def create_app():
     from scoring_engine.web.views import (
         welcome,
         services,
+        status,
         stats,
         scoreboard,
         profile,
@@ -69,6 +70,7 @@ def create_app():
 
     app.register_blueprint(welcome.mod)
     app.register_blueprint(services.mod)
+    app.register_blueprint(status.mod)
     app.register_blueprint(stats.mod)
     app.register_blueprint(scoreboard.mod)
     app.register_blueprint(profile.mod)

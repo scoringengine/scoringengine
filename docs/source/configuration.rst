@@ -54,6 +54,8 @@ Configuration Keys
      - A boolean indicating if blue teams should be allowed to change passwords of scored users
    * - blue_team_view_check_output
      - A boolean indicating if blue teams should be allowed to view verbose output from checks
+   * - blue_team_view_status_page
+     - A boolean indicating if blue teams should be allowed to view the status page containing information about compromised machines
    * - timezone
      - Local timezone of the competition
    * - debug

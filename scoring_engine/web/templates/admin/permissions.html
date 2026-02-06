@@ -55,6 +55,15 @@
                 </div>
               </form>
             </li>
+            <li class="list-group-item">
+              <form id="view_status_page_form" method="POST" action="{{ url_for('api.admin_update_blueteam_view_status_page') }}" role="form">
+                View Status Page
+                <div class="permission-switch pull-right">
+                  <input id="view_status_page_passwords" type="checkbox" onchange="$('#view_status_page_form').submit();" {{ 'checked' if blue_team_view_status_page == true }}/>
+                  <label for="view_status_page_passwords" class="label-primary"></label>
+                </div>
+              </form>
+            </li>
           </ul>
         </div>
       </div>
