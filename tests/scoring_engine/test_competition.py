@@ -307,6 +307,10 @@ class TestEnvironmentData(CompetitionDataTest):
         self.setup['teams'][0]['services'][0]['environments'][0]['matching_content'] = []
         self.verify_error("Team1 SSH environment 'matching_content' field must be a string")
 
+    def test_bad_matching_content_regex(self):
+        self.setup['teams'][0]['services'][0]['environments'][0]['matching_content'] = 'foo(bar'
+        self.verify_error("Team1 SSH environment 'matching_content' field must be a valid regex pattern: missing ), unterminated subpattern at position 3")
+
     def test_bad_properties_type(self):
         self.setup['teams'][0]['services'][0]['environments'][0]['properties'] = 'a string'
         self.verify_error("Team1 SSH environment 'properties' field must be an array")
