@@ -2,6 +2,8 @@
 Comprehensive tests for SLA penalty and dynamic scoring functionality.
 """
 
+from decimal import Decimal
+
 from scoring_engine.db import db
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
@@ -310,6 +312,19 @@ class TestDynamicScoring(UnitTest):
         assert apply_dynamic_scoring_to_round(5, 100, config) == 200  # Early: 2x
         assert apply_dynamic_scoring_to_round(25, 100, config) == 100  # Normal: 1x
         assert apply_dynamic_scoring_to_round(75, 100, config) == 50  # Late: 0.5x
+
+    def test_apply_dynamic_scoring_to_round_with_decimal(self):
+        """Test applying multiplier to Decimal points (as returned by func.sum)."""
+        config = SLAConfig()
+        config.dynamic_enabled = True
+        config.early_rounds = 10
+        config.early_multiplier = 2.0
+        config.late_start_round = 50
+        config.late_multiplier = 0.5
+
+        assert apply_dynamic_scoring_to_round(5, Decimal("4500"), config) == 9000
+        assert apply_dynamic_scoring_to_round(25, Decimal("4500"), config) == 4500
+        assert apply_dynamic_scoring_to_round(75, Decimal("4500"), config) == 2250
 
     def test_dynamic_scoring_info(self):
         """Test get_dynamic_scoring_info returns correct structure."""

@@ -536,7 +536,7 @@ def apply_dynamic_scoring_to_round(round_number, base_points, config=None):
         config = get_sla_config()
 
     multiplier = calculate_round_multiplier(round_number, config)
-    return int(base_points * multiplier)
+    return int(float(base_points) * multiplier)
 
 
 def get_dynamic_scoring_info(config=None):
