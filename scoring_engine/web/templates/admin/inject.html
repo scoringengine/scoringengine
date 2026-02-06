@@ -28,55 +28,57 @@
 {% block admincontent %}
 
 {% if inject.status == 'Submitted' %}
-<div class="card mb-3">
-  <div class="card-body">
-    <form class="row row-cols-lg-auto g-3 align-items-center">
-      <div class="col-12">
-        <label for="inputGrade" class="col-form-label">Grade</label>
-      </div>
-      <div class="col-12">
-        <input type="number" class="form-control" id="inputGrade" placeholder="100">
-      </div>
-      <div class="col-12">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitGradeConfirmation">Submit
-          Grade</button>
-      </div>
-    </form>
-  </div>
+<div class="chart-card mt-3">
+  <form class="row row-cols-lg-auto g-3 align-items-center">
+    <div class="col-12">
+      <label for="inputGrade" class="col-form-label">Grade</label>
+    </div>
+    <div class="col-12">
+      <input type="number" class="form-control" id="inputGrade" placeholder="100">
+    </div>
+    <div class="col-12">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitGradeConfirmation">Submit
+        Grade</button>
+    </div>
+  </form>
 </div>
 {% endif %}
 {% if inject.template.rubric %}
-<h4>Rubric</h4>
-<table class="table table-bordered">
-  <tr>
-    <th>Deliverable</th>
-    <th>Value</th>
-  </tr>
-  {% for rubric in inject.template.rubric %}
-  <tr>
-    <td>{{ rubric.deliverable }}</td>
-    <td>{{ rubric.value }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<h3 class="section-header">Rubric</h3>
+<div class="chart-card" style="padding:0; overflow:hidden;">
+  <table class="table table-sm overview-matrix">
+    <thead>
+      <tr>
+        <th>Deliverable</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rubric in inject.template.rubric %}
+      <tr>
+        <td>{{ rubric.deliverable }}</td>
+        <td>{{ rubric.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endif %}
-<h4>Grade</h4>
+<h3 class="section-header">Grade</h3>
 <p>{{ inject.score }}</p>
-<h4>Files</h4>
+<h3 class="section-header">Files</h3>
 <div id="files"></div>
-<h4>Comments</h4>
+<h3 class="section-header">Comments</h3>
 <div id="comments"></div>
-<div class="card">
-  <div class="card-body">
-    <form>
-      <div class="mb-3">
-        <textarea id="commentArea" class="form-control" rows="3"></textarea>
-      </div>
-      <div class="mb-3">
-        <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
-      </div>
-    </form>
-  </div>
+<div class="chart-card">
+  <form>
+    <div class="mb-3">
+      <textarea id="commentArea" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+      <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
+    </div>
+  </form>
 </div>
 <!-- Submit Modal -->
 <div class="modal fade" id="submitGradeConfirmation" tabindex="-1" aria-labelledby="submitGradeConfirmationLabel" aria-hidden="true">
@@ -141,15 +143,11 @@
 
         // Append comment elements
         $.each(result.data, function (index, value) {
-          if (value.team == "{{ current_user.team.name }}") {
-            comments += '<div class="card border-primary mb-2">' +
-              '<div class="card-header bg-primary text-white">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
-              '<div class="card-body">' + value.text + '</div></div>';
-          } else {
-            comments += '<div class="card mb-2">' +
-              '<div class="card-header">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
-              '<div class="card-body">' + value.text + '</div></div>';
-          }
+          var isOwn = value.team == "{{ current_user.team.name }}";
+          comments += '<div class="chart-card mb-2" style="padding:0; overflow:hidden;">' +
+            '<div style="padding:0.5rem 1rem; font-size:0.85rem; color:var(--bs-secondary-color);' + (isOwn ? ' border-left:3px solid #58a6ff;' : '') + '">' +
+            '<strong>' + value.user + '</strong> <span class="text-muted">(' + value.team + ')</span> &middot; ' + value.added + '</div>' +
+            '<div style="padding:0.75rem 1rem;">' + value.text + '</div></div>';
         });
 
         // Update comments

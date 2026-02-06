@@ -9,13 +9,10 @@
 {% block header %}SLA & Dynamic Scoring Settings{% endblock %}
 
 {% block admincontent %}
-<div style="padding-top: 20px;">
+<div class="pt-3">
   <!-- SLA Penalties Section -->
-  <div class="card border-primary mb-3">
-    <div class="card-header bg-primary text-white">
-      <h4 class="card-title mb-0">SLA Penalty Configuration</h4>
-    </div>
-    <div class="card-body">
+  <h3 class="section-header">SLA Penalty Configuration</h3>
+  <div class="chart-card">
       <p class="text-muted">
         Configure penalties for services that fail consecutive health checks.
         When enabled, teams are penalized for services that remain down.
@@ -116,15 +113,11 @@
           </div>
         </div>
       </form>
-    </div>
   </div>
 
   <!-- Dynamic Scoring Section -->
-  <div class="card border-info mb-3">
-    <div class="card-header bg-info text-white">
-      <h4 class="card-title mb-0">Dynamic Scoring Configuration</h4>
-    </div>
-    <div class="card-body">
+  <h3 class="section-header">Dynamic Scoring Configuration</h3>
+  <div class="chart-card">
       <p class="text-muted">
         Configure time-based scoring multipliers. Points can be worth more or less
         during different phases of the competition.
@@ -209,18 +202,13 @@
           </div>
         </div>
       </form>
-    </div>
   </div>
 
   <!-- Current SLA Status -->
-  <div class="card mb-3">
-    <div class="card-header">
-      <h4 class="card-title mb-0">Current SLA Status</h4>
-    </div>
-    <div class="card-body">
-      <div id="sla-status-container">
-        <p class="text-muted">Loading SLA status...</p>
-      </div>
+  <h3 class="section-header">Current SLA Status</h3>
+  <div class="chart-card" style="padding:0; overflow:hidden;">
+    <div id="sla-status-container" style="padding: 1.25rem;">
+      <p class="text-muted">Loading SLA status...</p>
     </div>
   </div>
 </div>
@@ -235,24 +223,24 @@ $(document).ready(function() {
     success: function(data) {
       var html = '';
       if (data.teams && data.teams.length > 0) {
-        html += '<table class="table table-striped table-sm">';
-        html += '<thead><tr><th>Team</th><th class="text-end">Base Score</th><th class="text-end">Penalties</th><th class="text-end">Adjusted Score</th><th class="text-end">Violations</th></tr></thead>';
+        html += '<table class="table table-sm overview-matrix">';
+        html += '<thead><tr><th>Team</th><th>Base Score</th><th>Penalties</th><th>Adjusted Score</th><th>Violations</th></tr></thead>';
         html += '<tbody>';
         for (var i = 0; i < data.teams.length; i++) {
           var team = data.teams[i];
           html += '<tr>';
           html += '<td>' + team.team_name + '</td>';
-          html += '<td class="text-end">' + team.base_score.toLocaleString() + '</td>';
-          html += '<td class="text-end text-danger">' + (team.total_penalties > 0 ? '-' + team.total_penalties.toLocaleString() : '0') + '</td>';
-          html += '<td class="text-end"><strong>' + team.adjusted_score.toLocaleString() + '</strong></td>';
-          html += '<td class="text-end">' + team.services_with_violations + '/' + team.total_services + '</td>';
+          html += '<td>' + team.base_score.toLocaleString() + '</td>';
+          html += '<td class="text-danger">' + (team.total_penalties > 0 ? '-' + team.total_penalties.toLocaleString() : '0') + '</td>';
+          html += '<td><strong>' + team.adjusted_score.toLocaleString() + '</strong></td>';
+          html += '<td>' + team.services_with_violations + '/' + team.total_services + '</td>';
           html += '</tr>';
         }
         html += '</tbody></table>';
       } else {
         html = '<p class="text-muted">No team data available.</p>';
       }
-      $('#sla-status-container').html(html);
+      $('#sla-status-container').css('padding', '0').html(html);
     },
     error: function() {
       $('#sla-status-container').html('<p class="text-danger">Error loading SLA status.</p>');

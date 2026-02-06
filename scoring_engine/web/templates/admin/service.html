@@ -35,9 +35,10 @@
         </div>
       </div>
 
-      <h5>Accounts</h5>
+      <h3 class="section-header">Accounts</h3>
       {% if service.accounts %}
-      <table class="table table-striped table-bordered table-sm">
+      <div class="chart-card" style="padding:0; overflow:hidden;">
+      <table class="table table-sm overview-matrix">
         <thead>
           <tr>
             <th style="width: 30%">Username</th>
@@ -68,6 +69,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
       {% else %}
       <p class="text-muted">No Accounts Found.</p>
       {% endif %}
@@ -91,9 +93,10 @@
     </div>
   </div>
 
-  <h5>Environments</h5>
+  <h3 class="section-header">Environments</h3>
   {% if service.environments %}
-  <table class="table table-striped table-bordered table-sm">
+  <div class="chart-card" style="padding:0; overflow:hidden;">
+  <table class="table table-sm overview-matrix">
     <thead>
       <tr>
         <th style="width: 25%">Matching Content</th>
@@ -145,12 +148,14 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
   <p class="text-muted">No Environments Found.</p>
   {% endif %}
 
-  <h5>Checks</h5>
-  <table id="checks" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+  <h3 class="section-header">Checks</h3>
+  <div class="chart-card" style="padding:0; overflow:hidden;">
+  <table id="checks" class="table table-sm overview-matrix" width="100%">
     <thead>
       <tr>
         <th></th>
@@ -163,6 +168,7 @@
       </tr>
     </thead>
   </table>
+  </div>
 </div>
 
 <script>
