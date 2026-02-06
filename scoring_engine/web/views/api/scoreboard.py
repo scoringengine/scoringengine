@@ -108,6 +108,8 @@ def _get_bar_data_cached(anonymize, show_both):
     team_sla_penalties = []
     team_adjusted_scores = []
 
+    team_colors = []
+
     blue_teams = (
         db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     )
@@ -116,6 +118,7 @@ def _get_bar_data_cached(anonymize, show_both):
     for blue_team in blue_teams:
         display_name = team_name_map.get(blue_team.id, blue_team.name)
         team_labels.append(display_name)
+        team_colors.append(blue_team.rgb_color)
         service_score = current_scores.get(blue_team.id, 0)
         inject_score = inject_scores.get(blue_team.id, 0)
         team_scores.append(str(service_score))
@@ -137,6 +140,7 @@ def _get_bar_data_cached(anonymize, show_both):
             team_adjusted_scores.append(str(total_base_score))
 
     team_data["labels"] = team_labels
+    team_data["colors"] = team_colors
     team_data["service_scores"] = team_scores
     team_data["inject_scores"] = team_inject_scores
     team_data["sla_penalties"] = team_sla_penalties

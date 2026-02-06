@@ -66,10 +66,10 @@ def _get_table_columns_cached(anonymize, show_both):
     team_name_map = Team.get_team_name_mapping(anonymize=anonymize, show_both=show_both)
 
     columns = []
-    columns.append({"title": "", "data": ""})
+    columns.append({"title": "", "data": "", "color": None})
     for team in blue_teams:
         display_name = team_name_map.get(team.id, team.name)
-        columns.append({"title": display_name, "data": display_name})
+        columns.append({"title": display_name, "data": display_name, "color": team.rgb_color})
     return columns
 
 

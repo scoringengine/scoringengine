@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container md-page">
+<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
       <div class="list-group text-center mb-3">
@@ -80,12 +80,12 @@
     </div>
     <div class="col-sm-9">
       <div class="card">
-        <div class="card-header bg-body-secondary">
+        <div class="card-header bg-body-secondary" style="border-bottom:none;">
           <h2 class="card-title mb-0">
             {% block header %}{% endblock %}
           </h2>
         </div>
-        <div class="card-body border-top pt-0">
+        <div class="card-body pt-0">
           {% block admincontent %}
           {% endblock %}
         </div>

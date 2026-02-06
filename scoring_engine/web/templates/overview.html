@@ -1,137 +1,148 @@
 {% extends 'base.html' %}
 {% block title %}Overview{% endblock %}
-{% block head %}
-{{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
-{% endblock %}
 {% block content %}
-<div class="container-fluid md-page">
-    <div class="row">
-        <h2 id="round_number" class="text-center"></h2>
-        <h4 id="round_start" class="text-center"></h4>
+<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+    <!-- Stat Cards -->
+    <div class="stat-cards-row">
+        <div class="stat-card">
+            <div class="stat-label">Round</div>
+            <div class="stat-value" id="ov-round">-</div>
+            <div class="stat-detail" id="ov-round-time">&nbsp;</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Up</div>
+            <div class="stat-value text-success" id="ov-up">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Down</div>
+            <div class="stat-value text-danger" id="ov-down">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Leader</div>
+            <div class="stat-value" id="ov-leader" style="font-size:1.2rem">-</div>
+            <div class="stat-detail" id="ov-leader-score">&nbsp;</div>
+        </div>
     </div>
-    <div class="row">
-        <div class="table-responsive">
-        <table id="overview" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+
+    <!-- Service Status Matrix -->
+    <h3 class="section-header">Service Status</h3>
+    <div class="chart-card" style="padding:0; overflow:hidden;">
+        <table id="overview" class="table table-sm overview-matrix">
             <thead>
-                <tr>
+                <tr id="overview-header">
                     <th></th>
-                    {% for team in teams %}
-                    <th title="{{ team.name }}">{{ team.name }}</th>
-                    {% endfor %}
                 </tr>
             </thead>
+            <tbody id="overview-body"></tbody>
         </table>
-        </div>
-        <div id='hint'>Hover over status icon to get host:port information</div>
-        <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a
-                href="{{ url_for('api.overview_data') }}">Here</a></div>
-        <script>
-            function refreshheader() {
-                $.ajax({
-                    cache: false,
-                    url: '/api/overview/get_round_data',
-                    dataType: 'json',
-                    success: function (data) {
-                        $('#round_number').text("Round " + data.number);
-                        $('#round_start').text(data.round_start);
-                    }
-                });
-            }
+    </div>
+</div>
 
-            // Populate services table
-            var overview = $('#overview').DataTable({
-                'ajax': '/api/overview/get_data',
-                'paging': false,
-                'bSort': false,
-                'info': false,
-                'searching': false,
-                'columnDefs': [
-                    { "width": "10%", "targets": 0 }
-                ],
-                'createdRow': function (row, data, index) {
-                    // Cache row cells array for better performance
-                    var $cells = $(row).children('td');
-                    var cellsLength = $cells.length;
-                    // Get row label from first cell to determine row type
-                    var rowLabel = data[0];
+<script>
+    var _upCount = 0, _downCount = 0;
+    var _columns = [];
 
-                    // Process cells
-                    for (var i = 0; i < cellsLength; i++) {
-                        var $cell = $($cells[i]);
-                        var value = $cell.html();
+    function refreshRound() {
+        $.getJSON('/api/overview/get_round_data').done(function(data) {
+            ScoringEngineUtils.animateCounter(document.getElementById('ov-round'), data.number);
+            ScoringEngineUtils.setText(document.getElementById('ov-round-time'), data.round_start || '');
+        });
+    }
 
-                        // Determine row type by label instead of index
-                        if (rowLabel === 'Current Score') {
-                            if (i == 0) {
-                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                            } else {
-                                $cell.html(parseFloat(value).toLocaleString());
-                            }
-                        } else if (rowLabel === 'Current Place') {
-                            if (i == 0) {
-                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                            } else {
-                                // Add medal ribbons for top 3
-                                var medal = '';
-                                if (value == 1) medal = ' <i class="bi bi-award-fill" style="color: #C98910"></i>';
-                                else if (value == 2) medal = ' <i class="bi bi-award-fill" style="color: #A8A8A8"></i>';
-                                else if (value == 3) medal = ' <i class="bi bi-award-fill" style="color: #965A38"></i>';
-                                if (medal) $cell.html(value + medal);
-                            }
-                        } else if (rowLabel === 'SLA Penalties') {
-                            // SLA Penalties row - just bold the label
-                            if (i == 0) {
-                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                            }
-                            // Leave penalty values as-is (already formatted with HTML from API)
-                        } else if (rowLabel === 'Up/Down Ratio') {
-                            // Up/Down Ratio row - just bold the label
-                            if (i == 0) {
-                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                            }
-                            // Leave ratio values as-is (already formatted with HTML from API)
-                        } else {
-                            // Service status row
-                            if (i == 0) {
-                                $cell.html(`<span style="font-weight:bold">${value}</span>`);
-                            } else {
-                                // Determine status icon and color
-                                var icon, color;
-                                if (value == 'true') {
-                                    icon = 'bi-check-lg';
-                                    color = 'green';
-                                } else if (value == 'false') {
-                                    icon = 'bi-x-lg';
-                                    color = 'red';
-                                } else {
-                                    icon = 'bi-question-circle';
-                                    color = 'black';
-                                }
-                                $cell.html(`<i class="bi ${icon}" style="color:${color}"></i>`);
-                            }
+    function renderCell(value, rowLabel, colIndex) {
+        if (colIndex === 0) {
+            return '<td><span class="fw-bold">' + value + '</span></td>';
+        }
+
+        if (rowLabel === 'Current Score') {
+            return '<td>' + parseFloat(value).toLocaleString() + '</td>';
+        }
+
+        if (rowLabel === 'Current Place') {
+            var medal = '';
+            if (value == 1) medal = ' <i class="bi bi-award-fill" style="color:#C98910"></i>';
+            else if (value == 2) medal = ' <i class="bi bi-award-fill" style="color:#A8A8A8"></i>';
+            else if (value == 3) medal = ' <i class="bi bi-award-fill" style="color:#965A38"></i>';
+            return '<td>' + value + medal + '</td>';
+        }
+
+        if (rowLabel === 'SLA Penalties' || rowLabel === 'Up/Down Ratio') {
+            return '<td>' + value + '</td>';
+        }
+
+        // Service status cell
+        var icon, cls;
+        if (value === true || value === 'true') {
+            icon = 'bi-check-circle-fill'; cls = 'text-success';
+            _upCount++;
+        } else if (value === false || value === 'false') {
+            icon = 'bi-x-circle-fill'; cls = 'text-danger';
+            _downCount++;
+        } else {
+            icon = 'bi-question-circle'; cls = 'text-secondary';
+        }
+        return '<td><i class="bi ' + icon + ' ' + cls + '"></i></td>';
+    }
+
+    function loadData() {
+        $.getJSON('/api/overview/get_data').done(function(json) {
+            _upCount = 0;
+            _downCount = 0;
+            var leaderName = '-', leaderScore = -Infinity, leaderColor = '';
+            var rows = json.data || [];
+            var html = '';
+
+            for (var r = 0; r < rows.length; r++) {
+                var row = rows[r];
+                var rowLabel = row[0];
+                html += '<tr>';
+                for (var c = 0; c < row.length; c++) {
+                    html += renderCell(row[c], rowLabel, c);
+                }
+                html += '</tr>';
+
+                // Find leader from Current Score row
+                if (rowLabel === 'Current Score') {
+                    for (var s = 1; s < row.length; s++) {
+                        var score = parseFloat(row[s]) || 0;
+                        if (score > leaderScore) {
+                            leaderScore = score;
+                            leaderName = (_columns[s] && _columns[s].title) || 'Team ' + s;
+                            leaderColor = (_columns[s] && _columns[s].color) || '';
                         }
                     }
                 }
-            });
+            }
 
-            $(document).ready(function () {
-                // Disable datatables error reporting
-                $.fn.dataTable.ext.errMode = 'none';
+            document.getElementById('overview-body').innerHTML = html;
+            var leaderEl = document.getElementById('ov-leader');
+            ScoringEngineUtils.setText(leaderEl, leaderName);
+            leaderEl.style.color = leaderColor;
+            ScoringEngineUtils.setText(document.getElementById('ov-leader-score'), leaderScore > -Infinity ? leaderScore.toLocaleString() + ' pts' : '');
+            ScoringEngineUtils.animateCounter(document.getElementById('ov-up'), _upCount);
+            ScoringEngineUtils.animateCounter(document.getElementById('ov-down'), _downCount);
+        });
+    }
 
-                // Populate our header
-                refreshheader();
-                setInterval(function () {
-                    refreshheader()
-                }, 30000);
+    // Init: load columns then data
+    $.getJSON('/api/overview/get_columns').done(function(resp) {
+        _columns = resp.columns;
+        var $headerRow = $('#overview-header');
+        for (var i = 1; i < resp.columns.length; i++) {
+            var col = resp.columns[i];
+            var style = col.color ? ' style="border-bottom: 2px solid ' + col.color + '"' : '';
+            $headerRow.append('<th title="' + col.title + '"' + style + '>' + col.title + '</th>');
+        }
+        loadData();
+    });
 
-                setInterval(function () {
-                    overview.ajax.reload();
-                }, 30000);
-            });
-        </script>
-    </div>
-</div>
+    // Auto-refresh
+    refreshRound();
+    setInterval(function() {
+        refreshRound();
+        loadData();
+    }, 30000);
+</script>
 {% endblock %}

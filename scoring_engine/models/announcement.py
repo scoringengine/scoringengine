@@ -14,12 +14,16 @@ from sqlalchemy.orm import relationship
 from scoring_engine.models.base import Base
 
 
+def _utcnow():
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
 class Announcement(Base):
     __tablename__ = "announcements"
     id = Column(Integer, primary_key=True)
     title = Column(String(255), nullable=False)
     content = Column(UnicodeText, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # Audience targeting
@@ -48,7 +52,7 @@ class Announcement(Base):
             return False
 
         # Check if announcement has expired
-        if self.expires_at and datetime.datetime.utcnow() > self.expires_at:
+        if self.expires_at and _utcnow() > self.expires_at:
             return False
 
         # Global announcements are visible to everyone

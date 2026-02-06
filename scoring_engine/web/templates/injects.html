@@ -7,12 +7,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
-<div class="container md-page">
-    <div class="row">
-        <h3>{{ current_user.team.name }}</h3>
-    </div>
-    <div class="row">
-        <div class="table-responsive">
+<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+    <h3 class="section-header">Injects &mdash; {{ current_user.team.name }}</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
         <table id="injects" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
@@ -37,7 +34,6 @@
                 </tr>
             </thead>
         </table>
-        </div>
     </div>
 </div>
 <script>

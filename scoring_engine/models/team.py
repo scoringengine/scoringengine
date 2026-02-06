@@ -1,3 +1,4 @@
+import colorsys
 import itertools
 import random
 
@@ -8,6 +9,46 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
+
+# Curated palette: distinct, vibrant colors that read well on dark backgrounds.
+# Ordered to maximize visual separation between adjacent teams.
+_TEAM_COLORS = [
+    "#58a6ff",  # blue
+    "#f97583",  # red/pink
+    "#3fb950",  # green
+    "#d2a8ff",  # purple
+    "#f59e0b",  # amber
+    "#56d4dd",  # cyan
+    "#f778ba",  # magenta
+    "#e3b341",  # gold
+    "#79c0ff",  # light blue
+    "#7ee787",  # lime
+    "#ff9492",  # salmon
+    "#bc8cff",  # lavender
+    "#ffa657",  # orange
+    "#39d353",  # bright green
+    "#a5d6ff",  # sky
+    "#f0883e",  # dark orange
+    "#b1bac4",  # silver
+    "#db61a2",  # rose
+    "#2ea043",  # forest green
+    "#8957e5",  # violet
+    "#ec8e2c",  # tangerine
+    "#3bc9db",  # teal
+    "#e06c75",  # coral
+    "#c9d1d9",  # light gray
+    "#d29922",  # dark gold
+    "#73c991",  # mint
+    "#da70d6",  # orchid
+    "#68b5fb",  # cornflower
+    "#f2cc60",  # yellow
+    "#e57373",  # indian red
+    "#4dd0e1",  # light teal
+    "#aed581",  # light green
+]
+
+# Track which palette colors have been assigned this session
+_palette_index = 0
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -52,11 +93,22 @@ class Team(Base):
     def __init__(self, name, color):
         self.name = name
         self.color = color
-        self.rgb_color = "rgba(%s, %s, %s, 1)" % (
-            random.randint(0, 255),
-            random.randint(0, 255),
-            random.randint(0, 255),
-        )
+        self.rgb_color = self._next_color()
+
+    @staticmethod
+    def _next_color():
+        """Pick the next distinct color from the curated palette, or generate a random vibrant one."""
+        global _palette_index
+        if _palette_index < len(_TEAM_COLORS):
+            hex_color = _TEAM_COLORS[_palette_index]
+            _palette_index += 1
+            return hex_color
+        # Fallback: random color with constrained HSL for dark-bg readability
+        h = random.random()
+        s = random.uniform(0.6, 0.9)
+        l = random.uniform(0.55, 0.75)
+        r, g, b = colorsys.hls_to_rgb(h, l, s)
+        return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
 
     @property
     def current_score(self):

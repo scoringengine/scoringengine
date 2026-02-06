@@ -19,6 +19,7 @@
   <title>Scoring Engine - {% block title %}{% endblock %}</title>
   <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/utils.js') }}"></script>
   {% endblock %}
   <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='vendor/css/bootstrap-icons.min.css') }}" rel="stylesheet">
@@ -111,7 +112,7 @@
     </div>
     {% endfor %}
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark" style="border-radius: 0 !important">
+    <nav class="navbar navbar-expand-md navbar-dark">
       <div class="container">
         <a class="navbar-brand" href="/">Scoring Engine</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">

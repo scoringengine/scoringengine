@@ -34,10 +34,6 @@ def get_current_user():
     g.user = current_user
 
 
-@mod.before_request
-def get_current_user():
-    g.user = current_user
-
 
 # Creating our login form
 class LoginForm(FlaskForm):

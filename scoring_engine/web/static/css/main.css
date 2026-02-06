@@ -1,75 +1,107 @@
-/* Team accent colors */
+/* ===== Dark theme color overrides ===== */
+/* In dark mode, page bg is very dark, cards/tables are elevated for contrast */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #0d1117;
+    --bs-body-bg-rgb: 13, 17, 23;
+    --bs-body-color: #e6edf3;
+    --bs-secondary-color: #8b949e;
+    --bs-border-color: #30363d;
+    --bs-tertiary-bg: #161b22;
+    --bs-card-bg: #161b22;
+    --bs-card-cap-bg: #1c2128;
+    --card-bg: #161b22;
+    --elevated-bg: #1c2128;
+}
+
+[data-bs-theme="light"] {
+    --card-bg: #fff;
+    --elevated-bg: #f6f8fa;
+}
+
+/* ===== Team accent colors ===== */
 body.team-blue { --team-accent: #0d6efd; }
 body.team-red { --team-accent: #dc3545; }
 body.team-white { --team-accent: #6c757d; }
 
-/* Team accent underline on navbar brand */
 body.team-blue .navbar-brand,
 body.team-red .navbar-brand,
 body.team-white .navbar-brand {
-  border-bottom: 2px solid var(--team-accent);
-  padding-bottom: 2px;
+    border-bottom: 2px solid var(--team-accent);
+    padding-bottom: 2px;
 }
 
+/* ===== Navbar — frosted glass ===== */
 .navbar {
-  margin-bottom: 0;
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: rgba(13, 17, 23, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+[data-bs-theme="light"] .navbar {
+    background: rgba(33, 37, 41, 0.92) !important;
 }
 
 .navbar-collapse .container-fluid {
-  padding: 2rem 2.5rem;
-  border-bottom: 1px solid #55595c;
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid #55595c;
 }
 
 .navbar-collapse h4 {
-  color: #818a91;
+    color: #818a91;
 }
 
 .navbar-collapse .text-muted {
-  color: #818a91;
+    color: #818a91;
 }
 
+/* ===== General layout ===== */
 .about {
-  float: left;
-  max-width: 30rem;
-  margin-right: 3rem;
+    float: left;
+    max-width: 30rem;
+    margin-right: 3rem;
 }
 
 .social a {
-  font-weight: 500;
-  color: #eceeef;
+    font-weight: 500;
+    color: #eceeef;
 }
 .social a:hover {
-  color: #fff;
+    color: #fff;
 }
 
 .jumbotron {
-  padding-top: 6rem;
-  padding-bottom: 6rem;
-  margin-bottom: 0;
-  background-color: var(--bs-body-bg);
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+    margin-bottom: 0;
+    background-color: var(--bs-body-bg);
 }
 
 .jumbotron p:last-child {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .jumbotron-heading {
-  font-weight: 300;
+    font-weight: 300;
 }
 
 .jumbotron .container {
-  max-width: 40rem;
+    max-width: 40rem;
 }
 
 footer {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
 }
 
 footer p {
-  margin-bottom: .25rem;
+    margin-bottom: .25rem;
 }
 
+/* ===== Details expand icons ===== */
 td.details-control {
     background: url('../images/details_open.png') no-repeat center center;
     cursor: pointer;
@@ -79,26 +111,30 @@ tr.shown td.details-control {
 }
 
 .expand-button {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 #overview_api_reference {
-  padding-top: 10px;
-  text-align:center;
+    padding-top: 10px;
+    text-align: center;
 }
 
 #hint {
-  font-style: italic;
-  padding-top: 10px;
-  text-align:center;
+    font-style: italic;
+    padding-top: 10px;
+    text-align: center;
 }
 
+/* ===== Main page container — elevated card look ===== */
 .md-page {
-    background: var(--bs-body-bg);
+    background: var(--card-bg);
     padding: 0px 25px 25px 25px;
-    margin-top: 10px;
-    box-shadow: 0 3px 3px rgba(0,0,0,0.1);
-    max-width: 95%;
+    margin-top: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--bs-border-color);
+    box-shadow: none;
+    max-width: 1400px;
+    margin-bottom: 15px;
 }
 
 a.editable-click {
@@ -106,18 +142,43 @@ a.editable-click {
 }
 
 .middle-page {
-    max-width: 95%;
+    max-width: 1400px;
 }
 
 .settings_middle_column {
-  width: 18%;
+    width: 18%;
 }
 
 .lefthand-nav {
     width: 20%;
 }
 
-/* Handle long team names in tables */
+/* ===== Tables — rounded corners ===== */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-responsive > .table {
+    margin-bottom: 0;
+}
+
+/* Standalone tables (not inside .table-responsive) */
+table.table-bordered:not(.table-responsive .table) {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Dark mode table row hover for better visibility */
+[data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: rgba(255, 255, 255, 0.02);
+}
+
+[data-bs-theme="dark"] .table-striped > tbody > tr:hover > * {
+    --bs-table-bg-state: var(--elevated-bg);
+}
+
+/* ===== Overview table headers ===== */
 #overview th {
     max-width: 150px;
     min-width: 80px;
@@ -131,19 +192,255 @@ a.editable-click {
     min-width: auto;
 }
 
-/* Tooltip for truncated headers - show full name on hover */
 #overview th[title] {
     cursor: help;
 }
 
-/* Style for the anonymous name portion (second line) */
 #overview th br + * {
     font-weight: normal;
     font-size: 0.8em;
     opacity: 0.8;
 }
 
-/* Mobile Responsive Styles */
+/* ===== Announcement badge pulse ===== */
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+#announcements-badge.pulse {
+    animation: badge-pulse 0.5s ease-in-out 3;
+}
+
+/* ===== Stat cards ===== */
+.stat-cards-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+}
+
+.stat-card {
+    flex: 1 1 0;
+    min-width: 160px;
+    text-align: center;
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid rgba(48, 54, 61, 0.8);
+}
+
+.stat-card .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.25rem;
+}
+
+.stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.stat-card .stat-detail {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.25rem;
+}
+
+/* ===== Colored stat card values (nth-child, overridden by .text-success/.text-danger) ===== */
+.stat-card:nth-child(1) .stat-value:not([class*="text-"]) { color: #58a6ff; }
+.stat-card:nth-child(2) .stat-value:not([class*="text-"]) { color: #bc8cff; }
+.stat-card:nth-child(3) .stat-value:not([class*="text-"]) { color: #3fb950; }
+.stat-card:nth-child(4) .stat-value:not([class*="text-"]) { color: #f59e0b; }
+
+/* ===== Section headers ===== */
+.section-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.card-body .section-header {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* ===== Chart card wrapper ===== */
+.chart-card {
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid rgba(48, 54, 61, 0.8);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+/* ===== Transparent table bg inside cards (prevent Bootstrap fighting dark theme) ===== */
+.chart-card .table,
+.chart-card .table > * > tr > * {
+    --bs-table-bg: transparent;
+    --bs-table-bg-type: transparent;
+    background-color: transparent;
+}
+
+/* ===== DataTables dark theme fixes ===== */
+[data-bs-theme="dark"] .chart-card table.dataTable thead th {
+    background: transparent;
+    border-bottom: 1px solid var(--bs-border-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+[data-bs-theme="dark"] .chart-card table.dataTable thead th div {
+    font-size: 0.85rem;
+}
+
+[data-bs-theme="dark"] table.dataTable thead .sorting::before,
+[data-bs-theme="dark"] table.dataTable thead .sorting::after,
+[data-bs-theme="dark"] table.dataTable thead .sorting_asc::before,
+[data-bs-theme="dark"] table.dataTable thead .sorting_asc::after,
+[data-bs-theme="dark"] table.dataTable thead .sorting_desc::before,
+[data-bs-theme="dark"] table.dataTable thead .sorting_desc::after {
+    opacity: 0.3;
+}
+
+[data-bs-theme="dark"] table.dataTable thead .sorting_asc::before,
+[data-bs-theme="dark"] table.dataTable thead .sorting_desc::after {
+    opacity: 0.8;
+}
+
+[data-bs-theme="dark"] .chart-card table.dataTable tbody td {
+    border-color: rgba(48, 54, 61, 0.4);
+}
+
+/* DataTables wrapper inside flush chart-cards */
+.chart-card .dataTables_wrapper {
+    padding: 0;
+}
+
+/* DataTables pagination & controls in dark mode */
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_length select,
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input {
+    background-color: var(--card-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_info,
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_length label,
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter label {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+}
+
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--bs-secondary-color) !important;
+    background: transparent;
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--elevated-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color) !important;
+}
+
+[data-bs-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--elevated-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color) !important;
+}
+
+/* ===== Service sidebar list-group dark theme ===== */
+[data-bs-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .list-group-item.active {
+    background-color: var(--elevated-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+
+/* ===== Overview matrix table ===== */
+.overview-matrix {
+    margin-bottom: 0;
+}
+
+.overview-matrix th,
+.overview-matrix td {
+    text-align: center;
+    vertical-align: middle;
+    border-color: rgba(48, 54, 61, 0.4);
+}
+
+.overview-matrix th:first-child,
+.overview-matrix td:first-child {
+    text-align: left;
+    padding-left: 1rem;
+}
+
+.overview-matrix thead th {
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color);
+    padding: 0.55rem 0.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.overview-matrix tbody tr {
+    transition: background 0.15s;
+}
+
+[data-bs-theme="dark"] .overview-matrix tbody tr:hover {
+    background: var(--elevated-bg);
+}
+
+.overview-matrix .bi {
+    font-size: 1rem;
+}
+
+/* ===== Progress bars — dark theme ===== */
+[data-bs-theme="dark"] .progress {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    height: 0.6rem;
+}
+
+/* ===== Admin cards — match elevated style ===== */
+.card {
+    border-radius: 12px;
+    border-color: var(--bs-border-color);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.list-group-item {
+    border-color: var(--bs-border-color);
+}
+
+/* ===== Mobile responsive ===== */
 @media (max-width: 992px) {
     #overview th {
         max-width: 100px;
@@ -156,6 +453,7 @@ a.editable-click {
         padding: 0px 10px 15px 10px;
         max-width: 100%;
         margin: 5px;
+        border-radius: 8px;
     }
 
     .lefthand-nav {
@@ -172,18 +470,15 @@ a.editable-click {
         float: none;
     }
 
-    /* Ensure charts are readable on mobile */
     #teamBar, #teamLine {
         height: 300px !important;
         min-height: 250px;
     }
 
-    /* Better table handling on mobile */
     .table-responsive {
-        border: none;
+        border-radius: 8px;
     }
 
-    /* Adjust admin sidebar for mobile */
     .panel-group {
         margin-bottom: 10px;
     }
@@ -191,6 +486,19 @@ a.editable-click {
     #overview th {
         max-width: 80px;
         font-size: 0.7rem;
+    }
+
+    .stat-cards-row {
+        gap: 0.5rem;
+    }
+
+    .stat-card {
+        min-width: 140px;
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.4rem;
     }
 }
 
@@ -204,19 +512,7 @@ a.editable-click {
         height: 250px !important;
     }
 
-    /* Stack navbar items better */
     .navbar-nav {
         padding: 10px 0;
     }
-}
-
-/* Announcement badge pulse animation for new announcements */
-@keyframes badge-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.4); }
-    100% { transform: scale(1); }
-}
-
-#announcements-badge.pulse {
-    animation: badge-pulse 0.5s ease-in-out 3;
 }

@@ -11,38 +11,22 @@ Round Stats
 {% endblock %}
 
 {% block admincontent %}
-<div class="row mb-4 pt-3">
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-people-fill"></i> Blue Teams</h6>
-        <h3 id="comp_blue_teams" class="mb-0">-</h3>
-      </div>
-    </div>
+<div class="stat-cards-row pt-2">
+  <div class="stat-card">
+    <div class="stat-label">Blue Teams</div>
+    <div class="stat-value" id="comp_blue_teams">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-hdd-network-fill"></i> Total Services</h6>
-        <h3 id="comp_total_services" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Services</div>
+    <div class="stat-value" id="comp_total_services">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-check-circle-fill"></i> Currently Passing</h6>
-        <h3 id="comp_currently_passing" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Currently Passing</div>
+    <div class="stat-value text-success" id="comp_currently_passing">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-graph-up"></i> Overall Uptime</h6>
-        <h3 id="comp_overall_uptime" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Overall Uptime</div>
+    <div class="stat-value" id="comp_overall_uptime">-</div>
   </div>
 </div>
 <script>
@@ -67,39 +51,23 @@ Round Stats
     }, 5000);
   });
 </script>
-<h5 class="mb-3">Engine Stats</h5>
-<div class="row mb-4">
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-arrow-repeat"></i> Round</h6>
-        <h3 id="round_number" class="mb-0">-</h3>
-      </div>
-    </div>
+<h3 class="section-header">Engine Stats</h3>
+<div class="stat-cards-row">
+  <div class="stat-card">
+    <div class="stat-label">Round</div>
+    <div class="stat-value" id="round_number">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-check-lg text-success"></i> Passed Checks</h6>
-        <h3 id="num_passed_checks" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Passed Checks</div>
+    <div class="stat-value text-success" id="num_passed_checks">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-x-lg text-danger"></i> Failed Checks</h6>
-        <h3 id="num_failed_checks" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Failed Checks</div>
+    <div class="stat-value text-danger" id="num_failed_checks">-</div>
   </div>
-  <div class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        <h6 class="card-title text-muted"><i class="bi bi-list-ol"></i> Total Checks</h6>
-        <h3 id="total_checks" class="mb-0">-</h3>
-      </div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Checks</div>
+    <div class="stat-value" id="total_checks">-</div>
   </div>
 </div>
 <script>
@@ -124,25 +92,32 @@ Round Stats
     }, 5000);
   });
 </script>
-<div class="round_status_bars">
-  <h4>Current Round Status</h4>
-  <span>Round Progress</span>
-  <div class="progress">
-    <div id="TotalPercent" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0"
-      aria-valuemin="0" aria-valuemax="100" style="width:0%">
-      <span>0%</span>
+<h3 class="section-header">Current Round Status</h3>
+<div class="chart-card">
+  <div class="mb-3">
+    <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted">Round Progress</small>
+      <small id="TotalPercentLabel" class="text-muted">0%</small>
+    </div>
+    <div class="progress">
+      <div id="TotalPercent" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0"
+        aria-valuemin="0" aria-valuemax="100" style="width:0%">
+      </div>
     </div>
   </div>
   {% for team in blue_teams %}
-  <span>{{team.name}}</span>
-  <div class="progress">
-    <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-      role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-      <span>0%</span>
+  <div class="mb-3">
+    <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted">{{team.name}}</small>
+      <small id="{{team.name}}PercentLabel" class="text-muted">0%</small>
+    </div>
+    <div class="progress">
+      <div id="{{team.name}}Percent" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+        role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+      </div>
     </div>
   </div>
   {% endfor %}
-</div>
 </div>
 <script>
   function getProgress() {
@@ -151,11 +126,11 @@ Round Stats
         // Sanitize key before using in selector to prevent XSS
         var sanitizedKey = ScoringEngineUtils.sanitizeSelector(key);
         var $progressBar = $("#" + sanitizedKey + "Percent");
-        var $progressSpan = $progressBar.find('span');
+        var $label = $("#" + sanitizedKey + "PercentLabel");
 
         // Update progress bar
         $progressBar.css('width', val + "%").attr('aria-valuenow', val);
-        $progressSpan.text(val + "%");
+        $label.text(val + "%");
 
         // Update progress bar class based on completion
         if (val < 100) {

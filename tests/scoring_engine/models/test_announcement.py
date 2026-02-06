@@ -294,7 +294,7 @@ class TestAnnouncement(UnitTest):
 
     def test_expired_hidden(self):
         ann = Announcement(title="E", content="Expired")
-        ann.expires_at = datetime.datetime.utcnow() - datetime.timedelta(
+        ann.expires_at = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) - datetime.timedelta(
             hours=1
         )
         self.session.add(ann)
@@ -303,7 +303,7 @@ class TestAnnouncement(UnitTest):
 
     def test_future_expiry_visible(self):
         ann = Announcement(title="F", content="Future")
-        ann.expires_at = datetime.datetime.utcnow() + datetime.timedelta(
+        ann.expires_at = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(
             hours=1
         )
         self.session.add(ann)

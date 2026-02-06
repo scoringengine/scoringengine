@@ -7,39 +7,42 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
-<div class="container md-page">
-    <div class="row">
-        <h3>{{ current_user.team.name }}</h3>
-        <h5 id="team_place">Place: </h5>
-        <h5 id="team_current_score">Score: </h5>
+<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+    <div class="stat-cards-row">
+        <div class="stat-card">
+            <div class="stat-label">Team</div>
+            <div class="stat-value" id="team_name" style="font-size:1.5rem">{{ current_user.team.name }}</div>
+            <div class="stat-detail" id="team_color_bar">&nbsp;</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Place</div>
+            <div class="stat-value" id="team_place">-</div>
+            <div class="stat-detail">current rank</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Score</div>
+            <div class="stat-value" id="team_current_score">-</div>
+            <div class="stat-detail">total points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Up</div>
+            <div class="stat-value text-success" id="services_up">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Services Down</div>
+            <div class="stat-value text-danger" id="services_down">-</div>
+            <div class="stat-detail">this round</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Uptime</div>
+            <div class="stat-value" id="overall_uptime">-</div>
+            <div class="stat-detail">overall</div>
+        </div>
     </div>
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-success"><i class="bi bi-check-circle-fill"></i> Services Up</h5>
-                    <h2 id="services_up" class="mb-0">-</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-danger"><i class="bi bi-x-circle-fill"></i> Services Down</h5>
-                    <h2 id="services_down" class="mb-0">-</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title text-info"><i class="bi bi-graph-up"></i> Overall Uptime</h5>
-                    <h2 id="overall_uptime" class="mb-0">-</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
+
+    <h3 class="section-header">Services</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
         <table id="services" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
@@ -58,15 +61,17 @@
             <tbody>
             </tbody>
         </table>
-        <script>
+    </div>
+
+    <script>
             function refreshteamdata() {
                 $.ajax({
                     cache: false,
                     url: '/api/team/{{ current_user.team.id }}/stats',
                     dataType: 'json',
                     success: function(data) {
-                        $('#team_place').text("Place: " + data.place);
-                        $('#team_current_score').text("Score: " + parseFloat(data.current_score).toLocaleString());
+                        ScoringEngineUtils.animateCounter(document.getElementById('team_place'), parseInt(data.place) || 0);
+                        ScoringEngineUtils.animateCounter(document.getElementById('team_current_score'), parseFloat(data.current_score) || 0);
                     }
                 });
             }
@@ -89,11 +94,11 @@
                     });
                 }
 
-                $('#services_up').text(servicesUp);
-                $('#services_down').text(servicesDown);
+                ScoringEngineUtils.animateCounter(document.getElementById('services_up'), servicesUp);
+                ScoringEngineUtils.animateCounter(document.getElementById('services_down'), servicesDown);
 
                 var uptime = totalMax > 0 ? ((totalEarned / totalMax) * 100).toFixed(1) + '%' : '-';
-                $('#overall_uptime').text(uptime);
+                ScoringEngineUtils.setText(document.getElementById('overall_uptime'), uptime);
             }
 
             $(document).ready(function() {
@@ -184,7 +189,6 @@
                     table.ajax.reload();
                 }, 30000 );
             } );
-        </script>
-    </div>
+    </script>
 </div>
 {% endblock %}
