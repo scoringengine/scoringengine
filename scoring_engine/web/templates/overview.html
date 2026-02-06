@@ -1,25 +1,35 @@
 {% extends 'base.html' %}
 {% block title %}Overview{% endblock %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
+    <!-- Page title bar -->
+    <div class="page-title-bar">
+        <h1 class="page-title">Overview</h1>
+        <span class="page-subtitle">Competition Dashboard</span>
+        <div class="live-indicator" style="margin-left:auto;">
+            <span class="live-dot"></span>
+            <span id="ov-live-label">Live</span>
+        </div>
+    </div>
+
     <!-- Stat Cards -->
     <div class="stat-cards-row">
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Round</div>
             <div class="stat-value" id="ov-round">-</div>
             <div class="stat-detail" id="ov-round-time">&nbsp;</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Services Up</div>
             <div class="stat-value text-success" id="ov-up">-</div>
             <div class="stat-detail">this round</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Services Down</div>
             <div class="stat-value text-danger" id="ov-down">-</div>
             <div class="stat-detail">this round</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Leader</div>
             <div class="stat-value" id="ov-leader" style="font-size:1.2rem">-</div>
             <div class="stat-detail" id="ov-leader-score">&nbsp;</div>
@@ -28,7 +38,7 @@
 
     <!-- Service Status Matrix -->
     <h3 class="section-header">Service Status</h3>
-    <div class="chart-card" style="padding:0; overflow:hidden;">
+    <div class="chart-card animate-in" style="padding:0; overflow:hidden; animation-delay:200ms;">
         <table id="overview" class="table table-sm overview-matrix">
             <thead>
                 <tr id="overview-header">
@@ -48,6 +58,17 @@
         $.getJSON('/api/overview/get_round_data').done(function(data) {
             ScoringEngineUtils.animateCounter(document.getElementById('ov-round'), data.number);
             ScoringEngineUtils.setText(document.getElementById('ov-round-time'), data.round_start || '');
+            var indicator = document.querySelector('.live-indicator');
+            var liveLabel = document.getElementById('ov-live-label');
+            if (indicator && liveLabel) {
+                if (data.engine_paused) {
+                    indicator.classList.add('paused');
+                    liveLabel.textContent = 'Paused' + (data.number ? ' \u00b7 Round ' + data.number : '');
+                } else {
+                    indicator.classList.remove('paused');
+                    liveLabel.textContent = data.number ? 'Live \u00b7 Round ' + data.number : 'Live';
+                }
+            }
         });
     }
 

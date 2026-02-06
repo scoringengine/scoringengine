@@ -2,10 +2,9 @@
 {% block title %}{{current_user.username}}{% endblock %}
 {% block head %}
     {{ super() }}
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
   <div class="row">
     <h3>Name: {{current_user.username}}</h3>
     <h4>Team:

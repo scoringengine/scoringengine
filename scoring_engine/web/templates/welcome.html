@@ -2,7 +2,6 @@
 {% block title %}Welcome{% endblock %}
 {% block head %}
     {{ super() }}
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <style>
       .sponsor-card {
         transition: transform 0.2s ease-in-out;
@@ -29,7 +28,7 @@
     </style>
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
   {% if use_legacy %}
     {{ welcome_content|safe }}
   {% else %}

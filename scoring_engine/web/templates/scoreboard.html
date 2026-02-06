@@ -5,25 +5,35 @@
 <script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
+    <!-- Page title bar -->
+    <div class="page-title-bar">
+        <h1 class="page-title">Scoreboard</h1>
+        <span class="page-subtitle">Team Rankings</span>
+        <div class="live-indicator" style="margin-left:auto;">
+            <span class="live-dot"></span>
+            <span id="sc-live-label">Live</span>
+        </div>
+    </div>
+
     <!-- Stat Cards -->
     <div class="stat-cards-row">
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Current Round</div>
             <div class="stat-value" id="sc-round">-</div>
             <div class="stat-detail" id="sc-round-time">&nbsp;</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Leading Team</div>
             <div class="stat-value" id="sc-leader" style="font-size:1.2rem">-</div>
             <div class="stat-detail" id="sc-leader-score">&nbsp;</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card animate-in">
             <div class="stat-label">Total Teams</div>
             <div class="stat-value" id="sc-teams">-</div>
             <div class="stat-detail">competing</div>
         </div>
-        <div class="stat-card" id="sc-sla-card" style="display:none">
+        <div class="stat-card animate-in" id="sc-sla-card" style="display:none">
             <div class="stat-label">SLA Penalties</div>
             <div class="stat-value text-danger" id="sc-sla">0</div>
             <div class="stat-detail">total deducted</div>
@@ -32,13 +42,13 @@
 
     <!-- Bar Chart -->
     <h3 class="section-header" id="bar-chart-title">Total Scores</h3>
-    <div class="chart-card">
+    <div class="chart-card animate-in" style="animation-delay:200ms;">
         <div id="teamBar" style="width: 100%; min-height:400px;"></div>
     </div>
 
     <!-- Line Chart -->
     <h3 class="section-header">Score Progression</h3>
-    <div class="chart-card">
+    <div class="chart-card animate-in" style="animation-delay:250ms;">
         <div id="teamLine" style="width: 100%; height:400px;"></div>
     </div>
 
@@ -92,11 +102,23 @@
             $.getJSON('/api/overview/get_round_data').done(function(data) {
                 ScoringEngineUtils.animateCounter(document.getElementById('sc-round'), data.number);
                 ScoringEngineUtils.setText(document.getElementById('sc-round-time'), data.round_start || '');
+                var indicator = document.querySelector('.live-indicator');
+                var liveLabel = document.getElementById('sc-live-label');
+                if (indicator && liveLabel) {
+                    if (data.engine_paused) {
+                        indicator.classList.add('paused');
+                        liveLabel.textContent = 'Paused' + (data.number ? ' \u00b7 Round ' + data.number : '');
+                    } else {
+                        indicator.classList.remove('paused');
+                        liveLabel.textContent = data.number ? 'Live \u00b7 Round ' + data.number : 'Live';
+                    }
+                }
             });
         }
 
         // ---- Bar Chart ----
-        var teamBarChart = echarts.init(document.getElementById('teamBar'));
+        var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        var teamBarChart = echarts.init(document.getElementById('teamBar'), isDark ? 'dark' : null);
         teamBarChart.showLoading();
 
         window.addEventListener('resize', function() {
@@ -133,6 +155,7 @@
 
                 teamBarChart.hideLoading();
                 teamBarChart.setOption({
+                    backgroundColor: 'transparent',
                     tooltip: {
                         trigger: 'axis',
                         axisPointer: { type: 'shadow' },
@@ -191,7 +214,7 @@
             });
 
         // ---- Line Chart ----
-        var teamLineChart = echarts.init(document.getElementById('teamLine'));
+        var teamLineChart = echarts.init(document.getElementById('teamLine'), isDark ? 'dark' : null);
         teamLineChart.showLoading();
 
         window.addEventListener('resize', function() {
@@ -212,6 +235,7 @@
                 });
                 teamLineChart.hideLoading();
                 teamLineChart.setOption({
+                    backgroundColor: 'transparent',
                     tooltip: { trigger: 'axis' },
                     grid: {
                         left: '3%',

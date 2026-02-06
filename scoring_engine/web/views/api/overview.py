@@ -119,7 +119,8 @@ def overview_get_round_data():
     else:
         round_start = ""
         number = 0
-    data = {"round_start": round_start, "number": number}
+    engine_paused = Setting.get_setting("engine_paused").value
+    data = {"round_start": round_start, "number": number, "engine_paused": engine_paused}
     return jsonify(data)
 
 

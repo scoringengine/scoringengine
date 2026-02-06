@@ -5,8 +5,6 @@
 <script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
-<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-
 <!-- Dropzone -->
 <script src="{{ url_for('static', filename='vendor/js/dropzone.min.js') }}"></script>
 <link href="{{ url_for('static', filename='vendor/css/dropzone.min.css') }}" rel="stylesheet" />
@@ -17,7 +15,7 @@
 
 {% endblock %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 4px;">
       <div id="inject_navbar" class="list-group"></div>

@@ -1,95 +1,74 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container-fluid" style="max-width:1400px; margin-top:16px;">
+<div class="page-wrap">
   <div class="row">
-    <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
-      <div class="list-group text-center mb-3">
-          <button type="button" class="btn btn-secondary btn-lg" id="engine_toggle">
-            <i class="bi bi-pause-fill" aria-hidden="true"></i> Pause
-          </button>
-      </div>
-      <div class="card mb-3">
-        <div class="card-header">
-          <span>Stats <i class="bi bi-list-ul float-end"></i></span>
+    <div class="col-sm-3 col-md-2">
+      <nav class="admin-sidebar" style="padding-top: 0.5rem;">
+        <button type="button" class="engine-toggle-btn" id="engine_toggle">
+          <i class="bi bi-pause-fill"></i> Pause
+        </button>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Stats</div>
+          <a href="/admin/status" class="sidebar-link {% if request.path == '/admin/status' %}active{% endif %}" id="engine-link">
+            <i class="bi bi-activity"></i> <span id="engine-label">Engine</span></a>
+          <a href="/admin/workers" class="sidebar-link {% if request.path == '/admin/workers' %}active{% endif %}">
+            <i class="bi bi-people"></i> Workers</a>
+          <a href="/admin/queues" class="sidebar-link {% if request.path == '/admin/queues' %}active{% endif %}">
+            <i class="bi bi-stack"></i> Queues</a>
         </div>
-        <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/status' %}active{% endif %}"
-            href="/admin/status" id="engine">Engine</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/workers' %}active{% endif %}"
-            href="/admin/workers">Workers</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/queues' %}active{% endif %}"
-            href="/admin/queues">Queues</a>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <a href="/admin/settings" class="sidebar-link {% if request.path == '/admin/settings' %}active{% endif %}">
+            <i class="bi bi-gear"></i> Competition</a>
+          <a href="/admin/sla" class="sidebar-link {% if request.path == '/admin/sla' %}active{% endif %}">
+            <i class="bi bi-shield-check"></i> SLA & Scoring</a>
+          <a href="/admin/permissions" class="sidebar-link {% if request.path == '/admin/permissions' %}active{% endif %}">
+            <i class="bi bi-lock"></i> Permissions</a>
+          <a href="/admin/manage" class="sidebar-link {% if request.path == '/admin/manage' %}active{% endif %}">
+            <i class="bi bi-person"></i> Users</a>
         </div>
-      </div>
-      <div class="card mb-3">
-        <div class="card-header">
-          <span>Settings <i class="bi bi-gear float-end"></i></span>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Communication</div>
+          <a href="/admin/announcements" class="sidebar-link {% if request.path == '/admin/announcements' %}active{% endif %}">
+            <i class="bi bi-megaphone"></i> Announcements</a>
+          <a href="/admin/welcome" class="sidebar-link {% if request.path == '/admin/welcome' %}active{% endif %}">
+            <i class="bi bi-house"></i> Welcome Page</a>
         </div>
-        <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/settings' %}active{% endif %}"
-            href="/admin/settings">Competition</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/sla' %}active{% endif %}"
-            href="/admin/sla">SLA & Scoring</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/permissions' %}active{% endif %}"
-            href="/admin/permissions">Website Permissions</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/manage' %}active{% endif %}"
-            href="/admin/manage">Users</a>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Injects</div>
+          <a href="/admin/injects/templates" class="sidebar-link {% if request.path == '/admin/injects/templates' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text"></i> Templates</a>
+          <a href="/admin/injects/scores" class="sidebar-link {% if request.path == '/admin/injects/scores' %}active{% endif %}">
+            <i class="bi bi-bar-chart"></i> Scores</a>
         </div>
-      </div>
-      <div class="card mb-3">
-        <div class="card-header">
-          <span>Communication <i class="bi bi-megaphone float-end"></i></span>
-        </div>
-        <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/announcements' %}active{% endif %}"
-            href="/admin/announcements">Announcements</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/welcome' %}active{% endif %}"
-            href="/admin/welcome">Welcome Page</a>
-        </div>
-      </div>
-      <div class="card mb-3">
-        <div class="card-header">
-          <span>Injects <i class="bi bi-file-earmark float-end"></i></span>
-        </div>
-        <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/injects/templates' %}active{% endif %}"
-            href="/admin/injects/templates">Templates</a>
-          <a class="list-group-item list-group-item-action {% if request.path == '/admin/injects/scores' %}active{% endif %}"
-            href="/admin/injects/scores">Scores</a>
-        </div>
-      </div>
-      <div class="card mb-3">
-        <div class="card-header">
-          <span>Services <i class="bi bi-list-task float-end"></i></span>
-        </div>
-        <div class="list-group list-group-flush">
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Services</div>
           {% for team in blue_teams %}
-          <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="collapse"
-            data-bs-target="#services_team{{team.id}}">{{team.name}}</a>
+          <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#services_team{{team.id}}">
+            <i class="bi bi-chevron-right"></i> {{team.name}}</a>
           <div id="services_team{{team.id}}"
-            class="sublinks collapse {% if service and team.id == service.team.id %}show{% endif %}">
+            class="collapse {% if service and team.id == service.team.id %}show{% endif %}">
             {% for service in team.services %}
             <a href="/admin/service/{{service.id}}"
-              class="list-group-item list-group-item-action small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><i
-                class="bi bi-chevron-right"></i> {{service.name}}</a>
+              class="sidebar-link sub {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}">
+              <i class="bi bi-chevron-right"></i> {{service.name}}</a>
             {% endfor %}
           </div>
           {% endfor %}
         </div>
-      </div>
+      </nav>
     </div>
-    <div class="col-sm-9">
-      <div class="card">
-        <div class="card-header bg-body-secondary" style="border-bottom:none;">
-          <h2 class="card-title mb-0">
-            {% block header %}{% endblock %}
-          </h2>
-        </div>
-        <div class="card-body pt-0">
-          {% block admincontent %}
-          {% endblock %}
-        </div>
+    <div class="col-sm-9 col-md-10">
+      <div class="page-title-bar" style="margin-top:0.5rem;">
+        <h1 class="page-title">{% block header %}{% endblock %}</h1>
       </div>
+      {% block admincontent %}
+      {% endblock %}
     </div>
   </div>
 </div>
@@ -100,14 +79,24 @@
       url: '/api/admin/get_engine_paused',
       dataType: 'json',
       success: function (data) {
+        var engineLabel = document.getElementById('engine-label');
+        var toggleBtn = document.getElementById('engine_toggle');
         if (!data.paused) {
-          document.getElementById('engine').innerHTML = 'Engine <span class="badge bg-success">Running</span>';
-          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-pause-fill" aria-hidden="true"></i> Pause'
-          document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
+          engineLabel.textContent = 'Engine';
+          toggleBtn.textContent = '';
+          var pauseIcon = document.createElement('i');
+          pauseIcon.className = 'bi bi-pause-fill';
+          toggleBtn.appendChild(pauseIcon);
+          toggleBtn.appendChild(document.createTextNode(' Pause'));
+          toggleBtn.className = "engine-toggle-btn running";
         } else {
-          document.getElementById('engine').innerHTML ='Engine <span class="badge bg-secondary">Paused</span>';
-          document.getElementById('engine_toggle').innerHTML = '<i class="bi bi-play-fill" aria-hidden="true"></i> Resume'
-          document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
+          engineLabel.textContent = 'Engine';
+          toggleBtn.textContent = '';
+          var playIcon = document.createElement('i');
+          playIcon.className = 'bi bi-play-fill';
+          toggleBtn.appendChild(playIcon);
+          toggleBtn.appendChild(document.createTextNode(' Resume'));
+          toggleBtn.className = "engine-toggle-btn";
         }
       }
     });
