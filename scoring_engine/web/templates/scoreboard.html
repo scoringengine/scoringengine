@@ -294,10 +294,10 @@
             });
         }, 30000);
 
-        // ---- Theme change observer ----
+        // ---- Theme change observer (watches both data-bs-theme and data-theme) ----
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                if (mutation.attributeName === 'data-bs-theme') {
+                if (mutation.attributeName === 'data-bs-theme' || mutation.attributeName === 'data-theme') {
                     var textColor = getTextColor();
                     teamBarChart.setOption({
                         xAxis: { axisLabel: { color: textColor } },

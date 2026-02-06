@@ -1,11 +1,11 @@
 /* ================================================================
-   Scoring Engine — War Room design system
-   IBM Plex Mono (data) + Outfit (headings)
+   Scoring Engine — Multi-theme design system
+   4 visual themes (midnight, glass, carbon, warroom) × dark/light mode
    Works with Bootstrap 5 for structural utilities (grid, collapse,
    dropdowns, modals, forms) but owns all visual styling.
    ================================================================ */
 
-/* ===== Self-hosted fonts (airgap-safe) ===== */
+/* ===== Layer 1: Self-hosted fonts (airgap-safe) ===== */
 @font-face {
     font-family: 'IBM Plex Mono';
     font-style: normal;
@@ -41,10 +41,170 @@
     font-display: swap;
     src: url('../vendor/fonts/outfit-variable.woff2') format('woff2');
 }
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('../vendor/fonts/inter-variable.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url('../vendor/fonts/dm-sans-variable.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+    src: url('../vendor/fonts/jetbrains-mono-variable.woff2') format('woff2');
+}
 
-/* ===== Design tokens — dark theme (default) ===== */
-[data-bs-theme="dark"] {
-    /* Base palette — deep navy void */
+/* ===== Layer 2: Theme × Mode variable blocks (4 themes × 2 modes = 8 blocks) ===== */
+
+/* --- Midnight Clean (default) — Dark --- */
+[data-theme="midnight"][data-bs-theme="dark"] {
+    --void: #0a0a0a;
+    --surface: #141414;
+    --raised: #1c1c1c;
+    --elevated: #262626;
+    --border: #262626;
+    --border-strong: #333333;
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #d4d4d4;
+    --text-tertiary: #a3a3a3;
+
+    --accent-cyan: #3b82f6;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #a78bfa;
+
+    --glow-cyan: rgba(59, 130, 246, 0.15);
+    --glow-green: rgba(34, 197, 94, 0.15);
+    --glow-red: rgba(239, 68, 68, 0.15);
+
+    --navbar-bg: rgba(10, 10, 10, 0.92);
+    --navbar-blur: 20px;
+
+    --font-display: 'Inter', sans-serif;
+    --font-mono: 'Inter', sans-serif;
+
+    --radius: 8px;
+    --radius-lg: 12px;
+
+    --bs-body-bg: var(--void);
+    --bs-body-bg-rgb: 10, 10, 10;
+    --bs-body-color: var(--text-primary);
+    --bs-secondary-color: var(--text-secondary);
+    --bs-border-color: var(--border-strong);
+    --bs-tertiary-bg: var(--surface);
+    --bs-card-bg: var(--surface);
+    --bs-card-cap-bg: var(--raised);
+    --card-bg: var(--surface);
+    --elevated-bg: var(--raised);
+
+    color-scheme: dark;
+}
+
+/* --- Glass — Dark --- */
+[data-theme="glass"][data-bs-theme="dark"] {
+    --void: #0c0e14;
+    --surface: rgba(255, 255, 255, 0.03);
+    --raised: rgba(255, 255, 255, 0.05);
+    --elevated: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.1);
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+
+    --accent-cyan: #6366f1;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #a78bfa;
+
+    --glow-cyan: rgba(99, 102, 241, 0.15);
+    --glow-green: rgba(34, 197, 94, 0.15);
+    --glow-red: rgba(239, 68, 68, 0.15);
+
+    --navbar-bg: rgba(12, 14, 20, 0.7);
+    --navbar-blur: 24px;
+
+    --font-display: 'DM Sans', sans-serif;
+    --font-mono: 'DM Sans', sans-serif;
+
+    --radius: 12px;
+    --radius-lg: 16px;
+
+    --bs-body-bg: var(--void);
+    --bs-body-bg-rgb: 12, 14, 20;
+    --bs-body-color: var(--text-primary);
+    --bs-secondary-color: var(--text-secondary);
+    --bs-border-color: var(--border-strong);
+    --bs-tertiary-bg: var(--surface);
+    --bs-card-bg: var(--surface);
+    --bs-card-cap-bg: var(--raised);
+    --card-bg: var(--surface);
+    --elevated-bg: var(--raised);
+
+    color-scheme: dark;
+}
+
+/* --- Carbon — Dark --- */
+[data-theme="carbon"][data-bs-theme="dark"] {
+    --void: #161616;
+    --surface: #1e1e1e;
+    --raised: #262626;
+    --elevated: #333333;
+    --border: #393939;
+    --border-strong: #4c4c4c;
+
+    --text-primary: #f4f4f4;
+    --text-secondary: #c6c6c6;
+    --text-tertiary: #8d8d8d;
+
+    --accent-cyan: #78a9ff;
+    --accent-green: #42be65;
+    --accent-amber: #f1c21b;
+    --accent-red: #fa4d56;
+    --accent-purple: #be95ff;
+
+    --glow-cyan: rgba(120, 169, 255, 0.15);
+    --glow-green: rgba(66, 190, 101, 0.15);
+    --glow-red: rgba(250, 77, 86, 0.15);
+
+    --navbar-bg: rgba(22, 22, 22, 0.95);
+    --navbar-blur: 12px;
+
+    --font-display: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --radius: 0px;
+    --radius-lg: 0px;
+
+    --bs-body-bg: var(--void);
+    --bs-body-bg-rgb: 22, 22, 22;
+    --bs-body-color: var(--text-primary);
+    --bs-secondary-color: var(--text-secondary);
+    --bs-border-color: var(--border-strong);
+    --bs-tertiary-bg: var(--surface);
+    --bs-card-bg: var(--surface);
+    --bs-card-cap-bg: var(--raised);
+    --card-bg: var(--surface);
+    --elevated-bg: var(--raised);
+
+    color-scheme: dark;
+}
+
+/* --- War Room — Dark --- */
+[data-theme="warroom"][data-bs-theme="dark"] {
     --void: #060a10;
     --surface: #0c1218;
     --raised: #111a24;
@@ -52,24 +212,29 @@
     --border: rgba(56, 189, 248, 0.08);
     --border-strong: rgba(56, 189, 248, 0.15);
 
-    /* Text hierarchy */
-    --text-primary: #e2e8f0;
-    --text-secondary: #b0bec5;
-    --text-tertiary: #8494a7;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
 
-    /* Accent palette — threat levels */
     --accent-cyan: #38bdf8;
     --accent-green: #22c55e;
     --accent-amber: #f59e0b;
     --accent-red: #ef4444;
     --accent-purple: #a78bfa;
 
-    /* Glows */
     --glow-cyan: rgba(56, 189, 248, 0.15);
     --glow-green: rgba(34, 197, 94, 0.15);
     --glow-red: rgba(239, 68, 68, 0.15);
 
-    /* Bootstrap overrides for compatibility */
+    --navbar-bg: rgba(6, 10, 16, 0.9);
+    --navbar-blur: 20px;
+
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    --radius: 6px;
+    --radius-lg: 10px;
+
     --bs-body-bg: var(--void);
     --bs-body-bg-rgb: 6, 10, 16;
     --bs-body-color: var(--text-primary);
@@ -81,68 +246,13 @@
     --card-bg: var(--surface);
     --elevated-bg: var(--raised);
 
-    /* Font vars */
-    --font-display: 'Outfit', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
-
-    /* Geometry */
-    --radius: 6px;
-    --radius-lg: 10px;
-
     color-scheme: dark;
 }
 
-/* ===== Light theme tokens ===== */
-[data-bs-theme="light"] {
-    --void: #f8fafc;
-    --surface: #ffffff;
-    --raised: #f1f5f9;
-    --elevated: #e2e8f0;
-    --border: rgba(15, 23, 42, 0.08);
-    --border-strong: rgba(15, 23, 42, 0.12);
+/* ===== Layer 3: Theme-specific effects ===== */
 
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-tertiary: #94a3b8;
-
-    --accent-cyan: #0284c7;
-    --accent-green: #16a34a;
-    --accent-amber: #d97706;
-    --accent-red: #dc2626;
-    --accent-purple: #7c3aed;
-
-    --glow-cyan: rgba(2, 132, 199, 0.1);
-    --glow-green: rgba(22, 163, 74, 0.1);
-    --glow-red: rgba(220, 38, 38, 0.1);
-
-    --bs-body-bg: var(--void);
-    --bs-body-color: var(--text-primary);
-    --bs-secondary-color: var(--text-secondary);
-    --bs-border-color: var(--border-strong);
-    --bs-tertiary-bg: var(--surface);
-    --bs-card-bg: var(--surface);
-    --bs-card-cap-bg: var(--raised);
-    --card-bg: var(--surface);
-    --elevated-bg: var(--raised);
-
-    --font-display: 'Outfit', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
-
-    --radius: 6px;
-    --radius-lg: 10px;
-}
-
-/* ===== Base body ===== */
-body {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.5;
-    background: var(--void) !important;
-    color: var(--text-primary);
-}
-
-/* ===== Scanline overlay — tactical texture (dark only) ===== */
-[data-bs-theme="dark"] body::before {
+/* --- War Room: Scanline overlay (dark only) --- */
+[data-theme="warroom"][data-bs-theme="dark"] body::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -157,6 +267,97 @@ body {
     );
 }
 
+/* --- Glass: Opaque dropdown menus (surface is too transparent) --- */
+[data-theme="glass"] .navbar .dropdown-menu,
+[data-theme="glass"] .dropdown-menu {
+    background: #161a24 !important;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="glass"] .navbar .dropdown-item,
+[data-theme="glass"] .dropdown-item {
+    color: #e2e8f0;
+}
+
+[data-theme="glass"] .navbar .dropdown-item:hover,
+[data-theme="glass"] .dropdown-item:hover {
+    color: #ffffff;
+}
+
+/* --- Glass: Background gradient wash (dark only) --- */
+[data-theme="glass"][data-bs-theme="dark"] body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+}
+
+/* --- Carbon: Top stripe bar --- */
+[data-theme="carbon"] body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 1040;
+    pointer-events: none;
+    background: linear-gradient(90deg, #78a9ff, #be95ff, #78a9ff);
+}
+
+[data-theme="carbon"] .navbar {
+    top: 3px;
+}
+
+/* --- Glass: Stat card top shimmer --- */
+[data-theme="glass"] .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+    border-radius: 0;
+    width: auto;
+    opacity: 1;
+}
+
+/* --- Carbon: Stat card full-height left bar --- */
+[data-theme="carbon"] .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent-cyan);
+    border-radius: 0;
+    opacity: 0.7;
+}
+
+/* --- War Room: Stat card corner notch (default from structural CSS) --- */
+/* Uses the default .stat-card::before styles below */
+
+/* --- Midnight: No stat-card accent --- */
+[data-theme="midnight"] .stat-card::before {
+    display: none;
+}
+
+/* ===== Layer 4: Structural component CSS ===== */
+
+/* ===== Base body ===== */
+body {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--void) !important;
+    color: var(--text-primary);
+}
+
 /* ===== Team accent colors ===== */
 body.team-blue { --team-accent: var(--accent-cyan); }
 body.team-red { --team-accent: var(--accent-red); }
@@ -167,18 +368,14 @@ body.team-white { --team-accent: var(--text-secondary); }
     position: sticky;
     top: 0;
     z-index: 1030;
-    background: rgba(6, 10, 16, 0.9) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--navbar-bg) !important;
+    backdrop-filter: blur(var(--navbar-blur));
+    -webkit-backdrop-filter: blur(var(--navbar-blur));
     border-bottom: 1px solid var(--border);
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
     min-height: 52px;
-}
-
-[data-bs-theme="light"] .navbar {
-    background: rgba(15, 23, 42, 0.95) !important;
 }
 
 .navbar .container {
@@ -290,14 +487,30 @@ body.team-white .navbar-brand {
     border-color: var(--border);
 }
 
-/* Theme toggle */
-#theme-toggle {
-    color: var(--text-secondary) !important;
-    padding: 0.5rem !important;
+/* Theme picker dropdown */
+#theme-picker-menu {
+    min-width: 200px;
 }
 
-#theme-toggle:hover {
-    color: var(--text-primary) !important;
+#theme-picker-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+}
+
+#theme-picker-menu .theme-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    flex-shrink: 0;
+}
+
+#theme-picker-menu .theme-check {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--accent-cyan);
 }
 
 /* Navbar collapse (mobile) */
@@ -346,7 +559,7 @@ body.team-white .navbar-brand {
     border-color: var(--border-strong);
 }
 
-/* Corner notch — tactical accent */
+/* Default stat-card accent (war room corner notch) */
 .stat-card::before {
     content: '';
     position: absolute;
@@ -362,6 +575,23 @@ body.team-white .navbar-brand {
 .stat-card:nth-child(2)::before { background: var(--accent-green); }
 .stat-card:nth-child(3)::before { background: var(--accent-red); }
 .stat-card:nth-child(4)::before { background: var(--accent-amber); }
+
+/* Glass overrides nth-child colors for shimmer */
+[data-theme="glass"] .stat-card:nth-child(2)::before,
+[data-theme="glass"] .stat-card:nth-child(3)::before,
+[data-theme="glass"] .stat-card:nth-child(4)::before {
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+    height: 1px;
+    width: auto;
+    right: 0;
+    border-radius: 0;
+    opacity: 1;
+}
+
+/* Carbon overrides nth-child colors for left bar */
+[data-theme="carbon"] .stat-card:nth-child(2)::before { background: var(--accent-green); height: 100%; opacity: 0.7; }
+[data-theme="carbon"] .stat-card:nth-child(3)::before { background: var(--accent-red); height: 100%; opacity: 0.7; }
+[data-theme="carbon"] .stat-card:nth-child(4)::before { background: var(--accent-amber); height: 100%; opacity: 0.7; }
 
 .stat-card .stat-label {
     font-family: var(--font-mono);
@@ -717,12 +947,7 @@ table.dataTable thead .sorting_desc::after {
 
 .sidebar-link.active {
     color: var(--accent-cyan);
-    background: rgba(56, 189, 248, 0.06);
-}
-
-[data-bs-theme="light"] .sidebar-link.active {
-    background: rgba(2, 132, 199, 0.06);
-    color: var(--accent-cyan);
+    background: var(--glow-cyan);
 }
 
 .sidebar-link i {
@@ -795,13 +1020,8 @@ table.dataTable thead .sorting_desc::after {
 }
 
 .list-group-item.active {
-    background-color: rgba(56, 189, 248, 0.06);
+    background-color: var(--glow-cyan);
     border-color: var(--border);
-    color: var(--accent-cyan);
-}
-
-[data-bs-theme="light"] .list-group-item.active {
-    background-color: rgba(2, 132, 199, 0.06);
     color: var(--accent-cyan);
 }
 
@@ -1177,7 +1397,7 @@ table.table-bordered:not(.table-responsive .table) {
     letter-spacing: 0.1em;
     padding: 2px 6px;
     border-radius: 3px;
-    background: rgba(56, 189, 248, 0.1);
+    background: var(--glow-cyan);
     color: var(--accent-cyan);
 }
 

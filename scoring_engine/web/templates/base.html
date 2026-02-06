@@ -1,14 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-theme="midnight" data-bs-theme="dark">
 <script>
-  // Apply saved theme immediately to prevent flash
+  // Apply saved theme immediately to prevent flash (always dark mode)
   (function() {
-    var savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      document.documentElement.setAttribute('data-bs-theme', savedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.setAttribute('data-bs-theme', 'dark');
-    }
+    var t = localStorage.getItem('se-theme') || 'midnight';
+    document.documentElement.setAttribute('data-theme', t);
   })();
 </script>
 <head>
@@ -76,27 +72,38 @@
         });
       }
 
+      // Theme picker logic
+      function setVisualTheme(themeId) {
+        document.documentElement.setAttribute('data-theme', themeId);
+        localStorage.setItem('se-theme', themeId);
+        updateThemePickerUI();
+      }
+
+      function updateThemePickerUI() {
+        var currentTheme = document.documentElement.getAttribute('data-theme') || 'midnight';
+        $('.theme-option').each(function() {
+          var check = $(this).find('.theme-check');
+          if ($(this).data('theme') === currentTheme) {
+            check.removeClass('d-none');
+          } else {
+            check.addClass('d-none');
+          }
+        });
+      }
+
       $(document).ready(function () {
         $("#alert-info").fadeTo(2000, 500).slideUp(500, function () {
           $("#alert-info").slideUp(500);
         });
 
-        // Dark mode toggle
-        function updateThemeIcon() {
-          var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-          $('#theme-icon-dark').toggle(!isDark);  // Show moon when light (to switch to dark)
-          $('#theme-icon-light').toggle(isDark);  // Show sun when dark (to switch to light)
-        }
-
-        updateThemeIcon();
-
-        $('#theme-toggle').click(function() {
-          var currentTheme = document.documentElement.getAttribute('data-bs-theme');
-          var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-bs-theme', newTheme);
-          localStorage.setItem('theme', newTheme);
-          updateThemeIcon();
+        // Theme option clicks
+        $(document).on('click', '.theme-option', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setVisualTheme($(this).data('theme'));
         });
+
+        updateThemePickerUI();
 
         // Initial badge check and poll every 30 seconds
         updateAnnouncementsBadge();
@@ -176,11 +183,32 @@
               </li>
               {% endif %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('about.about') }}">About</a></li>
-              <li class="nav-item">
-                <button class="btn nav-link" id="theme-toggle" title="Toggle dark mode">
-                  <i class="bi bi-moon-fill" id="theme-icon-dark" style="display: none;"></i>
-                  <i class="bi bi-sun-fill" id="theme-icon-light" style="display: none;"></i>
+              <li class="nav-item dropdown">
+                <button class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Theme">
+                  <i class="bi bi-palette"></i>
                 </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="theme-picker-menu">
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="midnight">
+                    <span class="theme-swatch" style="background:#0a0a0a"></span>
+                    Midnight Clean
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="glass">
+                    <span class="theme-swatch" style="background:#0c0e14"></span>
+                    Glass
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="carbon">
+                    <span class="theme-swatch" style="background:#161616"></span>
+                    Carbon
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="warroom">
+                    <span class="theme-swatch" style="background:#060a10"></span>
+                    War Room
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                </ul>
               </li>
             </ul>
           </div>

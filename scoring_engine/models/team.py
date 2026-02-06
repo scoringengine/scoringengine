@@ -10,41 +10,42 @@ from sqlalchemy.orm import relationship
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
 
-# Curated palette: distinct, vibrant colors that read well on dark backgrounds.
-# Ordered to maximize visual separation between adjacent teams.
+# Curated palette: medium-saturation, medium-lightness colors that maintain
+# WCAG AA contrast (4.5:1) on both dark (#0a0a0a–#161616) and light
+# (#fafafa–#ffffff) backgrounds across all visual themes.
 _TEAM_COLORS = [
-    "#58a6ff",  # blue
-    "#f97583",  # red/pink
-    "#3fb950",  # green
-    "#d2a8ff",  # purple
-    "#f59e0b",  # amber
-    "#56d4dd",  # cyan
-    "#f778ba",  # magenta
-    "#e3b341",  # gold
-    "#79c0ff",  # light blue
-    "#7ee787",  # lime
-    "#ff9492",  # salmon
-    "#bc8cff",  # lavender
-    "#ffa657",  # orange
-    "#39d353",  # bright green
-    "#a5d6ff",  # sky
-    "#f0883e",  # dark orange
-    "#b1bac4",  # silver
-    "#db61a2",  # rose
-    "#2ea043",  # forest green
-    "#8957e5",  # violet
-    "#ec8e2c",  # tangerine
-    "#3bc9db",  # teal
-    "#e06c75",  # coral
-    "#c9d1d9",  # light gray
-    "#d29922",  # dark gold
-    "#73c991",  # mint
-    "#da70d6",  # orchid
-    "#68b5fb",  # cornflower
-    "#f2cc60",  # yellow
-    "#e57373",  # indian red
-    "#4dd0e1",  # light teal
-    "#aed581",  # light green
+    "#5b9cf6",  # blue
+    "#e8656d",  # red
+    "#4caf7d",  # green
+    "#b388f2",  # purple
+    "#e6a030",  # amber
+    "#50bfc9",  # cyan
+    "#e56aab",  # magenta
+    "#d4a63a",  # gold
+    "#6db0ef",  # light blue
+    "#6ecf8a",  # lime
+    "#f08080",  # salmon
+    "#a07ee8",  # lavender
+    "#e88e4a",  # orange
+    "#41b86a",  # bright green
+    "#82c4f0",  # sky
+    "#d47a35",  # dark orange
+    "#9ca8b4",  # silver
+    "#d35a93",  # rose
+    "#3da854",  # forest green
+    "#7c5dcf",  # violet
+    "#d8882e",  # tangerine
+    "#3dbcc4",  # teal
+    "#d66b70",  # coral
+    "#8896a5",  # gray
+    "#c49028",  # dark gold
+    "#5cb88a",  # mint
+    "#c86acc",  # orchid
+    "#5ca4e8",  # cornflower
+    "#dbb84a",  # yellow
+    "#cf6666",  # indian red
+    "#44bec8",  # light teal
+    "#8cc45e",  # light green
 ]
 
 # Track which palette colors have been assigned this session

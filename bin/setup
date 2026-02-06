@@ -31,6 +31,8 @@ from scoring_engine.engine.basic_check import (
 parser = optparse.OptionParser()
 parser.add_option("--overwrite-db", action="store_true", default=False)
 parser.add_option("--example", action="store_true", default=False)
+parser.add_option("--announcements", type="int", default=8,
+                  help="Number of sample announcements to generate (default: 8)")
 
 options, arguments = parser.parse_args()
 
@@ -394,7 +396,16 @@ with app.app_context():
                 "is_pinned": False,
             })
 
-        for ann_data in sample_announcements:
+        # Slice to requested count, or cycle if more requested than available
+        num_announcements = options.announcements
+        if num_announcements <= len(sample_announcements):
+            selected_announcements = sample_announcements[:num_announcements]
+        else:
+            selected_announcements = list(sample_announcements)
+            while len(selected_announcements) < num_announcements:
+                selected_announcements.append(sample_announcements[len(selected_announcements) % len(sample_announcements)])
+
+        for ann_data in selected_announcements:
             announcement = Announcement(
                 title=ann_data["title"],
                 content=ann_data["content"],
