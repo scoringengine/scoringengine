@@ -8,8 +8,18 @@
 #
 # To install: pip install -I "cryptography>=2.4,<2.5" && pip install "paramiko>=2.4,<2.5"
 
+import socket
 import sys
 import paramiko
+
+
+# Error classification prefixes for the scoring engine
+ERROR_AUTH_FAILED = "AUTH_FAILED:"
+ERROR_CONNECTION_REFUSED = "CONNECTION_REFUSED:"
+ERROR_CONNECTION_TIMEOUT = "CONNECTION_TIMEOUT:"
+ERROR_HOST_UNREACHABLE = "HOST_UNREACHABLE:"
+ERROR_SSH_ERROR = "SSH_ERROR:"
+ERROR_COMMAND_FAILED = "COMMAND_FAILED:"
 
 
 if len(sys.argv) != 6:
@@ -25,33 +35,72 @@ commands = sys.argv[5].split(';')
 
 
 def connect_and_execute(host, port, username, password, command):
+    client = None
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(
             hostname=host,
-            port=port,
+            port=int(port),
             username=username,
             password=password,
-            look_for_keys=False
+            look_for_keys=False,
+            allow_agent=False,
+            timeout=15
         )
         client_stdin, client_stdout, client_stderr = client.exec_command(command)
         stdout_output = client_stdout.readlines()
         stderr_output = client_stderr.readlines()
-        client.close()
         return ''.join(stdout_output), ''.join(stderr_output)
-    except Exception as e:
-        print(e)
+    except paramiko.AuthenticationException as e:
+        print(f"{ERROR_AUTH_FAILED} '{username}': {e}")
         sys.exit(1)
+    except paramiko.SSHException as e:
+        error_str = str(e).lower()
+        if 'no existing session' in error_str or 'error reading ssh protocol banner' in error_str:
+            print(f"{ERROR_CONNECTION_REFUSED} {e}")
+        else:
+            print(f"{ERROR_SSH_ERROR} {e}")
+        sys.exit(1)
+    except socket.timeout as e:
+        print(f"{ERROR_CONNECTION_TIMEOUT} {e}")
+        sys.exit(1)
+    except socket.gaierror as e:
+        print(f"{ERROR_HOST_UNREACHABLE} '{host}': {e}")
+        sys.exit(1)
+    except ConnectionRefusedError as e:
+        print(f"{ERROR_CONNECTION_REFUSED} {e}")
+        sys.exit(1)
+    except OSError as e:
+        error_str = str(e).lower()
+        if 'no route to host' in error_str or 'network is unreachable' in error_str:
+            print(f"{ERROR_HOST_UNREACHABLE} '{host}': {e}")
+        elif 'connection refused' in error_str:
+            print(f"{ERROR_CONNECTION_REFUSED} {e}")
+        elif 'timed out' in error_str:
+            print(f"{ERROR_CONNECTION_TIMEOUT} {e}")
+        else:
+            print(f"{ERROR_SSH_ERROR} {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"{ERROR_SSH_ERROR} Unexpected error: {e}")
+        sys.exit(1)
+    finally:
+        if client is not None:
+            try:
+                client.close()
+            except Exception:
+                pass
 
 last_command_output = ""
 for command in commands:
     command_stdout, command_stderr = connect_and_execute(host, port, username, password, command)
     if command_stderr:
-        print("ERROR: Command ran unsuccessfully: " + str(command))
+        print(f"{ERROR_COMMAND_FAILED} Command ran unsuccessfully: {command}")
         print(command_stderr)
         sys.exit(1)
     last_command_output = command_stdout.rstrip()
 
 print("SUCCESS")
 print(last_command_output)
+

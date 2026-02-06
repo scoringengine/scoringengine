@@ -7,7 +7,11 @@ CHECKS_BIN_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(_
 CHECK_SUCCESS_TEXT = "Check Finished Successfully"
 CHECK_FAILURE_TEXT = "Check Received Incorrect Content"
 CHECK_TIMED_OUT_TEXT = "Check Timed Out"
-
+CHECK_AUTH_FAILED_TEXT = "Check Authentication Failed"
+CHECK_CONNECTION_REFUSED_TEXT = "Check Connection Refused"
+CHECK_CONNECTION_TIMEOUT_TEXT = "Check Connection Timeout"
+CHECK_HOST_UNREACHABLE_TEXT = "Check Host Unreachable"
+CHECK_COMMAND_FAILED_TEXT = "Check Command Failed"
 
 class BasicCheck(object):
     def __init__(self, environment):
