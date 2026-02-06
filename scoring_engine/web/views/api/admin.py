@@ -422,7 +422,7 @@ def admin_get_inject_templates_id(template_id):
             #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
             #     for x in template.rubric
             # ],
-            teams=[inject.team.name for inject in template.inject if inject.enabled],
+            teams=[inject.team.name for inject in template.inject if inject.enabled and inject.team],
         )
         return jsonify(data)
     else:
@@ -710,7 +710,7 @@ def admin_import_inject_templates():
                             )
                         if d.get("end_time"):
                             t.end_time = (
-                                parse(d["start_time"])
+                                parse(d["end_time"])
                                 .astimezone(pytz.utc)
                                 .replace(tzinfo=None)
                             )
@@ -775,14 +775,10 @@ def admin_import_inject_templates():
                                 inject.enabled = False
 
                     else:
-                        return (
-                            jsonify(
-                                {"status": "Error", "message": "Invalid Template ID"}
-                            ),
-                            400,
-                        )
-                # Otherwise, create the template
-                else:
+                        # Template ID doesn't exist, fall through to create a new one
+                        d.pop("id")
+                if not d.get("id"):
+                    # Create the template
                     t = Template(
                         title=d["title"],
                         scenario=d["scenario"],
@@ -823,11 +819,12 @@ def admin_import_inject_templates():
                                 .filter(Team.name == team_name)
                                 .first()
                             )
-                            inject = Inject(
-                                team=team,
-                                template=t,
-                            )
-                            db.session.add(inject)
+                            if team:
+                                inject = Inject(
+                                    team=team,
+                                    template=t,
+                                )
+                                db.session.add(inject)
             db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
@@ -852,6 +849,8 @@ def admin_inject_scores():
         )
 
         for inject in injects:
+            if not inject.team:
+                continue
             if inject.template.id not in data:
                 data[inject.template.id] = {
                     "title": inject.template.title,
