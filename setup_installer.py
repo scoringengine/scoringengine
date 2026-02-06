@@ -8,6 +8,7 @@ import getpass
 import socket
 import shutil
 import subprocess
+import argparse
 from copy import deepcopy
 from pathlib import Path
 
@@ -258,6 +259,50 @@ def confirm_summary(config):
     confirm = input("Confirm and run automated setup? (y/n): ").lower()
     return confirm.startswith("y")
 
+# non-interactive config 
+def env(name: str, default: str = "") -> str:
+    v = os.environ.get(name)
+    return v if v is not None and v != "" else default
+
+
+def get_config_noninteractive():
+    db_host = env("SE_DB_HOST", "mysql")
+    db_port = env("SE_DB_PORT", "3306")
+    db_name = env("SE_DB_NAME", "scoring_engine")
+    db_user = env("SE_DB_USER", "se_user")
+    db_pw = env("SE_DB_PASSWORD", "CHANGEME")
+    db_uri = f"mysql://{db_user}:{db_pw}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+
+    redis_host = env("SE_REDIS_HOST", "redis")
+    redis_port = env("SE_REDIS_PORT", "6379")
+    redis_pw = env("SE_REDIS_PASSWORD", "")
+
+    comp_name = env("SE_COMP_NAME", "Integration Test")
+    scoring_interval = env("SE_SCORING_INTERVAL", "300")
+
+    admin_user = env("SE_ADMIN_USER", "admin")
+    admin_pw = env("SE_ADMIN_PASSWORD", "admin")
+
+    cfg = {"deployment_mode": "docker"}
+    cfg["engine"] = {}  
+    cfg["database"] = {
+        "type": "mysql",
+        "host": db_host,
+        "port": db_port,
+        "name": db_name,
+        "user": db_user,
+        "password": db_pw,
+        "uri": db_uri,
+    }
+    cfg["redis"] = {
+        "cache_type": "redis",
+        "redis_host": redis_host,
+        "redis_port": redis_port,
+        "redis_password": redis_pw,
+    }
+    cfg["competition"] = {"competition_name": comp_name, "scoring_interval": scoring_interval}
+    cfg["admin"] = {"admin_username": admin_user, "admin_password": admin_pw}
+    return cfg
 
 # file writers
 def write_env(config):
@@ -321,8 +366,45 @@ def write_engine_conf(config, out_path: Path):
     print(f"Created {out_path}")
 
 
+def safe_cleanup():
+    # delete config artifacts
+    try:
+        if DOCKER_ENGINE_CONF.exists():
+            DOCKER_ENGINE_CONF.unlink()
+        if ENV_FILE.exists():
+            ENV_FILE.unlink()
+    except Exception:
+        pass
+    # tear down containers + volumes
+    docker_compose_down_volumes()
+    print("Rollback complete.")
+
+def parse_args():
+    p = argparse.ArgumentParser(description="Scoring Engine Setup Wizard")
+    p.add_argument("--non-interactive", action="store_true", help="Read inputs from env vars and write config files only.")
+    p.add_argument("--no-run", action="store_true", help="Write config files only; do not start docker or bootstrap.")
+    return p.parse_args()
+
 # main flow 
 def main():
+    
+    args = parse_args()
+
+    # non-interactive mode for testing
+    if args.non_interactive:
+        config = get_config_noninteractive()
+
+        # write files and exit
+        DOCKER_ENGINE_CONF.parent.mkdir(parents=True, exist_ok=True)
+        write_engine_conf(config, DOCKER_ENGINE_CONF)
+        write_env(config)
+
+        print("\nNon-interactive mode complete (generated config files only).")
+        print(f" - {DOCKER_ENGINE_CONF}")
+        print(f" - {ENV_FILE}")
+        return
+
+
     clear()
     print(
         """
@@ -421,20 +503,6 @@ Press Enter to accept the default values shown in brackets.
     print("  docker compose up -d")
     print("\n(If already running) check status:")
     print("  docker compose ps")
-
-
-def safe_cleanup():
-    # delete config artifacts
-    try:
-        if DOCKER_ENGINE_CONF.exists():
-            DOCKER_ENGINE_CONF.unlink()
-        if ENV_FILE.exists():
-            ENV_FILE.unlink()
-    except Exception:
-        pass
-    # tear down containers + volumes
-    docker_compose_down_volumes()
-    print("Rollback complete.")
 
 
 if __name__ == "__main__":
