@@ -11,14 +11,9 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v2
-
-      # - name: Set up Docker Compose
-      #   run: |
-      #     sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      #     sudo chmod +x /usr/local/bin/docker-compose
-      #     docker-compose --version
+      - uses: actions/checkout@v4
 
       - name: Install Python dependencies
         run: |
@@ -26,15 +21,25 @@ jobs:
           pip install -e .
           pip install -r tests/requirements.txt
 
-      # - name: Build Docker images
-      #   run: make build
-
       - name: Run unit tests
         run: make run-tests
 
       - name: Run integration tests
-        # run: make run-integration-tests
-        run: ./tests/integration/run.sh
+        timeout-minutes: 25
+        run: |
+          set -euxo pipefail
+          ./tests/integration/run.sh
+
+      # ALWAYS dump state/logs if anything fails (including timeout)
+      - name: Debug docker state (on failure)
+        if: failure()
+        run: |
+          echo "=== docker ps ==="
+          docker ps -a
+          echo "=== docker compose ps ==="
+          docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine ps || true
+          echo "=== docker compose logs (tail) ==="
+          docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine logs --no-color --tail=300 || true
 
       - name: Upload coverage data to coveralls.io
         run: coveralls --service=github
