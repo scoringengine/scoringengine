@@ -12,15 +12,16 @@ services:
       - redis:/data
     networks:
       - default
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
+
   mysql:
     image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-CHANGEME}
       - MYSQL_DATABASE=scoring_engine
       - MYSQL_USER=se_user
-      - MYSQL_PASSWORD=CHANGEME
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-CHANGEME}
     restart: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -31,8 +32,9 @@ services:
       - mysql:/var/lib/mysql
     networks:
       - default
-    ports:
-      - 3306:3306
+    # ports:
+    #   - 3306:3306
+
   nginx:
     image: nginx:1.23.1
     depends_on:
@@ -54,6 +56,7 @@ services:
       - ./scoring_engine/web/static/:/usr/share/nginx/html/static/
     networks:
       - default
+
   base:
     image: scoringengine/base
     build:
@@ -62,6 +65,7 @@ services:
       cache_from:
         - scoringengine/base
         - base:latest
+
   bootstrap:
     image: scoringengine/bootstrap
     build:
@@ -80,10 +84,12 @@ services:
       - default
     volumes:
       - ./docker/engine.conf.inc:/app/engine.conf:ro
+      - ./bin/competition.yaml:/app/bin/competition.yaml:ro
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_OVERWRITE_DB
       - SCORINGENGINE_VERSION
+
   engine:
     image: scoringengine/engine
     build:
@@ -107,6 +113,7 @@ services:
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
+
   worker:
     image: scoringengine/worker
     build:
@@ -129,6 +136,7 @@ services:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
     privileged: true
+
   web:
     image: scoringengine/web
     build:
@@ -145,7 +153,6 @@ services:
       bootstrap:
         condition: service_completed_successfully
     healthcheck:
-      # uwsgi exposes an HTTP stats server on port 9191; use it for liveness
       test: ["CMD", "curl", "-f", "http://localhost:9191"]
       interval: 30s
       timeout: 3s
@@ -166,3 +173,4 @@ volumes:
 
 networks:
   default:
+
