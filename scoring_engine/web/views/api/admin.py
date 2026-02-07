@@ -42,6 +42,7 @@ from scoring_engine.cache_helper import (
     update_service_data,
     update_team_stats,
     update_services_data,
+    update_inject_data,
 )
 from scoring_engine.celery_stats import CeleryStats
 
@@ -574,6 +575,7 @@ def admin_post_inject_grade(inject_id):
                 inject.score = data.get("score")
                 db.session.add(inject)
                 db.session.commit()
+                update_inject_data(inject_id)
                 return jsonify({"status": "Success"}), 200
             else:
                 return jsonify({"status": "Invalid Inject ID"}), 400

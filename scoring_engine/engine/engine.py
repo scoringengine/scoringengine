@@ -230,8 +230,6 @@ class Engine(object):
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
                 teams = {}
-                # Used so we import the finished checks at the end of the round
-                finished_checks = []
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
@@ -275,11 +273,8 @@ class Engine(object):
                             output=task.result["output"][:35000],
                             command=task.result["command"],
                         )
-                        finished_checks.append(check)
-
-                for finished_check in finished_checks:
-                    cleanup_items.append(finished_check)
-                    self.db.session.add(finished_check)
+                        cleanup_items.append(check)
+                        self.db.session.add(check)
                 self.db.session.commit()
 
             except Exception as e:

@@ -80,6 +80,10 @@ def api_injects_submit(inject_id):
     inject.status = "Submitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
+
+    # Invalidate cached inject detail for the submitting team
+    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+
     data = list()
     return jsonify(data=data)
 

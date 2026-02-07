@@ -648,3 +648,55 @@ class TestInjectsAPI(UnitTest):
         resp = self.client.get(f"/api/inject/{inject.id}/files/99999/download")
 
         assert resp.status_code == 403  # File doesn't exist, so unauthorized
+
+    # Cache Invalidation Tests
+    def test_inject_submit_invalidates_cache(self):
+        """Test that submitting an inject invalidates the cached /api/inject/<id> response"""
+        template = Template(
+            title="Cache Test",
+            scenario="Test",
+            deliverable="Test",
+            score=10,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+
+        with patch("scoring_engine.web.views.api.injects.cache") as mock_cache:
+            resp = self.client.post(f"/api/inject/{inject.id}/submit")
+
+        assert resp.status_code == 200
+        # Verify the inject detail cache was deleted for this team
+        mock_cache.delete.assert_called_with(
+            f"/api/inject/{inject.id}_{self.blue_team1.id}"
+        )
+
+    def test_inject_grade_invalidates_cache(self):
+        """Test that grading an inject invalidates the cached /api/inject/<id> response"""
+        template = Template(
+            title="Grade Cache Test",
+            scenario="Test",
+            deliverable="Test",
+            score=10,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        inject.status = "Submitted"
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+
+        with patch("scoring_engine.web.views.api.admin.update_inject_data") as mock_update:
+            resp = self.client.post(
+                f"/api/admin/inject/{inject.id}/grade",
+                json={"score": 8}
+            )
+
+        assert resp.status_code == 200
+        mock_update.assert_called_once_with(str(inject.id))
