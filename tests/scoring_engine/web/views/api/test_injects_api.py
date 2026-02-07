@@ -307,8 +307,8 @@ class TestInjectsAPI(UnitTest):
         assert resp.status_code == 400
 
     @patch("scoring_engine.web.views.api.injects.os.makedirs")
-    def test_file_upload_duplicate_filename_allowed_with_unique_ids(self, mock_makedirs):
-        """Test that uploading the same filename twice succeeds with UUID-randomized storage"""
+    def test_file_upload_duplicate_filename_rejected(self, mock_makedirs):
+        """Test that uploading the same filename twice is rejected"""
         template = Template(
             title="Test",
             scenario="Test",
@@ -324,7 +324,6 @@ class TestInjectsAPI(UnitTest):
         self.login("blueuser1", "pass")
 
         with patch("builtins.open", MagicMock()):
-            # Upload same filename twice
             data = {"file": (io.BytesIO(b"test1"), "test.txt")}
             resp1 = self.client.post(
                 f"/api/inject/{inject.id}/upload",
@@ -333,7 +332,43 @@ class TestInjectsAPI(UnitTest):
             )
             assert resp1.status_code == 200
 
+            # Same filename should be rejected
             data = {"file": (io.BytesIO(b"test2"), "test.txt")}
+            resp2 = self.client.post(
+                f"/api/inject/{inject.id}/upload",
+                data=data,
+                content_type="multipart/form-data"
+            )
+            assert resp2.status_code == 400
+            assert "already been uploaded" in resp2.json["status"]
+
+    @patch("scoring_engine.web.views.api.injects.os.makedirs")
+    def test_file_upload_different_filenames_allowed(self, mock_makedirs):
+        """Test that uploading different filenames succeeds"""
+        template = Template(
+            title="Test",
+            scenario="Test",
+            deliverable="Test",
+            score=10,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+
+        with patch("builtins.open", MagicMock()):
+            data = {"file": (io.BytesIO(b"test1"), "report.txt")}
+            resp1 = self.client.post(
+                f"/api/inject/{inject.id}/upload",
+                data=data,
+                content_type="multipart/form-data"
+            )
+            assert resp1.status_code == 200
+
+            data = {"file": (io.BytesIO(b"test2"), "screenshot.png")}
             resp2 = self.client.post(
                 f"/api/inject/{inject.id}/upload",
                 data=data,
@@ -341,10 +376,8 @@ class TestInjectsAPI(UnitTest):
             )
             assert resp2.status_code == 200
 
-            # Both files should exist with different names
             files = self.session.query(File).filter(File.inject_id == inject.id).all()
             assert len(files) == 2
-            assert files[0].name != files[1].name
 
     # Submit Tests
     def test_inject_submit_requires_auth(self):
