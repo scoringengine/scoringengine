@@ -165,6 +165,11 @@ class Engine(object):
             logger.info("Running engine for {0} round(s)".format(self.total_rounds))
 
         while not self.is_last_round():
+            # End any stale transaction so MySQL REPEATABLE READ gets a
+            # fresh snapshot.  Without this, the pause loop would hold an
+            # open transaction and never see the updated engine_paused value.
+            self.db.session.rollback()
+
             if Setting.get_setting("engine_paused").value:
                 pause_duration = int(Setting.get_setting("pause_duration").value)
                 logger.info("Engine Paused. Sleeping for {0} seconds".format(pause_duration))
