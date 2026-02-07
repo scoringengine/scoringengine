@@ -40,6 +40,21 @@
       </div>
     </div>
   </form>
+  <form method="POST" action="{{ url_for('api.admin_update_worker_max_concurrent_tasks') }}" role="form">
+    <div class="mb-3 row align-items-center">
+      <label for="worker_max_concurrent_tasks" class="col-sm-3 col-form-label text-sm-end">Max Concurrent Tasks Per Worker</label>
+      <div class="col-sm-3">
+        <div class="input-group">
+          <input type="number" class="form-control" id="worker_max_concurrent_tasks" name="worker_max_concurrent_tasks"
+            value="{{ worker_max_concurrent_tasks|safe }}" min="1" required />
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <span class="form-text text-muted">Maximum number of parallel checks each worker can run. Applied immediately to all running workers.</span>
+      </div>
+    </div>
+  </form>
 
   <h3 class="section-header">Page Content</h3>
 

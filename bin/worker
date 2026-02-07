@@ -22,8 +22,13 @@ celery_args = [
     "--loglevel={0}".format(celery_log_level),
 ]
 
-if config.worker_num_concurrent_tasks != -1:
-    celery_args.append("--concurrency={0}".format(config.worker_num_concurrent_tasks))
+if config.worker_num_concurrent_tasks == -1:
+    import multiprocessing
+
+    _autoscale_val = multiprocessing.cpu_count()
+else:
+    _autoscale_val = config.worker_num_concurrent_tasks
+celery_args.append("--autoscale={0},{0}".format(_autoscale_val))
 
 celery_args.append("--queues={0}".format(config.worker_queue))
 

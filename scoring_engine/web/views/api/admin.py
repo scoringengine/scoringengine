@@ -23,6 +23,7 @@ from scoring_engine.models.welcome import (
     get_welcome_config,
     save_welcome_config,
 )
+from scoring_engine.celery_app import celery_app
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
@@ -263,6 +264,29 @@ def admin_update_worker_refresh_time():
             flash("Worker Refresh Time Successfully Updated.", "success")
             return redirect(url_for("admin.settings"))
         flash("Error: worker_refresh_time not specified.", "danger")
+        return redirect(url_for("admin.settings"))
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/update_worker_max_concurrent_tasks", methods=["POST"])
+@login_required
+def admin_update_worker_max_concurrent_tasks():
+    if current_user.is_white_team:
+        if "worker_max_concurrent_tasks" in request.form:
+            setting = Setting.get_setting("worker_max_concurrent_tasks")
+            input_value = request.form["worker_max_concurrent_tasks"]
+            if not input_value.isdigit() or int(input_value) <= 0:
+                flash("Error: Max Concurrent Tasks must be a positive integer.", "danger")
+                return redirect(url_for("admin.settings"))
+            setting.value = input_value
+            db.session.add(setting)
+            db.session.commit()
+            Setting.clear_cache("worker_max_concurrent_tasks")
+            n = int(input_value)
+            celery_app.control.autoscale(n, n)
+            flash("Max Concurrent Tasks Successfully Updated.", "success")
+            return redirect(url_for("admin.settings"))
+        flash("Error: worker_max_concurrent_tasks not specified.", "danger")
         return redirect(url_for("admin.settings"))
     return {"status": "Unauthorized"}, 403
 

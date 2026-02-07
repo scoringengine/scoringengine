@@ -51,6 +51,7 @@ def _insert_default_settings():
         ("welcome_page_content", "example welcome content <br>here"),
         ("target_round_time", 60),
         ("worker_refresh_time", 30),
+        ("worker_max_concurrent_tasks", "-1"),
         ("engine_paused", False),
         ("pause_duration", 30),
         ("blue_team_update_hostname", True),

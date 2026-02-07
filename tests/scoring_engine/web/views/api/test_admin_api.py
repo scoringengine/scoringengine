@@ -534,3 +534,72 @@ class TestAdminAPI:
 
         resp = self.client.get("/api/admin/get_engine_paused")
         assert resp.json["paused"] is True
+
+    # Worker Max Concurrent Tasks Tests
+    def test_update_worker_max_concurrent_tasks_requires_white_team(self):
+        """Test that only white team can update worker max concurrent tasks"""
+        self.login("blueuser")
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "8"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
+
+    def test_update_worker_max_concurrent_tasks_success(self):
+        """Test white team can update worker max concurrent tasks"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser")
+
+        with patch("scoring_engine.web.views.api.admin.celery_app") as mock_celery:
+            resp = self.client.post(
+                "/api/admin/update_worker_max_concurrent_tasks",
+                data={"worker_max_concurrent_tasks": "16"},
+                follow_redirects=True,
+            )
+
+            assert resp.status_code == 200
+            mock_celery.control.autoscale.assert_called_once_with(16, 16)
+
+        setting = Setting.get_setting("worker_max_concurrent_tasks")
+        assert setting.value == "16"
+
+    def test_update_worker_max_concurrent_tasks_rejects_non_integer(self):
+        """Test that non-integer input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "abc"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
+
+    def test_update_worker_max_concurrent_tasks_rejects_zero(self):
+        """Test that zero input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "0"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
+
+    def test_update_worker_max_concurrent_tasks_rejects_negative(self):
+        """Test that negative input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "-5"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
