@@ -232,41 +232,47 @@ class Engine(object):
                 teams = {}
                 # Used so we import the finished checks at the end of the round
                 finished_checks = []
-                for team_name, task_ids in task_ids.items():
-                    for task_id in task_ids:
-                        task = execute_command.AsyncResult(task_id)
-                        environment = self.db.session.get(Environment, task.result["environment_id"])
-                        if task.result["errored_out"]:
-                            result = False
-                            reason = CHECK_TIMED_OUT_TEXT
-                        else:
-                            if re.search(environment.matching_content, task.result["output"]):
-                                result = True
-                                reason = CHECK_SUCCESS_TEXT
-                            else:
+                # Disable autoflush while building Check objects.  Checks are
+                # created with round=round_obj (triggering back_populates) but
+                # aren't added to the session until after the loop.  Without
+                # no_autoflush, session.get() calls inside the loop trigger an
+                # autoflush that warns about the un-added relationship entries.
+                with self.db.session.no_autoflush:
+                    for team_name, task_ids in task_ids.items():
+                        for task_id in task_ids:
+                            task = execute_command.AsyncResult(task_id)
+                            environment = self.db.session.get(Environment, task.result["environment_id"])
+                            if task.result["errored_out"]:
                                 result = False
-                                reason = CHECK_FAILURE_TEXT
+                                reason = CHECK_TIMED_OUT_TEXT
+                            else:
+                                if re.search(environment.matching_content, task.result["output"]):
+                                    result = True
+                                    reason = CHECK_SUCCESS_TEXT
+                                else:
+                                    result = False
+                                    reason = CHECK_FAILURE_TEXT
 
-                        if environment.service.team.name not in teams:
-                            teams[environment.service.team.name] = {
-                                "Success": [],
-                                "Failed": [],
-                            }
-                        if result:
-                            teams[environment.service.team.name]["Success"].append(environment.service.name)
-                        else:
-                            teams[environment.service.team.name]["Failed"].append(environment.service.name)
+                            if environment.service.team.name not in teams:
+                                teams[environment.service.team.name] = {
+                                    "Success": [],
+                                    "Failed": [],
+                                }
+                            if result:
+                                teams[environment.service.team.name]["Success"].append(environment.service.name)
+                            else:
+                                teams[environment.service.team.name]["Failed"].append(environment.service.name)
 
-                        check = Check(service=environment.service, round=round_obj)
-                        # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
-                        # which maxes at 2^32 (65536) characters
-                        check.finished(
-                            result=result,
-                            reason=reason,
-                            output=task.result["output"][:35000],
-                            command=task.result["command"],
-                        )
-                        finished_checks.append(check)
+                            check = Check(service=environment.service, round=round_obj)
+                            # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
+                            # which maxes at 2^32 (65536) characters
+                            check.finished(
+                                result=result,
+                                reason=reason,
+                                output=task.result["output"][:35000],
+                                command=task.result["command"],
+                            )
+                            finished_checks.append(check)
 
                 for finished_check in finished_checks:
                     cleanup_items.append(finished_check)
