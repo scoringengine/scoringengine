@@ -110,17 +110,8 @@ def api_injects_file_upload(inject_id):
 
     files = request.files.getlist("file")
     for file in files:
-        safe_name = secure_filename(file.filename)
-        # Check if a file with the same original name was already uploaded for this inject
-        existing = (
-            db.session.query(File)
-            .filter(File.inject_id == inject.id, File.name.endswith("_" + safe_name))
-            .first()
-        )
-        if existing:
-            return jsonify({"status": "A file with this name has already been uploaded"}), 400
         unique_id = uuid.uuid4().hex[:8]
-        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + unique_id + "_" + safe_name
+        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + unique_id + "_" + secure_filename(file.filename)
         path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
 
         os.makedirs(path, exist_ok=True)
