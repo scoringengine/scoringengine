@@ -58,6 +58,14 @@ filename = "scoring_engine/version.py"
 search = 'BASE_VERSION = "{current_version}"'
 replace = 'BASE_VERSION = "{new_version}"'
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    # flask-caching uses deprecated init internally
+    "ignore::DeprecationWarning:flask_caching",
+    # flask-login 0.6.x uses datetime.utcnow() — fixed in 1.0+
+    "ignore:datetime.datetime.utcnow:DeprecationWarning:flask_login",
+]
+
 [tool.flake8]
 exclude = [".git", "*__init__.py"]
 ignore = ["E501"]

@@ -342,6 +342,9 @@ class TestFlagsAPI(UnitTest):
             dummy=False
         )
 
+        self.session.add_all([service1, service2, flag])
+        self.session.flush()
+
         # Create solve for team1
         solve = Solve(
             host="192.168.1.10",
@@ -349,7 +352,7 @@ class TestFlagsAPI(UnitTest):
             flag_id=flag.id
         )
 
-        self.session.add_all([service1, service2, flag, solve])
+        self.session.add(solve)
         self.session.commit()
 
         self.login("reduser", "pass")
