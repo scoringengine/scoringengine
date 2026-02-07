@@ -96,6 +96,7 @@ def agent_checkin_post():
             for flag in flags
         ]
         db.session.add_all(solves)
+        db.session.commit()
 
     result = do_checkin(team, host, platform)
     return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
