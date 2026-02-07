@@ -98,7 +98,13 @@ class Setting(Base):
             except Exception:
                 logger.debug("Redis cache read failed for setting %s", name, exc_info=True)
 
-        # Cache miss — query DB
+        # Cache miss — query DB.
+        # Roll back to end any stale transaction so the next query starts a
+        # fresh one.  This is critical in long-running processes (e.g. the
+        # engine loop) where MySQL REPEATABLE READ isolation would otherwise
+        # return a frozen snapshot and SQLAlchemy's identity map would return
+        # the previously-loaded object without refreshing its attributes.
+        db.session.rollback()
         setting = db.session.query(Setting).filter(Setting.name == name).order_by(desc(Setting.id)).first()
         if setting and r is not None:
             try:

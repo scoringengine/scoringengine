@@ -160,6 +160,99 @@ class TestSetting(UnitTest):
         setting = Setting.get_setting('engine_paused')
         assert setting.value is False
 
+    def test_get_setting_nonexistent_returns_none(self):
+        """get_setting returns None for a name that doesn't exist in DB."""
+        result = Setting.get_setting('does_not_exist')
+        assert result is None
+
+    def test_get_setting_nonexistent_does_not_cache_none(self):
+        """A None result (no row in DB) should NOT be written to Redis."""
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = None
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            result = Setting.get_setting('does_not_exist')
+
+        assert result is None
+        mock_redis.set.assert_not_called()
+
+    def test_get_setting_redis_read_error_falls_back_to_db(self):
+        """If Redis raises on get(), we fall through to a DB query."""
+        setting = Setting(name='redis_err', value='fallback')
+        self.session.add(setting)
+        self.session.commit()
+
+        mock_redis = MagicMock()
+        mock_redis.get.side_effect = Exception("connection refused")
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            result = Setting.get_setting('redis_err')
+
+        assert result.value == 'fallback'
+
+    def test_get_setting_redis_write_error_still_returns_setting(self):
+        """If Redis raises on set() after a DB query, the setting is still returned."""
+        setting = Setting(name='write_err', value='ok')
+        self.session.add(setting)
+        self.session.commit()
+
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = None  # miss
+        mock_redis.set.side_effect = Exception("connection refused")
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            result = Setting.get_setting('write_err')
+
+        assert result.value == 'ok'
+
+    def test_clear_cache_all_empty_keys(self):
+        """clear_cache() with no matching keys does not call delete."""
+        mock_redis = MagicMock()
+        mock_redis.keys.return_value = []
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            Setting.clear_cache()
+
+        mock_redis.delete.assert_not_called()
+
+    def test_clear_cache_redis_error_does_not_raise(self):
+        """clear_cache gracefully handles Redis errors."""
+        mock_redis = MagicMock()
+        mock_redis.delete.side_effect = Exception("connection refused")
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            # Should not raise
+            Setting.clear_cache("engine_paused")
+
+    def test_cached_setting_is_modifiable_and_committable(self):
+        """A setting reconstructed from Redis can be modified and committed back."""
+        setting = Setting(name='modifiable', value='before')
+        self.session.add(setting)
+        self.session.commit()
+
+        cached_payload = json.dumps({
+            "id": setting.id,
+            "value_text": "before",
+            "value_type": "String",
+        })
+
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = cached_payload
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            cached = Setting.get_setting('modifiable')
+
+        # Modify and commit
+        cached.value = 'after'
+        self.session.add(cached)
+        self.session.commit()
+
+        # Verify via direct DB query
+        result = self.session.query(Setting).filter(
+            Setting.name == 'modifiable'
+        ).first()
+        assert result.value == 'after'
+
     def test_toggle_and_clear_cache_updates_all_workers(self):
         """Simulates the multi-worker scenario: toggle + clear_cache ensures
         the next read (from any worker) sees the updated value."""
