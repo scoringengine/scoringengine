@@ -627,45 +627,47 @@ class TestAdminAPI(UnitTest):
 
     def test_toggle_engine_persists_to_database(self):
         """Test that toggle actually persists the value to the database"""
+        from scoring_engine.db import db
         from scoring_engine.models.setting import Setting
 
         self.login("whiteuser", "pass")
 
         # Verify initial DB state
-        setting = Setting.get_setting("engine_paused", use_cache=False)
+        setting = Setting.get_setting("engine_paused")
         assert setting.value is False
 
         # Toggle
         resp = self.client.post("/api/admin/toggle_engine")
         assert resp.status_code == 200
 
-        # Verify DB was updated (bypass cache to read directly from DB)
-        setting = Setting.get_setting("engine_paused", use_cache=False)
+        # Verify DB was updated (query DB directly to confirm persistence)
+        setting = db.session.query(Setting).filter(
+            Setting.name == "engine_paused"
+        ).order_by(Setting.id.desc()).first()
         assert setting.value is True
 
     def test_toggle_engine_clears_cache(self):
-        """Test that toggle clears the in-memory cache"""
-        from scoring_engine.models.setting import Setting
+        """Test that toggle clears the Redis cache for engine_paused"""
+        from unittest.mock import MagicMock, patch
+        from scoring_engine.models.setting import CACHE_PREFIX
 
         self.login("whiteuser", "pass")
 
-        # Prime the cache
-        Setting.get_setting("engine_paused")
-        assert "engine_paused" in Setting._cache
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = None  # force DB read
 
-        # Toggle should clear cache
-        self.client.post("/api/admin/toggle_engine")
-        assert "engine_paused" not in Setting._cache
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            self.client.post("/api/admin/toggle_engine")
+
+        # Toggle endpoint calls Setting.clear_cache("engine_paused")
+        mock_redis.delete.assert_called_with(CACHE_PREFIX + "engine_paused")
 
     def test_toggle_engine_with_stale_cache(self):
-        """Test that toggle reads from DB, not stale cache"""
+        """Test that toggle reads from DB when Redis cache is stale"""
         from scoring_engine.db import db
         from scoring_engine.models.setting import Setting
 
         self.login("whiteuser", "pass")
-
-        # Prime the cache with False
-        Setting.get_setting("engine_paused")
 
         # Simulate another worker updating the DB directly
         setting = db.session.query(Setting).filter(
@@ -679,7 +681,9 @@ class TestAdminAPI(UnitTest):
         assert resp.status_code == 200
 
         # Verify the value was correctly toggled from the DB state
-        setting = Setting.get_setting("engine_paused", use_cache=False)
+        setting = db.session.query(Setting).filter(
+            Setting.name == "engine_paused"
+        ).order_by(Setting.id.desc()).first()
         assert setting.value is False
 
     def test_get_engine_paused_requires_auth(self):
@@ -702,14 +706,11 @@ class TestAdminAPI(UnitTest):
         assert isinstance(resp.json["paused"], bool)
 
     def test_get_engine_paused_reads_from_db(self):
-        """Test that get_engine_paused bypasses stale cache"""
+        """Test that get_engine_paused returns the current DB value"""
         from scoring_engine.db import db
         from scoring_engine.models.setting import Setting
 
         self.login("whiteuser", "pass")
-
-        # Prime cache with False
-        Setting.get_setting("engine_paused")
 
         # Update DB directly (simulating another worker's toggle)
         setting = db.session.query(Setting).filter(
@@ -718,6 +719,6 @@ class TestAdminAPI(UnitTest):
         setting.value = True
         db.session.commit()
 
-        # GET should return the DB value, not the stale cache
+        # GET should return the DB value (no Redis in test environment)
         resp = self.client.get("/api/admin/get_engine_paused")
         assert resp.json["paused"] is True

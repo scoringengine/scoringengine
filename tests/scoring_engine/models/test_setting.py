@@ -1,7 +1,9 @@
-from scoring_engine.models.setting import Setting
+import json
+from unittest.mock import MagicMock, patch
+
+from scoring_engine.models.setting import Setting, CACHE_PREFIX, CACHE_TTL
 
 from tests.scoring_engine.unit_test import UnitTest
-from time import sleep
 
 
 class TestSetting(UnitTest):
@@ -51,165 +53,134 @@ class TestSetting(UnitTest):
         self.session.add(setting)
         self.session.commit()
 
-    def test_get_setting_caching(self):
-        # Clear cache before test
-        Setting.clear_cache()
-
-        # Create a setting
-        setting = Setting(name='cached_setting', value='initial_value')
+    def test_get_setting_no_redis_falls_back_to_db(self):
+        """Without Redis, get_setting always queries the database."""
+        setting = Setting(name='db_only', value='direct')
         self.session.add(setting)
         self.session.commit()
 
-        # First call should query database and cache the result
-        result1 = Setting.get_setting('cached_setting')
-        assert result1.value == 'initial_value'
-        assert 'cached_setting' in Setting._cache
+        result = Setting.get_setting('db_only')
+        assert result.value == 'direct'
 
-        # Second call should return cached value with same data
-        result2 = Setting.get_setting('cached_setting')
-        assert result2.value == 'initial_value'
-        assert result1.id == result2.id  # Same setting from cache
-
-    def test_get_setting_cache_expiration(self):
-        # Clear cache before test
-        Setting.clear_cache()
-
-        # Set a very short TTL for testing
-        original_ttl = Setting._cache_ttl
-        Setting._cache_ttl = 1  # 1 second TTL
-
-        # Create a setting
-        setting = Setting(name='expiring_setting', value='first_value')
+    def test_get_setting_redis_cache_hit(self):
+        """When Redis has a cached entry, get_setting returns it without querying DB."""
+        setting = Setting(name='cached_bool', value=True)
         self.session.add(setting)
         self.session.commit()
 
-        # First call caches the setting
-        result1 = Setting.get_setting('expiring_setting')
-        assert result1.value == 'first_value'
+        cached_payload = json.dumps({
+            "id": setting.id,
+            "value_text": "True",
+            "value_type": "Boolean",
+        })
 
-        # Update the setting in database
-        new_setting = Setting(name='expiring_setting', value='second_value')
-        self.session.add(new_setting)
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = cached_payload
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            result = Setting.get_setting('cached_bool')
+
+        assert result.value is True
+        mock_redis.get.assert_called_once_with(CACHE_PREFIX + "cached_bool")
+
+    def test_get_setting_redis_cache_miss_populates_cache(self):
+        """On cache miss, get_setting queries DB and writes to Redis."""
+        setting = Setting(name='miss_test', value='hello')
+        self.session.add(setting)
         self.session.commit()
 
-        # Immediate call should still return cached value
-        result2 = Setting.get_setting('expiring_setting')
-        assert result2.value == 'first_value'
+        mock_redis = MagicMock()
+        mock_redis.get.return_value = None  # cache miss
 
-        # Wait for cache to expire
-        sleep(1.5)
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            result = Setting.get_setting('miss_test')
 
-        # After expiration, should get updated value from database
-        result3 = Setting.get_setting('expiring_setting')
-        assert result3.value == 'second_value'
+        assert result.value == 'hello'
+        # Should have written to Redis
+        mock_redis.set.assert_called_once()
+        call_args = mock_redis.set.call_args
+        assert call_args[0][0] == CACHE_PREFIX + "miss_test"
+        assert call_args[1]["ex"] == CACHE_TTL
+        # Verify the payload
+        payload = json.loads(call_args[0][1])
+        assert payload["value_text"] == "hello"
+        assert payload["value_type"] == "String"
 
-        # Restore original TTL
-        Setting._cache_ttl = original_ttl
+    def test_clear_cache_specific_key(self):
+        """clear_cache(name) deletes that specific Redis key."""
+        mock_redis = MagicMock()
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            Setting.clear_cache("engine_paused")
+
+        mock_redis.delete.assert_called_once_with(CACHE_PREFIX + "engine_paused")
 
     def test_clear_cache_all(self):
-        # Create and cache multiple settings
-        setting1 = Setting(name='setting1', value='value1')
-        setting2 = Setting(name='setting2', value='value2')
-        self.session.add(setting1)
-        self.session.add(setting2)
-        self.session.commit()
+        """clear_cache() deletes all setting keys from Redis."""
+        mock_redis = MagicMock()
+        mock_redis.keys.return_value = [
+            CACHE_PREFIX + "a",
+            CACHE_PREFIX + "b",
+        ]
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            Setting.clear_cache()
 
-        Setting.get_setting('setting1')
-        Setting.get_setting('setting2')
+        mock_redis.keys.assert_called_once_with(CACHE_PREFIX + "*")
+        mock_redis.delete.assert_called_once_with(
+            CACHE_PREFIX + "a",
+            CACHE_PREFIX + "b",
+        )
 
-        assert len(Setting._cache) >= 2
-
-        # Clear entire cache
+    def test_clear_cache_noop_without_redis(self):
+        """clear_cache does nothing when Redis is unavailable."""
+        # Should not raise
         Setting.clear_cache()
-        assert len(Setting._cache) == 0
-
-    def test_clear_cache_specific(self):
-        # Clear cache before test
-        Setting.clear_cache()
-
-        # Create and cache multiple settings
-        setting1 = Setting(name='setting_a', value='value_a')
-        setting2 = Setting(name='setting_b', value='value_b')
-        self.session.add(setting1)
-        self.session.add(setting2)
-        self.session.commit()
-
-        Setting.get_setting('setting_a')
-        Setting.get_setting('setting_b')
-
-        assert 'setting_a' in Setting._cache
-        assert 'setting_b' in Setting._cache
-
-        # Clear only one setting from cache
-        Setting.clear_cache('setting_a')
-        assert 'setting_a' not in Setting._cache
-        assert 'setting_b' in Setting._cache
-
-    def test_get_setting_use_cache_false(self):
-        """Test that use_cache=False bypasses in-memory cache and reads from DB"""
-        # Clear cache before test
-        Setting.clear_cache()
-
-        # Create a setting and cache it
-        setting = Setting(name='bypass_test', value='original')
-        self.session.add(setting)
-        self.session.commit()
-
-        # Prime the cache
-        result = Setting.get_setting('bypass_test')
-        assert result.value == 'original'
-        assert 'bypass_test' in Setting._cache
-
-        # Update the DB directly (simulates another worker's write)
-        from scoring_engine.db import db
-        new_setting = Setting(name='bypass_test', value='updated')
-        db.session.add(new_setting)
-        db.session.commit()
-
-        # With cache: should still return old value
-        cached_result = Setting.get_setting('bypass_test')
-        assert cached_result.value == 'original'
-
-        # Without cache: should return the new DB value
-        fresh_result = Setting.get_setting('bypass_test', use_cache=False)
-        assert fresh_result.value == 'updated'
-
-    def test_get_setting_use_cache_false_still_updates_cache(self):
-        """Test that use_cache=False still stores the fresh result in cache"""
-        Setting.clear_cache()
-
-        setting = Setting(name='cache_update_test', value='value1')
-        self.session.add(setting)
-        self.session.commit()
-
-        # Bypass cache on read - should still populate the cache
-        Setting.get_setting('cache_update_test', use_cache=False)
-        assert 'cache_update_test' in Setting._cache
+        Setting.clear_cache("engine_paused")
 
     def test_setting_toggle_persists(self):
-        """Test that toggling a boolean setting persists correctly to DB"""
-        Setting.clear_cache()
-
+        """Test that toggling a boolean setting persists correctly to DB."""
         # Read the engine_paused setting (created by unit_test setup)
-        setting = Setting.get_setting('engine_paused', use_cache=False)
+        setting = Setting.get_setting('engine_paused')
         assert setting.value is False
 
         # Toggle it
         setting.value = not setting.value
         self.session.add(setting)
         self.session.commit()
-        Setting.clear_cache('engine_paused')
 
         # Read fresh from DB - should be True
-        setting = Setting.get_setting('engine_paused', use_cache=False)
+        setting = Setting.get_setting('engine_paused')
         assert setting.value is True
 
         # Toggle back
         setting.value = not setting.value
         self.session.add(setting)
         self.session.commit()
-        Setting.clear_cache('engine_paused')
 
         # Read fresh from DB - should be False again
-        setting = Setting.get_setting('engine_paused', use_cache=False)
+        setting = Setting.get_setting('engine_paused')
         assert setting.value is False
+
+    def test_toggle_and_clear_cache_updates_all_workers(self):
+        """Simulates the multi-worker scenario: toggle + clear_cache ensures
+        the next read (from any worker) sees the updated value."""
+        mock_redis = MagicMock()
+        # First call: cache miss, second call: also miss (cache was cleared)
+        mock_redis.get.return_value = None
+
+        with patch("scoring_engine.models.setting._get_redis", return_value=mock_redis):
+            # Read current value
+            setting = Setting.get_setting('engine_paused')
+            assert setting.value is False
+
+            # Toggle
+            setting.value = not setting.value
+            self.session.add(setting)
+            self.session.commit()
+
+            # Clear cache (this is what makes it visible to other workers)
+            Setting.clear_cache('engine_paused')
+            mock_redis.delete.assert_called_with(CACHE_PREFIX + "engine_paused")
+
+            # Next read should hit DB and get the new value
+            setting = Setting.get_setting('engine_paused')
+            assert setting.value is True

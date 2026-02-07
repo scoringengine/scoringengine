@@ -1032,7 +1032,7 @@ def admin_add_team():
 @login_required
 def admin_toggle_engine():
     if current_user.is_white_team:
-        setting = Setting.get_setting("engine_paused", use_cache=False)
+        setting = Setting.get_setting("engine_paused")
         setting.value = not setting.value
         db.session.add(setting)
         db.session.commit()
@@ -1064,7 +1064,7 @@ def admin_get_engine_stats():
 @login_required
 def admin_get_engine_status():
     if current_user.is_white_team:
-        return jsonify({"paused": Setting.get_setting("engine_paused", use_cache=False).value})
+        return jsonify({"paused": Setting.get_setting("engine_paused").value})
     else:
         return {"status": "Unauthorized"}, 403
 
