@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scoring_engine"
-version = "1.2.1"
+version = "1.2.2"
 description = "Scoring Engine for Red/White/Blue Team Competitions"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -42,7 +42,7 @@ Download = "https://github.com/scoringengine/scoringengine/archive/master.zip"
 include = ["scoring_engine*" ]
 
 [tool.bumpversion]
-current_version = "1.2.1"
+current_version = "1.2.2"
 commit = true
 tag = true
 tag_name = "v{new_version}"
