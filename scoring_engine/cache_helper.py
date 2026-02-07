@@ -102,8 +102,14 @@ def update_inject_data(inject_id, team_id=None):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
-# TODO - Break this into an API cache expiration
 def update_stats():
-    from scoring_engine.web.views.stats import home
-
-    cache.delete_memoized(home)
+    # Clear cached /api/stats responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(
+            match="*/api/stats_*"
+        ):
+            cache.delete(
+                key.decode("utf-8").removeprefix(
+                    cache.cache.key_prefix
+                )
+            )
