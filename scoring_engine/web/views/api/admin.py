@@ -9,6 +9,7 @@ from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
 import html
+import re
 
 
 def _ensure_utc_aware(dt):
@@ -61,7 +62,12 @@ def admin_update_environment():
             environment = db.session.get(Environment, int(request.form["pk"]))
             if environment:
                 if request.form["name"] == "matching_content":
-                    environment.matching_content = html.escape(request.form["value"])
+                    value = html.escape(request.form["value"])
+                    try:
+                        re.compile(value)
+                    except re.error as e:
+                        return jsonify({"error": "Invalid regex pattern: " + str(e)}), 400
+                    environment.matching_content = value
                 db.session.add(environment)
                 db.session.commit()
                 return jsonify({"status": "Updated Environment Information"})

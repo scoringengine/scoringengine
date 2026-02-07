@@ -240,7 +240,16 @@ class Engine(object):
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
                         else:
-                            if re.search(environment.matching_content, task.result["output"]):
+                            try:
+                                matched = re.search(environment.matching_content, task.result["output"])
+                            except re.error:
+                                logger.warning(
+                                    "Invalid regex pattern for environment %s: %r, falling back to literal match",
+                                    environment.id,
+                                    environment.matching_content,
+                                )
+                                matched = environment.matching_content in task.result["output"]
+                            if matched:
                                 result = True
                                 reason = CHECK_SUCCESS_TEXT
                             else:

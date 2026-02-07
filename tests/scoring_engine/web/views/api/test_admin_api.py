@@ -539,6 +539,55 @@ class TestAdminAPI(UnitTest):
         # Value should be escaped
         assert prop.value == html.escape(sql_injection)
 
+    def test_admin_update_environment_rejects_invalid_regex(self):
+        """Test that invalid regex patterns are rejected when updating matching_content"""
+        service = Service(
+            name="Test",
+            check_name="ICMP IPv4 Check",
+            host="1.2.3.4",
+            team=self.blue_team
+        )
+        env = Environment(service=service, matching_content="old_value")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        resp = self.client.post(
+            "/api/admin/update_environment_info",
+            data={"pk": env.id, "name": "matching_content", "value": "foo(bar"}
+        )
+
+        assert resp.status_code == 400
+        assert "Invalid regex pattern" in resp.json["error"]
+
+        # Verify value was not changed
+        self.session.refresh(env)
+        assert env.matching_content == "old_value"
+
+    def test_admin_update_environment_accepts_valid_regex(self):
+        """Test that valid regex patterns are accepted when updating matching_content"""
+        service = Service(
+            name="Test",
+            check_name="ICMP IPv4 Check",
+            host="1.2.3.4",
+            team=self.blue_team
+        )
+        env = Environment(service=service, matching_content="old_value")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        resp = self.client.post(
+            "/api/admin/update_environment_info",
+            data={"pk": env.id, "name": "matching_content", "value": "^SUCCESS"}
+        )
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Updated Environment Information"
+
+        self.session.refresh(env)
+        assert env.matching_content == "^SUCCESS"
+
     def test_admin_nonexistent_environment(self):
         """Test updating nonexistent environment returns error"""
         self.login("whiteuser", "pass")
