@@ -1,6 +1,11 @@
+from unittest.mock import patch, MagicMock
+
 from scoring_engine.engine.engine import Engine
 
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
 from scoring_engine.web import create_app
 
 from scoring_engine.checks.agent import AgentCheck
@@ -146,6 +151,78 @@ class TestEngine(UnitTest):
         engine = Engine(total_rounds=1)
         engine.rounds_run = 1
         assert engine.is_last_round() is True
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_jitter_applies_countdown(self, mock_execute_command):
+        """When task_jitter_max_delay > 0, apply_async gets a countdown > 0."""
+        team = Team(name="Blue Team 1", color="Blue")
+        self.session.add(team)
+        service = Service(
+            name="ICMP Service",
+            team=team,
+            check_name="ICMPCheck",
+            host="127.0.0.1",
+        )
+        self.session.add(service)
+        env = Environment(service=service, matching_content="*")
+        self.session.add(env)
+        self.session.commit()
+
+        # Fake a completed async result so the engine doesn't wait forever
+        mock_result = MagicMock()
+        mock_result.id = "fake-task-id"
+        mock_result.state = "SUCCESS"
+        mock_result.result = {
+            "environment_id": env.id,
+            "errored_out": False,
+            "output": "*",
+            "command": "echo test",
+        }
+        mock_execute_command.apply_async.return_value = mock_result
+        mock_execute_command.AsyncResult.return_value = mock_result
+
+        engine = Engine(total_rounds=1)
+        engine.config.task_jitter_max_delay = 30
+        engine.run()
+
+        call_kwargs = mock_execute_command.apply_async.call_args
+        assert "countdown" in call_kwargs.kwargs
+        assert 0 <= call_kwargs.kwargs["countdown"] <= 30
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_jitter_disabled_passes_zero_countdown(self, mock_execute_command):
+        """When task_jitter_max_delay == 0 (default), countdown is 0."""
+        team = Team(name="Blue Team 1", color="Blue")
+        self.session.add(team)
+        service = Service(
+            name="ICMP Service",
+            team=team,
+            check_name="ICMPCheck",
+            host="127.0.0.1",
+        )
+        self.session.add(service)
+        env = Environment(service=service, matching_content="*")
+        self.session.add(env)
+        self.session.commit()
+
+        mock_result = MagicMock()
+        mock_result.id = "fake-task-id"
+        mock_result.state = "SUCCESS"
+        mock_result.result = {
+            "environment_id": env.id,
+            "errored_out": False,
+            "output": "*",
+            "command": "echo test",
+        }
+        mock_execute_command.apply_async.return_value = mock_result
+        mock_execute_command.AsyncResult.return_value = mock_result
+
+        engine = Engine(total_rounds=1)
+        engine.config.task_jitter_max_delay = 0
+        engine.run()
+
+        call_kwargs = mock_execute_command.apply_async.call_args
+        assert call_kwargs.kwargs["countdown"] == 0
 
     # todo figure out how to test the remaining functionality of engine
     # where we're waiting for the worker queues to finish and everything

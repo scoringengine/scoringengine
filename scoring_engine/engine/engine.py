@@ -179,6 +179,7 @@ class Engine(object):
 
             services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
+            jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
@@ -189,7 +190,8 @@ class Engine(object):
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+                countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
+                task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []

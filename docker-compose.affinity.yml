@@ -35,6 +35,10 @@ services:
 
   engine:
     cpuset: "4-5"
+    environment:
+      # Spread task dispatch over 30s so workers don't all hit services at once.
+      # Adjust to ~1/6 of target_round_time. 0 = disabled.
+      - SCORINGENGINE_TASK_JITTER_MAX_DELAY=30
 
   bootstrap:
     cpuset: "4-5"

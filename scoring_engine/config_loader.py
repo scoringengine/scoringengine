@@ -126,6 +126,12 @@ class ConfigLoader(object):
             "bool",
         )
 
+        self.task_jitter_max_delay = self.parse_sources(
+            "task_jitter_max_delay",
+            int(self.parser["OPTIONS"].get("task_jitter_max_delay", "0")),
+            "int",
+        )
+
         self.worker_queue = self.parse_sources(
             "worker_queue",
             self.parser["OPTIONS"]["worker_queue"],
