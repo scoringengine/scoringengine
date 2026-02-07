@@ -51,6 +51,7 @@ class TestEngine(UnitTest):
         self.session.add(worker_refresh_time_obj)
 
         self.session.commit()
+        Setting.clear_cache()
 
         # UnitTest already creates app context, no need to create another
 
@@ -154,7 +155,12 @@ class TestEngine(UnitTest):
 
     @patch("scoring_engine.engine.engine.execute_command")
     def test_jitter_applies_countdown(self, mock_execute_command):
-        """When task_jitter_max_delay > 0, apply_async gets a countdown > 0."""
+        """When target_round_time > 0, apply_async gets countdown in [0, round_time/2]."""
+        # Set target_round_time to 60 so jitter_max = 30
+        target_round_time_obj = Setting.get_setting("target_round_time")
+        target_round_time_obj.value = 60
+        self.session.add(target_round_time_obj)
+
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
         service = Service(
@@ -168,7 +174,6 @@ class TestEngine(UnitTest):
         self.session.add(env)
         self.session.commit()
 
-        # Fake a completed async result so the engine doesn't wait forever
         mock_result = MagicMock()
         mock_result.id = "fake-task-id"
         mock_result.state = "SUCCESS"
@@ -182,7 +187,6 @@ class TestEngine(UnitTest):
         mock_execute_command.AsyncResult.return_value = mock_result
 
         engine = Engine(total_rounds=1)
-        engine.config.task_jitter_max_delay = 30
         engine.run()
 
         call_kwargs = mock_execute_command.apply_async.call_args
@@ -190,8 +194,13 @@ class TestEngine(UnitTest):
         assert 0 <= call_kwargs.kwargs["countdown"] <= 30
 
     @patch("scoring_engine.engine.engine.execute_command")
-    def test_jitter_disabled_passes_zero_countdown(self, mock_execute_command):
-        """When task_jitter_max_delay == 0 (default), countdown is 0."""
+    def test_jitter_disabled_when_round_time_zero(self, mock_execute_command):
+        """When target_round_time == 0, countdown is 0."""
+        target_round_time_obj = Setting.get_setting("target_round_time")
+        target_round_time_obj.value = 0
+        self.session.add(target_round_time_obj)
+        self.session.commit()
+
         team = Team(name="Blue Team 1", color="Blue")
         self.session.add(team)
         service = Service(
@@ -218,7 +227,6 @@ class TestEngine(UnitTest):
         mock_execute_command.AsyncResult.return_value = mock_result
 
         engine = Engine(total_rounds=1)
-        engine.config.task_jitter_max_delay = 0
         engine.run()
 
         call_kwargs = mock_execute_command.apply_async.call_args

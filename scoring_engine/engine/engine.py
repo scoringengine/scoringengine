@@ -179,7 +179,8 @@ class Engine(object):
 
             services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
-            jitter_max = self.config.task_jitter_max_delay
+            target_round_time = int(Setting.get_setting("target_round_time").value)
+            jitter_max = target_round_time / 2
             task_ids = {}
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
