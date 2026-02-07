@@ -32,6 +32,13 @@ worker_num_concurrent_tasks = -1
 # running certain work but not others
 worker_queue = main
 
+# Maximum random delay (in seconds) added to each task before workers
+# pick it up. Spreads checks across the round window so workers don't
+# all hit target services at the same instant. 0 = disabled (all tasks
+# dispatched immediately). A good starting value is ~1/6 of
+# target_round_time (e.g. 30 for a 180s round).
+task_jitter_max_delay = 0
+
 # Set to null to disable caching
 cache_type = redis
 
