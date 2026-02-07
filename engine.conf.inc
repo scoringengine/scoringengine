@@ -16,6 +16,10 @@ upload_folder = /var/uploads
 
 debug = False
 
+# Secret key for Flask sessions. If empty, a random key is generated on each
+# startup (sessions won't survive restarts). Set a fixed value for development.
+secret_key =
+
 # SQLite
 db_uri = sqlite:////tmp/engine.db?check_same_thread=False
 # MySQL
