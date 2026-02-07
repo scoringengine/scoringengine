@@ -47,15 +47,22 @@ class Setting(Base):
         self._value_text = str(value)
 
     @classmethod
-    def get_setting(cls, name):
+    def get_setting(cls, name, use_cache=True):
         """
-        Get a setting by name with in-memory caching.
+        Get a setting by name with optional in-memory caching.
         Cache entries expire after _cache_ttl seconds.
+
+        Args:
+            name: The setting name to look up.
+            use_cache: If False, bypass the in-memory cache and query the
+                database directly. Use this when immediate consistency is
+                required (e.g. admin toggle endpoints in multi-worker
+                deployments where the per-process cache may be stale).
         """
         current_time = time()
 
         # Check if setting is in cache and not expired
-        if name in cls._cache:
+        if use_cache and name in cls._cache:
             cached_value, cached_time = cls._cache[name]
             if current_time - cached_time < cls._cache_ttl:
                 # Merge the cached object back into the session to avoid DetachedInstanceError

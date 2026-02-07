@@ -574,3 +574,150 @@ class TestAdminAPI(UnitTest):
 
         # Should return error for nonexistent check
         assert "error" in resp.json or resp.json.get("status") != "Updated Check Information"
+
+    # Engine Toggle Tests
+    def test_toggle_engine_requires_auth(self):
+        """Test that toggle engine requires authentication"""
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+    def test_toggle_engine_requires_white_team(self):
+        """Test that only white team can toggle engine"""
+        self.login("blueuser", "pass")
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 403
+        assert resp.json["status"] == "Unauthorized"
+
+    def test_toggle_engine_pauses_running_engine(self):
+        """Test toggling engine from running to paused"""
+        self.login("whiteuser", "pass")
+
+        # Engine starts unpaused (default from unit_test setup)
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is False
+
+        # Toggle to paused
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Success"
+
+        # Verify engine is now paused
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is True
+
+    def test_toggle_engine_resumes_paused_engine(self):
+        """Test toggling engine from paused back to running"""
+        self.login("whiteuser", "pass")
+
+        # Toggle to paused
+        self.client.post("/api/admin/toggle_engine")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is True
+
+        # Toggle back to running
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify engine is running again
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is False
+
+    def test_toggle_engine_persists_to_database(self):
+        """Test that toggle actually persists the value to the database"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Verify initial DB state
+        setting = Setting.get_setting("engine_paused", use_cache=False)
+        assert setting.value is False
+
+        # Toggle
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify DB was updated (bypass cache to read directly from DB)
+        setting = Setting.get_setting("engine_paused", use_cache=False)
+        assert setting.value is True
+
+    def test_toggle_engine_clears_cache(self):
+        """Test that toggle clears the in-memory cache"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Prime the cache
+        Setting.get_setting("engine_paused")
+        assert "engine_paused" in Setting._cache
+
+        # Toggle should clear cache
+        self.client.post("/api/admin/toggle_engine")
+        assert "engine_paused" not in Setting._cache
+
+    def test_toggle_engine_with_stale_cache(self):
+        """Test that toggle reads from DB, not stale cache"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Prime the cache with False
+        Setting.get_setting("engine_paused")
+
+        # Simulate another worker updating the DB directly
+        setting = db.session.query(Setting).filter(
+            Setting.name == "engine_paused"
+        ).first()
+        setting.value = True
+        db.session.commit()
+
+        # Toggle should read current DB value (True) and set to False
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify the value was correctly toggled from the DB state
+        setting = Setting.get_setting("engine_paused", use_cache=False)
+        assert setting.value is False
+
+    def test_get_engine_paused_requires_auth(self):
+        """Test that get engine status requires authentication"""
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 302
+
+    def test_get_engine_paused_requires_white_team(self):
+        """Test that only white team can get engine status"""
+        self.login("blueuser", "pass")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 403
+
+    def test_get_engine_paused_returns_boolean(self):
+        """Test that paused status is returned as a JSON boolean, not string"""
+        self.login("whiteuser", "pass")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is False
+        assert isinstance(resp.json["paused"], bool)
+
+    def test_get_engine_paused_reads_from_db(self):
+        """Test that get_engine_paused bypasses stale cache"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Prime cache with False
+        Setting.get_setting("engine_paused")
+
+        # Update DB directly (simulating another worker's toggle)
+        setting = db.session.query(Setting).filter(
+            Setting.name == "engine_paused"
+        ).first()
+        setting.value = True
+        db.session.commit()
+
+        # GET should return the DB value, not the stale cache
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is True

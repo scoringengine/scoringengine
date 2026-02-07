@@ -144,3 +144,72 @@ class TestSetting(UnitTest):
         Setting.clear_cache('setting_a')
         assert 'setting_a' not in Setting._cache
         assert 'setting_b' in Setting._cache
+
+    def test_get_setting_use_cache_false(self):
+        """Test that use_cache=False bypasses in-memory cache and reads from DB"""
+        # Clear cache before test
+        Setting.clear_cache()
+
+        # Create a setting and cache it
+        setting = Setting(name='bypass_test', value='original')
+        self.session.add(setting)
+        self.session.commit()
+
+        # Prime the cache
+        result = Setting.get_setting('bypass_test')
+        assert result.value == 'original'
+        assert 'bypass_test' in Setting._cache
+
+        # Update the DB directly (simulates another worker's write)
+        from scoring_engine.db import db
+        new_setting = Setting(name='bypass_test', value='updated')
+        db.session.add(new_setting)
+        db.session.commit()
+
+        # With cache: should still return old value
+        cached_result = Setting.get_setting('bypass_test')
+        assert cached_result.value == 'original'
+
+        # Without cache: should return the new DB value
+        fresh_result = Setting.get_setting('bypass_test', use_cache=False)
+        assert fresh_result.value == 'updated'
+
+    def test_get_setting_use_cache_false_still_updates_cache(self):
+        """Test that use_cache=False still stores the fresh result in cache"""
+        Setting.clear_cache()
+
+        setting = Setting(name='cache_update_test', value='value1')
+        self.session.add(setting)
+        self.session.commit()
+
+        # Bypass cache on read - should still populate the cache
+        Setting.get_setting('cache_update_test', use_cache=False)
+        assert 'cache_update_test' in Setting._cache
+
+    def test_setting_toggle_persists(self):
+        """Test that toggling a boolean setting persists correctly to DB"""
+        Setting.clear_cache()
+
+        # Read the engine_paused setting (created by unit_test setup)
+        setting = Setting.get_setting('engine_paused', use_cache=False)
+        assert setting.value is False
+
+        # Toggle it
+        setting.value = not setting.value
+        self.session.add(setting)
+        self.session.commit()
+        Setting.clear_cache('engine_paused')
+
+        # Read fresh from DB - should be True
+        setting = Setting.get_setting('engine_paused', use_cache=False)
+        assert setting.value is True
+
+        # Toggle back
+        setting.value = not setting.value
+        self.session.add(setting)
+        self.session.commit()
+        Setting.clear_cache('engine_paused')
+
+        # Read fresh from DB - should be False again
+        setting = Setting.get_setting('engine_paused', use_cache=False)
+        assert setting.value is False
