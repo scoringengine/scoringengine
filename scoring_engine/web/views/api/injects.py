@@ -1,4 +1,6 @@
 import os
+import uuid
+
 import pytz
 
 from datetime import datetime, timezone
@@ -108,14 +110,11 @@ def api_injects_file_upload(inject_id):
 
     files = request.files.getlist("file")
     for file in files:
-        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + secure_filename(file.filename)
+        unique_id = uuid.uuid4().hex[:8]
+        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + unique_id + "_" + secure_filename(file.filename)
         path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
 
-        if not os.path.exists(path):
-            os.makedirs(path)
-        # Check if file exists already
-        if db.session.query(File).filter(File.name == filename).one_or_none():
-            return "File name is not unique", 400
+        os.makedirs(path, exist_ok=True)
         file.save(os.path.join(path, filename))
 
         f = File(filename, current_user, inject)
