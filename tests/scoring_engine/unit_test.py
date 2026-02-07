@@ -37,6 +37,7 @@ class UnitTest(object):
         )
         db.session.add(Setting(name="target_round_time", value=60))
         db.session.add(Setting(name="worker_refresh_time", value=30))
+        db.session.add(Setting(name="worker_max_concurrent_tasks", value="-1"))
         db.session.add(Setting(name="engine_paused", value=False))
         db.session.add(Setting(name="pause_duration", value=30))
         db.session.add(Setting(name="blue_team_update_hostname", value=True))
