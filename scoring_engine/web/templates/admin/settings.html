@@ -86,5 +86,103 @@
     </div>
   </form>
 
+  <!-- Webhook Configuration -->
+  <div class="panel panel-default" style="margin-top: 20px;">
+    <div class="panel-heading">
+      <h4 class="panel-title">Webhook Notifications (Slack/Discord)</h4>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted">Send notifications to Slack, Discord, or generic webhooks when competition events occur.</p>
+      <form id="webhook_form">
+        <div class="form-group">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="webhook_enabled" name="enabled">
+              Enable Webhooks
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="webhook_url">Webhook URL</label>
+          <input type="url" class="form-control" id="webhook_url" name="url" placeholder="https://hooks.slack.com/... or https://discord.com/api/webhooks/...">
+          <span class="help-block">Automatically detects Slack or Discord from URL</span>
+        </div>
+        <div class="form-group">
+          <label>Notification Events</label>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="webhook_on_round_complete" name="on_round_complete">
+              Round Complete
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="webhook_on_inject_graded" name="on_inject_graded">
+              Inject Graded
+            </label>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveWebhookSettings()">Save Webhook Settings</button>
+        <button type="button" class="btn btn-default" onclick="testWebhook()">Send Test</button>
+        <span id="webhook_status" class="text-success" style="margin-left: 10px;"></span>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Load webhook settings on page load
+    $(document).ready(function() {
+      $.get('/api/admin/webhook/settings', function(data) {
+        $('#webhook_enabled').prop('checked', data.enabled);
+        $('#webhook_url').val(data.url);
+        $('#webhook_on_round_complete').prop('checked', data.on_round_complete);
+        $('#webhook_on_inject_graded').prop('checked', data.on_inject_graded);
+      });
+    });
+
+    function saveWebhookSettings() {
+      var data = {
+        enabled: $('#webhook_enabled').is(':checked'),
+        url: $('#webhook_url').val(),
+        on_round_complete: $('#webhook_on_round_complete').is(':checked'),
+        on_inject_graded: $('#webhook_on_inject_graded').is(':checked')
+      };
+      $.ajax({
+        url: '/api/admin/webhook/settings',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+          $('#webhook_status').removeClass('text-danger').addClass('text-success')
+            .text('Saved!').fadeIn().delay(2000).fadeOut();
+        },
+        error: function() {
+          $('#webhook_status').removeClass('text-success').addClass('text-danger')
+            .text('Error saving settings').fadeIn().delay(2000).fadeOut();
+        }
+      });
+    }
+
+    function testWebhook() {
+      $.ajax({
+        url: '/api/admin/webhook/test',
+        type: 'POST',
+        success: function(response) {
+          if (response.success) {
+            $('#webhook_status').removeClass('text-danger').addClass('text-success')
+              .text(response.message).fadeIn().delay(3000).fadeOut();
+          } else {
+            $('#webhook_status').removeClass('text-success').addClass('text-danger')
+              .text(response.message).fadeIn().delay(3000).fadeOut();
+          }
+        },
+        error: function() {
+          $('#webhook_status').removeClass('text-success').addClass('text-danger')
+            .text('Error sending test').fadeIn().delay(2000).fadeOut();
+        }
+      });
+    }
+  </script>
+
 </div>
 {% endblock %}

@@ -568,6 +568,23 @@ def admin_post_inject_grade(inject_id):
                 inject.score = data.get("score")
                 db.session.add(inject)
                 db.session.commit()
+
+                # Send webhook notification for inject grading
+                try:
+                    from scoring_engine.webhooks import notify_inject_graded
+                    notify_inject_graded(
+                        team_name=inject.team.name,
+                        inject_title=inject.template.title,
+                        score=inject.score,
+                        max_score=inject.template.score,
+                    )
+                except Exception as e:
+                    # Log but don't fail the request if webhook fails
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        f"Failed to send inject graded webhook: {e}"
+                    )
+
                 return jsonify({"status": "Success"}), 200
             else:
                 return jsonify({"status": "Invalid Inject ID"}), 400
@@ -1087,3 +1104,84 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/webhook/settings", methods=["GET"])
+@login_required
+def admin_get_webhook_settings():
+    """Get current webhook configuration."""
+    if current_user.is_white_team:
+        webhook_enabled = Setting.get_setting("webhook_enabled")
+        webhook_url = Setting.get_setting("webhook_url")
+        webhook_on_round = Setting.get_setting("webhook_on_round_complete")
+        webhook_on_inject = Setting.get_setting("webhook_on_inject_graded")
+
+        return jsonify({
+            "enabled": webhook_enabled.value if webhook_enabled else False,
+            "url": webhook_url.value if webhook_url else "",
+            "on_round_complete": webhook_on_round.value if webhook_on_round else True,
+            "on_inject_graded": webhook_on_inject.value if webhook_on_inject else True,
+        })
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/webhook/settings", methods=["POST"])
+@login_required
+def admin_update_webhook_settings():
+    """Update webhook configuration."""
+    if current_user.is_white_team:
+        data = request.get_json() or request.form
+
+        # Update enabled setting
+        if "enabled" in data:
+            setting = Setting.get_setting("webhook_enabled")
+            if setting:
+                setting.value = str(data["enabled"]).lower() in (
+                    "true", "1", "yes", "on"
+                )
+                db.session.add(setting)
+                Setting.clear_cache("webhook_enabled")
+
+        # Update URL
+        if "url" in data:
+            setting = Setting.get_setting("webhook_url")
+            if setting:
+                setting.value = data["url"]
+                db.session.add(setting)
+                Setting.clear_cache("webhook_url")
+
+        # Update round complete notification
+        if "on_round_complete" in data:
+            setting = Setting.get_setting("webhook_on_round_complete")
+            if setting:
+                setting.value = str(data["on_round_complete"]).lower() in (
+                    "true", "1", "yes", "on"
+                )
+                db.session.add(setting)
+                Setting.clear_cache("webhook_on_round_complete")
+
+        # Update inject graded notification
+        if "on_inject_graded" in data:
+            setting = Setting.get_setting("webhook_on_inject_graded")
+            if setting:
+                setting.value = str(data["on_inject_graded"]).lower() in (
+                    "true", "1", "yes", "on"
+                )
+                db.session.add(setting)
+                Setting.clear_cache("webhook_on_inject_graded")
+
+        db.session.commit()
+        flash("Webhook settings updated successfully.", "success")
+        return jsonify({"status": "success"})
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/webhook/test", methods=["POST"])
+@login_required
+def admin_test_webhook():
+    """Send a test webhook notification."""
+    if current_user.is_white_team:
+        from scoring_engine.webhooks import send_test_notification
+        success, message = send_test_notification()
+        return jsonify({"success": success, "message": message})
+    return {"status": "Unauthorized"}, 403

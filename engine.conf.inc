@@ -68,3 +68,13 @@ dynamic_scoring_early_multiplier = 2.0
 dynamic_scoring_late_start_round = 50
 # Multiplier for late rounds (e.g., 0.5 = 0.5x points)
 dynamic_scoring_late_multiplier = 0.5
+
+# Webhook Configuration (Slack/Discord/generic notifications)
+# Enable/disable webhook notifications
+webhook_enabled = False
+# Webhook URL - auto-detects Slack/Discord from URL
+webhook_url =
+# Send notification when a round completes
+webhook_on_round_complete = True
+# Send notification when an inject is graded
+webhook_on_inject_graded = True
