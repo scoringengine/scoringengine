@@ -1,21 +1,10 @@
-from sqlalchemy import (
-    Column,
-    Enum,
-    Integer,
-    Boolean,
-    PickleType,
-    DateTime,
-    String,
-    UniqueConstraint,
-    ForeignKey,
-)
+import html
+
+import pytz
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, PickleType, String, UniqueConstraint
 
 # from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-
-import pytz
-
-import html
 
 
 def _ensure_utc_aware(dt):
@@ -28,14 +17,13 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-import uuid
-
-from scoring_engine.models.base import Base
-from scoring_engine.models.team import Team
-from scoring_engine.config import config
-
 
 import enum
+import uuid
+
+from scoring_engine.config import config
+from scoring_engine.models.base import Base
+from scoring_engine.models.team import Team
 
 
 class FlagTypeEnum(enum.Enum):
@@ -81,11 +69,17 @@ class Flag(Base):
 
     @property
     def localize_start_time(self):
-        return _ensure_utc_aware(self.start_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+        return (
+            _ensure_utc_aware(self.start_time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z")
+        )
 
     @property
     def localize_end_time(self):
-        return _ensure_utc_aware(self.end_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+        return (
+            _ensure_utc_aware(self.end_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
+        )
 
 
 class Solve(Base):

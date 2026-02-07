@@ -4,8 +4,8 @@
 # and then reads the file back to verify the contents
 
 import os
-import sys
 import subprocess
+import sys
 import tempfile
 
 if len(sys.argv) != 4:
@@ -22,14 +22,19 @@ remote_name = os.path.basename(remote_filepath)
 with tempfile.TemporaryDirectory() as mount_dir:
     mounted = False
     try:
-        subprocess.run([
-            "sudo",
-            "mount",
-            "-t",
-            "nfs",
-            f"{host}:{remote_dir}",
-            mount_dir,
-        ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(
+            [
+                "sudo",
+                "mount",
+                "-t",
+                "nfs",
+                f"{host}:{remote_dir}",
+                mount_dir,
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         mounted = True
     except subprocess.CalledProcessError as err:
         print(f"ERROR: {err.stderr.decode().strip()}")

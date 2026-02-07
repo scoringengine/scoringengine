@@ -2,6 +2,7 @@
 
 from flask import current_app
 from flask_caching.backends import NullCache
+
 from scoring_engine.cache import cache
 
 
@@ -18,9 +19,7 @@ def update_all_cache(app_or_ctx=None):
     if app_or_ctx is None:
         app_or_ctx = current_app
 
-    context_manager = (
-        app_or_ctx.app_context() if hasattr(app_or_ctx, "app_context") else app_or_ctx
-    )
+    context_manager = app_or_ctx.app_context() if hasattr(app_or_ctx, "app_context") else app_or_ctx
 
     with context_manager:
         cache.clear()
@@ -58,6 +57,7 @@ def update_team_stats(team_id=None):
         for key in cache.cache._write_client.scan_iter(match="*/api/team/*/stats_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
+
 def update_services_navbar(team_id=None):
     # corresponds with file scoring_engine.web.views.api.team function team_services_status
 
@@ -77,6 +77,7 @@ def update_service_data(service_id=None):
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match="*/api/service/*/checks_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
 
 def update_services_data(team_id=None):
     # corresponds with file scoring_engine.web.views.api.team function api_services
@@ -105,11 +106,5 @@ def update_inject_data(inject_id, team_id=None):
 def update_stats():
     # Clear cached /api/stats responses (keyed per-team/role)
     if not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.scan_iter(
-            match="*/api/stats_*"
-        ):
-            cache.delete(
-                key.decode("utf-8").removeprefix(
-                    cache.cache.key_prefix
-                )
-            )
+        for key in cache.cache._write_client.scan_iter(match="*/api/stats_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))

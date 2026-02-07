@@ -10,8 +10,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
 
@@ -72,9 +71,7 @@ def overview_data():
             .subquery()
         )
         res = (
-            db.session.query(
-                Team.name, Service.name, Service.host, Service.port, checks.c.result
-            )
+            db.session.query(Team.name, Service.name, Service.host, Service.port, checks.c.result)
             .join(Team)
             .filter(checks.c.service_id == Service.id)
             .all()
@@ -101,9 +98,7 @@ def overview_get_columns():
 def overview_get_data():
     # columns = get_table_columns()
     data = []
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     blue_team_ids = [team.id for team in blue_teams]
     blue_teams_dict = {team.id: team for team in blue_teams}
     last_round = Round.get_last_round_num()
@@ -159,25 +154,19 @@ def overview_get_data():
             )
 
             # Get round numbers for each round_id
-            rounds_map = {
-                r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-            }
+            rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
             # Calculate totals with multipliers
             team_scores = defaultdict(int)
             for team_id, round_id, round_score in round_scores:
                 round_number = rounds_map.get(round_id, 0)
-                adjusted_score = apply_dynamic_scoring_to_round(
-                    round_number, round_score, sla_config
-                )
+                adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
                 team_scores[team_id] += adjusted_score
             team_scores = dict(team_scores)
         else:
             # No dynamic scoring - use simple sum
             team_scores = dict(
-                db.session.query(
-                    Service.team_id, func.sum(Service.points).label("score")
-                )
+                db.session.query(Service.team_id, func.sum(Service.points).label("score"))
                 .join(Check)
                 .filter(Check.result.is_(True))
                 .group_by(Service.team_id)
@@ -203,9 +192,7 @@ def overview_get_data():
                 adjusted_scores_dict[blue_team_id] = base_score
 
         # Use adjusted scores for ranking when SLA is enabled
-        scores_for_ranking = (
-            adjusted_scores_dict if sla_config.sla_enabled else team_scores
-        )
+        scores_for_ranking = adjusted_scores_dict if sla_config.sla_enabled else team_scores
 
         # Calculate ranks with tie handling
         ranks_dict = calculate_ranks(scores_for_ranking)
@@ -227,9 +214,7 @@ def overview_get_data():
             # Add penalty display (negative number if penalty exists)
             penalty = penalties_dict.get(blue_team_id, 0)
             if penalty > 0:
-                sla_penalties_row.append(
-                    '<span class="text-danger">-{}</span>'.format(penalty)
-                )
+                sla_penalties_row.append('<span class="text-danger">-{}</span>'.format(penalty))
             else:
                 sla_penalties_row.append("0")
 
@@ -269,9 +254,7 @@ def overview_get_data():
 
         # Loop through dictionary to create datatables formatted list
         for k, v in service_dict.items():
-            data.append(
-                [k] + v
-            )  # ['SERVICE', True, False, False, False, False, False, False, True, False, False]
+            data.append([k] + v)  # ['SERVICE', True, False, False, False, False, False, False, True, False, False]
         return jsonify(data=data)
     else:
         return "{}"

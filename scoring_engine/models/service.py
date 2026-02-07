@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, desc, func
+from sqlalchemy import Column, ForeignKey, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
+from scoring_engine.db import db
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
-from scoring_engine.db import db
 
 
 def _get_rank_from_scores(scores, target_id):
@@ -65,24 +65,14 @@ class Service(Base):
         Get the result of the most recent check for this service.
         Uses a DB query to avoid session/lazy loading issues.
         """
-        last_check = (
-            db.session.query(Check)
-            .filter(Check.service_id == self.id)
-            .order_by(desc(Check.id))
-            .first()
-        )
+        last_check = db.session.query(Check).filter(Check.service_id == self.id).order_by(desc(Check.id)).first()
         if last_check:
             return last_check.result
         return None
 
     @property
     def checks_reversed(self):
-        return (
-            db.session.query(Check)
-            .filter(Check.service_id == self.id)
-            .order_by(desc(Check.round_id))
-            .all()
-        )
+        return db.session.query(Check).filter(Check.service_id == self.id).order_by(desc(Check.round_id)).all()
 
     @property
     def rank(self):
@@ -115,10 +105,7 @@ class Service(Base):
         WARNING: Performs DB query on each access. Cache when used multiple times.
         """
         return (
-            db.session.query(Check)
-            .filter(Check.service_id == self.id)
-            .filter(Check.result.is_(True))
-            .count()
+            db.session.query(Check).filter(Check.service_id == self.id).filter(Check.result.is_(True)).count()
         ) * self.points
 
     @property
@@ -127,9 +114,7 @@ class Service(Base):
         Calculate maximum possible score for this service.
         WARNING: Performs DB query on each access. Cache when used multiple times.
         """
-        return (
-            db.session.query(Check).filter(Check.service_id == self.id).count()
-        ) * self.points
+        return (db.session.query(Check).filter(Check.service_id == self.id).count()) * self.points
 
     @property
     def percent_earned(self):
@@ -143,13 +128,7 @@ class Service(Base):
         Get the last 10 checks for this service in reverse chronological order.
         Optimized to use a DB query with LIMIT instead of loading all checks into memory.
         """
-        return (
-            db.session.query(Check)
-            .filter(Check.service_id == self.id)
-            .order_by(desc(Check.id))
-            .limit(10)
-            .all()
-        )
+        return db.session.query(Check).filter(Check.service_id == self.id).order_by(desc(Check.id)).limit(10).all()
 
     @property
     def consecutive_failures(self):

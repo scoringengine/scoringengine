@@ -4,10 +4,9 @@ import pytz
 
 from scoring_engine.models.agent import Agent
 from scoring_engine.models.flag import FlagTypeEnum, Platform
-from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestAgent(UnitTest):
+class TestAgent:
     def test_as_dict(self):
         start = datetime(2024, 1, 1, tzinfo=pytz.UTC)
         end = datetime(2024, 1, 2, tzinfo=pytz.UTC)

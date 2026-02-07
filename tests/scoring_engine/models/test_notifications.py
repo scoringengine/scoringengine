@@ -1,13 +1,13 @@
-import pytest
 from datetime import datetime
 
+import pytest
+
+from scoring_engine.db import db
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.team import Team
 
-from tests.scoring_engine.unit_test import UnitTest
 
-
-class TestNotification(UnitTest):
+class TestNotification:
 
     def test_init_minimal(self):
         """Test creating a notification with minimal fields"""
@@ -31,17 +31,17 @@ class TestNotification(UnitTest):
         notification = Notification()
         notification.message = "Test notification"
         notification.target = "all"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
         assert notification.id is not None
-        assert len(self.session.query(Notification).all()) == 1
+        assert len(db.session.query(Notification).all()) == 1
 
     def test_default_is_read(self):
         """Test that is_read defaults to False after commit"""
         notification = Notification()
         notification.message = "Test"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
         # Database applies default after commit
         assert notification.is_read is False
 
@@ -49,8 +49,8 @@ class TestNotification(UnitTest):
         """Test that created timestamp is automatically set"""
         notification = Notification()
         notification.message = "Test"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
         assert notification.created is not None
         assert isinstance(notification.created, datetime)
 
@@ -59,26 +59,26 @@ class TestNotification(UnitTest):
         notification = Notification()
         notification.message = "Test notification"
         notification.target = "blue_team"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
         assert notification.is_read is False
         notification.is_read = True
-        self.session.commit()
+        db.session.commit()
         assert notification.is_read is True
 
     def test_notification_with_team(self):
         """Test creating a notification associated with a team"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
-        self.session.commit()
+        db.session.add(team)
+        db.session.commit()
 
         notification = Notification()
         notification.message = "Your service is down"
         notification.target = "team_specific"
         notification.team_id = team.id
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
         assert notification.team_id == team.id
         assert notification.id is not None
@@ -97,12 +97,12 @@ class TestNotification(UnitTest):
         notification3.message = "Third notification"
         notification3.target = "white_team"
 
-        self.session.add(notification1)
-        self.session.add(notification2)
-        self.session.add(notification3)
-        self.session.commit()
+        db.session.add(notification1)
+        db.session.add(notification2)
+        db.session.add(notification3)
+        db.session.commit()
 
-        notifications = self.session.query(Notification).all()
+        notifications = db.session.query(Notification).all()
         assert len(notifications) == 3
 
     def test_notification_ordering_by_created(self):
@@ -110,16 +110,16 @@ class TestNotification(UnitTest):
         notification1 = Notification()
         notification1.message = "First"
         notification1.target = "all"
-        self.session.add(notification1)
-        self.session.commit()
+        db.session.add(notification1)
+        db.session.commit()
 
         notification2 = Notification()
         notification2.message = "Second"
         notification2.target = "all"
-        self.session.add(notification2)
-        self.session.commit()
+        db.session.add(notification2)
+        db.session.commit()
 
-        notifications = self.session.query(Notification).order_by(Notification.created).all()
+        notifications = db.session.query(Notification).order_by(Notification.created).all()
         assert len(notifications) == 2
         assert notifications[0].message == "First"
         assert notifications[1].message == "Second"
@@ -129,16 +129,16 @@ class TestNotification(UnitTest):
         notification1 = Notification()
         notification1.message = "Unread notification"
         notification1.is_read = False
-        self.session.add(notification1)
+        db.session.add(notification1)
 
         notification2 = Notification()
         notification2.message = "Read notification"
         notification2.is_read = True
-        self.session.add(notification2)
+        db.session.add(notification2)
 
-        self.session.commit()
+        db.session.commit()
 
-        unread = self.session.query(Notification).filter_by(is_read=False).all()
+        unread = db.session.query(Notification).filter_by(is_read=False).all()
         assert len(unread) == 1
         assert unread[0].message == "Unread notification"
 
@@ -147,10 +147,10 @@ class TestNotification(UnitTest):
         notification = Notification()
         notification.message = "Competition starts in 30 minutes! 🚀"
         notification.target = "all"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
-        retrieved = self.session.query(Notification).first()
+        retrieved = db.session.query(Notification).first()
         assert "🚀" in retrieved.message
 
     def test_long_message(self):
@@ -159,10 +159,10 @@ class TestNotification(UnitTest):
         notification = Notification()
         notification.message = long_message
         notification.target = "all"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
-        retrieved = self.session.query(Notification).first()
+        retrieved = db.session.query(Notification).first()
         assert len(retrieved.message) > 100
 
     def test_target_types(self):
@@ -173,11 +173,11 @@ class TestNotification(UnitTest):
             notification = Notification()
             notification.message = f"Message for {target}"
             notification.target = target
-            self.session.add(notification)
+            db.session.add(notification)
 
-        self.session.commit()
+        db.session.commit()
 
-        notifications = self.session.query(Notification).all()
+        notifications = db.session.query(Notification).all()
         assert len(notifications) == len(targets)
 
         for notification in notifications:
@@ -188,27 +188,27 @@ class TestNotification(UnitTest):
         notification = Notification()
         notification.message = "To be deleted"
         notification.target = "all"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
         notification_id = notification.id
-        assert self.session.query(Notification).filter_by(id=notification_id).first() is not None
+        assert db.session.query(Notification).filter_by(id=notification_id).first() is not None
 
-        self.session.delete(notification)
-        self.session.commit()
+        db.session.delete(notification)
+        db.session.commit()
 
-        assert self.session.query(Notification).filter_by(id=notification_id).first() is None
+        assert db.session.query(Notification).filter_by(id=notification_id).first() is None
 
     def test_update_notification(self):
         """Test updating a notification message"""
         notification = Notification()
         notification.message = "Original message"
         notification.target = "all"
-        self.session.add(notification)
-        self.session.commit()
+        db.session.add(notification)
+        db.session.commit()
 
         notification.message = "Updated message"
-        self.session.commit()
+        db.session.commit()
 
-        retrieved = self.session.query(Notification).first()
+        retrieved = db.session.query(Notification).first()
         assert retrieved.message == "Updated message"

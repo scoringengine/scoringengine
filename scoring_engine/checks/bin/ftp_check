@@ -3,10 +3,10 @@
 # A scoring engine check that logs into FTP, uploads a file
 # and then logs into FTP again, and downloads the file
 
-import sys
 import ftplib
-import tempfile
 import os
+import sys
+import tempfile
 import traceback
 
 if len(sys.argv) != 7:
@@ -25,11 +25,11 @@ session = ftplib.FTP()
 session.connect(host=host, port=int(port))
 session.login(username, password)
 tmp_fd, tmp_filename = tempfile.mkstemp(text=True)
-with open(tmp_filename, 'w') as fobj:
+with open(tmp_filename, "w") as fobj:
     fobj.write(upload_file_contents)
 upload_response_text = None
 try:
-    upload_response_text = session.storlines('STOR {0}'.format(remote_filepath), open(tmp_filename, 'rb'))
+    upload_response_text = session.storlines("STOR {0}".format(remote_filepath), open(tmp_filename, "rb"))
 except:
     print(f"ERROR: Failed to upload to remote path '{remote_filepath}'")
     print("Check if the directory exists and if write permissions are set.")
@@ -41,7 +41,7 @@ finally:
     os.remove(tmp_filename)
 
 # Success code is 226
-if not upload_response_text.startswith('226'):
+if not upload_response_text.startswith("226"):
     print("ERROR: Unable to upload file")
     print(upload_response_text)
     sys.exit(1)
@@ -53,7 +53,7 @@ session.login(username, password)
 downloaded_lines = []
 download_response_text = None
 try:
-    download_response_text = session.retrlines('RETR {0}'.format(remote_filepath), downloaded_lines.append)
+    download_response_text = session.retrlines("RETR {0}".format(remote_filepath), downloaded_lines.append)
 except:
     print(f"ERROR: Failed to download from remote path '{remote_filepath}'")
     print("Check if the directory exists and if read permissions are set.")
@@ -64,12 +64,12 @@ finally:
     session.close()
 
 # Success code is 226
-if not download_response_text.startswith('226'):
+if not download_response_text.startswith("226"):
     print("ERROR: Unable to download file")
     print(download_response_text)
     sys.exit(1)
 
-downloaded_data = ''.join(downloaded_lines)
+downloaded_data = "".join(downloaded_lines)
 if downloaded_data != upload_file_contents:
     print("ERROR: Uploaded contents do not match downloaded contents")
     sys.exit(1)

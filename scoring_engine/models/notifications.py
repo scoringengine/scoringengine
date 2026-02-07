@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, DateTime, UnicodeText
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, UnicodeText
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
