@@ -28,15 +28,16 @@ class TestVersion(UnitTest):
         self.toggle_debug(False)
 
     def toggle_debug(self, result):
-        if 'scoring_engine.config' in sys.modules:
-            del sys.modules['scoring_engine.config']
-        import scoring_engine.config
+        import importlib
+
+        import scoring_engine.config_loader as cl_mod
 
         if result:
-            scoring_engine.config_loader.ConfigLoader = MockConfigTrueDebug
+            cl_mod.ConfigLoader = MockConfigTrueDebug
         else:
-            scoring_engine.config_loader.ConfigLoader = MockConfigFalseDebug
+            cl_mod.ConfigLoader = MockConfigFalseDebug
 
+        # Force scoring_engine.config to re-evaluate with the patched loader
         if 'scoring_engine.config' in sys.modules:
             del sys.modules['scoring_engine.config']
         from scoring_engine.config import config
