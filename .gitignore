@@ -24,3 +24,6 @@ engine.conf
 
 # Environment variables
 .env
+
+# Docker Compose local overrides
+docker-compose.override.yml
