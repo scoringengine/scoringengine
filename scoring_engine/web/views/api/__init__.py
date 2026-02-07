@@ -8,10 +8,13 @@ from scoring_engine.models.notifications import Notification
 def make_cache_key(*args, **kwargs):
     """Function to generate a cache key."""
     request_path = request.path
-    team_id = g.user.team.id  # Assuming g.user.team is available
-
-    # Return a unique key based on the function name and team information (user info not needed due to everything based on teams)
-    return f"{request_path}_{team_id}"
+    if g.user.is_anonymous:
+        return f"{request_path}_anonymous"
+    if g.user.is_white_team:
+        return f"{request_path}_white"
+    if g.user.is_red_team:
+        return f"{request_path}_red"
+    return f"{request_path}_team_{g.user.team.id}"
 
 
 mod = Blueprint("api", __name__)
