@@ -68,6 +68,10 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        if len(password.encode("utf-8")) > 72:
+            flash("Password must be 72 bytes or fewer.", "danger")
+            return render_template("login.html", form=form)
+
         try:
             user = db.session.query(User).filter(User.username == username).one()
         except NoResultFound:

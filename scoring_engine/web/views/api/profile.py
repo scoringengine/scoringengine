@@ -18,6 +18,10 @@ def profile_update_password():
         if not current_user.check_password(request.form['currentpassword']):
             flash('Invalid Password.', 'danger')
             return redirect(url_for('profile.home'))
+        # Ensure new password is not too long for bcrypt
+        if len(request.form['password'].encode("utf-8")) > 72:
+            flash('Password must be 72 bytes or fewer.', 'danger')
+            return redirect(url_for('profile.home'))
         # Ensure new passwords match
         if request.form['password'] != request.form['confirmedpassword']:
             flash('Passwords do not match.', 'danger')
