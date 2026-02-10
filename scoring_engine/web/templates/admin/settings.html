@@ -51,6 +51,26 @@
       </div>
     </div>
   </form>
+  <form method="POST" action="{{ url_for('api.admin_update_worker_max_concurrent_tasks') }}" role="form">
+    <div class="form-group row" style="margin-bottom: 0px;">
+      <div class="col-xs-3">
+        <label for="ex1" class="pull-right" style="padding-top: 7px;">Max Concurrent Tasks Per Worker</label>
+      </div>
+      <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
+        <div class="input-group input-group-md">
+          <input class="form-control" id="worker_max_concurrent_tasks" name="worker_max_concurrent_tasks"
+            placeholder="Insert Max Concurrent Tasks Here" value="{{ worker_max_concurrent_tasks|safe }}" required />
+          <div class="input-group-btn">
+            <button type="submit" class="btn btn-primary center-block">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-6">
+        <span class="help-block" style="margin-top: 0px;">Maximum number of parallel checks each worker can run.
+          Applied immediately to all running workers.</span>
+      </div>
+    </div>
+  </form>
 
   <div class="col-xs-3">
     <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
