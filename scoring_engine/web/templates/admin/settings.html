@@ -52,6 +52,77 @@
     </div>
   </form>
 
+  <!-- Weighted Scoring Configuration -->
+  <div class="panel panel-default" style="margin-top: 20px;">
+    <div class="panel-heading">
+      <h4 class="panel-title">Weighted Scoring</h4>
+    </div>
+    <div class="panel-body">
+      <p class="text-muted">Apply multipliers to balance different score types. Useful when services total 10000 points but injects only 100 points.</p>
+      <form id="weighted_scoring_form">
+        <div class="form-group">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="weighted_scoring_enabled" name="enabled">
+              Enable Weighted Scoring
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="service_weight">Service Weight</label>
+          <input type="number" step="0.1" min="0" class="form-control" id="service_weight" name="service_weight" value="1.0" style="width: 150px;">
+          <span class="help-block">Multiplier for service uptime scores (e.g., 0.5 = half points)</span>
+        </div>
+        <div class="form-group">
+          <label for="inject_weight">Inject Weight</label>
+          <input type="number" step="0.1" min="0" class="form-control" id="inject_weight" name="inject_weight" value="1.0" style="width: 150px;">
+          <span class="help-block">Multiplier for inject scores (e.g., 2.0 = double points)</span>
+        </div>
+        <div class="form-group">
+          <label for="flag_weight">Flag Weight</label>
+          <input type="number" step="0.1" min="0" class="form-control" id="flag_weight" name="flag_weight" value="1.0" style="width: 150px;">
+          <span class="help-block">Multiplier for flag capture scores</span>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveWeightedScoring()">Save Weighted Scoring</button>
+        <span id="weighted_scoring_status" class="text-success" style="margin-left: 10px;"></span>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Load weighted scoring settings on page load
+    $(document).ready(function() {
+      $.get('/api/admin/weighted_scoring/settings', function(data) {
+        $('#weighted_scoring_enabled').prop('checked', data.enabled);
+        $('#service_weight').val(data.service_weight);
+        $('#inject_weight').val(data.inject_weight);
+        $('#flag_weight').val(data.flag_weight);
+      });
+    });
+
+    function saveWeightedScoring() {
+      var data = {
+        enabled: $('#weighted_scoring_enabled').is(':checked'),
+        service_weight: parseFloat($('#service_weight').val()),
+        inject_weight: parseFloat($('#inject_weight').val()),
+        flag_weight: parseFloat($('#flag_weight').val())
+      };
+      $.ajax({
+        url: '/api/admin/weighted_scoring/settings',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+          $('#weighted_scoring_status').text('Saved!').fadeIn().delay(2000).fadeOut();
+        },
+        error: function() {
+          $('#weighted_scoring_status').removeClass('text-success').addClass('text-danger')
+            .text('Error saving settings').fadeIn().delay(2000).fadeOut();
+        }
+      });
+    }
+  </script>
+
   <div class="col-xs-3">
     <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
   </div>

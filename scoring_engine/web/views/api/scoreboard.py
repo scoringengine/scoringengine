@@ -89,13 +89,22 @@ def scoreboard_get_bar_data():
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
         service_score = current_scores.get(blue_team.id, 0)
-        inject_score = inject_scores.get(blue_team.id, 0)
-        team_scores.append(str(service_score))
-        team_inject_scores.append(str(inject_score))
+        inject_score = inject_scores.get(blue_team.id, 0) or 0
+
+        # Apply weighted scoring if enabled
+        if sla_config.weighted_scoring_enabled:
+            weighted_service = int(service_score * sla_config.service_weight)
+            weighted_inject = int(inject_score * sla_config.inject_weight)
+        else:
+            weighted_service = service_score
+            weighted_inject = inject_score
+
+        team_scores.append(str(weighted_service))
+        team_inject_scores.append(str(weighted_inject))
 
         # Calculate SLA penalties if enabled
-        # Total base score includes both service and inject scores
-        total_base_score = service_score + inject_score
+        # Total base score includes both weighted service and inject scores
+        total_base_score = weighted_service + weighted_inject
         if sla_config.sla_enabled:
             penalty = calculate_team_total_penalties(blue_team, sla_config)
             team_sla_penalties.append(str(penalty))
@@ -114,6 +123,13 @@ def scoreboard_get_bar_data():
     team_data["sla_penalties"] = team_sla_penalties
     team_data["adjusted_scores"] = team_adjusted_scores
     team_data["sla_enabled"] = sla_config.sla_enabled
+    team_data["weighted_scoring_enabled"] = sla_config.weighted_scoring_enabled
+    if sla_config.weighted_scoring_enabled:
+        team_data["weights"] = {
+            "service": sla_config.service_weight,
+            "inject": sla_config.inject_weight,
+            "flag": sla_config.flag_weight,
+        }
     return jsonify(team_data)
 
 

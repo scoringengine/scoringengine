@@ -176,6 +176,13 @@ with app.app_context():
     db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
     db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
 
+    # Weighted Scoring Settings (balance service/inject/flag scores)
+    logger.info("Creating the Weighted Scoring Settings")
+    db.session.add(Setting(name="weighted_scoring_enabled", value=config.weighted_scoring_enabled))
+    db.session.add(Setting(name="service_weight", value=str(config.service_weight)))
+    db.session.add(Setting(name="inject_weight", value=str(config.inject_weight)))
+    db.session.add(Setting(name="flag_weight", value=str(config.flag_weight)))
+
     db.session.commit()
 
     if options.example:
