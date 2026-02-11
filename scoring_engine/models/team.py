@@ -1,17 +1,16 @@
 import itertools
 import random
-
 from collections import defaultdict
+
 from sqlalchemy import Column, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
-
+from scoring_engine.db import db
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.db import db
 
 
 def _get_rank_from_scores(scores, target_id, default=1):

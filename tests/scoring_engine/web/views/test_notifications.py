@@ -1,15 +1,24 @@
 """Tests for Notifications web view"""
+
+import pytest
+
+from scoring_engine.db import db
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from tests.scoring_engine.web.web_test import WebTest
 
 
-class TestNotifications(WebTest):
+class TestNotifications:
     """Test notifications web view"""
 
-    def setup_method(self):
-        super(TestNotifications, self).setup_method()
-        self.create_default_user()
+    @pytest.fixture(autouse=True)
+    def setup(self, test_client, db_session):
+        self.client = test_client
+        team = Team(name="Team 1", color="White")
+        db.session.add(team)
+        user = User(username="testuser", password="testpass", team=team)
+        db.session.add(user)
+        db.session.commit()
+        self.client.post("/login", data={"username": "testuser", "password": "testpass"})
 
     def test_notifications_unread_route(self):
         """Test that /notifications/unread route works"""
@@ -30,4 +39,3 @@ class TestNotifications(WebTest):
         """Test that notifications renders the correct template"""
         resp = self.client.get("/notifications")
         assert resp.status_code == 200
-        # Template should be rendered (notifications.html)

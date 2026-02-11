@@ -4,7 +4,7 @@ import subprocess
 from scoring_engine.config import config
 
 # Base version - updated by bump-my-version
-BASE_VERSION = "1.2.0"
+BASE_VERSION = "1.2.2"
 
 
 def get_git_info():

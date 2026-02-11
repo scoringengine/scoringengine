@@ -17,10 +17,10 @@ services:
   mysql:
     image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=CHANGEME
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-CHANGEME}
       - MYSQL_DATABASE=scoring_engine
       - MYSQL_USER=se_user
-      - MYSQL_PASSWORD=CHANGEME
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-CHANGEME}
     restart: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]

@@ -1,58 +1,82 @@
-from tests.scoring_engine.web.web_test import WebTest
+from unittest.mock import MagicMock, call
+
+import pytest
+from flask import render_template as render_template_orig
+
+import scoring_engine.web.views.services as view_module
+from scoring_engine.db import db
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 from tests.scoring_engine.helpers import generate_sample_model_tree
 
 
-class TestServices(WebTest):
+class TestServices:
 
-    def set_team_color(self, team, color):
-        team.color = color
-        self.session.add(team)
-        self.session.commit()
+    @pytest.fixture(autouse=True)
+    def setup(self, test_client, db_session):
+        self.client = test_client
+        self.mock_obj = MagicMock(side_effect=render_template_orig)
+        view_module.render_template = self.mock_obj
+        yield
+        view_module.render_template = render_template_orig
 
-    def set_blue_team(self, team):
-        self.set_team_color(team, 'Blue')
+    def _create_default_user(self):
+        team = Team(name="Team 1", color="White")
+        db.session.add(team)
+        user = User(username="testuser", password="testpass", team=team)
+        db.session.add(user)
+        db.session.commit()
+        return user
 
-    def set_white_team(self, team):
-        self.set_team_color(team, 'White')
+    def _auth_and_get_path(self, path):
+        self.client.post("/login", data={"username": "testuser", "password": "testpass"})
+        return self.client.get(path)
 
     def test_auth_required_services(self):
-        self.verify_auth_required('/services')
+        resp = self.client.get("/services")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
 
     def test_auth_required_service_id(self):
-        self.verify_auth_required('/service/1')
+        resp = self.client.get("/service/1")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
 
     def test_normal_services(self):
-        user = self.create_default_user()
-        service = generate_sample_model_tree('Service', self.session)
-        self.set_blue_team(user.team)
+        user = self._create_default_user()
+        service = generate_sample_model_tree("Service", db.session)
+        user.team.color = "Blue"
+        db.session.add(user.team)
         service.team = user.team
-        self.session.add(service)
-        self.session.commit()
-        resp = self.auth_and_get_path('/services')
+        db.session.add(service)
+        db.session.commit()
+        resp = self._auth_and_get_path("/services")
         assert resp.status_code == 200
-        assert self.mock_obj.call_args == self.build_args('services.html')
+        assert self.mock_obj.call_args == call("services.html")
 
     def test_unauthorized_services(self):
-        user = self.create_default_user()
-        service = generate_sample_model_tree('Service', self.session)
-        self.set_white_team(user.team)
+        user = self._create_default_user()
+        service = generate_sample_model_tree("Service", db.session)
+        user.team.color = "White"
+        db.session.add(user.team)
         service.team = user.team
-        self.session.add(service)
-        self.session.commit()
-        resp = self.auth_and_get_path('/services')
+        db.session.add(service)
+        db.session.commit()
+        resp = self._auth_and_get_path("/services")
         assert resp.status_code == 302
 
     def test_normal_service_id(self):
-        user = self.create_default_user()
-        service = generate_sample_model_tree('Service', self.session)
-        self.set_blue_team(user.team)
+        user = self._create_default_user()
+        service = generate_sample_model_tree("Service", db.session)
+        user.team.color = "Blue"
+        db.session.add(user.team)
         service.team = user.team
-        self.session.add(service)
-        self.session.commit()
-        resp = self.auth_and_get_path('/service/1')
+        db.session.add(service)
+        db.session.commit()
+        resp = self._auth_and_get_path("/service/1")
         assert resp.status_code == 200
 
     def test_unauthorized_service_id(self):
-        self.create_default_user()
-        resp = self.auth_and_get_path('/service/1')
+        self._create_default_user()
+        resp = self._auth_and_get_path("/service/1")
         assert resp.status_code == 302

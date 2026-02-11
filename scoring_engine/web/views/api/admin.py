@@ -1,14 +1,13 @@
+import html
 import json
-import pytz
-
+import re
+from datetime import datetime, timezone
 from tempfile import template
 
-from datetime import datetime, timezone
+import pytz
 from dateutil.parser import parse
-from flask import flash, redirect, request, url_for, jsonify
+from flask import flash, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
-
-import html
 
 
 def _ensure_utc_aware(dt):
@@ -21,34 +20,34 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-from scoring_engine.config import config
-from scoring_engine.db import db
-from scoring_engine.models.inject import Template, Inject
-from scoring_engine.models.service import Service
-from scoring_engine.models.check import Check
-from scoring_engine.models.environment import Environment
-from scoring_engine.models.property import Property
-from scoring_engine.models.kb import KB
-from scoring_engine.models.round import Round
-from scoring_engine.models.team import Team
-from scoring_engine.models.user import User
-from scoring_engine.models.setting import Setting
-from scoring_engine.engine.execute_command import execute_command
-from scoring_engine.cache_helper import (
-    update_scoreboard_data,
-    update_overview_data,
-    update_services_navbar,
-    update_service_data,
-    update_team_stats,
-    update_services_data,
-)
-from scoring_engine.celery_stats import CeleryStats
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 
-
+from scoring_engine.cache_helper import (
+    update_inject_data,
+    update_overview_data,
+    update_scoreboard_data,
+    update_service_data,
+    update_services_data,
+    update_services_navbar,
+    update_team_stats,
+)
+from scoring_engine.celery_stats import CeleryStats
+from scoring_engine.config import config
+from scoring_engine.db import db
+from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.models.check import Check
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.inject import Inject, Template
+from scoring_engine.models.kb import KB
+from scoring_engine.models.property import Property
+from scoring_engine.models.round import Round
+from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 
 from . import mod
 
@@ -61,7 +60,12 @@ def admin_update_environment():
             environment = db.session.get(Environment, int(request.form["pk"]))
             if environment:
                 if request.form["name"] == "matching_content":
-                    environment.matching_content = html.escape(request.form["value"])
+                    value = html.escape(request.form["value"])
+                    try:
+                        re.compile(value)
+                    except re.error as e:
+                        return jsonify({"error": "Invalid regex pattern: " + str(e)}), 400
+                    environment.matching_content = value
                 db.session.add(environment)
                 db.session.commit()
                 return jsonify({"status": "Updated Environment Information"})
@@ -344,12 +348,7 @@ def admin_update_blueteam_view_check_output():
 @login_required
 def get_check_progress_total():
     if current_user.is_white_team:
-        task_id_settings = (
-            db.session.query(KB)
-            .filter_by(name="task_ids")
-            .order_by(KB.round_num.desc())
-            .first()
-        )
+        task_id_settings = db.session.query(KB).filter_by(name="task_ids").order_by(KB.round_num.desc()).first()
         total_stats = {}
         total_stats["finished"] = 0
         total_stats["pending"] = 0
@@ -390,9 +389,7 @@ def get_check_progress_total():
             elif team_total_tasks == 0:
                 team_total_percentage = 100
             elif team_stat and team_stat["finished"]:
-                team_total_percentage = int(
-                    (team_stat["finished"] / team_total_tasks) * 100
-                )
+                team_total_percentage = int((team_stat["finished"] / team_total_tasks) * 100)
             output_dict[team_name] = team_total_percentage
 
         return json.dumps(output_dict)
@@ -411,18 +408,14 @@ def admin_get_inject_templates_id(template_id):
             scenario=template.scenario,
             deliverable=template.deliverable,
             score=template.score,
-            start_time=_ensure_utc_aware(template.start_time).astimezone(
-                pytz.timezone(config.timezone)
-            ).isoformat(),
-            end_time=_ensure_utc_aware(template.end_time).astimezone(
-                pytz.timezone(config.timezone)
-            ).isoformat(),
+            start_time=_ensure_utc_aware(template.start_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
+            end_time=_ensure_utc_aware(template.end_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
             enabled=template.enabled,
             # rubric=[
             #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
             #     for x in template.rubric
             # ],
-            teams=[inject.team.name for inject in template.inject if inject.enabled],
+            teams=[inject.team.name for inject in template.inject if inject.enabled and inject.team],
         )
         return jsonify(data)
     else:
@@ -443,13 +436,9 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = (
-                    parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
-                )
+                template.start_time = parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
             if data.get("end_time"):
-                template.end_time = (
-                    parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
-                )
+                template.end_time = parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -472,9 +461,7 @@ def admin_put_inject_templates_id(template_id):
                         inject.enabled = True
                     # Otherwise, create the inject
                     else:
-                        team = (
-                            db.session.query(Team).filter(Team.name == team_name).first()
-                        )
+                        team = db.session.query(Team).filter(Team.name == team_name).first()
                         inject = Inject(
                             team=team,
                             template=template,
@@ -530,24 +517,14 @@ def admin_get_inject_templates():
                     scenario=template.scenario,
                     deliverable=template.deliverable,
                     score=template.score,
-                    start_time=template.start_time.astimezone(
-                        pytz.timezone(config.timezone)
-                    ).isoformat(),
-                    end_time=template.end_time.astimezone(
-                        pytz.timezone(config.timezone)
-                    ).isoformat(),
+                    start_time=template.start_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
+                    end_time=template.end_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
                     enabled=template.enabled,
                     # rubric=[
                     #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
                     #     for x in template.rubric
                     # ],
-                    teams=[
-                        inject.team.name
-                        for inject in template.inject
-                        if inject
-                        if inject.enabled
-                        if inject.team
-                    ],
+                    teams=[inject.team.name for inject in template.inject if inject if inject.enabled if inject.team],
                 )
             )
         return jsonify(data=data)
@@ -568,6 +545,7 @@ def admin_post_inject_grade(inject_id):
                 inject.score = data.get("score")
                 db.session.add(inject)
                 db.session.commit()
+                update_inject_data(inject_id)
                 return jsonify({"status": "Success"}), 200
             else:
                 return jsonify({"status": "Invalid Inject ID"}), 400
@@ -595,16 +573,8 @@ def admin_post_inject_templates():
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
                 score=data["score"],
-                start_time=(
-                    parse(data["start_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
-                ),
-                end_time=(
-                    parse(data["end_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
-                ),
+                start_time=(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
+                end_time=(parse(data["end_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
             )
             db.session.add(template)
             db.session.commit()
@@ -628,9 +598,7 @@ def admin_post_inject_templates():
                         inject.enabled = True
                     # Otherwise, create the inject
                     else:
-                        team = (
-                            db.session.query(Team).filter(Team.name == team_name).first()
-                        )
+                        team = db.session.query(Team).filter(Team.name == team_name).first()
                         inject = Inject(
                             team=team,
                             template=template,
@@ -703,17 +671,9 @@ def admin_import_inject_templates():
                         if d.get("deliverable"):
                             t.deliverable = d["deliverable"]
                         if d.get("start_time"):
-                            t.start_time = (
-                                parse(d["start_time"])
-                                .astimezone(pytz.utc)
-                                .replace(tzinfo=None)
-                            )
+                            t.start_time = parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                         if d.get("end_time"):
-                            t.end_time = (
-                                parse(d["start_time"])
-                                .astimezone(pytz.utc)
-                                .replace(tzinfo=None)
-                            )
+                            t.end_time = parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                         if d.get("enabled"):
                             t.enabled = True
                         else:
@@ -752,11 +712,7 @@ def admin_import_inject_templates():
                                     inject.enabled = True
                                 # Otherwise, create the inject
                                 else:
-                                    team = (
-                                        db.session.query(Team)
-                                        .filter(Team.name == team_name)
-                                        .first()
-                                    )
+                                    team = db.session.query(Team).filter(Team.name == team_name).first()
                                     inject = Inject(
                                         team=team,
                                         template=template,
@@ -775,25 +731,17 @@ def admin_import_inject_templates():
                                 inject.enabled = False
 
                     else:
-                        return (
-                            jsonify(
-                                {"status": "Error", "message": "Invalid Template ID"}
-                            ),
-                            400,
-                        )
-                # Otherwise, create the template
-                else:
+                        # Template ID doesn't exist, fall through to create a new one
+                        d.pop("id")
+                if not d.get("id"):
+                    # Create the template
                     t = Template(
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
                         score=d["score"],
-                        start_time=parse(d["start_time"])
-                        .astimezone(pytz.utc)
-                        .replace(tzinfo=None),
-                        end_time=parse(d["end_time"])
-                        .astimezone(pytz.utc)
-                        .replace(tzinfo=None),
+                        start_time=parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                        end_time=parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
                         enabled=d["enabled"],
                     )
                     db.session.add(t)
@@ -818,16 +766,13 @@ def admin_import_inject_templates():
                             inject.enabled = True
                         # Otherwise, create the inject
                         else:
-                            team = (
-                                db.session.query(Team)
-                                .filter(Team.name == team_name)
-                                .first()
-                            )
-                            inject = Inject(
-                                team=team,
-                                template=t,
-                            )
-                            db.session.add(inject)
+                            team = db.session.query(Team).filter(Team.name == team_name).first()
+                            if team:
+                                inject = Inject(
+                                    team=team,
+                                    template=t,
+                                )
+                                db.session.add(inject)
             db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
@@ -852,6 +797,8 @@ def admin_inject_scores():
         )
 
         for inject in injects:
+            if not inject.team:
+                continue
             if inject.template.id not in data:
                 data[inject.template.id] = {
                     "title": inject.template.title,
@@ -889,9 +836,7 @@ def admin_injects_bar():
         team_data = {}
         team_labels = []
         team_inject_scores = []
-        blue_teams = (
-            db.session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
-        )
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
         for blue_team in blue_teams:
             team_labels.append(blue_team.name)
             team_inject_scores.append(str(inject_scores.get(blue_team.id, 0)))
@@ -964,9 +909,7 @@ def admin_update_password():
     if current_user.is_white_team:
         if "user_id" in request.form and "password" in request.form:
             try:
-                user_obj = (
-                    db.session.query(User).filter(User.id == request.form["user_id"]).one()
-                )
+                user_obj = db.session.query(User).filter(User.id == request.form["user_id"]).one()
             except NoResultFound:
                 return redirect(url_for("auth.login"))
             user_obj.update_password(html.escape(request.form["password"]))
@@ -986,14 +929,8 @@ def admin_update_password():
 @login_required
 def admin_add_user():
     if current_user.is_white_team:
-        if (
-            "username" in request.form
-            and "password" in request.form
-            and "team_id" in request.form
-        ):
-            team_obj = (
-                db.session.query(Team).filter(Team.id == request.form["team_id"]).one()
-            )
+        if "username" in request.form and "password" in request.form and "team_id" in request.form:
+            team_obj = db.session.query(Team).filter(Team.id == request.form["team_id"]).one()
             user_obj = User(
                 username=html.escape(request.form["username"]),
                 password=html.escape(request.form["password"]),
@@ -1015,9 +952,7 @@ def admin_add_user():
 def admin_add_team():
     if current_user.is_white_team:
         if "name" in request.form and "color" in request.form:
-            team_obj = Team(
-                html.escape(request.form["name"]), html.escape(request.form["color"])
-            )
+            team_obj = Team(html.escape(request.form["name"]), html.escape(request.form["color"]))
             db.session.add(team_obj)
             db.session.commit()
             flash("Team successfully added.", "success")
@@ -1038,7 +973,7 @@ def admin_toggle_engine():
         db.session.add(setting)
         db.session.commit()
         Setting.clear_cache("engine_paused")
-        return {'status': "Success"}
+        return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -1049,12 +984,8 @@ def admin_get_engine_stats():
     if current_user.is_white_team:
         engine_stats = {}
         engine_stats["round_number"] = Round.get_last_round_num()
-        engine_stats["num_passed_checks"] = (
-            db.session.query(Check).filter_by(result=True).count()
-        )
-        engine_stats["num_failed_checks"] = (
-            db.session.query(Check).filter_by(result=False).count()
-        )
+        engine_stats["num_passed_checks"] = db.session.query(Check).filter_by(result=True).count()
+        engine_stats["num_failed_checks"] = db.session.query(Check).filter_by(result=False).count()
         engine_stats["total_checks"] = db.session.query(Check).count()
         return jsonify(engine_stats)
     else:

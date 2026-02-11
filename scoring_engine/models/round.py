@@ -1,12 +1,12 @@
+from datetime import datetime, timezone
+
+import pytz
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import relationship
 
-from datetime import datetime, timezone
-import pytz
-
-from scoring_engine.models.base import Base
 from scoring_engine.config import config
 from scoring_engine.db import db
+from scoring_engine.models.base import Base
 
 
 def _ensure_utc_aware(dt):
@@ -38,4 +38,8 @@ class Round(Base):
 
     @property
     def local_round_start(self):
-        return _ensure_utc_aware(self.round_start).astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+        return (
+            _ensure_utc_aware(self.round_start)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z")
+        )

@@ -1,5 +1,4 @@
 import pytz
-
 from flask import jsonify
 from flask_login import current_user, login_required
 
@@ -44,9 +43,9 @@ def _get_notifications_data(is_read_filter=None, include_is_read=False):
             "id": notification.id,
             "message": notification.message,
             "target": notification.target,
-            "created": _ensure_utc_aware(notification.created).astimezone(
-                pytz.timezone(config.timezone)
-            ).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "created": _ensure_utc_aware(notification.created)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         if include_is_read:
             notification_dict["is_read"] = notification.is_read

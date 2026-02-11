@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, DateTime, UnicodeText
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, UnicodeText
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -11,7 +11,7 @@ class Notification(Base):
     id = Column(Integer, primary_key=True)
     message = Column(UnicodeText)
     target = Column(UnicodeText)
-    created = Column(DateTime, default=datetime.datetime.utcnow)
+    created = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     is_read = Column(Boolean, default=False)
 
     # Foreign Keys

@@ -14,23 +14,19 @@ from pathlib import Path
 
 from flask import current_app
 
+from scoring_engine.cache_helper import update_all_cache
 from scoring_engine.config import config
-from scoring_engine.models.service import Service
-from scoring_engine.models.environment import Environment
+from scoring_engine.db import db
+from scoring_engine.engine.basic_check import CHECK_FAILURE_TEXT, CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
+from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.engine.job import Job
+from scoring_engine.logger import logger
 from scoring_engine.models.check import Check
+from scoring_engine.models.environment import Environment
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
+from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.engine.job import Job
-from scoring_engine.engine.execute_command import execute_command
-from scoring_engine.engine.basic_check import (
-    CHECK_SUCCESS_TEXT,
-    CHECK_FAILURE_TEXT,
-    CHECK_TIMED_OUT_TEXT,
-)
-from scoring_engine.logger import logger
-from scoring_engine.cache_helper import update_all_cache
-from scoring_engine.db import db
 
 
 def engine_sigint_handler(signum, frame, engine):
@@ -165,6 +161,11 @@ class Engine(object):
             logger.info("Running engine for {0} round(s)".format(self.total_rounds))
 
         while not self.is_last_round():
+            # End any stale transaction so MySQL REPEATABLE READ gets a
+            # fresh snapshot.  Without this, the pause loop would hold an
+            # open transaction and never see the updated engine_paused value.
+            self.db.session.rollback()
+
             if Setting.get_setting("engine_paused").value:
                 pause_duration = int(Setting.get_setting("pause_duration").value)
                 logger.info("Engine Paused. Sleeping for {0} seconds".format(pause_duration))
@@ -179,6 +180,7 @@ class Engine(object):
 
             services = self.db.session.query(Service).all()[:]
             random.shuffle(services)
+            jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
@@ -189,7 +191,8 @@ class Engine(object):
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue)
+                countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
+                task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []
@@ -230,8 +233,6 @@ class Engine(object):
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
                 teams = {}
-                # Used so we import the finished checks at the end of the round
-                finished_checks = []
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
@@ -240,7 +241,16 @@ class Engine(object):
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
                         else:
-                            if re.search(environment.matching_content, task.result["output"]):
+                            try:
+                                matched = re.search(environment.matching_content, task.result["output"])
+                            except re.error:
+                                logger.warning(
+                                    "Invalid regex pattern for environment %s: %r, falling back to literal match",
+                                    environment.id,
+                                    environment.matching_content,
+                                )
+                                matched = environment.matching_content in task.result["output"]
+                            if matched:
                                 result = True
                                 reason = CHECK_SUCCESS_TEXT
                             else:
@@ -266,11 +276,8 @@ class Engine(object):
                             output=task.result["output"][:35000],
                             command=task.result["command"],
                         )
-                        finished_checks.append(check)
-
-                for finished_check in finished_checks:
-                    cleanup_items.append(finished_check)
-                    self.db.session.add(finished_check)
+                        cleanup_items.append(check)
+                        self.db.session.add(check)
                 self.db.session.commit()
 
             except Exception as e:

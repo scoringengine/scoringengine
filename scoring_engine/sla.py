@@ -34,15 +34,9 @@ class SLAConfig:
         # Dynamic scoring settings
         self.dynamic_enabled = self._get_bool_setting("dynamic_scoring_enabled", False)
         self.early_rounds = self._get_int_setting("dynamic_scoring_early_rounds", 10)
-        self.early_multiplier = self._get_float_setting(
-            "dynamic_scoring_early_multiplier", 2.0
-        )
-        self.late_start_round = self._get_int_setting(
-            "dynamic_scoring_late_start_round", 50
-        )
-        self.late_multiplier = self._get_float_setting(
-            "dynamic_scoring_late_multiplier", 0.5
-        )
+        self.early_multiplier = self._get_float_setting("dynamic_scoring_early_multiplier", 2.0)
+        self.late_start_round = self._get_int_setting("dynamic_scoring_late_start_round", 50)
+        self.late_multiplier = self._get_float_setting("dynamic_scoring_late_multiplier", 0.5)
 
     def _get_setting(self, name, default):
         """Get a setting value from the database."""
@@ -536,7 +530,7 @@ def apply_dynamic_scoring_to_round(round_number, base_points, config=None):
         config = get_sla_config()
 
     multiplier = calculate_round_multiplier(round_number, config)
-    return int(base_points * multiplier)
+    return int(float(base_points) * multiplier)
 
 
 def get_dynamic_scoring_info(config=None):

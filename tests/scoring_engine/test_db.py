@@ -1,9 +1,9 @@
 from sqlalchemy.orm import scoped_session
 
-from tests.scoring_engine.unit_test import UnitTest
+from scoring_engine.db import db
 
 
-class TestDB(UnitTest):
+class TestDB:
 
     def test_session_type(self):
-        assert isinstance(self.session, scoped_session)
+        assert isinstance(db.session, scoped_session)

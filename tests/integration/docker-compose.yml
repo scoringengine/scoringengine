@@ -20,7 +20,7 @@ services:
       - SCORINGENGINE_NUM_ROUNDS=5
     healthcheck:
       # Check if engine is running by verifying it can query the database
-      test: ["CMD", "python", "-c", "from scoring_engine.models.round import Round; Round.get_last_round_num()"]
+      test: ["CMD", "python", "-c", "from scoring_engine.web import create_app; from scoring_engine.models.round import Round; app = create_app(); app.app_context().push(); Round.get_last_round_num()"]
       interval: 5s
       timeout: 3s
       retries: 3

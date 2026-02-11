@@ -9,8 +9,8 @@
 # To install: pip install -I "cryptography>=2.4,<2.5" && pip install "paramiko>=2.4,<2.5"
 
 import sys
-import paramiko
 
+import paramiko
 
 if len(sys.argv) != 6:
     print("Usage: " + sys.argv[0] + " host port username password commands")
@@ -21,28 +21,23 @@ host = sys.argv[1]
 port = sys.argv[2]
 username = sys.argv[3]
 password = sys.argv[4]
-commands = sys.argv[5].split(';')
+commands = sys.argv[5].split(";")
 
 
 def connect_and_execute(host, port, username, password, command):
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(
-            hostname=host,
-            port=port,
-            username=username,
-            password=password,
-            look_for_keys=False
-        )
+        client.connect(hostname=host, port=port, username=username, password=password, look_for_keys=False)
         client_stdin, client_stdout, client_stderr = client.exec_command(command)
         stdout_output = client_stdout.readlines()
         stderr_output = client_stderr.readlines()
         client.close()
-        return ''.join(stdout_output), ''.join(stderr_output)
+        return "".join(stdout_output), "".join(stderr_output)
     except Exception as e:
         print(e)
         sys.exit(1)
+
 
 last_command_output = ""
 for command in commands:
