@@ -1,10 +1,10 @@
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 import pytz
 
-from scoring_engine.models.flag import Flag, Solve, FlagTypeEnum, Platform, Perm
+from scoring_engine.models.flag import Flag, FlagTypeEnum, Perm, Platform, Solve
 from scoring_engine.models.team import Team
-
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -20,7 +20,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.file
         assert flag.platform == Platform.nix
@@ -40,7 +40,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.pipe
         assert flag.platform == Platform.windows
@@ -56,7 +56,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.net
         assert flag.data["port"] == 8080
@@ -71,7 +71,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.reg
         assert flag.platform == Platform.windows
@@ -86,7 +86,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=True
+            dummy=True,
         )
         assert flag.dummy is True
 
@@ -100,7 +100,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -117,7 +117,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -145,7 +145,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=True
+            dummy=True,
         )
         self.session.add(flag)
         self.session.commit()
@@ -167,7 +167,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -190,7 +190,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -217,7 +217,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -245,7 +245,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -272,7 +272,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -299,7 +299,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -331,7 +331,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()
@@ -360,7 +360,7 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         self.session.add(flag)
         self.session.commit()

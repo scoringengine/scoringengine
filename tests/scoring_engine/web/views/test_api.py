@@ -22,6 +22,7 @@ class TestAPI(WebTest):
     def set_setting(self, name, value):
         """Helper to update a setting value in tests."""
         from scoring_engine.db import db
+
         Setting.clear_cache()  # Clear cache first to ensure fresh query
         setting = db.session.query(Setting).filter(Setting.name == name).first()
         if setting:
@@ -106,15 +107,9 @@ class TestAPI(WebTest):
         }
         for team_num in range(1, 6):
             team = Team(name="team" + str(team_num), color="Blue")
-            icmp_service = Service(
-                name="ICMP", team=team, check_name="ICMP IPv4 Check", host="127.0.0.1"
-            )
-            dns_service = Service(
-                name="DNS", team=team, check_name="DNSCheck", host="8.8.8.8", port=53
-            )
-            ftp_service = Service(
-                name="FTP", team=team, check_name="FTPCheck", host="1.2.3.4", port=21
-            )
+            icmp_service = Service(name="ICMP", team=team, check_name="ICMP IPv4 Check", host="127.0.0.1")
+            dns_service = Service(name="DNS", team=team, check_name="DNSCheck", host="8.8.8.8", port=53)
+            ftp_service = Service(name="FTP", team=team, check_name="FTPCheck", host="1.2.3.4", port=21)
             self.session.add(icmp_service)
             self.session.add(dns_service)
             self.session.add(ftp_service)
@@ -132,9 +127,7 @@ class TestAPI(WebTest):
                 result=False,
                 output="example_output",
             )
-            ftp_check_1 = Check(
-                round=round_1, service=ftp_service, result=True, output="example_output"
-            )
+            ftp_check_1 = Check(round=round_1, service=ftp_service, result=True, output="example_output")
             self.session.add(round_1)
             self.session.add(icmp_check_1)
             self.session.add(dns_check_1)
@@ -147,12 +140,8 @@ class TestAPI(WebTest):
                 result=True,
                 output="example_output",
             )
-            dns_check_2 = Check(
-                round=round_2, service=dns_service, result=True, output="example_output"
-            )
-            ftp_check_2 = Check(
-                round=round_2, service=ftp_service, result=True, output="example_output"
-            )
+            dns_check_2 = Check(round=round_2, service=dns_service, result=True, output="example_output")
+            ftp_check_2 = Check(round=round_2, service=ftp_service, result=True, output="example_output")
             self.session.add(round_2)
             self.session.add(icmp_check_2)
             self.session.add(dns_check_2)
@@ -171,9 +160,7 @@ class TestAPI(WebTest):
                 result=False,
                 output="example_output",
             )
-            ftp_check_3 = Check(
-                round=round_3, service=ftp_service, result=True, output="example_output"
-            )
+            ftp_check_3 = Check(round=round_3, service=ftp_service, result=True, output="example_output")
             self.session.add(round_3)
             self.session.add(icmp_check_3)
             self.session.add(dns_check_3)
@@ -275,9 +262,7 @@ class TestAPI(WebTest):
     def test_admin_update_environment(self):
         self.login("testuser", "testpass")
         team = self.session.query(Team).first()
-        service = Service(
-            name="Example", check_name="ICMP IPv4 Check", host="1.2.3.4", team=team
-        )
+        service = Service(name="Example", check_name="ICMP IPv4 Check", host="1.2.3.4", team=team)
         env = Environment(service=service, matching_content="old")
         self.session.add_all([service, env])
         self.session.commit()
@@ -292,9 +277,7 @@ class TestAPI(WebTest):
     def test_service_update_host_invalid_input(self):
         self.login("testuser", "testpass")
         team = self.session.query(Team).first()
-        service = Service(
-            name="Example", check_name="ICMP IPv4 Check", host="1.2.3.4", team=team
-        )
+        service = Service(name="Example", check_name="ICMP IPv4 Check", host="1.2.3.4", team=team)
         self.session.add(service)
         self.session.commit()
         resp = self.client.post(
@@ -318,7 +301,6 @@ class TestAPI(WebTest):
             title="t",
             scenario="s",
             deliverable="d",
-            score=10,
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
         )
@@ -413,9 +395,7 @@ class TestAPI(WebTest):
             self.session.flush()  # Ensure round_id is assigned before creating checks
             # First 2 rounds pass, rounds 3-6 fail (4 consecutive failures)
             result = i <= 2
-            check = Check(
-                service=service1, round=round_obj, result=result, output="test", completed=True
-            )
+            check = Check(service=service1, round=round_obj, result=result, output="test", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -434,9 +414,7 @@ class TestAPI(WebTest):
         # Adjusted score should be less than base score
         base_score = int(data["service_scores"][team_idx])
         adjusted_score = int(data["adjusted_scores"][team_idx])
-        assert (
-            adjusted_score < base_score
-        ), "Adjusted score should be reduced by penalty"
+        assert adjusted_score < base_score, "Adjusted score should be reduced by penalty"
 
     def test_api_scoreboard_multiple_teams_with_penalties(self):
         """Test scoreboard with multiple teams having different penalty levels."""
@@ -553,9 +531,7 @@ class TestAPI(WebTest):
             self.session.add(round_obj)
             self.session.flush()  # Ensure round_id is assigned before creating checks
             result = i == 1  # Only first round passes
-            check = Check(
-                service=service, round=round_obj, result=result, output="test", completed=True
-            )
+            check = Check(service=service, round=round_obj, result=result, output="test", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -626,9 +602,7 @@ class TestAPI(WebTest):
             round_obj = Round(number=i)
             self.session.add(round_obj)
             self.session.flush()  # Ensure round_id is assigned before creating checks
-            check1 = Check(
-                service_id=service1.id, round_id=round_obj.id, result=False, output="fail", completed=True
-            )
+            check1 = Check(service_id=service1.id, round_id=round_obj.id, result=False, output="fail", completed=True)
             check2 = Check(service_id=service2.id, round_id=round_obj.id, result=True, output="ok", completed=True)
             self.session.add_all([check1, check2])
         self.session.commit()
@@ -877,9 +851,7 @@ class TestAPI(WebTest):
         # Score should be 600 with 3x multiplier
         # Team appears after "Current Score" label
         team_score = int(current_scores_row[1])
-        assert (
-            team_score == 600
-        ), f"Expected 600 with 3x multiplier in overview, got {team_score}"
+        assert team_score == 600, f"Expected 600 with 3x multiplier in overview, got {team_score}"
 
     def test_api_service_checks_shows_earned_score(self):
         """Test that /api/service/{id}/checks returns earned_score and multiplier fields."""
@@ -1087,9 +1059,7 @@ class TestAPI(WebTest):
             self.session.add(round_obj)
             self.session.flush()
             result = i <= 3  # First 3 pass, then 5 fail
-            check = Check(
-                service=service, round=round_obj, result=result, output="test", completed=True
-            )
+            check = Check(service=service, round=round_obj, result=result, output="test", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -1166,9 +1136,7 @@ class TestAPI(WebTest):
             self.session.flush()
             # Pass for rounds 1-10, fail for 11-15
             result = i <= 10
-            check = Check(
-                service=service, round=round_obj, result=result, output="test", completed=True
-            )
+            check = Check(service=service, round=round_obj, result=result, output="test", completed=True)
             self.session.add(check)
         self.session.commit()
 
@@ -1200,10 +1168,10 @@ class TestAPI(WebTest):
         # Team C: 150 points (rank 2, tied)
         # Team D: 100 points (rank 4, skipping 3 due to tie)
         teams_data = [
-            ("Team A", 2),   # 2 passes * 100 = 200
-            ("Team B", 1),   # 1 pass * 100 = 100... wait, need to recalculate
-            ("Team C", 1),   # 1 pass * 100 = 100
-            ("Team D", 0),   # 0 passes = 0
+            ("Team A", 2),  # 2 passes * 100 = 200
+            ("Team B", 1),  # 1 pass * 100 = 100... wait, need to recalculate
+            ("Team C", 1),  # 1 pass * 100 = 100
+            ("Team D", 0),  # 0 passes = 0
         ]
 
         # Actually, let's make this simpler - use points per service to control scores
@@ -1234,10 +1202,11 @@ class TestAPI(WebTest):
         self.session.flush()
 
         for team in [team_a, team_b, team_c, team_d]:
-            service = self.session.query(Service).filter(
-                Service.team_id == team.id,
-                Service.name == "Rank Test Service"
-            ).first()
+            service = (
+                self.session.query(Service)
+                .filter(Service.team_id == team.id, Service.name == "Rank Test Service")
+                .first()
+            )
             check = Check(service=service, round=round_obj)
             check.finished(True, "Pass", "ok", "cmd")
             self.session.add(check)
@@ -1305,9 +1274,9 @@ class TestAPI(WebTest):
         # Team 2: Round ids 4,5,6 with numbers 1,2,3
         # Team 3: Round ids 7,8,9 with numbers 1,2,3
         expected_last_round_status = {
-            "Bug Test Team 1": True,   # Team 1 passes in round 3
+            "Bug Test Team 1": True,  # Team 1 passes in round 3
             "Bug Test Team 2": False,  # Team 2 fails in round 3
-            "Bug Test Team 3": True,   # Team 3 passes in round 3
+            "Bug Test Team 3": True,  # Team 3 passes in round 3
         }
 
         for team in [team1, team2, team3]:
@@ -1342,9 +1311,7 @@ class TestAPI(WebTest):
             .filter(Round.number == 3)
             .first()
         )
-        assert team2_round3.id != 3, (
-            f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
-        )
+        assert team2_round3.id != 3, f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
 
         cache.clear()
 
@@ -1360,9 +1327,7 @@ class TestAPI(WebTest):
                 webservice_row = row
                 break
 
-        assert webservice_row is not None, (
-            f"WebService not found in response. Response data: {data}"
-        )
+        assert webservice_row is not None, f"WebService not found in response. Response data: {data}"
 
         # Verify each team's service status matches expected
         # Teams are ordered by team.id in the response
@@ -1392,19 +1357,11 @@ class TestAPI(WebTest):
         self.session.commit()
 
         # Create 3 services for team 2 (we'll verify team 2's ratio)
-        service1 = Service(
-            name="Service1", team=team2, check_name="HTTPCheck", host="60.1.1.1", port=80, points=100
-        )
-        service2 = Service(
-            name="Service2", team=team2, check_name="HTTPCheck", host="60.1.1.2", port=80, points=100
-        )
-        service3 = Service(
-            name="Service3", team=team2, check_name="HTTPCheck", host="60.1.1.3", port=80, points=100
-        )
+        service1 = Service(name="Service1", team=team2, check_name="HTTPCheck", host="60.1.1.1", port=80, points=100)
+        service2 = Service(name="Service2", team=team2, check_name="HTTPCheck", host="60.1.1.2", port=80, points=100)
+        service3 = Service(name="Service3", team=team2, check_name="HTTPCheck", host="60.1.1.3", port=80, points=100)
         # Create 1 service for team 1 (just to create Round ID divergence)
-        service_t1 = Service(
-            name="Service1", team=team1, check_name="HTTPCheck", host="60.0.0.1", port=80, points=100
-        )
+        service_t1 = Service(name="Service1", team=team1, check_name="HTTPCheck", host="60.0.0.1", port=80, points=100)
         self.session.add_all([service1, service2, service3, service_t1])
         self.session.commit()
 
@@ -1549,9 +1506,7 @@ class TestAPI(WebTest):
             .filter(Round.number == 3)
             .first()
         )
-        assert team2_round3.id != 3, (
-            f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
-        )
+        assert team2_round3.id != 3, f"Test setup: Team 2's Round 3 should have id != 3, got {team2_round3.id}"
 
         cache.clear()
 
@@ -1577,13 +1532,9 @@ class TestAPI(WebTest):
             # Check HTTP
             actual_http = http_row[i]
             expected_http = expected_status[(team.name, "HTTP")]
-            assert actual_http == expected_http, (
-                f"{team.name} HTTP: expected {expected_http}, got {actual_http}"
-            )
+            assert actual_http == expected_http, f"{team.name} HTTP: expected {expected_http}, got {actual_http}"
 
             # Check SSH
             actual_ssh = ssh_row[i]
             expected_ssh = expected_status[(team.name, "SSH")]
-            assert actual_ssh == expected_ssh, (
-                f"{team.name} SSH: expected {expected_ssh}, got {actual_ssh}"
-            )
+            assert actual_ssh == expected_ssh, f"{team.name} SSH: expected {expected_ssh}, got {actual_ssh}"

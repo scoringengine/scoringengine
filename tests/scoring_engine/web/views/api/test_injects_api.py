@@ -1,10 +1,8 @@
 import io
-import json
-import os
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from scoring_engine.models.inject import Comment, File, Inject, Template
+from scoring_engine.models.inject import Inject, InjectComment, InjectFile, InjectRubricScore, RubricItem, Template
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.web import create_app
@@ -50,6 +48,18 @@ class TestInjectsAPI(UnitTest):
             follow_redirects=True,
         )
 
+    def _make_template(self, **kwargs):
+        """Helper to create a Template with sensible defaults (no score param)."""
+        defaults = dict(
+            title="Test",
+            scenario="Test",
+            deliverable="Test",
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+        )
+        defaults.update(kwargs)
+        return Template(**defaults)
+
     # Authorization Tests
     def test_api_injects_requires_auth(self):
         """Test that /api/injects requires authentication"""
@@ -78,15 +88,7 @@ class TestInjectsAPI(UnitTest):
 
     def test_api_injects_returns_only_team_injects(self):
         """Test that teams only see their own injects"""
-        # Create injects for both blue teams
-        template1 = Template(
-            title="Inject 1",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template1 = self._make_template(title="Inject 1")
         inject1 = Inject(team=self.blue_team1, template=template1, enabled=True)
         inject2 = Inject(team=self.blue_team2, template=template1, enabled=True)
 
@@ -103,26 +105,14 @@ class TestInjectsAPI(UnitTest):
 
     def test_api_injects_filters_by_start_time(self):
         """Test that injects are only shown after start time"""
-        # Create future inject
-        future_template = Template(
+        future_template = self._make_template(
             title="Future Inject",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
             start_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=2)
+            end_time=datetime.now(timezone.utc) + timedelta(hours=2),
         )
         future_inject = Inject(team=self.blue_team1, template=future_template, enabled=True)
 
-        # Create current inject
-        current_template = Template(
-            title="Current Inject",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        current_template = self._make_template(title="Current Inject")
         current_inject = Inject(team=self.blue_team1, template=current_template, enabled=True)
 
         self.session.add_all([future_template, future_inject, current_template, current_inject])
@@ -138,14 +128,7 @@ class TestInjectsAPI(UnitTest):
 
     def test_api_injects_filters_disabled(self):
         """Test that disabled injects are not returned"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         enabled_inject = Inject(team=self.blue_team1, template=template, enabled=True)
         disabled_inject = Inject(team=self.blue_team1, template=template, enabled=False)
 
@@ -159,6 +142,24 @@ class TestInjectsAPI(UnitTest):
         assert len(data) == 1
         assert data[0]["id"] == enabled_inject.id
 
+    def test_api_injects_returns_max_score(self):
+        """Test that the injects list returns max_score from rubric items"""
+        template = self._make_template()
+        self.session.add(template)
+        self.session.flush()
+        ri1 = RubricItem(title="Item 1", points=60, template=template)
+        ri2 = RubricItem(title="Item 2", points=40, template=template)
+        inject = Inject(team=self.blue_team1, template=template, enabled=True)
+        self.session.add_all([ri1, ri2, inject])
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.get("/api/injects")
+        data = resp.json["data"]
+
+        assert len(data) == 1
+        assert data[0]["max_score"] == 100
+
     # File Upload Security Tests
     def test_file_upload_requires_auth(self):
         """Test that file upload requires authentication"""
@@ -167,14 +168,7 @@ class TestInjectsAPI(UnitTest):
 
     def test_file_upload_team_authorization(self):
         """Test that users can only upload to their own team's injects"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -192,14 +186,7 @@ class TestInjectsAPI(UnitTest):
         """SECURITY: Test that path traversal attacks are prevented"""
         mock_exists.return_value = False
 
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -211,39 +198,29 @@ class TestInjectsAPI(UnitTest):
             "../../../etc/passwd",
             "..\\..\\..\\windows\\system32\\config\\sam",
             "../../../../tmp/evil.sh",
-            "test/../../etc/shadow"
+            "test/../../etc/shadow",
         ]
 
         for malicious_name in malicious_filenames:
             with patch("builtins.open", MagicMock()):
                 data = {"file": (io.BytesIO(b"malicious"), malicious_name)}
                 resp = self.client.post(
-                    f"/api/inject/{inject.id}/upload",
-                    data=data,
-                    content_type="multipart/form-data"
+                    f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data"
                 )
 
                 # The secure_filename should sanitize the path
-                # Check that file was created with safe name
                 if resp.status_code == 200:
-                    file_obj = self.session.query(File).filter(
-                        File.inject_id == inject.id
-                    ).first()
+                    file_obj = self.session.query(InjectFile).filter(InjectFile.inject_id == inject.id).first()
                     if file_obj:
-                        # Ensure the filename doesn't contain path traversal
-                        assert ".." not in file_obj.name
-                        assert "/" not in file_obj.name.replace(str(inject.id), "")
-                        assert "\\" not in file_obj.name
+                        assert ".." not in file_obj.filename
+                        assert "/" not in file_obj.filename.replace(str(inject.id), "")
+                        assert "\\" not in file_obj.filename
 
     def test_file_upload_prevents_after_end_time(self):
         """Test that files cannot be uploaded after inject ends"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
+        template = self._make_template(
             start_time=datetime.now(timezone.utc) - timedelta(hours=2),
-            end_time=datetime.now(timezone.utc) - timedelta(hours=1)  # Ended
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -251,54 +228,53 @@ class TestInjectsAPI(UnitTest):
 
         self.login("blueuser1", "pass")
         data = {"file": (io.BytesIO(b"test"), "test.txt")}
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/upload",
-            data=data,
-            content_type="multipart/form-data"
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data")
 
         assert resp.status_code == 400
         assert "ended" in resp.data.decode().lower()
 
     def test_file_upload_prevents_after_submission(self):
         """Test that files cannot be uploaded after inject is submitted"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Set status after creation
         inject.status = "Submitted"
         self.session.commit()
 
         self.login("blueuser1", "pass")
         data = {"file": (io.BytesIO(b"test"), "test.txt")}
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/upload",
-            data=data,
-            content_type="multipart/form-data"
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data")
 
         assert resp.status_code == 400
         assert "submitted" in resp.data.decode().lower()
 
+    def test_file_upload_allowed_in_revision_requested(self):
+        """Test that files can be uploaded when inject is in Revision Requested state"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Revision Requested"
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+
+        with patch("scoring_engine.web.views.api.injects.os.makedirs"):
+            with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=False):
+                with patch("builtins.open", MagicMock()):
+                    data = {"file": (io.BytesIO(b"test"), "test.txt")}
+                    resp = self.client.post(
+                        f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data"
+                    )
+
+        assert resp.status_code == 200
+
     def test_file_upload_requires_file(self):
         """Test that upload fails without a file"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -310,23 +286,15 @@ class TestInjectsAPI(UnitTest):
 
     def test_file_upload_duplicate_filename_rejected(self):
         """SECURITY: Test that duplicate filenames are rejected"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Create existing file
-        existing_file = File(
+        existing_file = InjectFile(
             f"Inject{inject.id}_Blue Team 1_test.txt",
             self.blue_user1,
-            inject
+            inject,
         )
         self.session.add(existing_file)
         self.session.commit()
@@ -335,14 +303,80 @@ class TestInjectsAPI(UnitTest):
 
         with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
             data = {"file": (io.BytesIO(b"test"), "test.txt")}
-            resp = self.client.post(
-                f"/api/inject/{inject.id}/upload",
-                data=data,
-                content_type="multipart/form-data"
-            )
+            resp = self.client.post(f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data")
 
             assert resp.status_code == 400
             assert "not unique" in resp.data.decode().lower()
+
+    # File Delete Tests
+    def test_file_delete_requires_auth(self):
+        """Test that file delete requires authentication"""
+        resp = self.client.delete("/api/inject/1/files/1")
+        assert resp.status_code == 302
+
+    def test_file_delete_team_authorization(self):
+        """Test that users can only delete their own team's files"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
+        self.session.add(file_obj)
+        self.session.commit()
+
+        self.login("blueuser2", "pass")
+        resp = self.client.delete(f"/api/inject/{inject.id}/files/{file_obj.id}")
+        assert resp.status_code == 403
+
+    def test_file_delete_not_allowed_after_submission(self):
+        """Test that files cannot be deleted after submission"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
+        inject.status = "Submitted"
+        self.session.add(file_obj)
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.delete(f"/api/inject/{inject.id}/files/{file_obj.id}")
+        assert resp.status_code == 400
+
+    def test_file_delete_allowed_in_draft(self):
+        """Test that files can be deleted in Draft state"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
+        self.session.add(file_obj)
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        with patch("scoring_engine.web.views.api.injects.os.remove"):
+            resp = self.client.delete(f"/api/inject/{inject.id}/files/{file_obj.id}")
+        assert resp.status_code == 200
+
+    def test_file_delete_allowed_in_revision_requested(self):
+        """Test that files can be deleted in Revision Requested state"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
+        inject.status = "Revision Requested"
+        self.session.add(file_obj)
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        with patch("scoring_engine.web.views.api.injects.os.remove"):
+            resp = self.client.delete(f"/api/inject/{inject.id}/files/{file_obj.id}")
+        assert resp.status_code == 200
 
     # Submit Tests
     def test_inject_submit_requires_auth(self):
@@ -352,19 +386,11 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_submit_team_authorization(self):
         """Test that users can only submit their own team's injects"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Try to submit as different team
         self.login("blueuser2", "pass")
         resp = self.client.post(f"/api/inject/{inject.id}/submit")
 
@@ -372,14 +398,7 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_submit_only_blue_team(self):
         """Test that only blue team can submit injects"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.red_team, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -391,13 +410,9 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_submit_prevents_after_end_time(self):
         """Test that inject cannot be submitted after end time"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
+        template = self._make_template(
             start_time=datetime.now(timezone.utc) - timedelta(hours=2),
-            end_time=datetime.now(timezone.utc) - timedelta(hours=1)
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
@@ -408,22 +423,29 @@ class TestInjectsAPI(UnitTest):
 
         assert resp.status_code == 403
 
+    def test_inject_submit_only_from_draft(self):
+        """Test that submit only works from Draft status"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Submitted"
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.post(f"/api/inject/{inject.id}/submit")
+
+        assert resp.status_code == 400
+
     def test_inject_submit_updates_status(self):
         """Test that submit updates inject status and timestamp"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        # Use naive UTC datetimes for comparison (matching what's stored in DB)
         before = datetime.now(timezone.utc).replace(tzinfo=None)
         resp = self.client.post(f"/api/inject/{inject.id}/submit")
         after = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -434,6 +456,56 @@ class TestInjectsAPI(UnitTest):
         assert inject.submitted is not None
         assert before <= inject.submitted <= after
 
+    # Resubmit Tests
+    def test_inject_resubmit_requires_auth(self):
+        """Test that resubmit requires authentication"""
+        resp = self.client.post("/api/inject/1/resubmit")
+        assert resp.status_code == 302
+
+    def test_inject_resubmit_team_authorization(self):
+        """Test that users can only resubmit their own team's injects"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Revision Requested"
+        self.session.commit()
+
+        self.login("blueuser2", "pass")
+        resp = self.client.post(f"/api/inject/{inject.id}/resubmit")
+        assert resp.status_code == 403
+
+    def test_inject_resubmit_only_from_revision_requested(self):
+        """Test that resubmit only works from Revision Requested status"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        # Draft status - should fail
+        self.login("blueuser1", "pass")
+        resp = self.client.post(f"/api/inject/{inject.id}/resubmit")
+        assert resp.status_code == 400
+
+    def test_inject_resubmit_success(self):
+        """Test successful resubmission"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Revision Requested"
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.post(f"/api/inject/{inject.id}/resubmit")
+
+        assert resp.status_code == 200
+        self.session.refresh(inject)
+        assert inject.status == "Resubmitted"
+        assert inject.submitted is not None
+
     # Comment Tests
     def test_inject_add_comment_requires_auth(self):
         """Test that adding comment requires authentication"""
@@ -442,59 +514,31 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_add_comment_team_authorization(self):
         """Test that users can only comment on their team's injects"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Try to comment as different team
         self.login("blueuser2", "pass")
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/comment",
-            json={"comment": "test"}
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": "test"})
 
         assert resp.status_code == 403
 
     def test_inject_add_comment_white_team_authorized(self):
         """Test that white team can comment on any inject"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("whiteuser", "pass")
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/comment",
-            json={"comment": "White team feedback"}
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": "White team feedback"})
 
         assert resp.status_code == 200
 
     def test_inject_add_comment_requires_comment_field(self):
         """Test that comment field is required"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -507,77 +551,48 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_add_comment_rejects_empty_comment(self):
         """Test that empty comments are rejected"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/comment",
-            json={"comment": ""}
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": ""})
 
         assert resp.status_code == 400
 
     def test_inject_add_comment_prevents_after_end_time(self):
         """Test that comments cannot be added after inject ends"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
+        template = self._make_template(
             start_time=datetime.now(timezone.utc) - timedelta(hours=2),
-            end_time=datetime.now(timezone.utc) - timedelta(hours=1)
+            end_time=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/comment",
-            json={"comment": "Too late"}
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": "Too late"})
 
         assert resp.status_code == 400
 
     def test_inject_add_comment_success(self):
         """Test successful comment addition"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
 
         self.login("blueuser1", "pass")
-        resp = self.client.post(
-            f"/api/inject/{inject.id}/comment",
-            json={"comment": "Great inject!"}
-        )
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": "Great inject!"})
 
         assert resp.status_code == 200
         assert resp.json["status"] == "Comment added"
 
         # Verify comment was created
-        comment = self.session.query(Comment).filter(
-            Comment.inject_id == inject.id
-        ).first()
+        comment = self.session.query(InjectComment).filter(InjectComment.inject_id == inject.id).first()
         assert comment is not None
-        assert comment.comment == "Great inject!"
+        assert comment.content == "Great inject!"
         assert comment.user_id == self.blue_user1.id
 
     # Download Tests
@@ -588,16 +603,9 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_download_team_authorization(self):
         """Test that users can only download their team's files"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
-        file_obj = File("test.txt", self.blue_user1, inject)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
         self.session.add_all([template, inject, file_obj])
         self.session.commit()
 
@@ -609,37 +617,20 @@ class TestInjectsAPI(UnitTest):
 
     def test_inject_download_white_team_authorized(self):
         """Test that white team can download any file"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
-        file_obj = File("test.txt", self.blue_user1, inject)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject)
         self.session.add_all([template, inject, file_obj])
         self.session.commit()
 
         self.login("whiteuser", "pass")
 
-        # Mock file existence
-        with patch("scoring_engine.web.views.api.injects.send_file") as mock_send:
-            resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/download")
-            # Will fail with 404 or succeed depending on file existence
-            # We're mainly checking authorization didn't block it
+        with patch("scoring_engine.web.views.api.injects.send_file"):
+            self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/download")
 
     def test_inject_download_file_not_found(self):
         """Test that 404 is returned for non-existent files"""
-        template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
+        template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         self.session.add_all([template, inject])
         self.session.commit()
@@ -648,3 +639,85 @@ class TestInjectsAPI(UnitTest):
         resp = self.client.get(f"/api/inject/{inject.id}/files/99999/download")
 
         assert resp.status_code == 403  # File doesn't exist, so unauthorized
+
+    # Inject Detail Tests
+    def test_inject_detail_returns_rubric_items(self):
+        """Test that inject detail includes rubric items"""
+        template = self._make_template()
+        self.session.add(template)
+        self.session.flush()
+        ri1 = RubricItem(title="Quality", points=60, template=template, order=0)
+        ri2 = RubricItem(title="Completeness", points=40, template=template, order=1)
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([ri1, ri2, inject])
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.get(f"/api/inject/{inject.id}")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert len(data["rubric_items"]) == 2
+        assert data["rubric_items"][0]["title"] == "Quality"
+        assert data["rubric_items"][0]["points"] == 60
+        assert data["max_score"] == 100
+
+    def test_inject_detail_returns_rubric_scores(self):
+        """Test that inject detail includes rubric scores when graded"""
+        template = self._make_template()
+        self.session.add(template)
+        self.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([ri, inject])
+        self.session.flush()
+        score = InjectRubricScore(score=80, inject=inject, rubric_item=ri, grader=self.white_user)
+        inject.status = "Graded"
+        self.session.add(score)
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        resp = self.client.get(f"/api/inject/{inject.id}")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert len(data["rubric_scores"]) == 1
+        assert data["rubric_scores"][0]["score"] == 80
+        assert data["score"] == 80
+
+    # Cache Invalidation Tests
+    def test_inject_submit_invalidates_cache(self):
+        """Test that submitting an inject invalidates the cached /api/inject/<id> response"""
+        template = self._make_template(title="Cache Test")
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+
+        with patch("scoring_engine.web.views.api.injects.cache") as mock_cache:
+            resp = self.client.post(f"/api/inject/{inject.id}/submit")
+
+        assert resp.status_code == 200
+        mock_cache.delete.assert_called_with(f"/api/inject/{inject.id}_{self.blue_team1.id}")
+
+    def test_inject_grade_invalidates_cache(self):
+        """Test that grading an inject invalidates the cached /api/inject/<id> response"""
+        template = self._make_template(title="Grade Cache Test")
+        self.session.add(template)
+        self.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team1, template=template)
+        inject.status = "Submitted"
+        self.session.add_all([ri, inject])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+
+        with patch("scoring_engine.web.views.api.admin.update_inject_data") as mock_update:
+            resp = self.client.post(
+                f"/api/admin/inject/{inject.id}/grade", json={"rubric_scores": [{"rubric_item_id": ri.id, "score": 80}]}
+            )
+
+        assert resp.status_code == 200
+        mock_update.assert_called_once_with(str(inject.id))

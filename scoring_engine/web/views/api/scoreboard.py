@@ -7,12 +7,11 @@ from sqlalchemy.sql import func
 from scoring_engine.cache import cache
 from scoring_engine.db import db
 from scoring_engine.models.check import Check
-from scoring_engine.models.inject import Inject
+from scoring_engine.models.inject import Inject, InjectRubricScore
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
 
@@ -53,9 +52,7 @@ def calculate_team_scores_with_dynamic_scoring(sla_config):
     team_scores = defaultdict(int)
     for team_id, round_id, round_score in round_scores:
         round_number = rounds.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         team_scores[team_id] += adjusted_score
 
     return dict(team_scores)
@@ -70,7 +67,8 @@ def scoreboard_get_bar_data():
     current_scores = calculate_team_scores_with_dynamic_scoring(sla_config)
 
     inject_scores = dict(
-        db.session.query(Inject.team_id, func.sum(Inject.score))
+        db.session.query(Inject.team_id, func.sum(InjectRubricScore.score))
+        .join(InjectRubricScore)
         .filter(Inject.status == "Graded")
         .group_by(Inject.team_id)
         .all()
@@ -83,9 +81,7 @@ def scoreboard_get_bar_data():
     team_sla_penalties = []
     team_adjusted_scores = []
 
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
         service_score = current_scores.get(blue_team.id, 0)
@@ -129,10 +125,7 @@ def scoreboard_get_line_data():
     }
 
     blue_teams = (
-        db.session.query(Team.id, Team.name, Team.rgb_color)
-        .filter(Team.color == "Blue")
-        .order_by(Team.id)
-        .all()
+        db.session.query(Team.id, Team.name, Team.rgb_color).filter(Team.color == "Blue").order_by(Team.id).all()
     )
 
     """
@@ -156,17 +149,13 @@ def scoreboard_get_line_data():
     )
 
     # Get round numbers for dynamic scoring
-    rounds_map = {
-        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-    }
+    rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
     scores_dict = defaultdict(lambda: defaultdict(int))
     for team_id, round_id, round_score in round_scores:
         # Apply dynamic scoring multiplier if enabled
         round_number = rounds_map.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         scores_dict[team_id][round_id] = adjusted_score
 
     for team_id, team_name, rgb_color in blue_teams:

@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from flask import jsonify
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func

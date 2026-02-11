@@ -1,4 +1,5 @@
 """Comprehensive tests for Admin API endpoints"""
+
 import html
 from unittest.mock import MagicMock, patch
 
@@ -63,12 +64,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_environment_requires_white_team(self):
         """Test that only white team can update environment"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -76,8 +72,7 @@ class TestAdminAPI(UnitTest):
         # Try as blue team
         self.login("blueuser", "pass")
         resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": env.id, "name": "matching_content", "value": "new"}
+            "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": "new"}
         )
 
         assert resp.status_code == 200
@@ -87,8 +82,7 @@ class TestAdminAPI(UnitTest):
         self.logout()
         self.login("reduser", "pass")
         resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": env.id, "name": "matching_content", "value": "new"}
+            "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": "new"}
         )
 
         assert resp.status_code == 200
@@ -96,12 +90,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_environment_xss_protection(self):
         """SECURITY: Test that environment updates are protected against XSS"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -113,13 +102,12 @@ class TestAdminAPI(UnitTest):
             "<img src=x onerror='alert(1)'>",
             "javascript:alert('XSS')",
             "<svg onload=alert(1)>",
-            "';alert(String.fromCharCode(88,83,83))//'"
+            "';alert(String.fromCharCode(88,83,83))//'",
         ]
 
         for payload in xss_payloads:
             resp = self.client.post(
-                "/api/admin/update_environment_info",
-                data={"pk": env.id, "name": "matching_content", "value": payload}
+                "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": payload}
             )
 
             assert resp.status_code == 200
@@ -138,42 +126,29 @@ class TestAdminAPI(UnitTest):
         self.login("whiteuser", "pass")
 
         # Missing 'value'
-        resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": 1, "name": "matching_content"}
-        )
+        resp = self.client.post("/api/admin/update_environment_info", data={"pk": 1, "name": "matching_content"})
         assert resp.json.get("error") == "Incorrect permissions"
 
         # Missing 'name'
-        resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": 1, "value": "test"}
-        )
+        resp = self.client.post("/api/admin/update_environment_info", data={"pk": 1, "value": "test"})
         assert resp.json.get("error") == "Incorrect permissions"
 
         # Missing 'pk'
         resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"name": "matching_content", "value": "test"}
+            "/api/admin/update_environment_info", data={"name": "matching_content", "value": "test"}
         )
         assert resp.json.get("error") == "Incorrect permissions"
 
     def test_admin_update_environment_success(self):
         """Test successful environment update"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="old_value")
         self.session.add_all([service, env])
         self.session.commit()
 
         self.login("whiteuser", "pass")
         resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": env.id, "name": "matching_content", "value": "new_value"}
+            "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": "new_value"}
         )
 
         assert resp.status_code == 200
@@ -185,12 +160,7 @@ class TestAdminAPI(UnitTest):
     # Property Update Tests
     def test_admin_update_property_requires_white_team(self):
         """Test that only white team can update properties"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -204,20 +174,14 @@ class TestAdminAPI(UnitTest):
         # Try as blue team
         self.login("blueuser", "pass")
         resp = self.client.post(
-            "/api/admin/update_property",
-            data={"pk": prop.id, "name": "property_name", "value": "new"}
+            "/api/admin/update_property", data={"pk": prop.id, "name": "property_name", "value": "new"}
         )
 
         assert resp.json["error"] == "Incorrect permissions"
 
     def test_admin_update_property_xss_protection(self):
         """SECURITY: Test that property updates are protected against XSS"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -233,11 +197,7 @@ class TestAdminAPI(UnitTest):
         # Test XSS in property name
         resp = self.client.post(
             "/api/admin/update_property",
-            data={
-                "pk": prop.id,
-                "name": "property_name",
-                "value": "<script>alert('xss')</script>"
-            }
+            data={"pk": prop.id, "name": "property_name", "value": "<script>alert('xss')</script>"},
         )
 
         assert resp.status_code == 200
@@ -247,11 +207,7 @@ class TestAdminAPI(UnitTest):
         # Test XSS in property value
         resp = self.client.post(
             "/api/admin/update_property",
-            data={
-                "pk": prop.id,
-                "name": "property_value",
-                "value": "<img src=x onerror=alert(1)>"
-            }
+            data={"pk": prop.id, "name": "property_value", "value": "<img src=x onerror=alert(1)>"},
         )
 
         assert resp.status_code == 200
@@ -260,12 +216,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_property_both_fields(self):
         """Test updating both property name and value"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -280,8 +231,7 @@ class TestAdminAPI(UnitTest):
 
         # Update name
         resp = self.client.post(
-            "/api/admin/update_property",
-            data={"pk": prop.id, "name": "property_name", "value": "new_key"}
+            "/api/admin/update_property", data={"pk": prop.id, "name": "property_name", "value": "new_key"}
         )
         assert resp.status_code == 200
         self.session.refresh(prop)
@@ -289,8 +239,7 @@ class TestAdminAPI(UnitTest):
 
         # Update value
         resp = self.client.post(
-            "/api/admin/update_property",
-            data={"pk": prop.id, "name": "property_value", "value": "new_value"}
+            "/api/admin/update_property", data={"pk": prop.id, "name": "property_value", "value": "new_value"}
         )
         assert resp.status_code == 200
         self.session.refresh(prop)
@@ -299,12 +248,7 @@ class TestAdminAPI(UnitTest):
     # Check Update Tests
     def test_admin_update_check_requires_white_team(self):
         """Test that only white team can update checks"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=True, output="test")
         self.session.add_all([service, round_obj, check])
@@ -312,21 +256,13 @@ class TestAdminAPI(UnitTest):
 
         # Try as blue team
         self.login("blueuser", "pass")
-        resp = self.client.post(
-            "/api/admin/update_check",
-            data={"pk": check.id, "name": "check_value", "value": "2"}
-        )
+        resp = self.client.post("/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "2"})
 
         assert resp.json["error"] == "Incorrect permissions"
 
     def test_admin_update_check_result_pass_to_fail(self):
         """Test changing check result from pass to fail"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=True, output="test")
         self.session.add_all([service, round_obj, check])
@@ -337,8 +273,7 @@ class TestAdminAPI(UnitTest):
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
             with patch("scoring_engine.web.views.api.admin.update_overview_data"):
                 resp = self.client.post(
-                    "/api/admin/update_check",
-                    data={"pk": check.id, "name": "check_value", "value": "2"}
+                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "2"}
                 )
 
         assert resp.status_code == 200
@@ -347,12 +282,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_check_result_fail_to_pass(self):
         """Test changing check result from fail to pass"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=False, output="test")
         self.session.add_all([service, round_obj, check])
@@ -363,8 +293,7 @@ class TestAdminAPI(UnitTest):
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
             with patch("scoring_engine.web.views.api.admin.update_overview_data"):
                 resp = self.client.post(
-                    "/api/admin/update_check",
-                    data={"pk": check.id, "name": "check_value", "value": "1"}
+                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "1"}
                 )
 
         assert resp.status_code == 200
@@ -373,12 +302,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_check_reason(self):
         """Test updating check reason/output"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=True, output="old", reason="old_reason")
         self.session.add_all([service, round_obj, check])
@@ -389,8 +313,7 @@ class TestAdminAPI(UnitTest):
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
             with patch("scoring_engine.web.views.api.admin.update_overview_data"):
                 resp = self.client.post(
-                    "/api/admin/update_check",
-                    data={"pk": check.id, "name": "check_reason", "value": "new_reason"}
+                    "/api/admin/update_check", data={"pk": check.id, "name": "check_reason", "value": "new_reason"}
                 )
 
         assert resp.status_code == 200
@@ -399,12 +322,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_check_triggers_cache_update(self):
         """Test that updating check triggers cache updates"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=True, output="test")
         self.session.add_all([service, round_obj, check])
@@ -415,8 +333,7 @@ class TestAdminAPI(UnitTest):
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data") as mock_scoreboard:
             with patch("scoring_engine.web.views.api.admin.update_overview_data") as mock_overview:
                 resp = self.client.post(
-                    "/api/admin/update_check",
-                    data={"pk": check.id, "name": "check_value", "value": "2"}
+                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "2"}
                 )
 
                 # Cache updates should be called
@@ -425,12 +342,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_check_invalid_value(self):
         """Test that invalid check values are handled"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         round_obj = Round(number=1)
         check = Check(service=service, round=round_obj, result=True, output="test")
         self.session.add_all([service, round_obj, check])
@@ -442,8 +354,7 @@ class TestAdminAPI(UnitTest):
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
             with patch("scoring_engine.web.views.api.admin.update_overview_data"):
                 resp = self.client.post(
-                    "/api/admin/update_check",
-                    data={"pk": check.id, "name": "check_value", "value": "3"}
+                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "3"}
                 )
 
         # Should not crash, just not update
@@ -476,12 +387,7 @@ class TestAdminAPI(UnitTest):
     # SQL Injection Tests
     def test_admin_update_environment_sql_injection_prevention(self):
         """SECURITY: Test SQL injection prevention in environment updates"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -497,7 +403,7 @@ class TestAdminAPI(UnitTest):
         for injection in sql_injections:
             resp = self.client.post(
                 "/api/admin/update_environment_info",
-                data={"pk": env.id, "name": "matching_content", "value": injection}
+                data={"pk": env.id, "name": "matching_content", "value": injection},
             )
 
             assert resp.status_code == 200
@@ -508,12 +414,7 @@ class TestAdminAPI(UnitTest):
 
     def test_admin_update_property_sql_injection_prevention(self):
         """SECURITY: Test SQL injection prevention in property updates"""
-        service = Service(
-            name="Test",
-            check_name="ICMP IPv4 Check",
-            host="1.2.3.4",
-            team=self.blue_team
-        )
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
         env = Environment(service=service, matching_content="test")
         self.session.add_all([service, env])
         self.session.commit()
@@ -529,8 +430,7 @@ class TestAdminAPI(UnitTest):
         sql_injection = "'; DROP TABLE property; --"
 
         resp = self.client.post(
-            "/api/admin/update_property",
-            data={"pk": prop.id, "name": "property_value", "value": sql_injection}
+            "/api/admin/update_property", data={"pk": prop.id, "name": "property_value", "value": sql_injection}
         )
 
         assert resp.status_code == 200
@@ -539,13 +439,49 @@ class TestAdminAPI(UnitTest):
         # Value should be escaped
         assert prop.value == html.escape(sql_injection)
 
+    def test_admin_update_environment_rejects_invalid_regex(self):
+        """Test that invalid regex patterns are rejected when updating matching_content"""
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
+        env = Environment(service=service, matching_content="old_value")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        resp = self.client.post(
+            "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": "foo(bar"}
+        )
+
+        assert resp.status_code == 400
+        assert "Invalid regex pattern" in resp.json["error"]
+
+        # Verify value was not changed
+        self.session.refresh(env)
+        assert env.matching_content == "old_value"
+
+    def test_admin_update_environment_accepts_valid_regex(self):
+        """Test that valid regex patterns are accepted when updating matching_content"""
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
+        env = Environment(service=service, matching_content="old_value")
+        self.session.add_all([service, env])
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        resp = self.client.post(
+            "/api/admin/update_environment_info", data={"pk": env.id, "name": "matching_content", "value": "^SUCCESS"}
+        )
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Updated Environment Information"
+
+        self.session.refresh(env)
+        assert env.matching_content == "^SUCCESS"
+
     def test_admin_nonexistent_environment(self):
         """Test updating nonexistent environment returns error"""
         self.login("whiteuser", "pass")
 
         resp = self.client.post(
-            "/api/admin/update_environment_info",
-            data={"pk": 99999, "name": "matching_content", "value": "test"}
+            "/api/admin/update_environment_info", data={"pk": 99999, "name": "matching_content", "value": "test"}
         )
 
         # Should return error for nonexistent environment
@@ -556,8 +492,7 @@ class TestAdminAPI(UnitTest):
         self.login("whiteuser", "pass")
 
         resp = self.client.post(
-            "/api/admin/update_property",
-            data={"pk": 99999, "name": "property_name", "value": "test"}
+            "/api/admin/update_property", data={"pk": 99999, "name": "property_name", "value": "test"}
         )
 
         # Should return error for nonexistent property
@@ -567,10 +502,158 @@ class TestAdminAPI(UnitTest):
         """Test updating nonexistent check returns error"""
         self.login("whiteuser", "pass")
 
-        resp = self.client.post(
-            "/api/admin/update_check",
-            data={"pk": 99999, "name": "check_value", "value": "1"}
-        )
+        resp = self.client.post("/api/admin/update_check", data={"pk": 99999, "name": "check_value", "value": "1"})
 
         # Should return error for nonexistent check
         assert "error" in resp.json or resp.json.get("status") != "Updated Check Information"
+
+    # Engine Toggle Tests
+    def test_toggle_engine_requires_auth(self):
+        """Test that toggle engine requires authentication"""
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+    def test_toggle_engine_requires_white_team(self):
+        """Test that only white team can toggle engine"""
+        self.login("blueuser", "pass")
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 403
+        assert resp.json["status"] == "Unauthorized"
+
+    def test_toggle_engine_pauses_running_engine(self):
+        """Test toggling engine from running to paused"""
+        self.login("whiteuser", "pass")
+
+        # Engine starts unpaused (default from unit_test setup)
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is False
+
+        # Toggle to paused
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Success"
+
+        # Verify engine is now paused
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is True
+
+    def test_toggle_engine_resumes_paused_engine(self):
+        """Test toggling engine from paused back to running"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Toggle to paused
+        self.client.post("/api/admin/toggle_engine")
+        Setting.clear_cache("engine_paused")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is True
+
+        # Toggle back to running
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify engine is running again
+        Setting.clear_cache("engine_paused")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is False
+
+    def test_toggle_engine_persists_to_database(self):
+        """Test that toggle actually persists the value to the database"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Verify initial DB state
+        Setting.clear_cache("engine_paused")
+        setting = Setting.get_setting("engine_paused")
+        assert setting.value is False
+
+        # Toggle
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify DB was updated (query DB directly to confirm persistence)
+        Setting.clear_cache("engine_paused")
+        setting = db.session.query(Setting).filter(Setting.name == "engine_paused").order_by(Setting.id.desc()).first()
+        assert setting.value is True
+
+    def test_toggle_engine_clears_cache(self):
+        """Test that toggle clears the in-memory cache for engine_paused"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Pre-populate cache
+        Setting.get_setting("engine_paused")
+        assert "engine_paused" in Setting._cache
+
+        # Toggle should clear cache
+        self.client.post("/api/admin/toggle_engine")
+        assert "engine_paused" not in Setting._cache
+
+    def test_toggle_engine_with_stale_cache(self):
+        """Test that toggle reads from DB when cache is stale"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Clear cache so toggle reads fresh from DB
+        Setting.clear_cache("engine_paused")
+
+        # Simulate another worker updating the DB directly
+        setting = db.session.query(Setting).filter(Setting.name == "engine_paused").first()
+        setting.value = True
+        db.session.commit()
+
+        # Toggle should read current DB value (True) and set to False
+        resp = self.client.post("/api/admin/toggle_engine")
+        assert resp.status_code == 200
+
+        # Verify the value was correctly toggled from the DB state
+        Setting.clear_cache("engine_paused")
+        setting = db.session.query(Setting).filter(Setting.name == "engine_paused").order_by(Setting.id.desc()).first()
+        assert setting.value is False
+
+    def test_get_engine_paused_requires_auth(self):
+        """Test that get engine status requires authentication"""
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 302
+
+    def test_get_engine_paused_requires_white_team(self):
+        """Test that only white team can get engine status"""
+        self.login("blueuser", "pass")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 403
+
+    def test_get_engine_paused_returns_boolean(self):
+        """Test that paused status is returned as a JSON boolean, not string"""
+        self.login("whiteuser", "pass")
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.status_code == 200
+        assert resp.json["paused"] is False
+        assert isinstance(resp.json["paused"], bool)
+
+    def test_get_engine_paused_reads_from_db(self):
+        """Test that get_engine_paused returns the current DB value"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser", "pass")
+
+        # Clear cache so we read from DB
+        Setting.clear_cache("engine_paused")
+
+        # Update DB directly (simulating another worker's toggle)
+        setting = db.session.query(Setting).filter(Setting.name == "engine_paused").first()
+        setting.value = True
+        db.session.commit()
+
+        # GET should return the DB value
+        resp = self.client.get("/api/admin/get_engine_paused")
+        assert resp.json["paused"] is True

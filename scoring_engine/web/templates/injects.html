@@ -135,10 +135,12 @@
                             } else {
                                 return '<span class="label label-warning">' + data + '</span>';
                             }
-                        } else if (data == "Submitted") {
+                        } else if (data == "Submitted" || data == "Resubmitted") {
                             return '<span class="label label-success">' + data + '</span>';
                         } else if (data == "Graded") {
                             return '<span class="label label-info">' + data + '</span>';
+                        } else if (data == "Revision Requested") {
+                            return '<span class="label" style="background-color:#f0ad4e;color:#fff;">' + data + '</span>';
                         } else {
                             return '<span class="label label-danger">' + data + '</span>';
                         }

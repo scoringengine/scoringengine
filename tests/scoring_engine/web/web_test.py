@@ -1,12 +1,12 @@
 import importlib
-from flask import render_template as render_template_orig
 
-from scoring_engine.web import create_app
+from flask import render_template as render_template_orig
+from mock import MagicMock, call
+
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-
+from scoring_engine.web import create_app
 from tests.scoring_engine.unit_test import UnitTest
-from mock import MagicMock, call
 
 
 class WebTest(UnitTest):

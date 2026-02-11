@@ -3,8 +3,7 @@ import html
 import uuid
 
 import pytz
-from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer,
-                        PickleType, String, UniqueConstraint)
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, PickleType, String, UniqueConstraint
 
 
 def _ensure_utc_aware(dt):
@@ -16,6 +15,8 @@ def _ensure_utc_aware(dt):
         return pytz.utc.localize(dt)
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
+
+
 # from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 

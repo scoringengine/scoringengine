@@ -85,10 +85,9 @@
               {% if not current_user.is_authenticated %}
               <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
               {% else %}
-              <!-- <li class="navbar-item">
-                <a href="{{ url_for('notifications.unread') }}">Notifications {% if notification_count %}<span
-                    class="badge">{{ notification_count}}</span>{% endif %}</a>
-              </li> -->
+              <li class="navbar-item">
+                <a href="#" id="notificationBell">Notifications <span class="badge" id="notificationCount" style="display:none;"></span></a>
+              </li>
               <li class="dropdown">
                 <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{
                   current_user.get_username }} <b class="caret"></b></a>
@@ -108,6 +107,38 @@
       </nav>
       {% block content %}
       {% endblock %}
+      {% if current_user.is_authenticated %}
+      <script>
+        function updateNotificationCount() {
+          $.ajax({
+            url: "/api/notifications/unread",
+            success: function (result) {
+              var count = result.length;
+              if (count > 0) {
+                $('#notificationCount').text(count).show();
+              } else {
+                $('#notificationCount').hide();
+              }
+            }
+          });
+        }
+        $(document).ready(function() {
+          updateNotificationCount();
+          setInterval(updateNotificationCount, 30000);
+
+          $('#notificationBell').on('click', function(e) {
+            e.preventDefault();
+            $.ajax({
+              url: "/api/notifications/read-all",
+              type: 'POST',
+              success: function() {
+                updateNotificationCount();
+              }
+            });
+          });
+        });
+      </script>
+      {% endif %}
   </body>
 
 </html>

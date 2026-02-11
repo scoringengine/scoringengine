@@ -23,9 +23,7 @@ def test_delete_overview_data_clears_overview_cache():
     assert mock_delete.call_args_list == expected_calls
 
 
-skip_update_overview = not hasattr(cache_helper, "update_overview_data") or not hasattr(
-    overview, "update_caches"
-)
+skip_update_overview = not hasattr(cache_helper, "update_overview_data") or not hasattr(overview, "update_caches")
 
 
 @pytest.mark.skipif(

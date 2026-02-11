@@ -1,4 +1,5 @@
 """Tests for Notifications web view"""
+
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from tests.scoring_engine.web.web_test import WebTest

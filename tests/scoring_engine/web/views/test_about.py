@@ -1,6 +1,5 @@
-from tests.scoring_engine.web.web_test import WebTest
-
 from scoring_engine.version import version
+from tests.scoring_engine.web.web_test import WebTest
 
 
 class TestAbout(WebTest):

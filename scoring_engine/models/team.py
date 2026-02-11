@@ -1,17 +1,16 @@
 import itertools
 import random
-
 from collections import defaultdict
+
 from sqlalchemy import Column, Integer, String, desc, func
 from sqlalchemy.orm import relationship
 
-
+from scoring_engine.db import db
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
-from scoring_engine.models.inject import Inject
+from scoring_engine.models.inject import Inject, InjectRubricScore
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.db import db
 
 
 def _get_rank_from_scores(scores, target_id, default=1):
@@ -46,7 +45,7 @@ class Team(Base):
     color = Column(String(10), nullable=False)
     services = relationship("Service", back_populates="team", lazy="joined")
     users = relationship("User", back_populates="team", lazy="joined")
-    inject = relationship("Inject", back_populates="team", lazy="joined")
+    injects = relationship("Inject", back_populates="team", lazy="joined")
     rgb_color = Column(String(30))
 
     def __init__(self, name, color):
@@ -86,8 +85,8 @@ class Team(Base):
         or using bulk queries when accessing scores for multiple teams.
         """
         score = (
-            db.session.query(func.sum(Inject.score))
-            .join(Team)
+            db.session.query(func.sum(InjectRubricScore.score))
+            .join(Inject)
             .filter(Inject.team_id == self.id)
             .filter(Inject.status == "Graded")
             .scalar()
