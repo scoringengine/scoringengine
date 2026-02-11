@@ -117,6 +117,24 @@ def update_inject_data(inject_id, team_id=None):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
+def update_inject_comments(inject_id, team_id=None):
+    """Clear cached inject comments for the given inject."""
+    if team_id is not None:
+        cache.delete(f"/api/inject/{inject_id}/comments_{team_id}")
+    elif not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match=f"*/api/inject/{inject_id}/comments_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_inject_files(inject_id, team_id=None):
+    """Clear cached inject files for the given inject."""
+    if team_id is not None:
+        cache.delete(f"/api/inject/{inject_id}/files_{team_id}")
+    elif not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match=f"*/api/inject/{inject_id}/files_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
 def update_stats():
     # Clear cached /api/stats responses (keyed per-team/role)
     if not isinstance(cache.cache, NullCache):

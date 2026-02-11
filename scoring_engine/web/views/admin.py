@@ -92,6 +92,15 @@ def inject_inject(inject_id):
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/injects/template/<int:template_id>/submissions")
+@login_required
+def template_submissions(template_id):
+    if current_user.is_white_team:
+        return render_template("admin/template_submissions.html", template_id=template_id)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/service/<id>")
 @login_required
 def service(id):

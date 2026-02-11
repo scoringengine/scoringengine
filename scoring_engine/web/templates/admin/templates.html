@@ -100,10 +100,30 @@
                 <option>Disabled</option>
               </select>
             </div>
-            <!-- Score -->
-            <div class="col-sm-3">
-              <label for="inputScore">Score</label>
-              <input type="number" class="form-control" id="inputScore" placeholder="100">
+          </div>
+          <!-- Rubric Items -->
+          <div class="form-group">
+            <div class="col-sm-12">
+              <label>Rubric Items</label>
+              <table class="table" id="inputRubricItems">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Points</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="text" class="form-control rubric-title" placeholder="Overall Quality"></td>
+                    <td><input type="text" class="form-control rubric-desc" placeholder=""></td>
+                    <td><input type="number" class="form-control rubric-points" placeholder="100"></td>
+                    <td><button type="button" class="btn btn-xs btn-danger remove-rubric-row">X</button></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-sm btn-default" id="addRubricItemBtn">Add Rubric Item</button>
             </div>
           </div>
           <!-- Teams -->
@@ -125,27 +145,6 @@
             </div>
             {% endfor %}
           </div>
-          <!-- Rubric -->
-          <!-- <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputRubric">Rubric</label>
-              <table class="table" id="inputRubric">
-                <thead>
-                  <tr>
-                    <th>Deliverable</th>
-                    <th>Points</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-            <div class="col-sm-12">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeliverableModal">Add
-                Deliverable</button>
-            </div>
-          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -242,10 +241,24 @@
                 <option>Disabled</option>
               </select>
             </div>
-            <!-- Score -->
-            <div class="col-sm-3">
-              <label for="inputUpdateScore">Score</label>
-              <input type="number" class="form-control" id="inputUpdateScore" placeholder="100">
+          </div>
+          <!-- Rubric Items -->
+          <div class="form-group">
+            <div class="col-sm-12">
+              <label>Rubric Items</label>
+              <table class="table" id="inputUpdateRubricItems">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Points</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-sm btn-default" id="addUpdateRubricItemBtn">Add Rubric Item</button>
             </div>
           </div>
           <!-- Teams -->
@@ -267,26 +280,6 @@
             </div>
             {% endfor %}
           </div>
-          <!-- Rubric -->
-          <!-- <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputUpdateRubric">Rubric</label>
-              <table class="table" id="inputUpdateRubric">
-                <thead>
-                  <tr>
-                    <th>Deliverable</th>
-                    <th>Points</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-            <div class="col-sm-12">
-              <button type="button" class="btn btn-primary">Add Deliverable</button>
-            </div>
-          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -382,7 +375,7 @@
           }
         },
         {
-          "data": "score",
+          "data": "max_score",
         },
         {
           "data": "enabled",
@@ -446,40 +439,19 @@
             $('#inputUpdateStatus').val('Disabled');
           }
 
-          $('#inputUpdateScore').val(data['score']);
-
-          // Rubric Table
-          // var Tablrubrice = document.getElementById("inputUpdateRubric");
-
-          // Remove all rows except header
-          // $("#inputUpdateRubric tr").remove();
-
-          // for (let i = 0; i < data['rubric'].length; i++) {
-          //   var row = rubricTable.insertRow();
-          //   row.id = data['rubric'][i]['id'];
-
-          //   var deliverable = row.insertCell(0);
-          //   var points = row.insertCell(1);
-          //   var actions = row.insertCell(2);
-
-          //   deliverable.innerText = data['rubric'][i]['deliverable']
-          //   points.innerText = data['rubric'][i]['value']
-          //   actions.innerHTML = '<div class="btn-group float-end">' +
-          //     '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">' +
-          //     '</i> Actions ' +
-          //     '</button>' +
-          //     '<ul class="dropdown-menu" role="menu">' +
-          //     '<!-- View/Edit -->' +
-          //     '<li>' +
-          //     '<a class="deliverable-view" href="#">View/Edit Deliverable</a>' +
-          //     '</li>' +
-          //     '<!-- Delete -->' +
-          //     '<li>' +
-          //     '<a class="deliverable-delete" href="#">Delete Deliverable</a>' +
-          //     '</li>' +
-          //     '</ul>' +
-          //     '</div>'
-          // }
+          // Populate rubric items
+          var $rubricBody = $('#inputUpdateRubricItems tbody');
+          $rubricBody.empty();
+          if (data['rubric_items'] && data['rubric_items'].length > 0) {
+            $.each(data['rubric_items'], function(i, item) {
+              $rubricBody.append(
+                '<tr><td><input type="text" class="form-control rubric-title" value="' + (item.title || '') + '"></td>' +
+                '<td><input type="text" class="form-control rubric-desc" value="' + (item.description || '') + '"></td>' +
+                '<td><input type="number" class="form-control rubric-points" value="' + (item.points || 0) + '"></td>' +
+                '<td><button type="button" class="btn btn-xs btn-danger remove-rubric-row">X</button></td></tr>'
+              );
+            });
+          }
 
           // Update Checkboxes
           const teams = data['teams'];
@@ -625,7 +597,17 @@
       templateData['start_time'] = $('#inputStartTime').val();
       templateData['end_time'] = $('#inputEndTime').val();
       templateData['status'] = $('#inputStatus').val();
-      templateData['score'] = $('#inputScore').val();
+      // Collect rubric items
+      var rubricItems = [];
+      $('#inputRubricItems tbody tr').each(function(i) {
+        var title = $(this).find('.rubric-title').val();
+        var desc = $(this).find('.rubric-desc').val();
+        var points = parseInt($(this).find('.rubric-points').val()) || 0;
+        if (title) {
+          rubricItems.push({ title: title, description: desc, points: points, order: i });
+        }
+      });
+      templateData['rubric_items'] = rubricItems;
 
       // Selected Teams
       var selectedTeams = [];
@@ -676,7 +658,17 @@
       templateData['start_time'] = $('#inputUpdateStartTime').val();
       templateData['end_time'] = $('#inputUpdateEndTime').val();
       templateData['status'] = $('#inputUpdateStatus').val();
-      templateData['score'] = $('#inputUpdateScore').val();
+      // Collect rubric items
+      var rubricItems = [];
+      $('#inputUpdateRubricItems tbody tr').each(function(i) {
+        var title = $(this).find('.rubric-title').val();
+        var desc = $(this).find('.rubric-desc').val();
+        var points = parseInt($(this).find('.rubric-points').val()) || 0;
+        if (title) {
+          rubricItems.push({ title: title, description: desc, points: points, order: i });
+        }
+      });
+      templateData['rubric_items'] = rubricItems;
 
       // Selected Teams
       var selectedTeams = [];
@@ -707,6 +699,30 @@
           console.error(result['responseJSON']['status']);
         }
       });
+    });
+    // Add rubric item row (Add modal)
+    $('#addRubricItemBtn').on('click', function() {
+      $('#inputRubricItems tbody').append(
+        '<tr><td><input type="text" class="form-control rubric-title" placeholder="Item title"></td>' +
+        '<td><input type="text" class="form-control rubric-desc" placeholder=""></td>' +
+        '<td><input type="number" class="form-control rubric-points" placeholder="0"></td>' +
+        '<td><button type="button" class="btn btn-xs btn-danger remove-rubric-row">X</button></td></tr>'
+      );
+    });
+
+    // Add rubric item row (Update modal)
+    $('#addUpdateRubricItemBtn').on('click', function() {
+      $('#inputUpdateRubricItems tbody').append(
+        '<tr><td><input type="text" class="form-control rubric-title" placeholder="Item title"></td>' +
+        '<td><input type="text" class="form-control rubric-desc" placeholder=""></td>' +
+        '<td><input type="number" class="form-control rubric-points" placeholder="0"></td>' +
+        '<td><button type="button" class="btn btn-xs btn-danger remove-rubric-row">X</button></td></tr>'
+      );
+    });
+
+    // Remove rubric item row
+    $(document).on('click', '.remove-rubric-row', function() {
+      $(this).closest('tr').remove();
     });
   });
 </script>

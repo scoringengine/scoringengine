@@ -10,11 +10,13 @@
 {% endblock %}
 
 {% block header %}
-{% if inject.status == 'Submitted' %}
+{% if inject.status == 'Submitted' or inject.status == 'Resubmitted' %}
 <p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span>
 </p>
 {% elif inject.status == 'Graded' %}
 <p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-info text-dark">{{ inject.status}}</span></p>
+{% elif inject.status == 'Revision Requested' %}
+<p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-warning text-dark">{{ inject.status}}</span></p>
 {% elif inject.template.expired %}
 <p>{{ inject.team.name }} - {{ inject.template.title }} <span class="badge bg-danger">Expired</span></p>
 {% elif inject.status == 'Draft' %}
@@ -27,45 +29,19 @@
 
 {% block admincontent %}
 
-{% if inject.status == 'Submitted' %}
+{% if inject.status in ('Submitted', 'Resubmitted') %}
 <div class="chart-card mt-3">
-  <form class="row row-cols-lg-auto g-3 align-items-center">
-    <div class="col-12">
-      <label for="inputGrade" class="col-form-label">Grade</label>
-    </div>
-    <div class="col-12">
-      <input type="number" class="form-control" id="inputGrade" placeholder="100">
-    </div>
-    <div class="col-12">
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitGradeConfirmation">Submit
-        Grade</button>
-    </div>
-  </form>
+  <div id="rubric-grade-form"></div>
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitGradeConfirmation">Submit
+    Grade</button>
+  <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#requestRevisionModal">Request
+    Revision</button>
 </div>
 {% endif %}
-{% if inject.template.rubric %}
 <h3 class="section-header">Rubric</h3>
-<div class="chart-card" style="padding:0; overflow:hidden;">
-  <table class="table table-sm overview-matrix">
-    <thead>
-      <tr>
-        <th>Deliverable</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for rubric in inject.template.rubric %}
-      <tr>
-        <td>{{ rubric.deliverable }}</td>
-        <td>{{ rubric.value }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
+<div id="rubric-display"></div>
 <h3 class="section-header">Grade</h3>
-<p>{{ inject.score }}</p>
+<p id="inject-score">{{ inject.score }} / {{ inject.template.max_score }}</p>
 <h3 class="section-header">Files</h3>
 <div id="files"></div>
 <h3 class="section-header">Comments</h3>
@@ -80,7 +56,7 @@
     </div>
   </form>
 </div>
-<!-- Submit Modal -->
+<!-- Submit Grade Modal -->
 <div class="modal fade" id="submitGradeConfirmation" tabindex="-1" aria-labelledby="submitGradeConfirmationLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -91,11 +67,31 @@
       <div class="modal-body">
         <input type="hidden" name="injectId" id="injectId" value="{{ inject.id }}" />
         <p>Are you sure you want to submit a grade for this inject?</p>
-        <p><b>You will not be able to edit this inject after submitting.</b></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" id="gradeSubmitConfirmButton" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Request Revision Modal -->
+<div class="modal fade" id="requestRevisionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Request Revision</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="revisionReason">Reason for revision</label>
+          <textarea class="form-control" id="revisionReason" rows="3" placeholder="Please explain what needs to be revised..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="requestRevisionButton" class="btn btn-warning">Request Revision</button>
       </div>
     </div>
   </div>
@@ -181,21 +177,95 @@
   });
 </script>
 <script>
+  // Load rubric items for grading form and display
+  function loadRubricData() {
+    $.ajax({
+      url: "/api/inject/{{ inject.id }}",
+      success: function (result) {
+        // Build grading form
+        var form = '<table class="table table-bordered"><tr><th>Item</th><th>Max Points</th><th>Score</th></tr>';
+        $.each(result.rubric_items, function(i, item) {
+          form += '<tr><td>' + item.title + '<br><small class="text-muted">' + (item.description || '') + '</small></td>';
+          form += '<td>' + item.points + '</td>';
+          form += '<td><input type="number" class="form-control rubric-score-input" data-item-id="' + item.id + '" min="0" max="' + item.points + '" value="0"></td></tr>';
+        });
+        form += '</table>';
+        $('#rubric-grade-form').html(form);
+
+        // Build display table
+        var display = '<table class="table table-bordered"><tr><th>Item</th><th>Description</th><th>Max Points</th>';
+        if (result.status === 'Graded') {
+          display += '<th>Score</th>';
+        }
+        display += '</tr>';
+        var scoreMap = {};
+        if (result.rubric_scores) {
+          $.each(result.rubric_scores, function(i, rs) { scoreMap[rs.rubric_item_id] = rs.score; });
+        }
+        $.each(result.rubric_items, function(i, item) {
+          display += '<tr><td>' + item.title + '</td><td>' + (item.description || '') + '</td><td>' + item.points + '</td>';
+          if (result.status === 'Graded') {
+            display += '<td>' + (scoreMap[item.id] !== undefined ? scoreMap[item.id] : '-') + '</td>';
+          }
+          display += '</tr>';
+        });
+        display += '</table>';
+        $('#rubric-display').html(display);
+
+        // Pre-fill scores if already graded
+        if (result.rubric_scores) {
+          $.each(result.rubric_scores, function(i, rs) {
+            $('.rubric-score-input[data-item-id="' + rs.rubric_item_id + '"]').val(rs.score);
+          });
+        }
+
+        // Update score display
+        $('#inject-score').text(result.score + ' / ' + result.max_score);
+      }
+    });
+  }
+  loadRubricData();
+
   // Submit Grade Confirmation
   $('#gradeSubmitConfirmButton').unbind().click(function () {
     const injectId = $('#injectId').val();
+    var rubricScores = [];
+    $('.rubric-score-input').each(function() {
+      rubricScores.push({
+        rubric_item_id: parseInt($(this).data('item-id')),
+        score: parseInt($(this).val()) || 0
+      });
+    });
     $.ajax({
       url: "/api/admin/inject/" + injectId + "/grade",
       type: 'POST',
       contentType: "application/json",
-      data: JSON.stringify({
-        score: $('#inputGrade').val()
-      }),
+      data: JSON.stringify({ rubric_scores: rubricScores }),
       success: function (result) {
         bootstrap.Modal.getInstance(document.getElementById('submitGradeConfirmation')).hide();
-        location.reload();  // Reload page
+        location.reload();
       },
       error: function (result) {
+        alert("ERROR: " + result.responseJSON['status']);
+        console.error("ERROR:", result.responseJSON['status']);
+      }
+    });
+  });
+
+  // Request Revision
+  $('#requestRevisionButton').unbind().click(function () {
+    const injectId = '{{ inject.id }}';
+    $.ajax({
+      url: "/api/admin/inject/" + injectId + "/request-revision",
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({ reason: $('#revisionReason').val() }),
+      success: function (result) {
+        bootstrap.Modal.getInstance(document.getElementById('requestRevisionModal')).hide();
+        location.reload();
+      },
+      error: function (result) {
+        alert("ERROR: " + result.responseJSON['status']);
         console.error("ERROR:", result.responseJSON['status']);
       }
     });

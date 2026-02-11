@@ -89,10 +89,12 @@
                             } else {
                                 return '<span class="badge bg-warning text-dark">' + data + '</span>';
                             }
-                        } else if (data == "Submitted") {
+                        } else if (data == "Submitted" || data == "Resubmitted") {
                             return '<span class="badge bg-success">' + data + '</span>';
                         } else if (data == "Graded") {
                             return '<span class="badge bg-info text-dark">' + data + '</span>';
+                        } else if (data == "Revision Requested") {
+                            return '<span class="badge bg-warning text-dark">' + data + '</span>';
                         } else {
                             return '<span class="badge bg-danger">' + data + '</span>';
                         }

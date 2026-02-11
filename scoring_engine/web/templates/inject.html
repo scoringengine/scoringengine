@@ -21,7 +21,7 @@
       <div id="inject_navbar" class="list-group"></div>
     </div>
     <div class="col-sm-9">
-      {% if inject.status == 'Submitted' %}
+      {% if inject.status == 'Submitted' or inject.status == 'Resubmitted' %}
       <h3>{{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span></h3>
       {% elif inject.status == 'Graded' %}
       <h3>{{ inject.template.title }} <span class="badge bg-info text-dark">{{ inject.status}}</span></h3>
@@ -30,6 +30,10 @@
       {% elif inject.status == 'Draft' %}
       <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
         data-bs-target="#submitInjectConfirmation">Submit Inject</button>
+      <h3>{{ inject.template.title }} <span class="badge bg-warning text-dark">{{ inject.status}}</span></h3>
+      {% elif inject.status == 'Revision Requested' %}
+      <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
+        data-bs-target="#resubmitInjectConfirmation">Resubmit Inject</button>
       <h3>{{ inject.template.title }} <span class="badge bg-warning text-dark">{{ inject.status}}</span></h3>
       {% else %}
       <h3>{{ inject.template.title }}</h3>
@@ -44,21 +48,7 @@
       <p>{{ inject.template.scenario }}</p>
       <h4>Deliverable</h4>
       <p>{{ inject.template.deliverable }}</p>
-      {% if inject.template.rubric %}
-      <h4>Rubric</h4>
-      <table class="table table-bordered">
-        <tr>
-          <th>Deliverable</th>
-          <th>Value</th>
-        </tr>
-        {% for rubric in inject.template.rubric %}
-        <tr>
-          <td>{{ rubric.deliverable }}</td>
-          <td>{{ rubric.value }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-      {% endif %}
+      <div id="rubric-section"></div>
       <!-- <h5>Submitted</h5>
       <h5>Submitted By</h5>
       <h5>Created</h5>
@@ -109,8 +99,31 @@
     </div>
   </div>
 </div>
+<!-- Resubmit Modal -->
+<div class="modal fade" id="resubmitInjectConfirmation" tabindex="-1" aria-labelledby="resubmitInjectConfirmationLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Resubmit Inject</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="resubmitInjectId" id="resubmitInjectId" value="{{ inject.id }}" />
+        <p>Are you sure you want to resubmit this inject?</p>
+        <p><b>You will not be able to edit this inject after resubmitting.</b></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="injectResubmitConfirmButton" class="btn btn-primary">Resubmit</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
   $(document).ready(function () {
+    // Load rubric data
+    updateRubric();
+
     // Update Timestamps
     var startTime = moment.utc($('#startTime').text()).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
     var endTime = moment.utc($('#endTime').text()).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
@@ -134,7 +147,7 @@
   });
 </script>
 <script>
-  // Delete Template Confirmation
+  // Submit Inject Confirmation
   $('#injectSubmitConfirmButton').unbind().click(function () {
     console.log('Inject Submitted');
     const injectId = $('#injectId').val();
@@ -143,7 +156,24 @@
       type: 'POST',
       success: function (result) {
         bootstrap.Modal.getInstance(document.getElementById('submitInjectConfirmation')).hide();
-        location.reload();  // Reload page
+        location.reload();
+      },
+      error: function (result) {
+        console.error(result['responseJSON']['status']);
+      }
+    });
+  });
+
+  // Resubmit Inject Confirmation
+  $('#injectResubmitConfirmButton').unbind().click(function () {
+    console.log('Inject Resubmitted');
+    const injectId = $('#resubmitInjectId').val();
+    $.ajax({
+      url: "/api/inject/" + injectId + "/resubmit",
+      type: 'POST',
+      success: function (result) {
+        bootstrap.Modal.getInstance(document.getElementById('resubmitInjectConfirmation')).hide();
+        location.reload();
       },
       error: function (result) {
         console.error(result['responseJSON']['status']);
@@ -194,20 +224,70 @@
   };
 </script>
 <script>
+  function updateRubric() {
+    $.ajax({
+      url: "/api/inject/{{ inject.id }}",
+      success: function (result) {
+        var html = '';
+        if (result.rubric_items && result.rubric_items.length > 0) {
+          html += '<h4>Rubric</h4>';
+          html += '<table class="table table-bordered"><tr><th>Item</th><th>Description</th><th>Points</th>';
+          if (result.status === 'Graded') {
+            html += '<th>Score</th>';
+          }
+          html += '</tr>';
+          var scoreMap = {};
+          if (result.rubric_scores) {
+            $.each(result.rubric_scores, function(i, rs) {
+              scoreMap[rs.rubric_item_id] = rs.score;
+            });
+          }
+          $.each(result.rubric_items, function(i, item) {
+            html += '<tr><td>' + item.title + '</td><td>' + (item.description || '') + '</td><td>' + item.points + '</td>';
+            if (result.status === 'Graded') {
+              html += '<td>' + (scoreMap[item.id] !== undefined ? scoreMap[item.id] : '-') + '</td>';
+            }
+            html += '</tr>';
+          });
+          html += '</table>';
+        }
+        $('#rubric-section').html(html);
+      }
+    });
+  }
+
   function updateFiles() {
-    // Query API for files
+    var injectStatus = '{{ inject.status }}';
+    var canDelete = (injectStatus === 'Draft' || injectStatus === 'Revision Requested');
     $.ajax({
       url: "/api/inject/{{ inject.id }}/files",
       success: function (result) {
         var files = '';
 
-        // Append new files
         $.each(result.data, function (index, value) {
-          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a></p>";
+          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a>";
+          if (canDelete) {
+            files += ' <button class="btn btn-xs btn-danger delete-file-btn" data-file-id="' + value.id + '">Delete</button>';
+          }
+          files += "</p>";
         });
 
-        // Update navbar
         $("#files").html(files);
+
+        // Bind delete buttons
+        if (canDelete) {
+          $('.delete-file-btn').on('click', function() {
+            var fileId = $(this).data('file-id');
+            if (confirm('Are you sure you want to delete this file?')) {
+              $.ajax({
+                url: "/api/inject/{{ inject.id }}/files/" + fileId,
+                type: 'DELETE',
+                success: function() { updateFiles(); },
+                error: function(result) { alert('Error deleting file'); }
+              });
+            }
+          });
+        }
       },
       error: function (result) {
         console.error("An Error Occurred Querying For Files");

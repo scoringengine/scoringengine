@@ -266,7 +266,7 @@ class Competition(dict):
             team_obj = Team(name=team_dict["name"], color=team_dict["color"])
             db.session.add(team_obj)
             for user_dict in team_dict["users"]:
-                logger.info("\tCreating User {0}:{1}".format(user_dict["username"], user_dict["password"]))
+                logger.info("\tCreating User {0}".format(user_dict["username"]))
                 db.session.add(User(username=user_dict["username"], password=user_dict["password"], team=team_obj))
             if "services" in team_dict:
                 for service_dict in team_dict["services"]:

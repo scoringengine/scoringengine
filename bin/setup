@@ -11,7 +11,7 @@ from scoring_engine.engine.basic_check import CHECK_FAILURE_TEXT, CHECK_SUCCESS_
 from scoring_engine.logger import logger
 from scoring_engine.models.check import Check
 from scoring_engine.models.flag import Flag, FlagTypeEnum, Perm, Platform, Solve
-from scoring_engine.models.inject import Inject, Template
+from scoring_engine.models.inject import Inject, InjectRubricScore, RubricItem, Template
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -244,34 +244,49 @@ with app.app_context():
                 title="Journey to Mordor",
                 scenario="You have the ring, take it to be destroyed!",
                 deliverable="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.",
-                score=100,
                 start_time=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
                 end_time=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
             )
             db.session.add(template)
+            db.session.flush()
 
-            # rubric_0 = Rubric(
-            #     deliverable="Damn hobbitses kept my precious!", value=0, template=template
-            # )
-            # rubric_50 = Rubric(
-            #     deliverable="You gave it your best effort, but died along the way.",
-            #     value=50,
-            #     template=template,
-            # )
-            # rubric_100 = Rubric(
-            #     deliverable="You saved the world!", value=100, template=template
-            # )
-
-            # db.session.add_all([template, rubric_0, rubric_50, rubric_100])
+            # Create rubric items for each template
+            rubric_item_1 = RubricItem(
+                title="Quality of Evidence",
+                description="Journalistic evidence of journey steps",
+                points=60,
+                order=0,
+                template=template,
+            )
+            rubric_item_2 = RubricItem(
+                title="Completeness",
+                description="All three volumes present",
+                points=40,
+                order=1,
+                template=template,
+            )
+            db.session.add_all([rubric_item_1, rubric_item_2])
+            db.session.flush()
 
             for team in Team.get_all_blue_teams():
                 inject = Inject(
                     team=team,
                     template=template,
                 )
-                inject.score = randint(0, 100)
-                inject.status = choice(["Draft", "Submitted", "Graded"])
+                inject.status = choice(["Draft", "Submitted", "Revision Requested", "Resubmitted", "Graded"])
                 db.session.add(inject)
+                db.session.flush()
+
+                # For graded injects, create rubric scores
+                if inject.status == "Graded":
+                    for ri in [rubric_item_1, rubric_item_2]:
+                        score = InjectRubricScore(
+                            score=randint(0, ri.points),
+                            inject=inject,
+                            rubric_item=ri,
+                            grader=None,
+                        )
+                        db.session.add(score)
             db.session.commit()
 
         # Simulate Announcements
