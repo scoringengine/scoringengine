@@ -8,6 +8,6 @@ class VNCCheck(BasicCheck):
     def command_format(self, properties):
         account = self.get_random_account()
         username = account.username
-        if account.username == 'BLANK':
-            username = ' '
+        if account.username == "BLANK":
+            username = " "
         return (self.host, self.port, username, account.password)

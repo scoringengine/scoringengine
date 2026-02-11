@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Iterable, List
 
 import scoring_engine.models  # noqa: F401 – ensure models are registered with SQLAlchemy
-from scoring_engine.db import delete_db, init_db, db
+from scoring_engine.db import db, delete_db, init_db
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service

@@ -1,8 +1,39 @@
+import json
+import logging
+
 from sqlalchemy import Column, Integer, Text, desc
 from time import time
 
-from scoring_engine.models.base import Base
 from scoring_engine.db import db
+from scoring_engine.models.base import Base
+
+logger = logging.getLogger(__name__)
+
+CACHE_PREFIX = "setting:"
+CACHE_TTL = 60
+
+
+def _get_redis():
+    """Return a Redis client using the application config.
+
+    Returns None when Redis is unavailable (e.g. tests running with
+    cache_type=null or no Redis server).
+    """
+    try:
+        import redis
+
+        from scoring_engine.config import config
+
+        if config.cache_type != "redis":
+            return None
+        return redis.Redis(
+            host=config.redis_host,
+            port=config.redis_port,
+            password=config.redis_password or None,
+            decode_responses=True,
+        )
+    except Exception:
+        return None
 
 
 class Setting(Base):
@@ -17,20 +48,20 @@ class Setting(Base):
     _cache_ttl = 60  # Cache TTL in seconds (default: 60 seconds)
 
     def __init__(self, *args, **kwargs):
-        self.name = kwargs['name']
-        self._value_text = str(kwargs['value'])
-        self.value = kwargs['value']
+        self.name = kwargs["name"]
+        self._value_text = str(kwargs["value"])
+        self.value = kwargs["value"]
         super(Base, self).__init__()
 
     def map_value_type(self, value):
         if type(value) is bool:
-            return 'Boolean'
+            return "Boolean"
         else:
-            return 'String'
+            return "String"
 
     def convert_value_type(self):
-        if self._value_type == 'Boolean':
-            if self._value_text == 'False':
+        if self._value_type == "Boolean":
+            if self._value_text == "False":
                 return False
             else:
                 return True

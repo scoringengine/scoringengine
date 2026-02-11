@@ -7,7 +7,7 @@ class UnitTest(object):
     def setup_method(self):
         # Create Flask app and application context for Flask-SQLAlchemy
         self.app = create_app()
-        self.app.config['TESTING'] = True
+        self.app.config["TESTING"] = True
         self.ctx = self.app.app_context()
         self.ctx.push()
 
@@ -19,22 +19,16 @@ class UnitTest(object):
         self.create_default_settings()
 
     def teardown_method(self):
-        delete_db()
         db.session.remove()
+        delete_db()
         # Only pop context if it hasn't been popped already
         # (some child classes may pop before calling super)
-        if hasattr(self, 'ctx') and self.ctx._cv_tokens:
+        if hasattr(self, "ctx") and self.ctx._cv_tokens:
             self.ctx.pop()
 
     def create_default_settings(self):
-        db.session.add(
-            Setting(name="about_page_content", value="example content value")
-        )
-        db.session.add(
-            Setting(
-                name="welcome_page_content", value="example welcome content <br>here"
-            )
-        )
+        db.session.add(Setting(name="about_page_content", value="example content value"))
+        db.session.add(Setting(name="welcome_page_content", value="example welcome content <br>here"))
         db.session.add(Setting(name="target_round_time", value=60))
         db.session.add(Setting(name="worker_refresh_time", value=30))
         db.session.add(Setting(name="engine_paused", value=False))

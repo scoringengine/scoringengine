@@ -1,5 +1,7 @@
-from scoring_engine.models.setting import Setting
+import json
+from unittest.mock import MagicMock, patch
 
+from scoring_engine.models.setting import CACHE_PREFIX, CACHE_TTL, Setting
 from tests.scoring_engine.unit_test import UnitTest
 from time import sleep
 
@@ -7,47 +9,47 @@ from time import sleep
 class TestSetting(UnitTest):
 
     def test_init_setting(self):
-        setting = Setting(name='test_setting', value='test value example')
+        setting = Setting(name="test_setting", value="test value example")
         assert setting.id is None
-        assert setting.name == 'test_setting'
-        assert setting.value == 'test value example'
-        assert setting._value_type == 'String'
+        assert setting.name == "test_setting"
+        assert setting.value == "test value example"
+        assert setting._value_type == "String"
         self.session.add(setting)
         self.session.commit()
         assert setting.id is not None
 
     def test_get_setting(self):
-        setting_old = Setting(name='test_setting', value='test value example')
+        setting_old = Setting(name="test_setting", value="test value example")
         self.session.add(setting_old)
-        setting_new = Setting(name='test_setting', value='updated example')
+        setting_new = Setting(name="test_setting", value="updated example")
         self.session.add(setting_new)
         self.session.commit()
-        assert Setting.get_setting('test_setting').value == 'updated example'
+        assert Setting.get_setting("test_setting").value == "updated example"
 
     def test_boolean_value(self):
-        setting = Setting(name='test_setting', value=True)
-        assert setting.name == 'test_setting'
+        setting = Setting(name="test_setting", value=True)
+        assert setting.name == "test_setting"
         assert setting.value is True
         self.session.add(setting)
         self.session.commit()
         assert setting.value is True
 
     def test_boolean_value_negative(self):
-        setting = Setting(name='test_setting', value=False)
-        assert setting.name == 'test_setting'
+        setting = Setting(name="test_setting", value=False)
+        assert setting.name == "test_setting"
         assert setting.value is False
         self.session.add(setting)
         self.session.commit()
         assert setting.value is False
 
     def test_boolean_value_advanced(self):
-        setting = Setting(name='test_setting', value=True)
-        assert setting.name == 'test_setting'
+        setting = Setting(name="test_setting", value=True)
+        assert setting.name == "test_setting"
         assert setting.value is True
         self.session.add(setting)
         self.session.commit()
-        setting.value = 'somevalue'
-        assert setting.value == 'somevalue'
+        setting.value = "somevalue"
+        assert setting.value == "somevalue"
         self.session.add(setting)
         self.session.commit()
 
@@ -56,18 +58,18 @@ class TestSetting(UnitTest):
         Setting.clear_cache()
 
         # Create a setting
-        setting = Setting(name='cached_setting', value='initial_value')
+        setting = Setting(name="cached_setting", value="initial_value")
         self.session.add(setting)
         self.session.commit()
 
         # First call should query database and cache the result
-        result1 = Setting.get_setting('cached_setting')
-        assert result1.value == 'initial_value'
-        assert 'cached_setting' in Setting._cache
+        result1 = Setting.get_setting("cached_setting")
+        assert result1.value == "initial_value"
+        assert "cached_setting" in Setting._cache
 
         # Second call should return cached value with same data
-        result2 = Setting.get_setting('cached_setting')
-        assert result2.value == 'initial_value'
+        result2 = Setting.get_setting("cached_setting")
+        assert result2.value == "initial_value"
         assert result1.id == result2.id  # Same setting from cache
 
     def test_get_setting_cache_expiration(self):
@@ -79,29 +81,29 @@ class TestSetting(UnitTest):
         Setting._cache_ttl = 1  # 1 second TTL
 
         # Create a setting
-        setting = Setting(name='expiring_setting', value='first_value')
+        setting = Setting(name="expiring_setting", value="first_value")
         self.session.add(setting)
         self.session.commit()
 
         # First call caches the setting
-        result1 = Setting.get_setting('expiring_setting')
-        assert result1.value == 'first_value'
+        result1 = Setting.get_setting("expiring_setting")
+        assert result1.value == "first_value"
 
         # Update the setting in database
-        new_setting = Setting(name='expiring_setting', value='second_value')
+        new_setting = Setting(name="expiring_setting", value="second_value")
         self.session.add(new_setting)
         self.session.commit()
 
         # Immediate call should still return cached value
-        result2 = Setting.get_setting('expiring_setting')
-        assert result2.value == 'first_value'
+        result2 = Setting.get_setting("expiring_setting")
+        assert result2.value == "first_value"
 
         # Wait for cache to expire
         sleep(1.5)
 
         # After expiration, should get updated value from database
-        result3 = Setting.get_setting('expiring_setting')
-        assert result3.value == 'second_value'
+        result3 = Setting.get_setting("expiring_setting")
+        assert result3.value == "second_value"
 
         # Restore original TTL
         Setting._cache_ttl = original_ttl
@@ -128,19 +130,49 @@ class TestSetting(UnitTest):
         Setting.clear_cache()
 
         # Create and cache multiple settings
-        setting1 = Setting(name='setting_a', value='value_a')
-        setting2 = Setting(name='setting_b', value='value_b')
+        setting1 = Setting(name="setting_a", value="value_a")
+        setting2 = Setting(name="setting_b", value="value_b")
         self.session.add(setting1)
         self.session.add(setting2)
         self.session.commit()
 
-        Setting.get_setting('setting_a')
-        Setting.get_setting('setting_b')
+        Setting.get_setting("setting_a")
+        Setting.get_setting("setting_b")
 
-        assert 'setting_a' in Setting._cache
-        assert 'setting_b' in Setting._cache
+        assert "setting_a" in Setting._cache
+        assert "setting_b" in Setting._cache
 
         # Clear only one setting from cache
-        Setting.clear_cache('setting_a')
-        assert 'setting_a' not in Setting._cache
-        assert 'setting_b' in Setting._cache
+        Setting.clear_cache("setting_a")
+        assert "setting_a" not in Setting._cache
+        assert "setting_b" in Setting._cache
+
+    def test_setting_toggle_persists(self):
+        """Test that toggling a boolean setting persists correctly to DB."""
+        # Read the engine_paused setting (created by unit_test setup)
+        setting = Setting.get_setting("engine_paused")
+        assert setting.value is False
+
+        setting.value = True
+        self.session.add(setting)
+        self.session.commit()
+        Setting.clear_cache("engine_paused")
+
+        # Read fresh from DB - should be True
+        setting = Setting.get_setting("engine_paused")
+        assert setting.value is True
+
+        setting.value = False
+        self.session.add(setting)
+        self.session.commit()
+        Setting.clear_cache("engine_paused")
+
+        # Read fresh from DB - should be False again
+        setting = Setting.get_setting("engine_paused")
+        assert setting.value is False
+
+    def test_get_setting_nonexistent_returns_none(self):
+        """get_setting returns None for a name that doesn't exist in DB."""
+        Setting.clear_cache()
+        result = Setting.get_setting("does_not_exist")
+        assert result is None

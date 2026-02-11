@@ -1,16 +1,16 @@
+from datetime import datetime, timedelta, timezone
+
 from flask import jsonify
 from flask_login import current_user, login_required
-from sqlalchemy import func, case
+from sqlalchemy import case, func
 from sqlalchemy.sql.expression import and_, or_
 
 from scoring_engine.cache import cache
 from scoring_engine.db import db
-from scoring_engine.models.service import Service
-from scoring_engine.models.team import Team
 from scoring_engine.models.flag import Flag, Solve
+from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-
-from datetime import datetime, timedelta, timezone
+from scoring_engine.models.team import Team
 
 from . import make_cache_key, mod
 
@@ -27,7 +27,10 @@ def api_flags():
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     early = now + timedelta(minutes=int(Setting.get_setting("agent_show_flag_early_mins").value))
     flags = (
-        db.session.query(Flag).filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
+        db.session.query(Flag)
+        .filter(and_(early > Flag.start_time, now < Flag.end_time, Flag.dummy == False))
+        .order_by(Flag.start_time)
+        .all()
     )
 
     # Serialize flags and include localized times
@@ -58,11 +61,38 @@ def api_flags_solves():
     # Get all flags and teams
     # Use naive UTC time for SQLAlchemy filter comparison (databases may not support timezones)
     now = datetime.now(timezone.utc).replace(tzinfo=None)
-    active_flags = db.session.query(Flag).filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False)).order_by(Flag.start_time).all()
+    active_flags = (
+        db.session.query(Flag)
+        .filter(and_(now > Flag.start_time, now < Flag.end_time, Flag.dummy == False))
+        .order_by(Flag.start_time)
+        .all()
+    )
     active_flag_ids = [flag.id for flag in active_flags]
 
     # Flag Solve Status
-    all_hosts = db.session.query(Service.name.label("service_name"), Service.port, Service.team_id, Service.host, Team.name.label("team_name"), func.coalesce(Solve.id, None).label("solve_id"), func.coalesce(Flag.id, None).label("flag_id"), func.coalesce(Flag.perm, None).label("flag_perm"), func.coalesce(Flag.platform, None).label("flag_platform")).select_from(Service).filter(Service.check_name == "AgentCheck").outerjoin(Solve, and_(Solve.host == Service.host, Solve.team_id == Service.team_id, Solve.flag_id.in_(active_flag_ids))).outerjoin(Flag, Flag.id == Solve.flag_id).outerjoin(Team, Team.id == Service.team_id).order_by(Service.name, Service.team_id).all()
+    all_hosts = (
+        db.session.query(
+            Service.name.label("service_name"),
+            Service.port,
+            Service.team_id,
+            Service.host,
+            Team.name.label("team_name"),
+            func.coalesce(Solve.id, None).label("solve_id"),
+            func.coalesce(Flag.id, None).label("flag_id"),
+            func.coalesce(Flag.perm, None).label("flag_perm"),
+            func.coalesce(Flag.platform, None).label("flag_platform"),
+        )
+        .select_from(Service)
+        .filter(Service.check_name == "AgentCheck")
+        .outerjoin(
+            Solve,
+            and_(Solve.host == Service.host, Solve.team_id == Service.team_id, Solve.flag_id.in_(active_flag_ids)),
+        )
+        .outerjoin(Flag, Flag.id == Solve.flag_id)
+        .outerjoin(Team, Team.id == Service.team_id)
+        .order_by(Service.name, Service.team_id)
+        .all()
+    )
 
     data = {}
     rows = []
@@ -89,6 +119,7 @@ def api_flags_solves():
 
     return jsonify(data={"columns": columns, "rows": rows})
 
+
 @mod.route("/api/flags/totals")
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
@@ -106,19 +137,17 @@ def api_flags_totals():
 
     # Fetch all solves with their flags in one query
     solves = (
-        db.session.query(Solve.team_id, Solve.host, Flag.platform, Flag.perm)
-        .join(Flag, Flag.id == Solve.flag_id)
-        .all()
+        db.session.query(Solve.team_id, Solve.host, Flag.platform, Flag.perm).join(Flag, Flag.id == Solve.flag_id).all()
     )
 
     # Group solves by (team_id, host, platform) and track permission levels
     # Key: (team_id, host, platform) -> set of perms ('user', 'root')
     solve_perms = {}
     for solve in solves:
-        key = (solve.team_id, solve.host, solve.platform.value if hasattr(solve.platform, 'value') else solve.platform)
+        key = (solve.team_id, solve.host, solve.platform.value if hasattr(solve.platform, "value") else solve.platform)
         if key not in solve_perms:
             solve_perms[key] = set()
-        perm_value = solve.perm.value if hasattr(solve.perm, 'value') else solve.perm
+        perm_value = solve.perm.value if hasattr(solve.perm, "value") else solve.perm
         solve_perms[key].add(perm_value)
 
     # Calculate scores

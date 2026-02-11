@@ -8,18 +8,22 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (SLAConfig, apply_dynamic_scoring_to_round,
-                                calculate_round_multiplier,
-                                calculate_service_adjusted_score,
-                                calculate_sla_penalty_percent,
-                                calculate_team_adjusted_score,
-                                calculate_team_base_score_with_dynamic,
-                                calculate_team_total_penalties,
-                                get_consecutive_failures,
-                                get_dynamic_scoring_info,
-                                get_max_consecutive_failures,
-                                get_service_sla_status, get_sla_config,
-                                get_team_sla_summary)
+from scoring_engine.sla import (
+    SLAConfig,
+    apply_dynamic_scoring_to_round,
+    calculate_round_multiplier,
+    calculate_service_adjusted_score,
+    calculate_sla_penalty_percent,
+    calculate_team_adjusted_score,
+    calculate_team_base_score_with_dynamic,
+    calculate_team_total_penalties,
+    get_consecutive_failures,
+    get_dynamic_scoring_info,
+    get_max_consecutive_failures,
+    get_service_sla_status,
+    get_sla_config,
+    get_team_sla_summary,
+)
 from tests.scoring_engine.unit_test import UnitTest
 
 
@@ -118,9 +122,7 @@ class TestConsecutiveFailures(UnitTest):
 
     def test_max_consecutive_failures(self):
         """Test finding maximum consecutive failure streak."""
-        service = self.setup_service_with_checks(
-            [True, False, False, False, True, False, False, True]
-        )
+        service = self.setup_service_with_checks([True, False, False, False, True, False, False, True])
         assert get_max_consecutive_failures(service.id) == 3
 
     def test_no_checks(self):
@@ -411,9 +413,7 @@ class TestServiceAndTeamScores(UnitTest):
         # SLA disabled config
         config = SLAConfig()
         config.sla_enabled = False
-        assert (
-            calculate_service_adjusted_score(service1, config) == service1.score_earned
-        )
+        assert calculate_service_adjusted_score(service1, config) == service1.score_earned
 
     def test_service_adjusted_score_with_penalty(self):
         """Test adjusted score with penalty applied."""
@@ -895,9 +895,7 @@ class TestMultipleTeams(UnitTest):
         config.penalty_mode = "additive"
         config.allow_negative = False
 
-        adjusted_scores = [
-            calculate_team_adjusted_score(team, config) for team in teams
-        ]
+        adjusted_scores = [calculate_team_adjusted_score(team, config) for team in teams]
 
         # Team 1 should have highest score (no penalties, all passes)
         # Team 3 should have lowest (most penalties, no passes)
@@ -1223,25 +1221,19 @@ class TestCombinedDynamicScoringAndPenalties(UnitTest):
         # Team 1: All passes in early phase (best score)
         team1 = Team(name="Team Alpha", color="Blue")
         db.session.add(team1)
-        service1 = Service(
-            name="Service 1", check_name="ICMP", team=team1, host="1.1.1.1", port=0, points=100
-        )
+        service1 = Service(name="Service 1", check_name="ICMP", team=team1, host="1.1.1.1", port=0, points=100)
         db.session.add(service1)
 
         # Team 2: Some passes, no SLA violation
         team2 = Team(name="Team Beta", color="Blue")
         db.session.add(team2)
-        service2 = Service(
-            name="Service 2", check_name="ICMP", team=team2, host="2.2.2.2", port=0, points=100
-        )
+        service2 = Service(name="Service 2", check_name="ICMP", team=team2, host="2.2.2.2", port=0, points=100)
         db.session.add(service2)
 
         # Team 3: Some passes, with SLA violation
         team3 = Team(name="Team Gamma", color="Blue")
         db.session.add(team3)
-        service3 = Service(
-            name="Service 3", check_name="ICMP", team=team3, host="3.3.3.3", port=0, points=100
-        )
+        service3 = Service(name="Service 3", check_name="ICMP", team=team3, host="3.3.3.3", port=0, points=100)
         db.session.add(service3)
 
         db.session.commit()

@@ -1,9 +1,8 @@
-from scoring_engine.models.user import User
-from scoring_engine.models.team import Team
-
+import pytest
 from sqlalchemy.exc import IntegrityError
 
-import pytest
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 from tests.scoring_engine.helpers import generate_sample_model_tree
 from tests.scoring_engine.unit_test import UnitTest
 

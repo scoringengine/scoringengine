@@ -1,9 +1,9 @@
-import pytest
 from datetime import datetime
+
+import pytest
 
 from scoring_engine.models.notifications import Notification
 from scoring_engine.models.team import Team
-
 from tests.scoring_engine.unit_test import UnitTest
 
 

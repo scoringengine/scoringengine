@@ -1,8 +1,6 @@
 import bcrypt
-
 from flask_login import UserMixin
-
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base

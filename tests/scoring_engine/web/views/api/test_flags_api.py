@@ -1,4 +1,5 @@
 """Comprehensive tests for Flags API endpoints including complex SQL queries"""
+
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -140,7 +141,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/tmp/past", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=2),
             end_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create current flag (should be shown)
@@ -151,7 +152,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/tmp/current", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(minutes=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create future flag (should be shown based on early window)
@@ -162,7 +163,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/tmp/future", "content": "test"},
             start_time=datetime.now(timezone.utc) + timedelta(minutes=2),
             end_time=datetime.now(timezone.utc) + timedelta(hours=2),
-            dummy=False
+            dummy=False,
         )
 
         self.session.add_all([past_flag, current_flag, future_flag])
@@ -188,7 +189,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/tmp/real", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create dummy flag
@@ -199,7 +200,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/tmp/dummy", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=True
+            dummy=True,
         )
 
         self.session.add_all([real_flag, dummy_flag])
@@ -223,7 +224,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create Linux flag
@@ -234,7 +235,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/etc/test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         self.session.add_all([win_flag, nix_flag])
@@ -258,7 +259,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create root-level flag
@@ -269,7 +270,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\admin", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         self.session.add_all([user_flag, root_flag])
@@ -287,20 +288,8 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_solves_with_no_solves(self):
         """Test that solves endpoint works with no solves"""
         # Create services
-        service1 = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
-        service2 = Service(
-            name="Host2",
-            check_name="AgentCheck",
-            host="192.168.1.20",
-            team=self.blue_team2,
-            port=0
-        )
+        service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        service2 = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team2, port=0)
 
         self.session.add_all([service1, service2])
         self.session.commit()
@@ -316,20 +305,8 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_solves_shows_solve_status(self):
         """Test that solve status is correctly shown"""
         # Create services
-        service1 = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
-        service2 = Service(
-            name="Host2",
-            check_name="AgentCheck",
-            host="192.168.1.20",
-            team=self.blue_team2,
-            port=0
-        )
+        service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        service2 = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team2, port=0)
 
         # Create flag
         flag = Flag(
@@ -339,15 +316,11 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solve for team1
-        solve = Solve(
-            host="192.168.1.10",
-            team_id=self.blue_team1.id,
-            flag_id=flag.id
-        )
+        solve = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
 
         self.session.add_all([service1, service2, flag, solve])
         self.session.commit()
@@ -382,13 +355,7 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_user_level_scoring(self):
         """Test that user-level flags count as 0.5"""
         # Create service
-        service = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
 
         # Create Windows user flag
         flag = Flag(
@@ -398,15 +365,11 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solve
-        solve = Solve(
-            host="192.168.1.10",
-            team_id=self.blue_team1.id,
-            flag_id=flag.id
-        )
+        solve = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
 
         self.session.add_all([service, flag, solve])
         self.session.commit()
@@ -427,13 +390,7 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_root_level_scoring(self):
         """Test that root-level flags count as 1"""
         # Create service
-        service = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
 
         # Create Linux root flag
         flag = Flag(
@@ -443,15 +400,11 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/etc/test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solve
-        solve = Solve(
-            host="192.168.1.10",
-            team_id=self.blue_team1.id,
-            flag_id=flag.id
-        )
+        solve = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
 
         self.session.add_all([service, flag, solve])
         self.session.commit()
@@ -472,13 +425,7 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_user_and_root_scoring(self):
         """Test that user + root on same host counts as root (1.0)"""
         # Create service
-        service = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
 
         # Create Windows user flag
         user_flag = Flag(
@@ -488,7 +435,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\user", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create Windows root flag
@@ -499,20 +446,12 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\admin", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solves for both
-        solve_user = Solve(
-            host="192.168.1.10",
-            team_id=self.blue_team1.id,
-            flag_id=user_flag.id
-        )
-        solve_root = Solve(
-            host="192.168.1.10",
-            team_id=self.blue_team1.id,
-            flag_id=root_flag.id
-        )
+        solve_user = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=user_flag.id)
+        solve_root = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=root_flag.id)
 
         self.session.add_all([service, user_flag, root_flag, solve_user, solve_root])
         self.session.commit()
@@ -532,20 +471,8 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_multiple_hosts(self):
         """Test scoring across multiple hosts"""
         # Create services
-        service1 = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
-        service2 = Service(
-            name="Host2",
-            check_name="AgentCheck",
-            host="192.168.1.20",
-            team=self.blue_team1,
-            port=0
-        )
+        service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        service2 = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team1, port=0)
 
         # Create flags
         flag1 = Flag(
@@ -555,7 +482,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test1", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
         flag2 = Flag(
             type=FlagTypeEnum.file,
@@ -564,7 +491,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test2", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solves
@@ -589,13 +516,7 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_mixed_platforms(self):
         """Test scoring with both Windows and Linux flags"""
         # Create service
-        service = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
 
         # Create Windows flag
         win_flag = Flag(
@@ -605,7 +526,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create Linux flag
@@ -616,7 +537,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "/etc/test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Create solves
@@ -642,20 +563,8 @@ class TestFlagsAPI(UnitTest):
     def test_api_flags_totals_multiple_teams(self):
         """Test that each team's score is calculated independently"""
         # Create services for both teams
-        service1 = Service(
-            name="Host1",
-            check_name="AgentCheck",
-            host="192.168.1.10",
-            team=self.blue_team1,
-            port=0
-        )
-        service2 = Service(
-            name="Host2",
-            check_name="AgentCheck",
-            host="192.168.1.20",
-            team=self.blue_team2,
-            port=0
-        )
+        service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        service2 = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team2, port=0)
 
         # Create flag
         flag = Flag(
@@ -665,7 +574,7 @@ class TestFlagsAPI(UnitTest):
             data={"path": "C:\\test", "content": "test"},
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-            dummy=False
+            dummy=False,
         )
 
         # Only team1 solves

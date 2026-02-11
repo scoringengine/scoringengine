@@ -1,37 +1,38 @@
-from scoring_engine.engine.engine import Engine
-
-from scoring_engine.models.setting import Setting
-from scoring_engine.web import create_app
+from unittest.mock import MagicMock, patch
 
 from scoring_engine.checks.agent import AgentCheck
-from scoring_engine.checks.icmp import ICMPCheck
-from scoring_engine.checks.ssh import SSHCheck
 from scoring_engine.checks.dns import DNSCheck
+from scoring_engine.checks.elasticsearch import ElasticsearchCheck
 from scoring_engine.checks.ftp import FTPCheck
 from scoring_engine.checks.http import HTTPCheck
 from scoring_engine.checks.https import HTTPSCheck
-from scoring_engine.checks.mysql import MYSQLCheck
-from scoring_engine.checks.mssql import MSSQLCheck
-from scoring_engine.checks.postgresql import POSTGRESQLCheck
-from scoring_engine.checks.pop3 import POP3Check
-from scoring_engine.checks.pop3s import POP3SCheck
+from scoring_engine.checks.icmp import ICMPCheck
 from scoring_engine.checks.imap import IMAPCheck
 from scoring_engine.checks.imaps import IMAPSCheck
-from scoring_engine.checks.smtp import SMTPCheck
-from scoring_engine.checks.smb import SMBCheck
-from scoring_engine.checks.smtps import SMTPSCheck
-from scoring_engine.checks.vnc import VNCCheck
-from scoring_engine.checks.elasticsearch import ElasticsearchCheck
 from scoring_engine.checks.ldap import LDAPCheck
-from scoring_engine.checks.rdp import RDPCheck
-from scoring_engine.checks.wordpress import WordpressCheck
+from scoring_engine.checks.mssql import MSSQLCheck
+from scoring_engine.checks.mysql import MYSQLCheck
 from scoring_engine.checks.nfs import NFSCheck
 from scoring_engine.checks.openvpn import OpenVPNCheck
-from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
-from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
+from scoring_engine.checks.pop3 import POP3Check
+from scoring_engine.checks.pop3s import POP3SCheck
+from scoring_engine.checks.postgresql import POSTGRESQLCheck
+from scoring_engine.checks.rdp import RDPCheck
+from scoring_engine.checks.smb import SMBCheck
+from scoring_engine.checks.smtp import SMTPCheck
+from scoring_engine.checks.smtps import SMTPSCheck
+from scoring_engine.checks.ssh import SSHCheck
 from scoring_engine.checks.telnet import TelnetCheck
+from scoring_engine.checks.vnc import VNCCheck
+from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
+from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
 from scoring_engine.checks.winrm import WinRMCheck
-
+from scoring_engine.checks.wordpress import WordpressCheck
+from scoring_engine.engine.engine import Engine
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
+from scoring_engine.web import create_app
 from tests.scoring_engine.unit_test import UnitTest
 
 

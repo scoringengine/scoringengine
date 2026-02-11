@@ -1,4 +1,5 @@
 """Tests for cache initialization and configuration"""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -32,14 +33,14 @@ class TestCache:
         from scoring_engine.cache import cache
 
         assert cache is not None
-        assert hasattr(cache, 'init_app')
+        assert hasattr(cache, "init_app")
 
     def test_agent_cache_initialization(self):
         """Test that agent_cache object is initialized"""
         from scoring_engine.cache import agent_cache
 
         assert agent_cache is not None
-        assert hasattr(agent_cache, 'init_app')
+        assert hasattr(agent_cache, "init_app")
 
     def test_agent_cache_has_prefix(self):
         """Test that agent_cache has correct key prefix"""
@@ -76,20 +77,20 @@ class TestCeleryApp:
         from scoring_engine.celery_app import celery_app
 
         assert celery_app is not None
-        assert celery_app.main == 'engine.worker'
+        assert celery_app.main == "engine.worker"
 
     def test_celery_app_includes_execute_command(self):
         """Test that celery includes execute_command module"""
         from scoring_engine.celery_app import celery_app
 
-        assert 'scoring_engine.engine.execute_command' in celery_app.conf.include
+        assert "scoring_engine.engine.execute_command" in celery_app.conf.include
 
     def test_celery_redis_connection_string(self):
         """Test that redis connection string is properly formatted"""
         from scoring_engine.celery_app import redis_server
 
         # Should start with redis://
-        assert redis_server.startswith('redis://:')
+        assert redis_server.startswith("redis://:")
 
         # Should include config values
         assert config.redis_host in redis_server
@@ -101,7 +102,7 @@ class TestCeleryApp:
 
         # Broker should be set
         assert celery_app.conf.broker_url is not None
-        assert 'redis://' in celery_app.conf.broker_url
+        assert "redis://" in celery_app.conf.broker_url
 
     def test_celery_backend_configuration(self):
         """Test that celery backend is configured"""
@@ -109,7 +110,7 @@ class TestCeleryApp:
 
         # Backend should be set
         assert celery_app.conf.result_backend is not None
-        assert 'redis://' in celery_app.conf.result_backend
+        assert "redis://" in celery_app.conf.result_backend
 
 
 class TestLogger:
@@ -120,12 +121,13 @@ class TestLogger:
         from scoring_engine.logger import logger
 
         assert logger is not None
-        assert logger.name == 'scoring_engine'
+        assert logger.name == "scoring_engine"
 
     def test_logger_level(self):
         """Test that logger level is set to INFO"""
-        from scoring_engine.logger import logger
         import logging
+
+        from scoring_engine.logger import logger
 
         assert logger.level == logging.INFO
 
@@ -146,9 +148,9 @@ class TestLogger:
 
             # Formatter should include asctime, levelname, and message
             format_string = handler.formatter._fmt
-            assert 'asctime' in format_string
-            assert 'levelname' in format_string
-            assert 'message' in format_string
+            assert "asctime" in format_string
+            assert "levelname" in format_string
+            assert "message" in format_string
 
     def test_logger_can_log(self):
         """Test that logger can log messages without errors"""
