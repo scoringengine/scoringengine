@@ -14,6 +14,7 @@ services:
       - default
     # ports:
     #   - 6379:6379
+
   mysql:
     image: mariadb:10
     environment:
@@ -33,6 +34,7 @@ services:
       - default
     # ports:
     #   - 3306:3306
+
   nginx:
     image: nginx:1.23.1
     depends_on:
@@ -54,6 +56,7 @@ services:
       - ./scoring_engine/web/static/:/usr/share/nginx/html/static/
     networks:
       - default
+
   base:
     image: scoringengine/base
     build:
@@ -62,6 +65,7 @@ services:
       cache_from:
         - scoringengine/base
         - base:latest
+
   bootstrap:
     image: scoringengine/bootstrap
     build:
@@ -80,10 +84,14 @@ services:
     restart: on-failure
     networks:
       - default
+    volumes:
+      - ./docker/engine.conf.inc:/app/engine.conf:ro
+      - ./bin/competition.yaml:/app/bin/competition.yaml:ro
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_OVERWRITE_DB
       - SCORINGENGINE_VERSION
+
   engine:
     image: scoringengine/engine
     build:
@@ -104,9 +112,12 @@ services:
     restart: on-failure
     networks:
       - default
+    volumes:
+      - ./docker/engine.conf.inc:/app/engine.conf:ro
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
+
   worker:
     image: scoringengine/worker
     build:
@@ -125,10 +136,13 @@ services:
     restart: unless-stopped
     networks:
       - default
+    volumes:
+      - ./docker/engine.conf.inc:/app/engine.conf:ro
     environment:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
     privileged: true
+
   web:
     image: scoringengine/web
     build:
@@ -147,7 +161,6 @@ services:
       bootstrap:
         condition: service_completed_successfully
     healthcheck:
-      # uwsgi exposes an HTTP stats server on port 9191; use it for liveness
       test: ["CMD", "curl", "-f", "http://localhost:9191"]
       interval: 30s
       timeout: 3s
@@ -157,6 +170,7 @@ services:
       - default
     volumes:
       - injects:/var/uploads/
+      - ./docker/engine.conf.inc:/app/engine.conf:ro
     environment:
       - SCORINGENGINE_VERSION
 

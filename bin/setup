@@ -4,6 +4,7 @@ from random import choice, randint, sample
 
 import optparse
 import os
+import sys
 
 from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.team import Team
@@ -26,122 +27,122 @@ from scoring_engine.engine.basic_check import (
     CHECK_TIMED_OUT_TEXT,
 )
 
-
 parser = optparse.OptionParser()
 parser.add_option("--overwrite-db", action="store_true", default=False)
 parser.add_option("--example", action="store_true", default=False)
 
 options, arguments = parser.parse_args()
 
-# In order to handle docker-compose usability
-# we have a check to see if the SCORINGENGINE_EXAMPLE environment
-# variable is true. If it is, we want to populate
-# the db with example data
-if "SCORINGENGINE_EXAMPLE" in os.environ and os.environ["SCORINGENGINE_EXAMPLE"].lower() == "true":
+# Env overrides (docker compose / installer friendliness)
+if os.environ.get("SCORINGENGINE_EXAMPLE", "").lower() == "true":
     options.overwrite_db = True
     options.example = True
 
-# If the SCORINGENGINE_OVERWRITE_DB environment variable is set
-# we want to delete any previous data in the db
-if "SCORINGENGINE_OVERWRITE_DB" in os.environ and os.environ["SCORINGENGINE_OVERWRITE_DB"].lower() == "true":
-    options.overwrite_db = os.environ["SCORINGENGINE_OVERWRITE_DB"] == "true"
+if os.environ.get("SCORINGENGINE_OVERWRITE_DB", "").lower() == "true":
+    options.overwrite_db = True  # force boolean
 
 logger.info("Starting Setup v.{0}".format(version))
 
-# Create Flask app for app context
 app = create_app()
 
 with app.app_context():
-    if not options.overwrite_db:
-        if verify_db_ready():
-            logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
-            exit()
-        else:
-            # Database doesn't exist, so continuing on to setup script
-            logger.debug("Database doesn't exist yet...")
+    db_ready = verify_db_ready()
+
+    # If DB already exists and we aren't overwriting, exit SUCCESS
+    if db_ready and not options.overwrite_db:
+        logger.info("Database already initialized; skipping setup. (use --overwrite-db to reset)")
+        sys.exit(0)
 
     logger.info("Setting up DB")
-    delete_db()
+
+    # Only wipe when explicitly requested and DB exists
+    if options.overwrite_db and db_ready:
+        logger.warning("Overwriting existing DB (--overwrite-db enabled)")
+        delete_db()
+
+    # Init tables (safe if empty / after delete)
     init_db()
 
     competition_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.yaml")
-    sample_competition_str = open(competition_config_file, "r").read()
+    with open(competition_config_file, "r") as f:
+        sample_competition_str = f.read()
+
     competition = Competition.parse_yaml_str(sample_competition_str)
     competition.save()
 
     about_content = """
-    <h4>Use the following credentials to login</h4>
-    <ul>
-        <li>whiteteamuser:testpass</li>
-        <li>redteamuser:testpass</li>
-        <li>team1user1:testpass</li>
-        <li>team2user1:testpass</li>
-        <li>...</li>
-        <li>team10user1:testpass</li>
-    </ul>"""
+<h4>Use the following credentials to login</h4>
+<ul>
+    <li>whiteteamuser:testpass</li>
+    <li>redteamuser:testpass</li>
+    <li>team1user1:testpass</li>
+    <li>team2user1:testpass</li>
+    <li>...</li>
+    <li>team10user1:testpass</li>
+</ul>"""
 
     welcome_content = """
-    <div class="row">
-        <h1 class="text-center">Diamond Sponsors</h1>
-    </div>
-    <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
+<div class="row">
+    <h1 class="text-center">Diamond Sponsors</h1>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
         </div>
     </div>
-    <div class="row">
-        <h1 class="text-center">Platinum Sponsors</h1>
-    </div>
-    <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
         </div>
     </div>
-    <div class="row">
-        <h1 class="text-center">Gold Sponsors</h1>
-    </div>
-    <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="card">
-                <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
-            </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
         </div>
     </div>
-    """
+</div>
+<div class="row">
+    <h1 class="text-center">Platinum Sponsors</h1>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <h1 class="text-center">Gold Sponsors</h1>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-4">
+        <div class="card">
+            <img class='center-block' src="static/images/logo-placeholder.jpg" alt="sponsor image placeholder">
+        </div>
+    </div>
+</div>
+"""
 
     logger.info("Creating the default Settings")
     db.session.add(Setting(name="about_page_content", value=about_content))
@@ -155,31 +156,18 @@ with app.app_context():
     db.session.add(Setting(name="blue_team_update_account_usernames", value=config.blue_team_update_account_usernames))
     db.session.add(Setting(name="blue_team_update_account_passwords", value=config.blue_team_update_account_passwords))
     db.session.add(Setting(name="blue_team_view_check_output", value=config.blue_team_view_check_output))
+
+    # Keep from master (visibility toggle)
+    db.session.add(Setting(name="blue_team_view_status_page", value=config.blue_team_view_status_page))
+
     db.session.add(Setting(name="agent_checkin_interval_sec", value=config.target_round_time // 5))
     db.session.add(Setting(name="agent_show_flag_early_mins", value=config.agent_show_flag_early_mins))
     db.session.add(Setting(name="agent_psk", value=config.agent_psk))
 
-    # SLA Penalty Settings
-    logger.info("Creating the SLA Penalty Settings")
-    db.session.add(Setting(name="sla_enabled", value=config.sla_enabled))
-    db.session.add(Setting(name="sla_penalty_threshold", value=str(config.sla_penalty_threshold)))
-    db.session.add(Setting(name="sla_penalty_percent", value=str(config.sla_penalty_percent)))
-    db.session.add(Setting(name="sla_penalty_max_percent", value=str(config.sla_penalty_max_percent)))
-    db.session.add(Setting(name="sla_penalty_mode", value=config.sla_penalty_mode))
-    db.session.add(Setting(name="sla_allow_negative", value=config.sla_allow_negative))
-
-    # Dynamic Scoring Settings
-    logger.info("Creating the Dynamic Scoring Settings")
-    db.session.add(Setting(name="dynamic_scoring_enabled", value=config.dynamic_scoring_enabled))
-    db.session.add(Setting(name="dynamic_scoring_early_rounds", value=str(config.dynamic_scoring_early_rounds)))
-    db.session.add(Setting(name="dynamic_scoring_early_multiplier", value=str(config.dynamic_scoring_early_multiplier)))
-    db.session.add(Setting(name="dynamic_scoring_late_start_round", value=str(config.dynamic_scoring_late_start_round)))
-    db.session.add(Setting(name="dynamic_scoring_late_multiplier", value=str(config.dynamic_scoring_late_multiplier)))
-
     db.session.commit()
 
     if options.example:
-        # Create AgentCheck services for flag capture status demo
+        # Create AgentCheck services for flag capture status demo (matches repo’s demo expectations)
         logger.info("Creating AgentCheck services for flag demo")
         agent_hosts = ["webserver", "database", "fileserver", "mailserver", "dns"]
         for team in Team.get_all_blue_teams():
@@ -204,7 +192,6 @@ with app.app_context():
                 round_start=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
                 round_end=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
             )
-            # db.session.add(round_obj)
             services = db.session.query(Service).all()
             for service in services:
                 output = ""
@@ -215,10 +202,7 @@ with app.app_context():
                 else:
                     result = False
                     output = "Errored output"
-                    if randint(0, 1) == 1:
-                        reason = CHECK_FAILURE_TEXT
-                    else:
-                        reason = CHECK_TIMED_OUT_TEXT
+                    reason = CHECK_FAILURE_TEXT if randint(0, 1) == 1 else CHECK_TIMED_OUT_TEXT
 
                 command = "ping -c 1 127.0.0.1"
                 check = Check(round=round_obj, service=service)
@@ -240,25 +224,8 @@ with app.app_context():
             )
             db.session.add(template)
 
-            # rubric_0 = Rubric(
-            #     deliverable="Damn hobbitses kept my precious!", value=0, template=template
-            # )
-            # rubric_50 = Rubric(
-            #     deliverable="You gave it your best effort, but died along the way.",
-            #     value=50,
-            #     template=template,
-            # )
-            # rubric_100 = Rubric(
-            #     deliverable="You saved the world!", value=100, template=template
-            # )
-
-            # db.session.add_all([template, rubric_0, rubric_50, rubric_100])
-
             for team in Team.get_all_blue_teams():
-                inject = Inject(
-                    team=team,
-                    template=template,
-                )
+                inject = Inject(team=team, template=template)
                 inject.score = randint(0, 100)
                 inject.status = choice(["Draft", "Submitted", "Graded"])
                 db.session.add(inject)
@@ -267,29 +234,24 @@ with app.app_context():
         # Simulate Notifications
         num_notifications = randint(50, 100)
         logger.info("Simulating " + str(num_notifications) + " Notifications")
-        team_ids = [id[0] for id in db.session.query(Team.id).all()]
+        team_ids = [tid[0] for tid in db.session.query(Team.id).all()]
         for _ in range(num_notifications):
-            notification = Notification(
-                message="Test Notification",
-                target="/admin/notifications",
-            )
+            notification = Notification(message="Test Notification", target="/admin/notifications")
             if randint(0, 1) == 1:
                 notification.is_read = True
             notification.team_id = choice(team_ids)
             db.session.add(notification)
             db.session.commit()
 
-        # Simulate Flags
+        # Simulate Flags + Solves (use agent hosts so capture status works)
         num_flags = randint(10, 20)
         logger.info("Simulating " + str(num_flags) + " Flags")
         for i in range(num_flags):
             flag = Flag(
-                # Start 1-12 hours ago, end 24-48 hours from now (always active)
                 start_time=datetime.now() - timedelta(hours=randint(1, 12)),
                 end_time=datetime.now() + timedelta(hours=randint(24, 48)),
             )
             flag.platform = choice([Platform.nix, Platform.windows])
-            # Most flags should be non-dummy so they show up (only ~20% dummy)
             flag.dummy = (i % 5 == 0)
             flag.type = choice([FlagTypeEnum.file, FlagTypeEnum.pipe, FlagTypeEnum.net, FlagTypeEnum.reg])
             flag.perm = choice([Perm.user, Perm.root])
@@ -297,14 +259,8 @@ with app.app_context():
             db.session.add(flag)
             db.session.commit()
 
-            # Simulate Solves - use agent service hosts so capture status table works
             for team_id in sample(team_ids, randint(1, len(team_ids))):
-                # Pick a random agent host for this team
                 host = f"{choice(agent_hosts)}.team{team_id}.local"
-                solve = Solve(
-                    flag=flag,
-                    host=host,
-                    team_id=team_id,
-                )
+                solve = Solve(flag=flag, host=host, team_id=team_id)
                 db.session.add(solve)
                 db.session.commit()
