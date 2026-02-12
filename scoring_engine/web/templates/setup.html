@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container md-page">
+  {% if step == 1 %}
+  <h3>Create Admin Account</h3>
+  <form method="post">
+    <div class="form-group">
+      <input class="form-control" type="text" name="username" placeholder="Username" required>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="password" name="password" placeholder="Password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Next</button>
+  </form>
+
+  {% elif step == 2 %}
+  <h3>Number of Teams</h3>
+  <form method="post">
+    <div class="form-group">
+      <input class="form-control" type="number" name="num_teams" value="1" min="1" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Next</button>
+  </form>
+
+  {% elif step == 3 %}
+  <h3>Add Services</h3>
+  <form method="post">
+    <div class="form-group">
+      <input class="form-control" type="text" name="service_name" placeholder="Service Name" required>
+    </div>
+    <div class="form-group">
+      <select class="form-control" name="check_name">
+        {% for check in checks %}
+        <option value="{{ check }}">{{ check }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="text" name="host" placeholder="Host" required>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="number" name="port" value="0" required>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="number" name="points" value="100" required>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="text" name="matching_content" value="SUCCESS" placeholder="Matching Content">
+    </div>
+    <div class="form-group">
+      <textarea class="form-control" name="properties" placeholder="key=value per line"></textarea>
+    </div>
+    <button type="submit" name="action" value="add" class="btn btn-secondary">Add Service</button>
+    <button type="submit" name="action" value="finish" class="btn btn-primary">Finish</button>
+  </form>
+  {% if services %}
+  <h4>Configured Services</h4>
+  <ul>
+    {% for svc in services %}
+    <li>{{ svc['name'] }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% else %}
+  <h3>Setup Complete</h3>
+  {% if competition_exists %}
+  <a class="btn btn-primary" href="{{ url_for('setup.export') }}">Download competition.yaml</a>
+  {% else %}
+  <p>No competition file generated.</p>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+
