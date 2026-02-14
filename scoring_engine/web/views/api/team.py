@@ -143,12 +143,12 @@ def team_services_status(team_id):
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
 def team_machines(team_id):
-    team = session.get(Team, team_id)
+    team = db.session.get(Team, team_id)
     if team is None or not current_user.is_blue_team or current_user.team != team:
         return {"status": "Unauthorized"}, 403
 
     hosts = (
-        session.query(Service.host)
+        db.session.query(Service.host)
         .filter(Service.team_id == team.id)
         .distinct()
         .order_by(Service.host)

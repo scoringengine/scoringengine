@@ -1075,7 +1075,7 @@ def admin_get_machines():
         return {"status": "Unauthorized"}, 403
 
     hosts = (
-        session.query(Service.host)
+        db.session.query(Service.host)
         .distinct()
         .order_by(Service.host)
         .all()
