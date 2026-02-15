@@ -7,12 +7,12 @@ from sqlalchemy.sql import func
 from scoring_engine.cache import cache
 from scoring_engine.db import db
 from scoring_engine.models.check import Check
+from scoring_engine.models.flag import Flag, Perm, Platform, Solve
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
 
@@ -53,9 +53,7 @@ def calculate_team_scores_with_dynamic_scoring(sla_config):
     team_scores = defaultdict(int)
     for team_id, round_id, round_score in round_scores:
         round_number = rounds.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         team_scores[team_id] += adjusted_score
 
     return dict(team_scores)
@@ -83,9 +81,7 @@ def scoreboard_get_bar_data():
     team_sla_penalties = []
     team_adjusted_scores = []
 
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     for blue_team in blue_teams:
         team_labels.append(blue_team.name)
         service_score = current_scores.get(blue_team.id, 0)
@@ -129,10 +125,7 @@ def scoreboard_get_line_data():
     }
 
     blue_teams = (
-        db.session.query(Team.id, Team.name, Team.rgb_color)
-        .filter(Team.color == "Blue")
-        .order_by(Team.id)
-        .all()
+        db.session.query(Team.id, Team.name, Team.rgb_color).filter(Team.color == "Blue").order_by(Team.id).all()
     )
 
     """
@@ -156,17 +149,13 @@ def scoreboard_get_line_data():
     )
 
     # Get round numbers for dynamic scoring
-    rounds_map = {
-        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-    }
+    rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
     scores_dict = defaultdict(lambda: defaultdict(int))
     for team_id, round_id, round_score in round_scores:
         # Apply dynamic scoring multiplier if enabled
         round_number = rounds_map.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         scores_dict[team_id][round_id] = adjusted_score
 
     for team_id, team_name, rgb_color in blue_teams:
@@ -179,3 +168,77 @@ def scoreboard_get_line_data():
         )
 
     return jsonify(team_data)
+
+
+@mod.route("/api/scoreboard/get_red_team_data")
+@cache.memoize()
+def scoreboard_get_red_team_data():
+    """
+    Get red team capture statistics for the scoreboard.
+
+    Scoring:
+    - Root capture = 1.0 point per platform
+    - User capture = 0.5 points per platform
+
+    Returns captures grouped by team with platform breakdown.
+    """
+    # Get all non-dummy flags and their solves
+    solves = db.session.query(Solve).join(Flag).filter(Flag.dummy.is_(False)).all()
+
+    # Get all blue teams
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
+
+    # Initialize team capture data
+    team_captures = {}
+    for team in blue_teams:
+        team_captures[team.id] = {
+            "team": team.name,
+            "team_id": team.id,
+            "nix_user": 0,
+            "nix_root": 0,
+            "nix_score": 0.0,
+            "windows_user": 0,
+            "windows_root": 0,
+            "windows_score": 0.0,
+            "total_captures": 0,
+            "total_score": 0.0,
+        }
+
+    # Aggregate captures by team and platform
+    for solve in solves:
+        flag = solve.flag
+        team_id = solve.team_id
+
+        if team_id not in team_captures:
+            continue
+
+        # Determine score: root = 1.0, user = 0.5
+        score = 1.0 if flag.perm == Perm.root else 0.5
+
+        if flag.platform == Platform.nix:
+            if flag.perm == Perm.root:
+                team_captures[team_id]["nix_root"] += 1
+            else:
+                team_captures[team_id]["nix_user"] += 1
+            team_captures[team_id]["nix_score"] += score
+        elif flag.platform == Platform.windows:
+            if flag.perm == Perm.root:
+                team_captures[team_id]["windows_root"] += 1
+            else:
+                team_captures[team_id]["windows_user"] += 1
+            team_captures[team_id]["windows_score"] += score
+
+        team_captures[team_id]["total_captures"] += 1
+        team_captures[team_id]["total_score"] += score
+
+    # Calculate totals
+    total_captures = sum(t["total_captures"] for t in team_captures.values())
+    total_red_points = sum(t["total_score"] for t in team_captures.values())
+
+    return jsonify(
+        {
+            "captures": list(team_captures.values()),
+            "total_captures": total_captures,
+            "total_red_points": total_red_points,
+        }
+    )
