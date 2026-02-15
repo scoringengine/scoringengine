@@ -1,0 +1,180 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Web Server Stats{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block header %}Web Server Stats{% endblock %}
+
+{% block admincontent %}
+  <div class="stat-cards-row pt-2">
+    <div class="stat-card">
+      <div class="stat-label">uWSGI Workers</div>
+      <div class="stat-value" id="summary_total_workers">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Busy / Idle</div>
+      <div class="stat-value"><span class="text-warning" id="summary_busy">-</span> / <span class="text-success" id="summary_idle">-</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Requests</div>
+      <div class="stat-value" id="summary_total_requests">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Listen Queue</div>
+      <div class="stat-value" id="summary_listen_queue">-</div>
+    </div>
+  </div>
+  <div class="stat-cards-row">
+    <div class="stat-card">
+      <div class="stat-label">Exceptions</div>
+      <div class="stat-value text-danger" id="summary_exceptions">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Data Transferred</div>
+      <div class="stat-value" id="summary_tx">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Queue Errors</div>
+      <div class="stat-value" id="summary_queue_errors">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">uWSGI Version</div>
+      <div class="stat-value" id="summary_version">-</div>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end mt-2 mb-2">
+    <small class="text-muted">Last updated: <span id="last_updated">-</span></small>
+  </div>
+  <div class="chart-card mt-1" style="padding:0; overflow:hidden;">
+    <table id="uwsgi_workers" class="table table-sm overview-matrix" width="100%">
+      <thead>
+        <tr>
+          <th><div title="Worker ID">ID</div></th>
+          <th><div title="Process ID">PID</div></th>
+          <th><div title="Worker status">Status</div></th>
+          <th><div title="Total requests handled">Requests</div></th>
+          <th><div title="Average response time">Avg Response</div></th>
+          <th><div title="Data transmitted">TX</div></th>
+          <th><div title="Total exceptions">Exceptions</div></th>
+          <th><div title="Harakiri kills (request timeout)">Harakiri</div></th>
+          <th><div title="Total running time">Running Time</div></th>
+          <th><div title="Number of times respawned">Respawns</div></th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    function updateLastUpdated() {
+      var now = new Date();
+      $('#last_updated').text(now.toLocaleTimeString());
+    }
+
+    function updateSummary(summary) {
+      $('#summary_total_workers').text(summary.total_workers);
+      $('#summary_busy').text(summary.busy_workers);
+      $('#summary_idle').text(summary.idle_workers);
+      $('#summary_total_requests').text(summary.total_requests.toLocaleString());
+      $('#summary_exceptions').text(summary.total_exceptions);
+      $('#summary_tx').text(summary.total_tx_mb + ' MB');
+      $('#summary_version').text(summary.version);
+      var queueText = summary.listen_queue + ' / ' + summary.listen_queue_max;
+      var $el = $('#summary_listen_queue');
+      $el.text(queueText);
+      if (summary.listen_queue > 0) {
+        $el.addClass('text-warning');
+      } else {
+        $el.removeClass('text-warning');
+      }
+      $('#summary_queue_errors').text(summary.listen_queue_errors);
+    }
+
+    function formatTime(seconds) {
+      if (seconds < 60) return seconds + 's';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.floor(seconds % 60) + 's';
+      var h = Math.floor(seconds / 3600);
+      var m = Math.floor((seconds % 3600) / 60);
+      return h + 'h ' + m + 'm';
+    }
+
+    $(document).ready(function() {
+      $.fn.dataTable.ext.errMode = 'none';
+
+      var table = $('#uwsgi_workers')
+        .on('error.dt', function (e, settings, techNote, message) {
+          console.log('An error has been reported by DataTables: ', message);
+        })
+        .DataTable({
+          'paging': false,
+          'bFilter': false,
+          'bInfo': false,
+          'ordering': false,
+          "ajax": {
+            "url": "/api/admin/get_uwsgi_stats",
+            "dataSrc": function(json) {
+              updateLastUpdated();
+              if (json.summary) updateSummary(json.summary);
+              return json.workers || [];
+            }
+          },
+          "language": {
+            "emptyTable": "Unable to retrieve uWSGI stats",
+          },
+          "columns": [
+            { "data": "id" },
+            { "data": "pid" },
+            {
+              "data": "status",
+              "render": function(data) {
+                if (data === 'busy') {
+                  return '<span class="badge bg-warning text-dark">busy</span>';
+                } else if (data === 'idle') {
+                  return '<span class="badge bg-success">idle</span>';
+                }
+                return '<span class="badge bg-secondary">' + data + '</span>';
+              }
+            },
+            {
+              "data": "requests",
+              "render": function(data) { return data.toLocaleString(); }
+            },
+            {
+              "data": "avg_rt_ms",
+              "render": function(data) { return data + ' ms'; }
+            },
+            {
+              "data": "tx_kb",
+              "render": function(data) { return data + ' KB'; }
+            },
+            {
+              "data": "exceptions",
+              "render": function(data) {
+                if (data > 0) return '<span class="text-danger">' + data + '</span>';
+                return data;
+              }
+            },
+            {
+              "data": "harakiri_count",
+              "render": function(data) {
+                if (data > 0) return '<span class="text-danger">' + data + '</span>';
+                return data;
+              }
+            },
+            {
+              "data": "running_time_s",
+              "render": function(data) { return formatTime(data); }
+            },
+            { "data": "respawn_count" },
+          ],
+        });
+      setInterval(function () {
+        table.ajax.reload(null, false);
+      }, 5000);
+    });
+  </script>
+{% endblock %}

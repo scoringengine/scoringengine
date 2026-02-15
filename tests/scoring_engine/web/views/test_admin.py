@@ -10,6 +10,7 @@ ADMIN_PATHS = [
     "/admin/status",
     "/admin/workers",
     "/admin/queues",
+    "/admin/webserver",
     "/admin/manage",
     "/admin/permissions",
     "/admin/settings",

@@ -1,6 +1,7 @@
 """Comprehensive tests for Admin API endpoints"""
 
 import html
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -23,6 +24,7 @@ ADMIN_API_AUTH_PATHS = [
     pytest.param("get", "/api/admin/get_engine_paused", id="get_engine_paused"),
     pytest.param("get", "/api/admin/get_worker_summary", id="get_worker_summary"),
     pytest.param("get", "/api/admin/get_worker_stats_with_summary", id="get_worker_stats_with_summary"),
+    pytest.param("get", "/api/admin/get_uwsgi_stats", id="get_uwsgi_stats"),
 ]
 
 
@@ -699,3 +701,84 @@ class TestAdminAPI:
         assert "summary" in resp.json
         assert len(resp.json["data"]) == 1
         assert resp.json["summary"]["total_workers"] == 1
+
+    # uWSGI Stats Tests
+    def test_get_uwsgi_stats_requires_white_team(self):
+        """Test that only white team can get uwsgi stats"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_uwsgi_stats")
+        assert resp.status_code == 403
+
+    def test_get_uwsgi_stats_returns_data(self):
+        """Test that uwsgi stats returns summary and workers"""
+        self.login("whiteuser")
+
+        mock_response = MagicMock()
+        mock_response.read.return_value = json.dumps({
+            "version": "2.0.31",
+            "listen_queue": 0,
+            "listen_queue_errors": 0,
+            "sockets": [{"max_queue": 100}],
+            "workers": [
+                {
+                    "id": 1,
+                    "pid": 10,
+                    "status": "idle",
+                    "requests": 50,
+                    "exceptions": 0,
+                    "harakiri_count": 0,
+                    "avg_rt": 5000,
+                    "tx": 10240,
+                    "rss": 52428800,
+                    "running_time": 1000000,
+                    "respawn_count": 1,
+                },
+                {
+                    "id": 2,
+                    "pid": 12,
+                    "status": "busy",
+                    "requests": 100,
+                    "exceptions": 2,
+                    "harakiri_count": 1,
+                    "avg_rt": 3000,
+                    "tx": 20480,
+                    "rss": 62914560,
+                    "running_time": 2000000,
+                    "respawn_count": 1,
+                },
+            ],
+        }).encode()
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("scoring_engine.web.views.api.admin.urllib.request.urlopen", return_value=mock_response):
+            resp = self.client.get("/api/admin/get_uwsgi_stats")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert "summary" in data
+        assert "workers" in data
+        assert data["summary"]["total_workers"] == 2
+        assert data["summary"]["busy_workers"] == 1
+        assert data["summary"]["idle_workers"] == 1
+        assert data["summary"]["total_requests"] == 150
+        assert data["summary"]["total_exceptions"] == 2
+        assert data["summary"]["version"] == "2.0.31"
+        assert len(data["workers"]) == 2
+        assert data["workers"][0]["avg_rt_ms"] == 5.0
+        assert data["workers"][1]["harakiri_count"] == 1
+
+    def test_get_uwsgi_stats_unavailable(self):
+        """Test graceful handling when uwsgi stats server is down"""
+        self.login("whiteuser")
+
+        import urllib.error
+
+        with patch(
+            "scoring_engine.web.views.api.admin.urllib.request.urlopen",
+            side_effect=urllib.error.URLError("connection refused"),
+        ):
+            resp = self.client.get("/api/admin/get_uwsgi_stats")
+
+        assert resp.status_code == 503
+        assert "unavailable" in resp.json["error"]
