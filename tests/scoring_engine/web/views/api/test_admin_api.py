@@ -21,6 +21,8 @@ ADMIN_API_AUTH_PATHS = [
     pytest.param("get", "/api/admin/get_teams", id="get_teams"),
     pytest.param("post", "/api/admin/toggle_engine", id="toggle_engine"),
     pytest.param("get", "/api/admin/get_engine_paused", id="get_engine_paused"),
+    pytest.param("get", "/api/admin/get_worker_summary", id="get_worker_summary"),
+    pytest.param("get", "/api/admin/get_worker_stats_with_summary", id="get_worker_stats_with_summary"),
 ]
 
 
@@ -603,3 +605,97 @@ class TestAdminAPI:
 
         assert resp.status_code == 200
         assert b"must be a positive integer" in resp.data
+
+    # Worker Summary Tests
+    def test_get_worker_summary_requires_white_team(self):
+        """Test that only white team can get worker summary"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_worker_summary")
+        assert resp.status_code == 403
+
+    def test_get_worker_summary_returns_data(self):
+        """Test that worker summary returns aggregated stats"""
+        self.login("whiteuser")
+
+        mock_summary = {
+            "total_workers": 2,
+            "total_threads": 10,
+            "total_running": 3,
+            "total_completed": 50,
+            "total_scheduled": 5,
+            "avg_utilization_pct": 30.0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_summary")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert data["total_workers"] == 2
+        assert data["total_threads"] == 10
+        assert data["total_running"] == 3
+        assert data["total_completed"] == 50
+        assert data["total_scheduled"] == 5
+        assert data["avg_utilization_pct"] == 30.0
+
+    def test_get_worker_summary_no_workers(self):
+        """Test worker summary when no workers are connected"""
+        self.login("whiteuser")
+
+        mock_summary = {
+            "total_workers": 0,
+            "total_threads": 0,
+            "total_running": 0,
+            "total_completed": 0,
+            "total_scheduled": 0,
+            "avg_utilization_pct": 0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_summary")
+
+        assert resp.status_code == 200
+        assert resp.json["total_workers"] == 0
+
+    # Combined Worker Stats + Summary Tests
+    def test_get_worker_stats_with_summary_requires_white_team(self):
+        """Test that only white team can get combined worker stats"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_worker_stats_with_summary")
+        assert resp.status_code == 403
+
+    def test_get_worker_stats_with_summary_returns_both(self):
+        """Test that combined endpoint returns both data and summary"""
+        self.login("whiteuser")
+
+        mock_workers = [
+            {
+                "worker_name": "w1",
+                "num_threads": 5,
+                "running_tasks": 2,
+                "completed_tasks": 10,
+                "scheduled_tasks": 1,
+                "utilization_pct": 40.0,
+            }
+        ]
+        mock_summary = {
+            "total_workers": 1,
+            "total_threads": 5,
+            "total_running": 2,
+            "total_completed": 10,
+            "total_scheduled": 1,
+            "avg_utilization_pct": 40.0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_stats.return_value = mock_workers
+            mock_stats._compute_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_stats_with_summary")
+
+        assert resp.status_code == 200
+        assert "data" in resp.json
+        assert "summary" in resp.json
+        assert len(resp.json["data"]) == 1
+        assert resp.json["summary"]["total_workers"] == 1

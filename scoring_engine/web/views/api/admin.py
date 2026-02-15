@@ -1057,6 +1057,27 @@ def admin_get_worker_stats():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/get_worker_summary")
+@login_required
+def admin_get_worker_summary():
+    if current_user.is_white_team:
+        summary = CeleryStats.get_worker_summary()
+        return jsonify(summary)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_worker_stats_with_summary")
+@login_required
+def admin_get_worker_stats_with_summary():
+    if current_user.is_white_team:
+        worker_stats = CeleryStats.get_worker_stats()
+        summary = CeleryStats._compute_summary(worker_stats)
+        return jsonify(data=worker_stats, summary=summary)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_queue_stats")
 @login_required
 def admin_get_queue_stats():
