@@ -8,7 +8,20 @@ db = SQLAlchemy()
 
 def delete_db():
     """Drop all database tables"""
+    dialect = db.engine.dialect.name
+    with db.engine.connect() as conn:
+        if dialect == "mysql":
+            conn.execute(db.text("SET FOREIGN_KEY_CHECKS = 0"))
+        elif dialect == "sqlite":
+            conn.execute(db.text("PRAGMA foreign_keys = OFF"))
+        conn.commit()
     db.drop_all()
+    with db.engine.connect() as conn:
+        if dialect == "mysql":
+            conn.execute(db.text("SET FOREIGN_KEY_CHECKS = 1"))
+        elif dialect == "sqlite":
+            conn.execute(db.text("PRAGMA foreign_keys = ON"))
+        conn.commit()
 
 
 def init_db():
