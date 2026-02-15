@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from scoring_engine.db import db
-from scoring_engine.models.inject import Inject, InjectFile
+from scoring_engine.models.inject import Inject
 
 mod = Blueprint("injects", __name__)
 
@@ -29,10 +29,4 @@ def inject(inject_id):
     if inject is None or not current_user.team == inject.team or now < start_time:
         return redirect(url_for("auth.unauthorized"))
 
-    files = db.session.query(InjectFile).filter(InjectFile.inject_id == inject_id).order_by(InjectFile.filename).all()
-
-    return render_template(
-        "inject.html",
-        inject=inject,
-        files=files,
-    )
+    return render_template("inject.html", inject_id=inject_id)

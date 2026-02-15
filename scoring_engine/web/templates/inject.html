@@ -8,11 +8,11 @@
 <!-- Dropzone -->
 <script src="{{ url_for('static', filename='vendor/js/dropzone.min.js') }}"></script>
 <link href="{{ url_for('static', filename='vendor/css/dropzone.min.css') }}" rel="stylesheet" />
-
 <!-- Moment -->
 <script src="{{ url_for('static', filename='vendor/js/moment.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/moment-timezone.min.js') }}"></script>
-
+<!-- Markdown -->
+<script src="{{ url_for('static', filename='vendor/js/marked.min.js') }}"></script>
 {% endblock %}
 {% block content %}
 <div class="page-wrap">
@@ -21,63 +21,45 @@
       <div id="inject_navbar" class="list-group"></div>
     </div>
     <div class="col-sm-9">
-      {% if inject.status == 'Submitted' or inject.status == 'Resubmitted' %}
-      <h3>{{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span></h3>
-      {% elif inject.status == 'Graded' %}
-      <h3>{{ inject.template.title }} <span class="badge bg-info text-white">{{ inject.status}}</span></h3>
-      {% elif inject.template.expired %}
-      <h3>{{ inject.template.title }} <span class="badge bg-danger">Expired</span></h3>
-      {% elif inject.status == 'Draft' %}
-      <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
-        data-bs-target="#submitInjectConfirmation">Submit Inject</button>
-      <h3>{{ inject.template.title }} <span class="badge bg-warning text-dark">{{ inject.status}}</span></h3>
-      {% elif inject.status == 'Revision Requested' %}
-      <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
-        data-bs-target="#resubmitInjectConfirmation">Resubmit Inject</button>
-      <h3>{{ inject.template.title }} <span class="badge bg-warning text-dark">{{ inject.status}}</span></h3>
-      {% else %}
-      <h3>{{ inject.template.title }}</h3>
-      {% endif %}
-      <!-- <h5>Status</h5> -->
-      <h5>Points - {{ inject.score }}</h5>
-      <h5>Start Time - <span id="startTime">{{ inject.template.start_time }}</span></h5>
-      <h5>End Time - <span id="endTime">{{ inject.template.end_time }}</span></h5>
-      <h4>Scenario</h4>
-      <p>{{ inject.template.scenario }}</p>
-      <h4>Deliverable</h4>
-      <p>{{ inject.template.deliverable }}</p>
+      <!-- Title & action button (populated by JS) -->
+      <div id="inject-header"></div>
+
+      <!-- Metadata -->
+      <div id="inject-meta"></div>
+
+      <!-- Scenario -->
+      <div id="scenario-section"></div>
+
+      <!-- Deliverable -->
+      <div id="deliverable-section"></div>
+
+      <!-- Rubric -->
       <div id="rubric-section"></div>
-      <!-- <h5>Submitted</h5>
-      <h5>Submitted By</h5>
-      <h5>Created</h5>
-      <h5>Graded</h5> -->
-      {% if inject.status in ('Draft', 'Revision Requested') %}
-      <form class="dropzone mb-3" id="file-upload"></form>
-      {% endif %}
-      <h4>Files</h4>
-      <div id="files">
-      </div>
-      <h4>Comments</h4>
-      <div id="comments">
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <form>
-            <div class="mb-3">
-              <textarea id="commentArea" class="form-control" rows="3" maxlength="25000"></textarea>
-              <div class="form-text text-end"><span id="commentCharCount">0</span> / 25,000</div>
-            </div>
-            <div class="mb-3">
-              <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
-            </div>
-          </form>
-        </div>
+
+      <!-- File Upload -->
+      <div id="upload-section"></div>
+
+      <!-- Files -->
+      <h3 class="section-header">Files</h3>
+      <div id="files"></div>
+
+      <!-- Comments -->
+      <h3 class="section-header">Comments</h3>
+      <div id="comments"></div>
+      <div class="chart-card" style="padding:1rem 1.25rem;">
+        <form>
+          <div class="mb-3">
+            <textarea id="commentArea" class="form-control" rows="3" maxlength="25000" placeholder="Write a comment..."></textarea>
+            <div class="form-text text-end"><span id="commentCharCount">0</span> / 25,000</div>
+          </div>
+          <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
+        </form>
       </div>
     </div>
   </div>
 </div>
 <!-- Submit Modal -->
-<div class="modal fade" id="submitInjectConfirmation" tabindex="-1" aria-labelledby="submitInjectConfirmationLabel" aria-hidden="true">
+<div class="modal fade" id="submitInjectConfirmation" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -85,7 +67,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="injectId" id="injectId" value="{{ inject.id }}" />
         <p>Are you sure you want to submit this inject?</p>
         <p><b>You will not be able to edit this inject after submitting.</b></p>
       </div>
@@ -97,7 +78,7 @@
   </div>
 </div>
 <!-- Resubmit Modal -->
-<div class="modal fade" id="resubmitInjectConfirmation" tabindex="-1" aria-labelledby="resubmitInjectConfirmationLabel" aria-hidden="true">
+<div class="modal fade" id="resubmitInjectConfirmation" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -105,7 +86,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="resubmitInjectId" id="resubmitInjectId" value="{{ inject.id }}" />
         <p>Are you sure you want to resubmit this inject?</p>
         <p><b>You will not be able to edit this inject after resubmitting.</b></p>
       </div>
@@ -116,19 +96,28 @@
     </div>
   </div>
 </div>
+<!-- File Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalTitle">Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="previewModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
-  $(document).ready(function () {
-    // Load rubric data
-    updateRubric();
+  var INJECT_ID = {{ inject_id }};
+  var TEAM_NAME = "{{ current_user.team.name }}";
 
-    // Update Timestamps
-    var startTime = moment.utc($('#startTime').text()).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
-    var endTime = moment.utc($('#endTime').text()).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z');
-    var startTimeRelative = moment.utc($('#startTime').text()).tz(moment.tz.guess()).fromNow();
-    var endTimeRelative = moment.utc($('#endTime').text()).tz(moment.tz.guess()).fromNow();
-    $('#startTime').text(startTime + ' (' + startTimeRelative + ')');
-    $('#endTime').text(endTime + ' (' + endTimeRelative + ')');
-    // $('#endTime').text(' (' + moment($('#endTime').text()).fromNow() + ')');
+  $(document).ready(function () {
+    // Load inject detail (populates header, meta, scenario, deliverable, rubric)
+    loadInjectDetail();
 
     // Load navbar and update every 30 seconds
     updateInjects();
@@ -142,14 +131,135 @@
     updateFiles();
     setInterval(updateFiles, 30000);
   });
+
+  function loadInjectDetail() {
+    $.ajax({
+      url: "/api/inject/" + INJECT_ID,
+      success: function (r) {
+        // --- Header ---
+        var headerHtml = '<div class="d-flex justify-content-between align-items-start mb-3"><div>';
+        headerHtml += '<h3 class="page-title mb-1">' + $('<span>').text(r.title).html() + '</h3>';
+        if (r.status == 'Submitted' || r.status == 'Resubmitted') {
+          headerHtml += '<span class="badge bg-success">' + r.status + '</span>';
+        } else if (r.status == 'Graded') {
+          headerHtml += '<span class="badge bg-info text-white">' + r.status + '</span>';
+        } else if (r.expired && r.status == 'Draft') {
+          headerHtml += '<span class="badge bg-danger">Expired</span>';
+        } else if (r.status == 'Revision Requested') {
+          headerHtml += '<span class="badge bg-warning text-dark">' + r.status + '</span>';
+        } else if (r.status == 'Draft') {
+          headerHtml += '<span class="badge bg-warning text-dark">' + r.status + '</span>';
+        }
+        headerHtml += '</div>';
+        if (r.status == 'Draft' && !r.expired) {
+          headerHtml += '<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitInjectConfirmation">Submit Inject</button>';
+        } else if (r.status == 'Revision Requested') {
+          headerHtml += '<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resubmitInjectConfirmation">Resubmit Inject</button>';
+        }
+        headerHtml += '</div>';
+        $('#inject-header').html(headerHtml);
+
+        // --- Metadata ---
+        var startTime = r.start_time ? moment.utc(r.start_time).tz(moment.tz.guess()) : null;
+        var endTime = r.end_time ? moment.utc(r.end_time).tz(moment.tz.guess()) : null;
+        var metaHtml = '<div class="chart-card mb-3" style="padding:0; overflow:hidden;"><table class="table table-sm mb-0"><tbody>';
+        metaHtml += '<tr><td style="width:120px;"><strong>Points</strong></td><td>';
+        if (r.scores_visible && r.score !== null) {
+          metaHtml += r.score + ' / ';
+        }
+        metaHtml += r.max_score + '</td></tr>';
+        if (startTime) {
+          metaHtml += '<tr><td><strong>Start Time</strong></td><td>' + startTime.format('YYYY-MM-DD HH:mm:ss z') + ' (' + startTime.fromNow() + ')</td></tr>';
+        }
+        if (endTime) {
+          metaHtml += '<tr><td><strong>End Time</strong></td><td>' + endTime.format('YYYY-MM-DD HH:mm:ss z') + ' (' + endTime.fromNow() + ')</td></tr>';
+        }
+        metaHtml += '</tbody></table></div>';
+        $('#inject-meta').html(metaHtml);
+
+        // --- Scenario ---
+        if (r.scenario) {
+          var scenarioHtml = '<h3 class="section-header">Scenario</h3>';
+          scenarioHtml += '<div class="chart-card mb-3" style="padding:1rem 1.25rem;">';
+          scenarioHtml += '<div>' + marked.parse(r.scenario) + '</div></div>';
+          $('#scenario-section').html(scenarioHtml);
+        }
+
+        // --- Deliverable ---
+        if (r.deliverable) {
+          var deliverableHtml = '<h3 class="section-header">Deliverable</h3>';
+          deliverableHtml += '<div class="chart-card mb-3" style="padding:1rem 1.25rem;">';
+          deliverableHtml += '<div>' + marked.parse(r.deliverable) + '</div></div>';
+          $('#deliverable-section').html(deliverableHtml);
+        }
+
+        // --- Rubric ---
+        if (r.rubric_items && r.rubric_items.length > 0) {
+          var showScores = r.scores_visible && r.status === 'Graded';
+          var rubricHtml = '<h3 class="section-header">Rubric</h3>';
+          rubricHtml += '<div class="chart-card mb-3" style="padding:0; overflow:hidden;">';
+          rubricHtml += '<table class="table table-sm mb-0"><thead><tr>';
+          rubricHtml += '<th style="padding:0.5rem 1rem;">Item</th>';
+          rubricHtml += '<th style="padding:0.5rem 1rem;">Description</th>';
+          rubricHtml += '<th style="padding:0.5rem 1rem;">Points</th>';
+          if (showScores) rubricHtml += '<th style="padding:0.5rem 1rem;">Score</th>';
+          rubricHtml += '</tr></thead><tbody>';
+          var scoreMap = {};
+          if (r.rubric_scores) {
+            $.each(r.rubric_scores, function(i, rs) { scoreMap[rs.rubric_item_id] = rs.score; });
+          }
+          $.each(r.rubric_items, function(i, item) {
+            rubricHtml += '<tr><td style="padding:0.5rem 1rem;">' + item.title + '</td>';
+            rubricHtml += '<td style="padding:0.5rem 1rem;">' + (item.description || '') + '</td>';
+            rubricHtml += '<td style="padding:0.5rem 1rem;">' + item.points + '</td>';
+            if (showScores) {
+              rubricHtml += '<td style="padding:0.5rem 1rem;">' + (scoreMap[item.id] !== undefined ? scoreMap[item.id] : '-') + '</td>';
+            }
+            rubricHtml += '</tr>';
+          });
+          rubricHtml += '</tbody></table></div>';
+          $('#rubric-section').html(rubricHtml);
+        }
+
+        // --- Upload section (only for editable statuses) ---
+        if (r.status === 'Draft' || r.status === 'Revision Requested') {
+          if (!r.expired) {
+            var uploadHtml = '<h3 class="section-header">Upload Files</h3>';
+            uploadHtml += '<form class="dropzone mb-3" id="file-upload"></form>';
+            $('#upload-section').html(uploadHtml);
+            initDropzone();
+          }
+        }
+
+        // Store status for file delete logic
+        window.injectStatus = r.status;
+        window.injectExpired = r.expired;
+      }
+    });
+  }
+
+  function initDropzone() {
+    if (document.getElementById('file-upload')) {
+      new Dropzone('#file-upload', {
+        url: '/api/inject/' + INJECT_ID + '/upload',
+        init: function () {
+          this.on("success", function(file) {
+            console.log("File uploaded successfully");
+            updateFiles();
+          });
+          this.on("error", function(file) {
+            console.error("Error uploading file");
+          });
+        }
+      });
+    }
+  }
 </script>
 <script>
   // Submit Inject Confirmation
   $('#injectSubmitConfirmButton').unbind().click(function () {
-    console.log('Inject Submitted');
-    const injectId = $('#injectId').val();
     $.ajax({
-      url: "/api/inject/" + injectId + "/submit",
+      url: "/api/inject/" + INJECT_ID + "/submit",
       type: 'POST',
       success: function (result) {
         bootstrap.Modal.getInstance(document.getElementById('submitInjectConfirmation')).hide();
@@ -163,10 +273,8 @@
 
   // Resubmit Inject Confirmation
   $('#injectResubmitConfirmButton').unbind().click(function () {
-    console.log('Inject Resubmitted');
-    const injectId = $('#resubmitInjectId').val();
     $.ajax({
-      url: "/api/inject/" + injectId + "/resubmit",
+      url: "/api/inject/" + INJECT_ID + "/resubmit",
       type: 'POST',
       success: function (result) {
         bootstrap.Modal.getInstance(document.getElementById('resubmitInjectConfirmation')).hide();
@@ -180,29 +288,24 @@
 </script>
 <script>
   function updateInjects() {
-    // Query API for files
     $.ajax({
       url: "/api/injects",
       success: function (result) {
-        console.log($(location).attr("pathname"));
-
         var navbar = "";
-
-        // Append navbar elements
         $.each(result.data, function (index, value) {
           navbar += '<a href="/inject/' + value.id + '" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center';
-          if ($(location).attr("pathname") == "/inject/" + value.id) {
+          if (window.location.pathname == "/inject/" + value.id) {
             navbar += ' active';
           }
           navbar += '">' + value.title + ' ';
-
-          // Add status badge
           var currentTime = new Date();
           var endTime = new Date(value.end_time);
           if (value.status == "Graded") {
             navbar += '<span class="badge bg-info">Graded</span>';
-          } else if (value.status == "Submitted") {
+          } else if (value.status == "Submitted" || value.status == "Resubmitted") {
             navbar += '<span class="badge bg-success">Submitted</span>';
+          } else if (value.status == "Revision Requested") {
+            navbar += '<span class="badge bg-warning text-dark">Revision</span>';
           } else if (currentTime > endTime) {
             navbar += '<span class="badge bg-danger">Expired</span>';
           } else {
@@ -210,49 +313,15 @@
           }
           navbar += '</a>';
         });
-
-        // Update navbar
         $("#inject_navbar").html(navbar);
       },
       error: function (result) {
-        console.error("An Error Occurred Querying For Files");
+        console.error("Error loading injects");
       }
     });
   };
 </script>
 <script>
-  function updateRubric() {
-    $.ajax({
-      url: "/api/inject/{{ inject.id }}",
-      success: function (result) {
-        var html = '';
-        if (result.rubric_items && result.rubric_items.length > 0) {
-          html += '<h4>Rubric</h4>';
-          html += '<table class="table table-bordered"><tr><th>Item</th><th>Description</th><th>Points</th>';
-          if (result.status === 'Graded') {
-            html += '<th>Score</th>';
-          }
-          html += '</tr>';
-          var scoreMap = {};
-          if (result.rubric_scores) {
-            $.each(result.rubric_scores, function(i, rs) {
-              scoreMap[rs.rubric_item_id] = rs.score;
-            });
-          }
-          $.each(result.rubric_items, function(i, item) {
-            html += '<tr><td>' + item.title + '</td><td>' + (item.description || '') + '</td><td>' + item.points + '</td>';
-            if (result.status === 'Graded') {
-              html += '<td>' + (scoreMap[item.id] !== undefined ? scoreMap[item.id] : '-') + '</td>';
-            }
-            html += '</tr>';
-          });
-          html += '</table>';
-        }
-        $('#rubric-section').html(html);
-      }
-    });
-  }
-
   var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt', '.png', '.jpg', '.jpeg', '.gif', '.svg'];
   var imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg'];
 
@@ -266,7 +335,7 @@
 
   function previewFile(fileId, filename) {
     var ext = getFileExtension(filename);
-    var previewUrl = '/api/inject/{{ inject.id }}/files/' + fileId + '/preview';
+    var previewUrl = '/api/inject/' + INJECT_ID + '/files/' + fileId + '/preview';
     if (ext === '.pdf') {
       $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;"></iframe>');
       $('#previewModalTitle').text('Preview: ' + filename);
@@ -275,41 +344,37 @@
       $('#previewModalBody').html('<img src="' + previewUrl + '" class="img-fluid" alt="' + filename + '">');
       $('#previewModalTitle').text('Preview: ' + filename);
       new bootstrap.Modal(document.getElementById('previewModal')).show();
+    } else if (ext === '.odt' || ext === '.docx') {
+      $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;background:#fff;"></iframe>');
+      $('#previewModalTitle').text('Preview: ' + filename);
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
     } else {
-      if (ext === '.odt' || ext === '.docx') {
-        $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;background:#fff;"></iframe>');
-        $('#previewModalTitle').text('Preview: ' + filename);
-        new bootstrap.Modal(document.getElementById('previewModal')).show();
-      } else {
-        $.ajax({
-          url: previewUrl,
-          success: function (result) {
-            if (ext === '.txt') {
-              $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
-            } else {
-              $('#previewModalBody').html(result);
-            }
-            $('#previewModalTitle').text('Preview: ' + filename);
-            new bootstrap.Modal(document.getElementById('previewModal')).show();
-          },
-          error: function () {
-            alert('Error loading preview');
+      $.ajax({
+        url: previewUrl,
+        success: function (result) {
+          if (ext === '.txt') {
+            $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
+          } else {
+            $('#previewModalBody').html(result);
           }
-        });
-      }
+          $('#previewModalTitle').text('Preview: ' + filename);
+          new bootstrap.Modal(document.getElementById('previewModal')).show();
+        },
+        error: function () {
+          alert('Error loading preview');
+        }
+      });
     }
   }
 
   function updateFiles() {
-    var injectStatus = '{{ inject.status }}';
-    var canDelete = (injectStatus === 'Draft' || injectStatus === 'Revision Requested');
+    var canDelete = (window.injectStatus === 'Draft' || window.injectStatus === 'Revision Requested') && !window.injectExpired;
     $.ajax({
-      url: "/api/inject/{{ inject.id }}/files",
+      url: "/api/inject/" + INJECT_ID + "/files",
       success: function (result) {
         var files = '';
-
         $.each(result.data, function (index, value) {
-          files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a>";
+          files += "<p><a href='/api/inject/" + INJECT_ID + "/files/" + value.id + "/download'>" + value.name + "</a>";
           if (isPreviewable(value.name)) {
             files += ' <button class="btn btn-sm btn-info" onclick="previewFile(' + value.id + ', \'' + value.name.replace(/'/g, "\\'") + '\')">Preview</button>';
           }
@@ -318,70 +383,49 @@
           }
           files += "</p>";
         });
-
         $("#files").html(files);
 
-        // Bind delete buttons
         if (canDelete) {
           $('.delete-file-btn').on('click', function() {
             var fileId = $(this).data('file-id');
             if (confirm('Are you sure you want to delete this file?')) {
               $.ajax({
-                url: "/api/inject/{{ inject.id }}/files/" + fileId,
+                url: "/api/inject/" + INJECT_ID + "/files/" + fileId,
                 type: 'DELETE',
                 success: function() { updateFiles(); },
-                error: function(result) { alert('Error deleting file'); }
+                error: function() { alert('Error deleting file'); }
               });
             }
           });
         }
       },
-      error: function (result) {
-        console.error("An Error Occurred Querying For Files");
+      error: function () {
+        console.error("Error loading files");
       }
     });
   };
 </script>
 <script>
-  Dropzone.options.fileUpload = {
-    url: '/api/inject/{{ inject.id }}/upload',
-    init: function () {
-      this.on("success", file => {
-        console.log("A file has been successfully uploaded");
-        updateFiles();
-      });
-      this.on("error", file => {
-        console.error("An error occurred while uploading a file");
-      });
-    }
-  };
+  // Disable Dropzone auto-discover since we init manually
+  Dropzone.autoDiscover = false;
 </script>
 <script>
   function updateComments() {
-    // Query API for files
     $.ajax({
-      url: "/api/inject/{{ inject.id }}/comments",
+      url: "/api/inject/" + INJECT_ID + "/comments",
       success: function (result) {
-        var comments = ""
-
-        // Append comment elements
+        var comments = "";
         $.each(result.data, function (index, value) {
-          if (value.team == "{{ current_user.team.name }}") {
-            comments += '<div class="card border-primary mb-2">' +
-              '<div class="card-header bg-primary text-white">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
-              '<div class="card-body">' + value.text + '</div></div>';
-          } else {
-            comments += '<div class="card mb-2">' +
-              '<div class="card-header">' + value.user + ' (' + value.team + ') commented on ' + value.added + '</div>' +
-              '<div class="card-body">' + value.text + '</div></div>';
-          }
+          var isOwn = value.team == TEAM_NAME;
+          comments += '<div class="chart-card mb-2" style="padding:0; overflow:hidden;">' +
+            '<div style="padding:0.5rem 1rem; font-size:0.85rem; color:var(--bs-secondary-color);' + (isOwn ? ' border-left:3px solid #58a6ff;' : '') + '">' +
+            '<strong>' + value.user + '</strong> <span class="text-muted">(' + value.team + ')</span> &middot; ' + value.added + '</div>' +
+            '<div style="padding:0.75rem 1rem;">' + value.text + '</div></div>';
         });
-
-        // Update comments
         $("#comments").html(comments);
       },
-      error: function (result) {
-        console.error("An Error Occurred Querying For Files");
+      error: function () {
+        console.error("Error loading comments");
       }
     });
   };
@@ -401,14 +445,13 @@
 
   $('#addCommentButton').unbind().click(function () {
     $.ajax({
-      url: "/api/inject/{{ inject.id }}/comment",
+      url: "/api/inject/" + INJECT_ID + "/comment",
       type: "POST",
       contentType: "application/json",
       data: JSON.stringify({
         comment: $('#commentArea').val()
       }),
       success: function (result) {
-        console.log("Comment added");
         $('#commentArea').val('');
         $('#commentCharCount').text('0');
         $('#commentCharCount').parent().removeClass('text-danger text-warning');
@@ -421,20 +464,4 @@
     });
   });
 </script>
-<!-- File Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="previewModalTitle">Preview</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="previewModalBody">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}

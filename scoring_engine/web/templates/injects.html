@@ -73,6 +73,9 @@
                     "data": "score",
                     "width": "5%",
                     "render": function (data, type, row) {
+                        if (data === null) {
+                            return row['max_score'] + " pts available";
+                        }
                         return data + " (" + (100 * data / row['max_score']).toFixed(2) + "%)";
                     }
                 },

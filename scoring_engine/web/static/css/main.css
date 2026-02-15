@@ -1050,12 +1050,31 @@ table.dataTable thead .sorting_desc::after {
     border-radius: var(--radius);
 }
 
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--border-strong);
+    opacity: 1;
+    font-style: italic;
+}
+
 .form-control:focus,
 .form-select:focus {
     background-color: var(--surface);
     border-color: var(--accent-cyan);
     color: var(--text-primary);
     box-shadow: 0 0 0 2px var(--glow-cyan);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--accent-red, #ef4444);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.invalid-feedback {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-red, #ef4444);
 }
 
 .form-label {

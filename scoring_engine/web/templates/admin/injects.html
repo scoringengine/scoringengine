@@ -11,7 +11,27 @@
 {% block header %}Inject Scores{% endblock %}
 
 {% block admincontent %}
-<h3 class="section-header" style="margin-top:1rem;">Inject Scores</h3>
+<!-- Summary Stats -->
+<div class="stat-cards-row mb-3" style="margin-top:1rem;">
+  <div class="stat-card">
+    <div class="stat-label">Needs Grading</div>
+    <div class="stat-value text-warning" id="stat-needs-grading">-</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Graded</div>
+    <div class="stat-value text-success" id="stat-graded">-</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Revision Requested</div>
+    <div class="stat-value" id="stat-revision" style="color:var(--accent-amber);">-</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Not Submitted</div>
+    <div class="stat-value" id="stat-not-submitted" style="color:var(--text-tertiary);">-</div>
+  </div>
+</div>
+
+<h3 class="section-header">Inject Scores</h3>
 <div class="chart-card">
   <div id="teamBar" style="width: 100%; height:300px;"></div>
 </div>
@@ -91,20 +111,48 @@
         "data": "{{ team.name }}",
         "render": function (data, type, row, meta) {
           if (data == null) {
-            return "Not Submitted";
+            return '<span class="badge bg-secondary">Not Submitted</span>';
           } else if (data['status'] == 'Graded') {
-            return "<a href=/admin/injects/" + data['id'] + ">" + data['score'] + " (" + (100 * data['score'] / data['max_score']).toFixed(2) + "%)</a>";
+            return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-success">' + data['score'] + ' (' + (100 * data['score'] / data['max_score']).toFixed(2) + '%)</span></a>';
           } else if (data['status'] == 'Submitted' || data['status'] == 'Resubmitted') {
-            return "<a href=/admin/injects/" + data['id'] + ">Grade Me!</a>";
+            return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-warning text-dark">Grade Me!</span></a>';
           } else if (data['status'] == 'Revision Requested') {
-            return "<a href=/admin/injects/" + data['id'] + ">Revision Requested</a>";
+            return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-info text-white">Revision Req.</span></a>';
+          } else if (data['status'] == 'Draft') {
+            return '<span class="badge bg-secondary">Draft</span>';
           } else {
-            return data['status'] || "Not Submitted";
+            return '<span class="badge bg-secondary">' + (data['status'] || 'Not Submitted') + '</span>';
           }
         },
       },
       {% endfor %}
       ],
+      "initComplete": function () {
+        // Compute summary stats from the loaded data
+        var tableData = dt.data();
+        var needsGrading = 0, graded = 0, revision = 0, notSubmitted = 0;
+        var teamNames = [{% for team in blue_teams %}"{{ team.name }}",{% endfor %}];
+        tableData.each(function (row) {
+          teamNames.forEach(function (team) {
+            var cell = row[team];
+            if (cell == null || cell['status'] == null) {
+              notSubmitted++;
+            } else if (cell['status'] == 'Submitted' || cell['status'] == 'Resubmitted') {
+              needsGrading++;
+            } else if (cell['status'] == 'Graded') {
+              graded++;
+            } else if (cell['status'] == 'Revision Requested') {
+              revision++;
+            } else {
+              notSubmitted++;
+            }
+          });
+        });
+        $('#stat-needs-grading').text(needsGrading);
+        $('#stat-graded').text(graded);
+        $('#stat-revision').text(revision);
+        $('#stat-not-submitted').text(notSubmitted);
+      }
     });
 
   // Bar chart for all teams

@@ -12,6 +12,7 @@ from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.inject import Inject, InjectComment, InjectFile, Template
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.notifications import notify_inject_comment, notify_inject_submitted
@@ -43,6 +44,7 @@ def api_injects():
     if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_red_team):
         return jsonify({"status": "Unauthorized"}), 403
     data = list()
+    scores_visible = Setting.get_setting("inject_scores_visible").value
     now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     injects = (
         db.session.query(Inject)
@@ -59,7 +61,7 @@ def api_injects():
                 id=inject.id,
                 template_id=inject.template.id,
                 title=inject.template.title,
-                score=inject.score,
+                score=inject.score if scores_visible else None,
                 max_score=inject.template.max_score,
                 status=inject.status,
                 start_time=inject.template.start_time,
@@ -188,11 +190,19 @@ def api_inject(inject_id):
 
     data = {}
 
-    data["score"] = inject.score
+    scores_visible = current_user.is_white_team or Setting.get_setting("inject_scores_visible").value
+    data["scores_visible"] = scores_visible
+    data["title"] = inject.template.title
+    data["scenario"] = inject.template.scenario
+    data["deliverable"] = inject.template.deliverable
+    data["start_time"] = inject.template.start_time.isoformat() if inject.template.start_time else None
+    data["end_time"] = inject.template.end_time.isoformat() if inject.template.end_time else None
+    data["expired"] = inject.template.expired
+    data["score"] = inject.score if scores_visible else None
     data["max_score"] = inject.template.max_score
     data["status"] = inject.status
 
-    # Rubric items
+    # Rubric items (always show what they're graded on)
     data["rubric_items"] = [
         {
             "id": item.id,
@@ -203,14 +213,17 @@ def api_inject(inject_id):
         for item in inject.template.rubric_items
     ]
 
-    # Rubric scores
-    data["rubric_scores"] = [
-        {
-            "rubric_item_id": rs.rubric_item_id,
-            "score": rs.score,
-        }
-        for rs in inject.rubric_scores
-    ]
+    # Rubric scores (only when scores are visible)
+    if scores_visible:
+        data["rubric_scores"] = [
+            {
+                "rubric_item_id": rs.rubric_item_id,
+                "score": rs.score,
+            }
+            for rs in inject.rubric_scores
+        ]
+    else:
+        data["rubric_scores"] = []
 
     # Comments
     comments = (

@@ -707,8 +707,8 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                start_time=(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
-                end_time=(parse(data["end_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
+                start_time=parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                end_time=parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
             )
             db.session.add(template)
             db.session.flush()

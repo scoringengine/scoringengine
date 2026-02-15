@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 from scoring_engine.models.inject import Inject, InjectComment, InjectFile, InjectRubricScore, RubricItem, Template
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 import pytest
@@ -643,7 +644,11 @@ class TestInjectsAPI:
         assert data["max_score"] == 100
 
     def test_inject_detail_returns_rubric_scores(self):
-        """Test that inject detail includes rubric scores when graded"""
+        """Test that inject detail includes rubric scores when graded and scores visible"""
+        setting = Setting.get_setting("inject_scores_visible")
+        setting.value = True
+        db.session.commit()
+        Setting.clear_cache("inject_scores_visible")
         template = self._make_template()
         db.session.add(template)
         db.session.flush()
@@ -661,9 +666,35 @@ class TestInjectsAPI:
 
         assert resp.status_code == 200
         data = resp.json
+        assert data["scores_visible"] is True
         assert len(data["rubric_scores"]) == 1
         assert data["rubric_scores"][0]["score"] == 80
         assert data["score"] == 80
+
+    def test_inject_detail_hides_scores_when_disabled(self):
+        """Test that inject detail hides scores when inject_scores_visible is disabled"""
+        Setting.clear_cache("inject_scores_visible")
+        template = self._make_template()
+        db.session.add(template)
+        db.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team1, template=template)
+        db.session.add_all([ri, inject])
+        db.session.flush()
+        score = InjectRubricScore(score=80, inject=inject, rubric_item=ri, grader=self.white_user)
+        inject.status = "Graded"
+        db.session.add(score)
+        db.session.commit()
+
+        self.login("blueuser1")
+        resp = self.client.get(f"/api/inject/{inject.id}")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert data["scores_visible"] is False
+        assert data["score"] is None
+        assert len(data["rubric_scores"]) == 0
+        assert len(data["rubric_items"]) == 1  # Items still visible
 
     # Cache Invalidation Tests
     def test_inject_submit_invalidates_cache(self):

@@ -82,6 +82,7 @@ class RubricItem(Base):
     # Relationships
     template_id = Column(Integer, ForeignKey("template.id"))
     template = relationship("Template", back_populates="rubric_items")
+    scores = relationship("InjectRubricScore", cascade="all, delete-orphan")
 
     def __init__(self, title, points, template, description=None, order=0):
         self.title = title
