@@ -522,9 +522,10 @@ class TestFlagsAPI(UnitTest):
         assert team1_entry["total_score"] == 2
 
     def test_api_flags_totals_mixed_platforms(self):
-        """Test scoring with both Windows and Linux flags"""
-        # Create service
-        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        """Test scoring with both Windows and Linux flags on separate services"""
+        # Create separate services per platform (port=0 is Windows, port=1 is Linux)
+        win_service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        nix_service = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team1, port=1)
 
         # Create Windows flag
         win_flag = Flag(
@@ -548,12 +549,12 @@ class TestFlagsAPI(UnitTest):
             dummy=False,
         )
 
-        self.session.add_all([service, win_flag, nix_flag])
+        self.session.add_all([win_service, nix_service, win_flag, nix_flag])
         self.session.flush()
 
-        # Create solves
+        # Create solves on respective hosts
         solve_win = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=win_flag.id)
-        solve_nix = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=nix_flag.id)
+        solve_nix = Solve(host="192.168.1.20", team_id=self.blue_team1.id, flag_id=nix_flag.id)
 
         self.session.add_all([solve_win, solve_nix])
         self.session.commit()
@@ -569,6 +570,80 @@ class TestFlagsAPI(UnitTest):
         assert team1_entry["win_score"] == 1
         assert team1_entry["nix_score"] == 1
         assert team1_entry["total_score"] == 2
+
+    def test_api_flags_totals_multiple_rounds_same_host(self):
+        """Test scoring across multiple flag rounds (different start/end times) for the same host"""
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+
+        # Round 1: user-level flag
+        round1_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.user,
+            data={"path": "C:\\round1", "content": "test"},
+            start_time=datetime.now(timezone.utc) - timedelta(hours=3),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            dummy=False,
+        )
+
+        # Round 2: root-level flag (different time window)
+        round2_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.root,
+            data={"path": "C:\\round2", "content": "test"},
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            dummy=False,
+        )
+
+        # Round 3: user + root flags in the same round
+        round3_start = datetime.now(timezone.utc) + timedelta(hours=1)
+        round3_end = datetime.now(timezone.utc) + timedelta(hours=2)
+        round3_user_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.user,
+            data={"path": "C:\\round3_user", "content": "test"},
+            start_time=round3_start,
+            end_time=round3_end,
+            dummy=False,
+        )
+        round3_root_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.root,
+            data={"path": "C:\\round3_root", "content": "test"},
+            start_time=round3_start,
+            end_time=round3_end,
+            dummy=False,
+        )
+
+        self.session.add_all([service, round1_flag, round2_flag, round3_user_flag, round3_root_flag])
+        self.session.flush()
+
+        # Solves for all flags on the same host
+        solve1 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round1_flag.id)
+        solve2 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round2_flag.id)
+        solve3_user = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round3_user_flag.id)
+        solve3_root = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round3_root_flag.id)
+
+        self.session.add_all([solve1, solve2, solve3_user, solve3_root])
+        self.session.commit()
+
+        self.login("reduser", "pass")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+
+        # Round 1: user only = 0.5
+        # Round 2: root only = 1.0
+        # Round 3: user + root (same start_time) = 1.0 (root subsumes user)
+        # Total: 0.5 + 1.0 + 1.0 = 2.5
+        assert team1_entry["win_score"] == 2.5
+        assert team1_entry["nix_score"] == 0
+        assert team1_entry["total_score"] == 2.5
 
     def test_api_flags_totals_multiple_teams(self):
         """Test that each team's score is calculated independently"""
