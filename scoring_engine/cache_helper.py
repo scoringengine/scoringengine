@@ -135,6 +135,13 @@ def update_inject_files(inject_id, team_id=None):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
+def update_all_inject_data():
+    """Clear all cached inject detail and inject list data for all teams."""
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/inject*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
 def update_stats():
     # Clear cached /api/stats responses (keyed per-team/role)
     if not isinstance(cache.cache, NullCache):

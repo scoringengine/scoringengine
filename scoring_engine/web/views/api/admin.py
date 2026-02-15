@@ -29,6 +29,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 
 from scoring_engine.cache_helper import (
+    update_all_inject_data,
     update_inject_data,
     update_overview_data,
     update_scoreboard_data,
@@ -1135,6 +1136,7 @@ def admin_toggle_inject_scores_visible():
         db.session.commit()
         Setting.clear_cache("inject_scores_visible")
         update_scoreboard_data()
+        update_all_inject_data()
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
