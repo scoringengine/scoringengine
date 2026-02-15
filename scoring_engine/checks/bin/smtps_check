@@ -6,23 +6,23 @@ import sys
 
 def send_email(username, password, fromuser, touser, subject, body, email_server, port):
     try:
-        message = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (fromuser, touser, subject, body)
+        message = "From: %s\nTo: %s\nSubject: %s\n\n%s" % (fromuser, touser, subject, body)
         server = smtplib.SMTP(email_server, int(port))
         server.starttls()
         server.ehlo()
         server.login(username, password)
         server.sendmail(fromuser, touser, message)
         server.close()
-        print('Successfully sent email')
+        print("Successfully sent email")
         exit(0)
     except Exception as e:
-        print('Failed to send email, received exception{0}\n'.format(e))
+        print("Failed to send email, received exception{0}\n".format(e))
         exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) != 9:
-        print('Error: Not enough parameters passed. Need 8 parameters.')
+        print("Error: Not enough parameters passed. Need 8 parameters.")
         exit(1)
 
     send_email(

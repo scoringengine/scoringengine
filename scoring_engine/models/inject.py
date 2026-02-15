@@ -1,6 +1,6 @@
-import pytz
-
 from datetime import datetime, timezone
+
+import pytz
 
 
 def _ensure_utc_aware(dt):
@@ -13,22 +13,13 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    Unicode,
-    UnicodeText,
-)
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, Unicode, UnicodeText
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Boolean
 
-from scoring_engine.models.base import Base
 from scoring_engine.config import config
-
+from scoring_engine.models.base import Base
 
 """
 ID: 5
@@ -50,9 +41,7 @@ class Template(Base):
     scenario = Column(UnicodeText, nullable=False)
     deliverable = Column(UnicodeText, nullable=False)
     score = Column(Integer, nullable=False)
-    start_time = Column(
-        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
+    start_time = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     end_time = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     enabled = Column(Boolean, nullable=False, default=True)
 
@@ -60,13 +49,9 @@ class Template(Base):
     # rubric = relationship(
     #     "Rubric", back_populates="template", cascade="all, delete", lazy="joined"
     # )
-    inject = relationship(
-        "Inject", back_populates="template", cascade="all, delete", lazy="joined"
-    )
+    inject = relationship("Inject", back_populates="template", cascade="all, delete", lazy="joined")
 
-    def __init__(
-        self, title, scenario, deliverable, score, start_time, end_time, enabled=True
-    ):
+    def __init__(self, title, scenario, deliverable, score, start_time, end_time, enabled=True):
         self.title = title
         self.scenario = scenario
         self.deliverable = deliverable
@@ -103,9 +88,7 @@ class Template(Base):
     @property
     def localized_end_time(self):
         return (
-            _ensure_utc_aware(self.end_time)
-            .astimezone(pytz.timezone(config.timezone))
-            .strftime("%Y-%m-%d %H:%M:%S %Z")
+            _ensure_utc_aware(self.end_time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z")
         )
 
 
@@ -171,9 +154,7 @@ class Comment(Base):
     # Relationships
     inject = relationship("Inject", back_populates="comment")
     inject_id = Column(Integer, ForeignKey("inject.id"))
-    user = relationship(
-        "User", backref="comments", cascade="all, delete-orphan", single_parent=True
-    )
+    user = relationship("User", backref="comments", cascade="all, delete-orphan", single_parent=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     def __init__(self, comment, user, inject):
@@ -190,9 +171,7 @@ class File(Base):
     # Relationships
     inject = relationship("Inject", back_populates="file")
     inject_id = Column(Integer, ForeignKey("inject.id"))
-    user = relationship(
-        "User", backref="files", cascade="all, delete-orphan", single_parent=True
-    )
+    user = relationship("User", backref="files", cascade="all, delete-orphan", single_parent=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     def __init__(self, name, user, inject):

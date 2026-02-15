@@ -4,18 +4,21 @@ Test script to verify session isolation with multiple concurrent users.
 Tests that Flask-SQLAlchemy properly isolates sessions between requests.
 """
 
-import requests
-from requests.auth import HTTPBasicAuth
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-import sys
+
+import requests
 
 # Disable SSL warnings for testing
 import urllib3
+from requests.auth import HTTPBasicAuth
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_URL = "http://localhost:8000"
+
 
 class UserSession:
     """Represents a logged-in user session."""
@@ -38,8 +41,8 @@ class UserSession:
 
             # Try to log in (adjust fields based on your login form)
             data = {
-                'username': self.username,
-                'password': self.password,
+                "username": self.username,
+                "password": self.password,
             }
             resp = self.session.post(f"{BASE_URL}/login", data=data, verify=False, allow_redirects=False)
 
@@ -60,10 +63,8 @@ class UserSession:
             if resp.status_code == 200:
                 data = resp.json()
                 # Verify we got our own user data, not someone else's
-                if 'username' in data and data['username'] != self.username:
-                    self.errors.append(
-                        f"[{self.username}] DATA LEAK! Got {data['username']}'s profile!"
-                    )
+                if "username" in data and data["username"] != self.username:
+                    self.errors.append(f"[{self.username}] DATA LEAK! Got {data['username']}'s profile!")
                     return None
                 print(f"✓ [{self.username}] Profile fetch OK: team={data.get('team', {}).get('name', 'Unknown')}")
                 return data
@@ -116,14 +117,11 @@ def test_concurrent_users(users, num_iterations=5):
 
     sessions = []
     for i, (username, password) in enumerate(users):
-        sessions.append(UserSession(username, password, i+1))
+        sessions.append(UserSession(username, password, i + 1))
 
     # Run all users concurrently
     with ThreadPoolExecutor(max_workers=len(users)) as executor:
-        futures = [
-            executor.submit(session.perform_actions, num_iterations)
-            for session in sessions
-        ]
+        futures = [executor.submit(session.perform_actions, num_iterations) for session in sessions]
 
         # Wait for all to complete
         for future in futures:

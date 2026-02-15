@@ -1,15 +1,15 @@
-import pytest
 from datetime import datetime, timedelta, timezone
+
+import pytest
 import pytz
 
-from scoring_engine.models.inject import Template, Inject, Comment, File
+from scoring_engine.db import db
+from scoring_engine.models.inject import Comment, File, Inject, Template
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 
-from tests.scoring_engine.unit_test import UnitTest
 
-
-class TestTemplate(UnitTest):
+class TestTemplate:
 
     def test_init(self):
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
@@ -21,7 +21,7 @@ class TestTemplate(UnitTest):
             score=100,
             start_time=start_time,
             end_time=end_time,
-            enabled=True
+            enabled=True,
         )
         assert template.title == "Journey to Mordor"
         assert template.scenario == "You have the ring, take it to be destroyed!"
@@ -41,7 +41,7 @@ class TestTemplate(UnitTest):
             score=50,
             start_time=start_time,
             end_time=end_time,
-            enabled=False
+            enabled=False,
         )
         assert template.enabled is False
 
@@ -54,12 +54,12 @@ class TestTemplate(UnitTest):
             deliverable="Test deliverable",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
         assert template.id is not None
-        assert len(self.session.query(Template).all()) == 1
+        assert len(db.session.query(Template).all()) == 1
 
     def test_expired_property_not_expired(self):
         """Test that expired property returns False for ongoing template"""
@@ -71,10 +71,10 @@ class TestTemplate(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
         assert template.expired is False
 
     def test_expired_property_expired(self):
@@ -87,10 +87,10 @@ class TestTemplate(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
         assert template.expired is True
 
     def test_localized_start_time(self):
@@ -98,15 +98,10 @@ class TestTemplate(UnitTest):
         start_time = datetime(2025, 1, 1, 12, 0, 0)  # Naive datetime
         end_time = datetime(2025, 1, 1, 18, 0, 0)
         template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=100,
-            start_time=start_time,
-            end_time=end_time
+            title="Test", scenario="Test", deliverable="Test", score=100, start_time=start_time, end_time=end_time
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         localized = template.localized_start_time
         assert isinstance(localized, str)
@@ -118,15 +113,10 @@ class TestTemplate(UnitTest):
         start_time = datetime(2025, 1, 1, 12, 0, 0)
         end_time = datetime(2025, 1, 1, 18, 0, 0)
         template = Template(
-            title="Test",
-            scenario="Test",
-            deliverable="Test",
-            score=100,
-            start_time=start_time,
-            end_time=end_time
+            title="Test", scenario="Test", deliverable="Test", score=100, start_time=start_time, end_time=end_time
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         localized = template.localized_end_time
         assert isinstance(localized, str)
@@ -136,8 +126,8 @@ class TestTemplate(UnitTest):
         """Test that Template can have multiple Injects"""
         team1 = Team(name="Blue Team 1", color="Blue")
         team2 = Team(name="Blue Team 2", color="Blue")
-        self.session.add(team1)
-        self.session.add(team2)
+        db.session.add(team1)
+        db.session.add(team2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -147,23 +137,23 @@ class TestTemplate(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject1 = Inject(team=team1, template=template)
         inject2 = Inject(team=team2, template=template)
-        self.session.add(inject1)
-        self.session.add(inject2)
-        self.session.commit()
+        db.session.add(inject1)
+        db.session.add(inject2)
+        db.session.commit()
 
         assert len(template.inject) == 2
 
     def test_cascade_delete(self):
         """Test that deleting a Template cascades to delete Injects"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -173,32 +163,32 @@ class TestTemplate(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         template_id = template.id
         inject_id = inject.id
 
         # Delete template
-        self.session.delete(template)
-        self.session.commit()
+        db.session.delete(template)
+        db.session.commit()
 
         # Inject should be deleted too
-        assert self.session.query(Template).filter_by(id=template_id).first() is None
-        assert self.session.query(Inject).filter_by(id=inject_id).first() is None
+        assert db.session.query(Template).filter_by(id=template_id).first() is None
+        assert db.session.query(Inject).filter_by(id=inject_id).first() is None
 
 
-class TestInject(UnitTest):
+class TestInject:
 
     def test_init(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -208,10 +198,10 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject = Inject(team=team, template=template, enabled=True)
         assert inject.team == team
@@ -221,7 +211,7 @@ class TestInject(UnitTest):
 
     def test_init_disabled(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -231,17 +221,17 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject = Inject(team=team, template=template, enabled=False)
         assert inject.enabled is False
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -251,21 +241,21 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
         assert inject.id is not None
-        assert len(self.session.query(Inject).all()) == 1
+        assert len(db.session.query(Inject).all()) == 1
 
     def test_default_values(self):
         """Test that default values are set correctly after commit"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -275,14 +265,14 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
-        self.session.commit()
+        db.session.add(template)
+        db.session.commit()
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         # After commit, database defaults are applied
         assert inject.score == 0
@@ -294,7 +284,7 @@ class TestInject(UnitTest):
     def test_status_draft(self):
         """Test inject in Draft status"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -304,20 +294,20 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         assert inject.status == "Draft"
 
     def test_status_submitted(self):
         """Test changing inject status to Submitted"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -327,24 +317,24 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         inject.status = "Submitted"
         inject.submitted = datetime.now(timezone.utc)
-        self.session.commit()
+        db.session.commit()
 
         assert inject.status == "Submitted"
 
     def test_status_graded(self):
         """Test changing inject status to Graded with score"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -354,18 +344,18 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         inject.status = "Graded"
         inject.score = 85
         inject.graded = datetime.now(timezone.utc)
-        self.session.commit()
+        db.session.commit()
 
         assert inject.status == "Graded"
         assert inject.score == 85
@@ -373,12 +363,12 @@ class TestInject(UnitTest):
     def test_comment_relationship(self):
         """Test that Inject can have multiple Comments"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user1 = User(username="testuser1", password="testpass", team=team)
         user2 = User(username="testuser2", password="testpass", team=team)
-        self.session.add(user1)
-        self.session.add(user2)
+        db.session.add(user1)
+        db.session.add(user2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -388,32 +378,32 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         # Use different users due to single_parent=True constraint
         comment1 = Comment(comment="First comment", user=user1, inject=inject)
         comment2 = Comment(comment="Second comment", user=user2, inject=inject)
-        self.session.add(comment1)
-        self.session.add(comment2)
-        self.session.commit()
+        db.session.add(comment1)
+        db.session.add(comment2)
+        db.session.commit()
 
         assert len(inject.comment) == 2
 
     def test_file_relationship(self):
         """Test that Inject can have multiple Files"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user1 = User(username="testuser1", password="testpass", team=team)
         user2 = User(username="testuser2", password="testpass", team=team)
-        self.session.add(user1)
-        self.session.add(user2)
+        db.session.add(user1)
+        db.session.add(user2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -423,30 +413,30 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         # Use different users due to single_parent=True constraint
         file1 = File(name="document1.pdf", user=user1, inject=inject)
         file2 = File(name="evidence.docx", user=user2, inject=inject)
-        self.session.add(file1)
-        self.session.add(file2)
-        self.session.commit()
+        db.session.add(file1)
+        db.session.add(file2)
+        db.session.commit()
 
         assert len(inject.file) == 2
 
     def test_cascade_delete_comments_and_files(self):
         """Test that deleting an Inject cascades to delete Comments and Files"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -456,42 +446,42 @@ class TestInject(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         comment = Comment(comment="Test comment", user=user, inject=inject)
         file = File(name="test.pdf", user=user, inject=inject)
-        self.session.add(comment)
-        self.session.add(file)
-        self.session.commit()
+        db.session.add(comment)
+        db.session.add(file)
+        db.session.commit()
 
         inject_id = inject.id
         comment_id = comment.id
         file_id = file.id
 
         # Delete inject
-        self.session.delete(inject)
-        self.session.commit()
+        db.session.delete(inject)
+        db.session.commit()
 
         # Comments and Files should be deleted too
-        assert self.session.query(Inject).filter_by(id=inject_id).first() is None
-        assert self.session.query(Comment).filter_by(id=comment_id).first() is None
-        assert self.session.query(File).filter_by(id=file_id).first() is None
+        assert db.session.query(Inject).filter_by(id=inject_id).first() is None
+        assert db.session.query(Comment).filter_by(id=comment_id).first() is None
+        assert db.session.query(File).filter_by(id=file_id).first() is None
 
 
-class TestComment(UnitTest):
+class TestComment:
 
     def test_init(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -501,15 +491,15 @@ class TestComment(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
-        with self.session.no_autoflush:
+        with db.session.no_autoflush:
             comment = Comment(comment="This is a test comment", user=user, inject=inject)
             assert comment.comment == "This is a test comment"
             assert comment.user == user
@@ -517,10 +507,10 @@ class TestComment(UnitTest):
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -530,27 +520,27 @@ class TestComment(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         comment = Comment(comment="Test comment", user=user, inject=inject)
-        self.session.add(comment)
-        self.session.commit()
+        db.session.add(comment)
+        db.session.commit()
         assert comment.id is not None
-        assert len(self.session.query(Comment).all()) == 1
+        assert len(db.session.query(Comment).all()) == 1
 
     def test_default_is_read(self):
         """Test that is_read defaults to False after commit"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -560,17 +550,17 @@ class TestComment(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         comment = Comment(comment="Test", user=user, inject=inject)
-        self.session.add(comment)
-        self.session.commit()
+        db.session.add(comment)
+        db.session.commit()
 
         # Database applies default after commit
         assert comment.is_read is False
@@ -579,10 +569,10 @@ class TestComment(UnitTest):
     def test_mark_as_read(self):
         """Test marking a comment as read"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -592,30 +582,30 @@ class TestComment(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         comment = Comment(comment="Test", user=user, inject=inject)
-        self.session.add(comment)
-        self.session.commit()
+        db.session.add(comment)
+        db.session.commit()
 
         comment.is_read = True
-        self.session.commit()
+        db.session.commit()
 
         assert comment.is_read is True
 
     def test_user_relationship(self):
         """Test that Comment has proper relationship to User"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -625,31 +615,31 @@ class TestComment(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         comment = Comment(comment="Test", user=user, inject=inject)
-        self.session.add(comment)
-        self.session.commit()
+        db.session.add(comment)
+        db.session.commit()
 
         # Access comment through user relationship
         assert len(user.comments) == 1
         assert user.comments[0].comment == "Test"
 
 
-class TestFile(UnitTest):
+class TestFile:
 
     def test_init(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -659,15 +649,15 @@ class TestFile(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
-        with self.session.no_autoflush:
+        with db.session.no_autoflush:
             file = File(name="evidence.pdf", user=user, inject=inject)
             assert file.name == "evidence.pdf"
             assert file.user == user
@@ -675,10 +665,10 @@ class TestFile(UnitTest):
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -688,31 +678,31 @@ class TestFile(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         file = File(name="test.docx", user=user, inject=inject)
-        self.session.add(file)
-        self.session.commit()
+        db.session.add(file)
+        db.session.commit()
         assert file.id is not None
-        assert len(self.session.query(File).all()) == 1
+        assert len(db.session.query(File).all()) == 1
 
     def test_multiple_files(self):
         """Test that multiple files can be added to an inject"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user1 = User(username="testuser1", password="testpass", team=team)
         user2 = User(username="testuser2", password="testpass", team=team)
         user3 = User(username="testuser3", password="testpass", team=team)
-        self.session.add(user1)
-        self.session.add(user2)
-        self.session.add(user3)
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.add(user3)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -722,32 +712,32 @@ class TestFile(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         # Use different users due to single_parent=True constraint
         file1 = File(name="doc1.pdf", user=user1, inject=inject)
         file2 = File(name="doc2.pdf", user=user2, inject=inject)
         file3 = File(name="screenshot.png", user=user3, inject=inject)
-        self.session.add(file1)
-        self.session.add(file2)
-        self.session.add(file3)
-        self.session.commit()
+        db.session.add(file1)
+        db.session.add(file2)
+        db.session.add(file3)
+        db.session.commit()
 
-        assert len(self.session.query(File).all()) == 3
+        assert len(db.session.query(File).all()) == 3
 
     def test_user_relationship(self):
         """Test that File has proper relationship to User"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         user = User(username="testuser", password="testpass", team=team)
-        self.session.add(user)
+        db.session.add(user)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -757,17 +747,17 @@ class TestFile(UnitTest):
             deliverable="Test",
             score=100,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
-        self.session.add(template)
+        db.session.add(template)
 
         inject = Inject(team=team, template=template)
-        self.session.add(inject)
-        self.session.commit()
+        db.session.add(inject)
+        db.session.commit()
 
         file = File(name="test.pdf", user=user, inject=inject)
-        self.session.add(file)
-        self.session.commit()
+        db.session.add(file)
+        db.session.commit()
 
         # Access file through user relationship
         assert len(user.files) == 1

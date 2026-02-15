@@ -1,9 +1,9 @@
-from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
+from scoring_engine.engine.basic_check import CHECKS_BIN_PATH, BasicCheck
 
 
 class SMTPSCheck(BasicCheck):
-    required_properties = ['touser', 'subject', 'body']
-    CMD = CHECKS_BIN_PATH + '/smtps_check {0} {1} {2} {3} {4} {5} {6} {7}'
+    required_properties = ["touser", "subject", "body"]
+    CMD = CHECKS_BIN_PATH + "/smtps_check {0} {1} {2} {3} {4} {5} {6} {7}"
 
     def command_format(self, properties):
         account = self.get_random_account()
@@ -11,9 +11,9 @@ class SMTPSCheck(BasicCheck):
             account.username,
             account.password,
             account.username,
-            properties['touser'],
-            properties['subject'],
-            properties['body'],
+            properties["touser"],
+            properties["subject"],
+            properties["body"],
             self.host,
-            self.port
+            self.port,
         )

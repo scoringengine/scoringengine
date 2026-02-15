@@ -8,9 +8,9 @@
 #
 # To install: pip install -I "pywinrm"
 
-import winrm
 import sys
 
+import winrm
 
 if len(sys.argv) != 5:
     print("Usage: " + sys.argv[0] + " host username password commands")
@@ -20,24 +20,25 @@ if len(sys.argv) != 5:
 host = sys.argv[1]
 username = sys.argv[2]
 password = sys.argv[3]
-commands = sys.argv[4].split(';')
+commands = sys.argv[4].split(";")
 
 
 def connect_and_execute(host, username, password, command):
     try:
-        s = winrm.Session(host, auth=(username, password), transport='ntlm')
+        s = winrm.Session(host, auth=(username, password), transport="ntlm")
         split = command.split(" ")
         if len(split) == 1:
             r = s.run_cmd(split[0], [])
         else:
             r = s.run_cmd(split[0], split[1:])
         return_code = r.status_code
-        stdout_output = r.std_out.decode('utf-8')
-        stderr_output = r.std_err.decode('utf-8')
-        return return_code, ''.join(stdout_output), ''.join(stderr_output)
+        stdout_output = r.std_out.decode("utf-8")
+        stderr_output = r.std_err.decode("utf-8")
+        return return_code, "".join(stdout_output), "".join(stderr_output)
     except Exception as e:
         print(e)
         sys.exit(1)
+
 
 last_command_output = ""
 for command in commands:

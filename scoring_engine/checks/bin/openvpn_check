@@ -2,16 +2,15 @@
 
 # A scoring engine check that logs into OpenVPN briefly
 
-import sys
-import subprocess
-import random
-import time
 import os
+import random
+import subprocess
+import sys
+import time
 
 if len(sys.argv) != 6:
     print("Usage: " + sys.argv[0] + " host port username password ca")
-    print("throw the whole ca cert used by the vpn server into the last" +
-          "parameter")
+    print("throw the whole ca cert used by the vpn server into the last" + "parameter")
     sys.exit(1)
 
 host = sys.argv[1]
@@ -52,8 +51,7 @@ credsPointer.close()
 
 shellPointer = open("/tmp/up-" + uid + ".sh", "w")
 shellPointer.write("#!/bin/sh\n")
-shellPointer.write("PID=$(ps aux | grep " + uid + " | grep -v grep" +
-                   " | cut -d ' ' -f8)\n")
+shellPointer.write("PID=$(ps aux | grep " + uid + " | grep -v grep" + " | cut -d ' ' -f8)\n")
 shellPointer.write("sleep 10\n")
 shellPointer.write("kill $PID")
 shellPointer.close()
@@ -61,21 +59,19 @@ subprocess.call(["/bin/chmod", "+x", "/tmp/up-" + uid + ".sh"])
 
 # actually do the check
 try:
-    vpn_call = subprocess.Popen(["/usr/bin/sudo", "/usr/sbin/openvpn",
-                                "/tmp/config-" + uid + ".ovpn"],
-                                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    vpn_call = subprocess.Popen(
+        ["/usr/bin/sudo", "/usr/sbin/openvpn", "/tmp/config-" + uid + ".ovpn"],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    )
     time.sleep(10)
-    tunnel_check = subprocess.check_output("/sbin/ip addr | grep tun" + uid,
-                                           shell=True)
+    tunnel_check = subprocess.check_output("/sbin/ip addr | grep tun" + uid, shell=True)
 except subprocess.CalledProcessError as e:
     output = vpn_call.communicate()[0]
     print("Error! Code: " + e.returncode + "\nVPN output: " + output)
 finally:
-    subprocess.call(["/bin/rm", "/tmp/config-" + uid + ".ovpn"],
-                    stdout=subprocess.DEVNULL)
-    subprocess.call(["/bin/rm", "/tmp/auth-" + uid + ".txt"],
-                    stdout=subprocess.DEVNULL)
-    subprocess.call(["/bin/rm", "/tmp/up-" + uid + ".sh"],
-                    stdout=subprocess.DEVNULL)
+    subprocess.call(["/bin/rm", "/tmp/config-" + uid + ".ovpn"], stdout=subprocess.DEVNULL)
+    subprocess.call(["/bin/rm", "/tmp/auth-" + uid + ".txt"], stdout=subprocess.DEVNULL)
+    subprocess.call(["/bin/rm", "/tmp/up-" + uid + ".sh"], stdout=subprocess.DEVNULL)
 if len(tunnel_check) > 0:
     print("SUCCESS")

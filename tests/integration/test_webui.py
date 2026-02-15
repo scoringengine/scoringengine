@@ -10,7 +10,7 @@ _REQUEST_TIMEOUT = float(os.environ.get("SCORINGENGINE_WEBUI_TIMEOUT", "5"))
 
 
 def _build_url(page):
-    base = BASE_URL if BASE_URL.endswith('/') else f"{BASE_URL}/"
+    base = BASE_URL if BASE_URL.endswith("/") else f"{BASE_URL}/"
     return urljoin(base, page)
 
 
@@ -34,31 +34,29 @@ class TestWebUI(object):
 
     pages = [
         {
-            'page': '',
-            'matching_text': 'Welcome to the Competition',
+            "page": "",
+            "matching_text": "Welcome to the Competition",
         },
         {
-            'page': 'scoreboard',
+            "page": "scoreboard",
         },
         {
-            'page': 'login',
-            'matching_text': 'Please sign in',
+            "page": "login",
+            "matching_text": "Please sign in",
         },
         {
-            'page': 'about',
-            'matching_text': 'Use the following credentials to login',
+            "page": "about",
+            "matching_text": "Use the following credentials to login",
         },
         {
-            'page': 'overview',
+            "page": "overview",
         },
-        {
-            'page': 'api/overview/data'
-        }
+        {"page": "api/overview/data"},
     ]
 
     @pytest.mark.parametrize("page_data", pages)
     def test_page(self, page_data):
-        resp = self.get_page(page_data['page'])
+        resp = self.get_page(page_data["page"])
         assert resp.status_code == 200
-        if 'matching_text' in page_data:
-            assert page_data['matching_text'] in resp.text
+        if "matching_text" in page_data:
+            assert page_data["matching_text"] in resp.text

@@ -1,5 +1,6 @@
-from flask import Blueprint, g, request
 from functools import wraps
+
+from flask import Blueprint, g, request
 
 from scoring_engine.cache import cache
 from scoring_engine.models.notifications import Notification
@@ -17,16 +18,4 @@ def make_cache_key(*args, **kwargs):
 mod = Blueprint("api", __name__)
 
 
-from . import admin
-from . import agent
-from . import announcements
-from . import flags
-from . import injects
-from . import notifications
-from . import overview
-from . import profile
-from . import scoreboard
-from . import service
-from . import sla
-from . import stats
-from . import team
+from . import admin, agent, announcements, flags, injects, notifications, overview, profile, scoreboard, service, sla, stats, team

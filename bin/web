@@ -2,12 +2,10 @@
 
 import sys
 
-from scoring_engine.web import create_app
 from scoring_engine.db import db, verify_db_ready
-
-from scoring_engine.version import version
 from scoring_engine.logger import logger
-
+from scoring_engine.version import version
+from scoring_engine.web import create_app
 
 application = create_app()
 

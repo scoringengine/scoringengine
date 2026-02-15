@@ -1,8 +1,6 @@
 import bcrypt
-
 from flask_login import UserMixin
-
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
@@ -51,10 +49,7 @@ class User(Base, UserMixin):
         return self.username
 
     def check_password(self, password):
-        # this is due to some weird bug between rusty and I
-        # where his env was returning a str, and mine were bytes
-        if isinstance(password, str):
-            password = password.encode("utf-8")
+        password = password.encode("utf-8")[:72]
         return bcrypt.checkpw(password, self.password.encode("utf-8"))
 
     def update_password(self, password):
@@ -68,10 +63,7 @@ class User(Base, UserMixin):
         elif isinstance(salt, str):
             salt = salt.encode("utf-8")
 
-        # this is due to some weird bug between rusty and I
-        # where his env was returning a str, and mine were bytes
-        if isinstance(password, str):
-            password = password.encode("utf-8")
+        password = password.encode("utf-8")[:72]
         return bcrypt.hashpw(password, salt).decode("utf-8")
 
     def get_id(self):

@@ -1,28 +1,30 @@
-from flask import request, make_response, abort
-from flask_login import current_user, login_required
-from sqlalchemy import desc, func, exists
-from sqlalchemy.sql.expression import and_
-from datetime import datetime, timedelta, timezone
-from typing import Tuple
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.exceptions import InvalidTag
-from hashlib import sha256
 import json
 import os
+from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from typing import Tuple
+
+from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from flask import abort, make_response, request
+from flask_login import current_user, login_required
+from sqlalchemy import desc, exists, func
+from sqlalchemy.sql.expression import and_
 
 from scoring_engine.cache import agent_cache as cache
 from scoring_engine.db import db
-from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
+from scoring_engine.models.flag import Flag, Platform, Solve
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
-from scoring_engine.models.team import Team
 from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
 
 from . import mod
 
 cache_dict = {}  # TODO - This is a dev hack. Real users should be using the flask-caching cache to store values
 AESGCM_NONCE_LENGTH = 12
+
 
 class BtaPayloadEncryption:
     def __init__(self, psk: str, team_name: str):
@@ -59,7 +61,7 @@ def agent_checkin_post():
     psk = Setting.get_setting("agent_psk").value
     crypter = BtaPayloadEncryption(psk, team_input)
     try:
-      data = crypter.loads(request.get_data())
+        data = crypter.loads(request.get_data())
     except InvalidTag:
         # bad decryption
         abort(417)
@@ -81,12 +83,7 @@ def agent_checkin_post():
 
     flags = data.get("flags", [])
     if len(flags) > 0:
-        flags = db.session.query(Flag).filter(
-                and_(
-                    Flag.id.in_(flags),
-                    Flag.dummy == False
-                )
-            ).all()
+        flags = db.session.query(Flag).filter(and_(Flag.id.in_(flags), Flag.dummy == False)).all()
         solves = [
             Solve(
                 host=host,
@@ -99,7 +96,7 @@ def agent_checkin_post():
         db.session.commit()
 
     result = do_checkin(team, host, platform)
-    return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})
+    return make_response(crypter.dumps(result), 200, {"Content-Type": "application/octet-stream"})
 
 
 def do_checkin(team, host, platform):

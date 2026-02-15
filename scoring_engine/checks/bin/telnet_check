@@ -17,22 +17,22 @@ port = sys.argv[2]
 timeout = sys.argv[3]
 username = sys.argv[4]
 password = sys.argv[5]
-commands = sys.argv[6].split(';')
+commands = sys.argv[6].split(";")
 
 
 def connect_and_execute(host, port, timeout, username, password, command):
     try:
         tn = telnetlib.Telnet(host=host, port=port, timeout=5)
         tn.read_until(b"login: ")
-        tn.write(username.encode('ascii') + b"\n")
+        tn.write(username.encode("ascii") + b"\n")
         if password:
             tn.read_until(b"Password: ")
-            tn.write(password.encode('ascii') + b"\n")
+            tn.write(password.encode("ascii") + b"\n")
 
         tn.write(b"{0}\n".format(command))
         tn.write(b"exit\n")
 
-        return(tn.read_all().decode('ascii'))
+        return tn.read_all().decode("ascii")
     except Exception as e:
         print(e)
         sys.exit(1)

@@ -1,10 +1,9 @@
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, Text, DateTime, UnicodeText
-from sqlalchemy.orm import relationship
-
-from datetime import datetime, timezone
-import pytz
-
 import html
+from datetime import datetime, timezone
+
+import pytz
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Text, UnicodeText
+from sqlalchemy.orm import relationship
 
 
 def _ensure_utc_aware(dt):
@@ -17,17 +16,18 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-from scoring_engine.models.base import Base
+
 from scoring_engine.config import config
+from scoring_engine.models.base import Base
 
 
 class Check(Base):
-    __tablename__ = 'checks'
+    __tablename__ = "checks"
     id = Column(Integer, primary_key=True)
-    round_id = Column(Integer, ForeignKey('rounds.id'))
-    round = relationship('Round', back_populates='checks')
-    service_id = Column(Integer, ForeignKey('services.id'))
-    service = relationship('Service')
+    round_id = Column(Integer, ForeignKey("rounds.id"))
+    round = relationship("Round", back_populates="checks")
+    service_id = Column(Integer, ForeignKey("services.id"))
+    service = relationship("Service")
     result = Column(Boolean)
     output = Column(UnicodeText, default="")
     reason = Column(Text, default="")
@@ -45,4 +45,8 @@ class Check(Base):
 
     @property
     def local_completed_timestamp(self):
-        return _ensure_utc_aware(self.completed_timestamp).astimezone(pytz.timezone(config.timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+        return (
+            _ensure_utc_aware(self.completed_timestamp)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z")
+        )

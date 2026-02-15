@@ -45,7 +45,7 @@ scoring_engine/
 ├── competition.py    # YAML competition definition parser
 ├── config_loader.py  # Priority: env vars → config file → defaults
 └── cache_helper.py   # Redis cache invalidation helpers
-tests/                # Mirrors main structure; use UnitTest base class
+tests/                # Mirrors main structure; plain classes + pytest fixtures
 docker/               # Container build files
 bin/                  # Entry points: setup, engine, web, worker
 ```
@@ -60,7 +60,7 @@ bin/                  # Entry points: setup, engine, web, worker
 
 - **Engine**: `from scoring_engine.db import session` (manual)
 - **Web**: Auto-managed per request (Flask-SQLAlchemy)
-- **Tests**: `self.session` from `UnitTest` base class
+- **Tests**: `db.session` via autouse `db_session` fixture (see conftest.py)
 
 ## Adding a Service Check
 
@@ -95,14 +95,44 @@ bump-my-version bump [patch|minor|major]       # Version bump
 
 ## Testing
 
-All new code MUST have tests. Tests mirror `scoring_engine/` structure:
-```python
-from tests.scoring_engine.unit_test import UnitTest
+All new code MUST have tests. Tests use plain classes with pytest fixtures (no base class inheritance).
 
-class TestMyFeature(UnitTest):
+**Model/logic tests** — just need `db_session` (autouse, no explicit request needed):
+```python
+from scoring_engine.db import db
+from scoring_engine.models.team import Team
+
+class TestMyFeature:
     def test_something(self):
-        pass  # self.session available for DB
+        team = Team(name="Test", color="Blue")
+        db.session.add(team)
+        db.session.commit()
+        assert team.id is not None
 ```
+
+**Web/API tests** — request the `test_client` fixture:
+```python
+import pytest
+from scoring_engine.db import db
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+
+class TestMyView:
+    @pytest.fixture(autouse=True)
+    def setup(self, test_client, db_session):
+        self.client = test_client
+
+    def test_requires_auth(self):
+        resp = self.client.get("/my-route")
+        assert resp.status_code == 302
+```
+
+**Key fixtures** (defined in `tests/scoring_engine/conftest.py`):
+- `db_session` — autouse, provides clean DB per test (DELETE all rows + re-insert settings)
+- `test_client` — Flask test client with CSRF disabled
+- `three_teams` — creates White/Blue/Red teams with users (password: `"testpass"`)
+- `white_login`, `blue_login`, `red_login` — logged-in client + teams dict
+- `_login(client, username)` — helper to POST /login
 
 ## Complex Changes
 

@@ -1,14 +1,13 @@
-import os
 import logging
+import os
 
 from flask import Flask
 from flask_login import LoginManager
 
-from scoring_engine.cache import cache, agent_cache
+from scoring_engine.cache import agent_cache, cache
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.version import version_info
-
 
 SECRET_KEY = os.urandom(128)
 
@@ -28,11 +27,11 @@ def create_app():
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800  # 1 week
 
     # Configure Flask-SQLAlchemy
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.db_uri
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,  # Verify connections before using them
-        'pool_recycle': 3600,   # Recycle connections after 1 hour
+    app.config["SQLALCHEMY_DATABASE_URI"] = config.db_uri
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,  # Verify connections before using them
+        "pool_recycle": 3600,  # Recycle connections after 1 hour
     }
 
     # Initialize Flask-SQLAlchemy with the app
@@ -43,19 +42,19 @@ def create_app():
         log.setLevel(logging.ERROR)
 
     from scoring_engine.web.views import (
-        welcome,
+        about,
+        admin,
+        api,
+        auth,
+        flags,
+        injects,
+        notifications,
+        overview,
+        profile,
+        scoreboard,
         services,
         stats,
-        scoreboard,
-        profile,
-        overview,
-        notifications,
-        injects,
-        flags,
-        auth,
-        api,
-        admin,
-        about,
+        welcome,
         announcements,
     )
 
