@@ -289,6 +289,8 @@ def api_inject_add_comment(inject_id):
     data = request.get_json()
     if "comment" not in data or data["comment"] == "":
         return jsonify({"status": "No comment"}), 400
+    if len(data["comment"]) > 25000:
+        return jsonify({"status": "Comment exceeds maximum length of 25,000 characters"}), 400
 
     c = InjectComment(data["comment"], current_user, inject)
     db.session.add(c)
@@ -345,7 +347,7 @@ def api_inject_download(inject_id, file_id):
         abort(404)
 
 
-PREVIEWABLE_EXTENSIONS = {".pdf", ".txt", ".docx", ".odt"}
+PREVIEWABLE_EXTENSIONS = {".pdf", ".txt", ".docx"}
 
 
 def _get_original_extension(file_obj):
@@ -355,46 +357,12 @@ def _get_original_extension(file_obj):
 
 
 def _preview_docx(path):
-    """Convert a .docx file to simple HTML."""
-    from docx import Document
+    """Convert a .docx file to HTML preserving document order, tables, and images."""
+    import mammoth
 
-    doc = Document(path)
-    parts = []
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if text:
-            parts.append(f"<p>{text}</p>")
-    for table in doc.tables:
-        parts.append("<table class='table table-bordered'>")
-        for row in table.rows:
-            parts.append("<tr>")
-            for cell in row.cells:
-                parts.append(f"<td>{cell.text}</td>")
-            parts.append("</tr>")
-        parts.append("</table>")
-    return "\n".join(parts)
-
-
-def _preview_odt(path):
-    """Convert an .odt file to simple HTML."""
-    from odf.opendocument import load
-    from odf.text import P
-
-    doc = load(path)
-    parts = []
-    for element in doc.getElementsByType(P):
-        text = element
-        # Extract text content from the element and its children
-        content = ""
-        for node in text.childNodes:
-            if hasattr(node, "data"):
-                content += node.data
-            elif hasattr(node, "__str__"):
-                content += str(node)
-        content = content.strip()
-        if content:
-            parts.append(f"<p>{content}</p>")
-    return "\n".join(parts)
+    with open(path, "rb") as f:
+        result = mammoth.convert_to_html(f)
+    return result.value
 
 
 @mod.route("/api/inject/<inject_id>/files/<file_id>/preview")
@@ -424,8 +392,4 @@ def api_inject_preview(inject_id, file_id):
 
     if ext == ".docx":
         html_content = _preview_docx(path)
-        return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
-
-    if ext == ".odt":
-        html_content = _preview_odt(path)
         return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}

@@ -71,18 +71,17 @@
           </ul>
         </div>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-4">
-        <div class="panel panel-default">
-          <div class="panel-heading">Scoreboard</div>
-          <ul class="list-group">
-            <li class="list-group-item">
-              <form id="inject_scores_visible_form" method="POST" action="{{ url_for('api.admin_toggle_inject_scores_visible') }}" role="form">
-                Show Inject Scores
-                <div class="permission-switch pull-right">
-                  <input id="inject_scores_visible" type="checkbox" onchange="$('#inject_scores_visible_form').submit();" {{ 'checked' if inject_scores_visible == true }}/>
-                  <label for="inject_scores_visible" class="label-primary"></label>
-                </div>
-              </form>
+      <div class="col-12 col-sm-6 col-md-5 mb-3">
+        <h3 class="section-header">Injects</h3>
+        <div class="chart-card" style="padding:0; overflow:hidden;">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Show Inject Scores</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_toggle_inject_scores_visible') }}"
+                       {{ 'checked' if inject_scores_visible == true }}>
+              </div>
             </li>
           </ul>
         </div>

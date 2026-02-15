@@ -93,12 +93,13 @@
           if (data == null) {
             return "Not Submitted";
           } else if (data['status'] == 'Graded') {
-            return data['score'] + " (" + (100 * data['score']) / data['max_score'] + "%)";
-          } else if (data['status'] == 'Submitted') {
-            // TODO - Add modal for grading / commenting
+            return "<a href=/admin/injects/" + data['id'] + ">" + data['score'] + " (" + (100 * data['score'] / data['max_score']).toFixed(2) + "%)</a>";
+          } else if (data['status'] == 'Submitted' || data['status'] == 'Resubmitted') {
             return "<a href=/admin/injects/" + data['id'] + ">Grade Me!</a>";
+          } else if (data['status'] == 'Revision Requested') {
+            return "<a href=/admin/injects/" + data['id'] + ">Revision Requested</a>";
           } else {
-            return "Not Submitted";
+            return data['status'] || "Not Submitted";
           }
         },
       },

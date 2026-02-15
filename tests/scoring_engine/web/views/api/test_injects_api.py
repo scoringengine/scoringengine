@@ -529,6 +529,18 @@ class TestInjectsAPI:
 
         assert resp.status_code == 400
 
+    def test_inject_add_comment_rejects_too_long(self):
+        """Test that comments exceeding 25,000 characters are rejected"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("blueuser1")
+        resp = self.client.post(f"/api/inject/{inject.id}/comment", json={"comment": "x" * 25001})
+        assert resp.status_code == 400
+        assert "maximum length" in resp.json["status"]
+
     def test_inject_add_comment_prevents_after_end_time(self):
         """Test that comments cannot be added after inject ends"""
         template = self._make_template(
@@ -795,8 +807,8 @@ class TestInjectsAPI:
         assert resp.content_type.startswith("text/html")
         assert "<p>Hello</p>" in resp.data.decode()
 
-    def test_preview_odt_file(self):
-        """Test preview of an odt file returns HTML"""
+    def test_preview_odt_not_supported(self):
+        """Test that ODT files are not previewable"""
         template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         file_obj = InjectFile("test.odt", self.blue_user1, inject, original_filename="report.odt")
@@ -804,12 +816,8 @@ class TestInjectsAPI:
         db.session.commit()
 
         self.login("blueuser1")
-        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
-            with patch("scoring_engine.web.views.api.injects._preview_odt", return_value="<p>ODT content</p>"):
-                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
-        assert resp.status_code == 200
-        assert resp.content_type.startswith("text/html")
-        assert "<p>ODT content</p>" in resp.data.decode()
+        resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 400
 
     def test_preview_missing_physical_file(self):
         """Test preview returns 404 when physical file is missing"""

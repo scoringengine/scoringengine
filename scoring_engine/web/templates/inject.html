@@ -24,7 +24,7 @@
       {% if inject.status == 'Submitted' or inject.status == 'Resubmitted' %}
       <h3>{{ inject.template.title }} <span class="badge bg-success">{{ inject.status}}</span></h3>
       {% elif inject.status == 'Graded' %}
-      <h3>{{ inject.template.title }} <span class="badge bg-info text-dark">{{ inject.status}}</span></h3>
+      <h3>{{ inject.template.title }} <span class="badge bg-info text-white">{{ inject.status}}</span></h3>
       {% elif inject.template.expired %}
       <h3>{{ inject.template.title }} <span class="badge bg-danger">Expired</span></h3>
       {% elif inject.status == 'Draft' %}
@@ -68,7 +68,8 @@
         <div class="card-body">
           <form>
             <div class="mb-3">
-              <textarea id="commentArea" class="form-control" rows="3"></textarea>
+              <textarea id="commentArea" class="form-control" rows="3" maxlength="25000"></textarea>
+              <div class="form-text text-end"><span id="commentCharCount">0</span> / 25,000</div>
             </div>
             <div class="mb-3">
               <button id="addCommentButton" type="button" class="btn btn-primary">Comment</button>
@@ -256,7 +257,7 @@
     });
   }
 
-  var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt'];
+  var previewableExtensions = ['.pdf', '.txt', '.docx'];
 
   function getFileExtension(filename) {
     return filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -281,7 +282,7 @@
             $('#previewModalBody').html(result);
           }
           $('#previewModalTitle').text('Preview: ' + filename);
-          $('#previewModal').modal('show');
+          new bootstrap.Modal(document.getElementById('previewModal')).show();
         },
         error: function () {
           alert('Error loading preview');
@@ -301,10 +302,10 @@
         $.each(result.data, function (index, value) {
           files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a>";
           if (isPreviewable(value.name)) {
-            files += ' <button class="btn btn-xs btn-info" onclick="previewFile(' + value.id + ', \'' + value.name.replace(/'/g, "\\'") + '\')">Preview</button>';
+            files += ' <button class="btn btn-sm btn-info" onclick="previewFile(' + value.id + ', \'' + value.name.replace(/'/g, "\\'") + '\')">Preview</button>';
           }
           if (canDelete) {
-            files += ' <button class="btn btn-xs btn-danger delete-file-btn" data-file-id="' + value.id + '">Delete</button>';
+            files += ' <button class="btn btn-sm btn-danger delete-file-btn" data-file-id="' + value.id + '">Delete</button>';
           }
           files += "</p>";
         });
@@ -377,6 +378,18 @@
   };
 </script>
 <script>
+  $('#commentArea').on('input', function () {
+    var len = $(this).val().length;
+    $('#commentCharCount').text(len.toLocaleString());
+    if (len >= 25000) {
+      $('#commentCharCount').parent().removeClass('text-warning').addClass('text-danger');
+    } else if (len >= 20000) {
+      $('#commentCharCount').parent().removeClass('text-danger').addClass('text-warning');
+    } else {
+      $('#commentCharCount').parent().removeClass('text-danger text-warning');
+    }
+  });
+
   $('#addCommentButton').unbind().click(function () {
     $.ajax({
       url: "/api/inject/{{ inject.id }}/comment",
@@ -388,6 +401,8 @@
       success: function (result) {
         console.log("Comment added");
         $('#commentArea').val('');
+        $('#commentCharCount').text('0');
+        $('#commentCharCount').parent().removeClass('text-danger text-warning');
         updateComments();
       },
       error: function (result) {
@@ -398,18 +413,17 @@
   });
 </script>
 <!-- File Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-            aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="previewModalTitle">Preview</h4>
+        <h5 class="modal-title" id="previewModalTitle">Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="previewModalBody">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
