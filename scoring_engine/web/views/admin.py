@@ -44,6 +44,16 @@ def queues():
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/webserver")
+@login_required
+def webserver():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/webserver.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/manage")
 @login_required
 def manage():

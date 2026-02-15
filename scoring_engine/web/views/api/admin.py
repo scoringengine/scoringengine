@@ -1,6 +1,8 @@
 import html
 import json
 import re
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 
 import pytz
@@ -1057,12 +1059,86 @@ def admin_get_worker_stats():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/get_worker_summary")
+@login_required
+def admin_get_worker_summary():
+    if current_user.is_white_team:
+        summary = CeleryStats.get_worker_summary()
+        return jsonify(summary)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_worker_stats_with_summary")
+@login_required
+def admin_get_worker_stats_with_summary():
+    if current_user.is_white_team:
+        worker_stats = CeleryStats.get_worker_stats()
+        summary = CeleryStats._compute_summary(worker_stats)
+        return jsonify(data=worker_stats, summary=summary)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_queue_stats")
 @login_required
 def admin_get_queue_stats():
     if current_user.is_white_team:
         queue_stats = CeleryStats.get_queue_stats()
         return jsonify(data=queue_stats)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_uwsgi_stats")
+@login_required
+def admin_get_uwsgi_stats():
+    if current_user.is_white_team:
+        try:
+            with urllib.request.urlopen("http://localhost:9191", timeout=2) as resp:
+                raw = json.loads(resp.read())
+        except (urllib.error.URLError, OSError):
+            return jsonify({"error": "uwsgi stats server unavailable"}), 503
+
+        total_requests = 0
+        total_exceptions = 0
+        total_tx = 0
+        total_running_time = 0
+        workers = []
+        for w in raw.get("workers", []):
+            total_requests += w.get("requests", 0)
+            total_exceptions += w.get("exceptions", 0)
+            total_tx += w.get("tx", 0)
+            total_running_time += w.get("running_time", 0)
+            workers.append({
+                "id": w["id"],
+                "pid": w["pid"],
+                "status": w["status"],
+                "requests": w.get("requests", 0),
+                "exceptions": w.get("exceptions", 0),
+                "harakiri_count": w.get("harakiri_count", 0),
+                "avg_rt_ms": round(w.get("avg_rt", 0) / 1000, 1),
+                "tx_kb": round(w.get("tx", 0) / 1024, 1),
+                "rss_mb": round(w.get("rss", 0) / (1024 * 1024), 1),
+                "running_time_s": round(w.get("running_time", 0) / 1e6, 1),
+                "respawn_count": w.get("respawn_count", 0),
+            })
+
+        socket = raw.get("sockets", [{}])[0] if raw.get("sockets") else {}
+        summary = {
+            "version": raw.get("version", ""),
+            "total_workers": len(raw.get("workers", [])),
+            "busy_workers": sum(1 for w in raw.get("workers", []) if w.get("status") == "busy"),
+            "idle_workers": sum(1 for w in raw.get("workers", []) if w.get("status") == "idle"),
+            "total_requests": total_requests,
+            "total_exceptions": total_exceptions,
+            "total_tx_mb": round(total_tx / (1024 * 1024), 2),
+            "listen_queue": raw.get("listen_queue", 0),
+            "listen_queue_max": socket.get("max_queue", 0),
+            "listen_queue_errors": raw.get("listen_queue_errors", 0),
+        }
+
+        return jsonify(summary=summary, workers=workers)
     else:
         return {"status": "Unauthorized"}, 403
 
