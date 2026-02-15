@@ -156,7 +156,7 @@ class TestTeam(UnitTest):
         assert results['rounds'] == ['Round 0', 'Round 1', 'Round 2']
         assert 'rgb_colors' in results
         assert 'Blue Team 1' in results['rgb_colors']
-        assert results['rgb_colors']['Blue Team 1'].startswith('rgba')
+        assert results['rgb_colors']['Blue Team 1'].startswith('#')
         assert 'scores' in results
         assert results['scores'] == {'Blue Team 1': [0, 100, 100]}
 

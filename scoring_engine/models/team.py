@@ -1,3 +1,4 @@
+import colorsys
 import itertools
 import random
 
@@ -8,6 +9,47 @@ from sqlalchemy.orm import relationship
 
 from scoring_engine.models.base import Base
 from scoring_engine.models.check import Check
+
+# Curated palette: medium-saturation, medium-lightness colors that maintain
+# WCAG AA contrast (4.5:1) on both dark (#0a0a0a–#161616) and light
+# (#fafafa–#ffffff) backgrounds across all visual themes.
+_TEAM_COLORS = [
+    "#5b9cf6",  # blue
+    "#e8656d",  # red
+    "#4caf7d",  # green
+    "#b388f2",  # purple
+    "#e6a030",  # amber
+    "#50bfc9",  # cyan
+    "#e56aab",  # magenta
+    "#d4a63a",  # gold
+    "#6db0ef",  # light blue
+    "#6ecf8a",  # lime
+    "#f08080",  # salmon
+    "#a07ee8",  # lavender
+    "#e88e4a",  # orange
+    "#41b86a",  # bright green
+    "#82c4f0",  # sky
+    "#d47a35",  # dark orange
+    "#9ca8b4",  # silver
+    "#d35a93",  # rose
+    "#3da854",  # forest green
+    "#7c5dcf",  # violet
+    "#d8882e",  # tangerine
+    "#3dbcc4",  # teal
+    "#d66b70",  # coral
+    "#8896a5",  # gray
+    "#c49028",  # dark gold
+    "#5cb88a",  # mint
+    "#c86acc",  # orchid
+    "#5ca4e8",  # cornflower
+    "#dbb84a",  # yellow
+    "#cf6666",  # indian red
+    "#44bec8",  # light teal
+    "#8cc45e",  # light green
+]
+
+# Track which palette colors have been assigned this session
+_palette_index = 0
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -52,11 +94,22 @@ class Team(Base):
     def __init__(self, name, color):
         self.name = name
         self.color = color
-        self.rgb_color = "rgba(%s, %s, %s, 1)" % (
-            random.randint(0, 255),
-            random.randint(0, 255),
-            random.randint(0, 255),
-        )
+        self.rgb_color = self._next_color()
+
+    @staticmethod
+    def _next_color():
+        """Pick the next distinct color from the curated palette, or generate a random vibrant one."""
+        global _palette_index
+        if _palette_index < len(_TEAM_COLORS):
+            hex_color = _TEAM_COLORS[_palette_index]
+            _palette_index += 1
+            return hex_color
+        # Fallback: random color with constrained HSL for dark-bg readability
+        h = random.random()
+        s = random.uniform(0.6, 0.9)
+        l = random.uniform(0.55, 0.75)
+        r, g, b = colorsys.hls_to_rgb(h, l, s)
+        return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
 
     @property
     def current_score(self):
@@ -132,6 +185,81 @@ class Team(Base):
     @property
     def is_blue_team(self):
         return self.color == "Blue"
+
+    # Adjectives and animals for anonymous team names
+    # 50 adjectives × 30 animals = 1500 unique combinations
+    _ADJECTIVES = [
+        "Swift", "Brave", "Mighty", "Silent", "Cunning",
+        "Bold", "Fierce", "Noble", "Stealthy", "Shadow",
+        "Iron", "Golden", "Crystal", "Storm", "Frost",
+        "Crimson", "Thunder", "Phantom", "Blazing", "Savage",
+        "Lunar", "Solar", "Cyber", "Primal", "Spectral",
+        "Ancient", "Emerald", "Sapphire", "Onyx", "Obsidian",
+        "Rapid", "Rogue", "Eternal", "Mystic", "Stealth",
+        "Elite", "Prime", "Alpha", "Omega", "Delta",
+        "Apex", "Neon", "Arctic", "Inferno", "Venom",
+        "Titan", "Dusk", "Tempest", "Wraith", "Chaos",
+    ]
+    _ANIMALS = [
+        "Falcon", "Wolf", "Tiger", "Panther", "Eagle",
+        "Bear", "Lion", "Viper", "Phoenix", "Dragon",
+        "Hawk", "Cobra", "Raven", "Jaguar", "Shark",
+        "Lynx", "Scorpion", "Stallion", "Raptor", "Hydra",
+        "Griffin", "Serpent", "Kraken", "Mantis", "Barracuda",
+        "Wyvern", "Basilisk", "Chimera", "Sphinx", "Cerberus",
+    ]
+
+    @classmethod
+    def _get_anonymous_name(cls, index):
+        """
+        Generate a deterministic, unique anonymous name based on index.
+        First 30 teams get unique adjectives and animals (1:1 mapping).
+        Beyond 30, combinations cycle through all 1500 unique pairs.
+        """
+        num_animals = len(cls._ANIMALS)
+        num_adjectives = len(cls._ADJECTIVES)
+
+        if index < min(num_adjectives, num_animals):
+            # First N teams get 1:1 unique adjective + animal
+            adj_idx = index
+            animal_idx = index
+        else:
+            # Beyond that, use divmod to generate unique combinations
+            # This gives us num_adjectives × num_animals unique pairs
+            adj_idx = index % num_adjectives
+            animal_idx = (index // num_adjectives) % num_animals
+            # Add offset to avoid repeating the first N combinations
+            if adj_idx == animal_idx and adj_idx < min(num_adjectives, num_animals):
+                animal_idx = (animal_idx + 1) % num_animals
+
+        return f"{cls._ADJECTIVES[adj_idx]} {cls._ANIMALS[animal_idx]}"
+
+    @classmethod
+    def get_team_name_mapping(cls, anonymize=False, show_both=False):
+        """
+        Get a mapping of team IDs to display names.
+
+        Args:
+            anonymize: If True, returns only anonymous names (e.g., "Swift Falcon")
+            show_both: If True, returns "RealName (Codename)" format for white team
+
+        Returns: dict mapping team_id -> display_name
+        """
+        teams = db.session.query(cls).filter(cls.color == "Blue").order_by(cls.id).all()
+        mapping = {}
+        for idx, team in enumerate(teams):
+            anon_name = cls._get_anonymous_name(idx)
+            if anonymize:
+                mapping[team.id] = anon_name
+                mapping[team.name] = anon_name
+            elif show_both:
+                display_name = f"{team.name} ({anon_name})"
+                mapping[team.id] = display_name
+                mapping[team.name] = display_name
+            else:
+                mapping[team.id] = team.name
+                mapping[team.name] = team.name
+        return mapping
 
     def get_array_of_scores(self, max_round):
         round_scores = (

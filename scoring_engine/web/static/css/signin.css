@@ -1,6 +1,5 @@
 body {
-  padding-bottom: 40px;
-  background-color: #eee;
+  background-color: var(--bs-body-bg);
 }
 
 .form-signin {

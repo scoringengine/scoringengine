@@ -2,28 +2,39 @@
 {% block title %}{{current_user.username}}{% endblock %}
 {% block head %}
     {{ super() }}
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<div class="container md-page">
+<div class="page-wrap">
   <div class="row">
     <h3>Name: {{current_user.username}}</h3>
-    <h4>Team Color: {{current_user.team.color}}</h4>
+    <h4>Team:
+      {% if current_user.is_white_team %}
+      <span class="badge bg-light text-dark">White Team</span>
+      {% elif current_user.is_blue_team %}
+      <span class="badge bg-primary">Blue Team</span>
+      {% elif current_user.is_red_team %}
+      <span class="badge bg-danger">Red Team</span>
+      {% else %}
+      <span class="badge bg-secondary">{{current_user.team.color}} Team</span>
+      {% endif %}
+    </h4>
     <div class="card">
-      <h2 class="text-center">Update Password</h2>
-      <form method="POST" action="{{url_for('api.profile_update_password')}}" role="form" class="form-signin">
-        <input type="hidden" name="user_id" value="{{current_user.id}}">
-        <div class="form-group">
-          <input type="password" class="form-control" name="currentpassword" id="currentPassword" placeholder="Current Password" required>
-        </div>
-        <div class="form-group">
-          <input type="password" class="form-control" name="password" id="inputPassword" placeholder="New Password" required>
-        </div>
-        <div class="form-group">
-          <input type="password" class="form-control" name="confirmedpassword" id="inputConfirmedPassword" placeholder="Confirmed Password" required>
-        </div>
-        <button type="submit" class="btn btn-primary center-block">Update Password</button>
-      </form>
+      <div class="card-body">
+        <h4 class="card-title text-center">Update Password</h4>
+        <form method="POST" action="{{url_for('api.profile_update_password')}}" role="form">
+          <input type="hidden" name="user_id" value="{{current_user.id}}">
+          <div class="mb-3">
+            <input type="password" class="form-control" name="currentpassword" id="currentPassword" placeholder="Current Password" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" name="password" id="inputPassword" placeholder="New Password" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" name="confirmedpassword" id="inputConfirmedPassword" placeholder="Confirmed Password" required>
+          </div>
+          <button type="submit" class="btn btn-primary d-block mx-auto">Update Password</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>

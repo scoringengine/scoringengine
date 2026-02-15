@@ -2,6 +2,7 @@ from collections import defaultdict
 from itertools import accumulate
 
 from flask import jsonify
+from flask_login import current_user
 from sqlalchemy.sql import func
 
 from scoring_engine.cache import cache
@@ -10,11 +11,34 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.sla import (apply_dynamic_scoring_to_round,
                                 calculate_team_total_penalties, get_sla_config)
 
 from . import mod
+
+
+def get_anonymize_mode():
+    """
+    Determine how team names should be displayed.
+    Returns: (anonymize, show_both) tuple
+        - (True, False): Show only anonymous names (public/blue teams)
+        - (False, True): Show "RealName (Anonymous)" (white team when enabled)
+        - (False, False): Show only real names (setting disabled)
+    """
+    setting = Setting.get_setting("anonymize_team_names")
+    anonymize_enabled = setting.value is True if setting else False
+
+    if not anonymize_enabled:
+        return (False, False)
+
+    # White team sees both names when anonymization is enabled
+    if current_user.is_authenticated and current_user.is_white_team:
+        return (False, True)
+
+    # Everyone else sees only anonymous names
+    return (True, False)
 
 
 def calculate_team_scores_with_dynamic_scoring(sla_config):
@@ -61,12 +85,13 @@ def calculate_team_scores_with_dynamic_scoring(sla_config):
     return dict(team_scores)
 
 
-@mod.route("/api/scoreboard/get_bar_data")
 @cache.memoize()
-def scoreboard_get_bar_data():
-    # Get SLA configuration first (needed for dynamic scoring)
+def _get_bar_data_cached(anonymize, show_both):
+    """
+    Internal cached function for bar chart data.
+    Cache key includes anonymize/show_both flags for separate caches per user type.
+    """
     sla_config = get_sla_config()
-
     current_scores = calculate_team_scores_with_dynamic_scoring(sla_config)
 
     inject_scores = dict(
@@ -83,11 +108,17 @@ def scoreboard_get_bar_data():
     team_sla_penalties = []
     team_adjusted_scores = []
 
+    team_colors = []
+
     blue_teams = (
         db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     )
+    team_name_map = Team.get_team_name_mapping(anonymize=anonymize, show_both=show_both)
+
     for blue_team in blue_teams:
-        team_labels.append(blue_team.name)
+        display_name = team_name_map.get(blue_team.id, blue_team.name)
+        team_labels.append(display_name)
+        team_colors.append(blue_team.rgb_color)
         service_score = current_scores.get(blue_team.id, 0)
         inject_score = inject_scores.get(blue_team.id, 0)
         team_scores.append(str(service_score))
@@ -109,17 +140,21 @@ def scoreboard_get_bar_data():
             team_adjusted_scores.append(str(total_base_score))
 
     team_data["labels"] = team_labels
+    team_data["colors"] = team_colors
     team_data["service_scores"] = team_scores
     team_data["inject_scores"] = team_inject_scores
     team_data["sla_penalties"] = team_sla_penalties
     team_data["adjusted_scores"] = team_adjusted_scores
     team_data["sla_enabled"] = sla_config.sla_enabled
-    return jsonify(team_data)
+    return team_data
 
 
-@mod.route("/api/scoreboard/get_line_data")
 @cache.memoize()
-def scoreboard_get_line_data():
+def _get_line_data_cached(anonymize, show_both):
+    """
+    Internal cached function for line chart data.
+    Cache key includes anonymize/show_both flags for separate caches per user type.
+    """
     last_round = Round.get_last_round_num()
     sla_config = get_sla_config()
 
@@ -135,13 +170,6 @@ def scoreboard_get_line_data():
         .all()
     )
 
-    """
-    [(3, 1, Decimal('4500')),
-    (3, 2, Decimal('4500')),
-    (3, 3, Decimal('4400'))]
-    """
-    # Team ID, Round ID, Round Score
-    # TODO - Might be able to ignore ordering by team_id since we're using a dict
     round_scores = (
         db.session.query(
             Service.team_id,
@@ -169,13 +197,30 @@ def scoreboard_get_line_data():
         )
         scores_dict[team_id][round_id] = adjusted_score
 
+    team_name_map = Team.get_team_name_mapping(anonymize=anonymize, show_both=show_both)
+
     for team_id, team_name, rgb_color in blue_teams:
+        display_name = team_name_map.get(team_id, team_name)
         team_data["team"].append(
             {
-                "name": team_name,
+                "name": display_name,
                 "scores": list(accumulate(scores_dict[team_id].values(), initial=0)),
                 "color": rgb_color,
             }
         )
 
-    return jsonify(team_data)
+    return team_data
+
+
+@mod.route("/api/scoreboard/get_bar_data")
+def scoreboard_get_bar_data():
+    """Get bar chart data. Cached separately by user type."""
+    anonymize, show_both = get_anonymize_mode()
+    return jsonify(_get_bar_data_cached(anonymize, show_both))
+
+
+@mod.route("/api/scoreboard/get_line_data")
+def scoreboard_get_line_data():
+    """Get line chart data. Cached separately by user type."""
+    anonymize, show_both = get_anonymize_mode()
+    return jsonify(_get_line_data_cached(anonymize, show_both))

@@ -19,6 +19,7 @@ mod = Blueprint("api", __name__)
 
 from . import admin
 from . import agent
+from . import announcements
 from . import flags
 from . import injects
 from . import notifications

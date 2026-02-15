@@ -5,129 +5,207 @@
 <script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
 {% endblock %}
 {% block content %}
-<div class="container md-page">
-    <div id="teamBar" style="width: 100%; height:400px;"></div>
-    <hr>
-    <div id="teamLine" style="width: 100%; height:400px;"></div>
+<div class="page-wrap">
+    <!-- Page title bar -->
+    <div class="page-title-bar">
+        <h1 class="page-title">Scoreboard</h1>
+        <span class="page-subtitle">Team Rankings</span>
+        <div class="live-indicator" style="margin-left:auto;">
+            <span class="live-dot"></span>
+            <span id="sc-live-label">Live</span>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-cards-row">
+        <div class="stat-card animate-in">
+            <div class="stat-label">Current Round</div>
+            <div class="stat-value" id="sc-round">-</div>
+            <div class="stat-detail" id="sc-round-time">&nbsp;</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="stat-label">Leading Team</div>
+            <div class="stat-value" id="sc-leader" style="font-size:1.2rem">-</div>
+            <div class="stat-detail" id="sc-leader-score">&nbsp;</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="stat-label">Total Teams</div>
+            <div class="stat-value" id="sc-teams">-</div>
+            <div class="stat-detail">competing</div>
+        </div>
+        <div class="stat-card animate-in" id="sc-sla-card" style="display:none">
+            <div class="stat-label">SLA Penalties</div>
+            <div class="stat-value text-danger" id="sc-sla">0</div>
+            <div class="stat-detail">total deducted</div>
+        </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <h3 class="section-header" id="bar-chart-title">Total Scores</h3>
+    <div class="chart-card animate-in" style="animation-delay:200ms;">
+        <div id="teamBar" style="width: 100%; min-height:400px;"></div>
+    </div>
+
+    <!-- Line Chart -->
+    <h3 class="section-header">Score Progression</h3>
+    <div class="chart-card animate-in" style="animation-delay:250ms;">
+        <div id="teamLine" style="width: 100%; height:400px;"></div>
+    </div>
+
     <script>
-        // Bar chart for all teams
-        var teamBarChart = echarts.init(document.getElementById('teamBar'));
+        function getTextColor() {
+            return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e9ecef' : '#333';
+        }
+
+        // ---- Stat card helpers ----
+        function updateStatCards(barData) {
+            var labels = barData.labels || [];
+            var adjusted = barData.adjusted_scores || [];
+            var sla = barData.sla_enabled || false;
+            var penalties = barData.sla_penalties || [];
+
+            // Total teams
+            ScoringEngineUtils.animateCounter(document.getElementById('sc-teams'), labels.length);
+
+            // Leading team
+            var colors = barData.colors || [];
+            var maxScore = -Infinity, leaderName = '-', leaderColor = '';
+            for (var i = 0; i < adjusted.length; i++) {
+                var score = parseInt(adjusted[i]) || 0;
+                if (score > maxScore) {
+                    maxScore = score;
+                    leaderName = labels[i];
+                    leaderColor = colors[i] || '';
+                }
+            }
+            var leaderEl = document.getElementById('sc-leader');
+            ScoringEngineUtils.setText(leaderEl, leaderName);
+            leaderEl.style.color = leaderColor;
+            ScoringEngineUtils.setText(document.getElementById('sc-leader-score'), maxScore > -Infinity ? maxScore.toLocaleString() + ' pts' : '');
+
+            // SLA card
+            if (sla) {
+                var totalPenalty = 0;
+                for (var j = 0; j < penalties.length; j++) {
+                    totalPenalty += Math.abs(parseInt(penalties[j]) || 0);
+                }
+                document.getElementById('sc-sla-card').style.display = '';
+                ScoringEngineUtils.animateCounter(document.getElementById('sc-sla'), totalPenalty);
+                document.getElementById('bar-chart-title').textContent = 'Total Scores (with SLA Penalties)';
+            } else {
+                document.getElementById('sc-sla-card').style.display = 'none';
+                document.getElementById('bar-chart-title').textContent = 'Total Scores';
+            }
+        }
+
+        function updateRoundCard() {
+            $.getJSON('/api/overview/get_round_data').done(function(data) {
+                ScoringEngineUtils.animateCounter(document.getElementById('sc-round'), data.number);
+                ScoringEngineUtils.setText(document.getElementById('sc-round-time'), data.round_start || '');
+                var indicator = document.querySelector('.live-indicator');
+                var liveLabel = document.getElementById('sc-live-label');
+                if (indicator && liveLabel) {
+                    if (data.engine_paused) {
+                        indicator.classList.add('paused');
+                        liveLabel.textContent = 'Paused' + (data.number ? ' \u00b7 Round ' + data.number : '');
+                    } else {
+                        indicator.classList.remove('paused');
+                        liveLabel.textContent = data.number ? 'Live \u00b7 Round ' + data.number : 'Live';
+                    }
+                }
+            });
+        }
+
+        // ---- Bar Chart ----
+        var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        var teamBarChart = echarts.init(document.getElementById('teamBar'), isDark ? 'dark' : null);
         teamBarChart.showLoading();
 
-        // Handle window resize to make charts responsive
         window.addEventListener('resize', function() {
             teamBarChart.resize();
         });
 
-        const serviceScores = [];
-        const injectScores = [];
-        const slaPenalties = [];
-        let slaEnabled = false;
+        var serviceScoresRaw = [];
+        var injectScoresRaw = [];
+        var slaPenaltiesRaw = [];
+        var adjustedScores = [];
+        var slaEnabled = false;
+
+        function processBarData(data) {
+            slaEnabled = data.sla_enabled || false;
+
+            serviceScoresRaw = data.service_scores.map(function(s) { return parseInt(s) || 0; });
+            injectScoresRaw = data.inject_scores.map(function(s) { return parseInt(s) || 0; });
+            slaPenaltiesRaw = (data.sla_penalties || []).map(function(p) { return Math.abs(parseInt(p) || 0); });
+            var teamColors = data.colors || [];
+            adjustedScores = data.adjusted_scores.map(function(s, i) {
+                return { value: parseInt(s) || 0, itemStyle: { color: teamColors[i] || '#58a6ff' } };
+            });
+
+            updateStatCards(data);
+        }
 
         $.getJSON('/api/scoreboard/get_bar_data')
             .done(function (data) {
-                slaEnabled = data.sla_enabled || false;
+                processBarData(data);
 
-                // Service Scores
-                echarts.util.each(data.service_scores, function (score, index) {
-                    serviceScores.push({
-                        value: score,
-                    });
-                });
-                // Inject Scores
-                echarts.util.each(data.inject_scores, function (score, index) {
-                    injectScores.push({
-                        value: score,
-                    });
-                });
-                // SLA Penalties (as negative values for visual effect)
-                if (slaEnabled && data.sla_penalties) {
-                    echarts.util.each(data.sla_penalties, function (penalty, index) {
-                        slaPenalties.push({
-                            value: -Math.abs(parseInt(penalty) || 0),
-                            itemStyle: {
-                                color: '#c23531'
-                            }
-                        });
-                    });
-                }
-
-                // Build series array
-                var seriesData = [
-                    {
-                        name: 'Services',
-                        data: serviceScores,
-                        type: 'bar',
-                        stack: 'positive',
-                    },
-                    {
-                        name: 'Injects',
-                        data: injectScores,
-                        type: 'bar',
-                        stack: 'positive',
-                    }
-                ];
-
-                // Add SLA penalties series when enabled
-                if (slaEnabled && slaPenalties.length > 0) {
-                    seriesData.push({
-                        name: 'SLA Penalties',
-                        data: slaPenalties,
-                        type: 'bar',
-                        stack: 'negative',
-                        itemStyle: {
-                            color: '#c23531'
-                        }
-                    });
-                }
+                var chartHeight = Math.max(400, data.labels.length * 40 + 100);
+                document.getElementById('teamBar').style.height = chartHeight + 'px';
+                teamBarChart.resize();
 
                 teamBarChart.hideLoading();
                 teamBarChart.setOption({
-                    title: {
-                        text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
-                        x: 'center',
-                    },
+                    backgroundColor: 'transparent',
                     tooltip: {
                         trigger: 'axis',
+                        axisPointer: { type: 'shadow' },
                         formatter: function(params) {
+                            var idx = params[0].dataIndex;
                             var result = params[0].name + '<br/>';
-                            var total = 0;
-                            params.forEach(function(item) {
-                                var value = Math.abs(item.value) || 0;
-                                var sign = item.seriesName === 'SLA Penalties' ? '-' : '+';
-                                if (item.seriesName === 'SLA Penalties') {
-                                    result += item.marker + item.seriesName + ': <span style="color:#c23531">-' + value + '</span><br/>';
-                                    total -= value;
-                                } else {
-                                    result += item.marker + item.seriesName + ': ' + value + '<br/>';
-                                    total += value;
-                                }
-                            });
-                            result += '<strong>Adjusted Total: ' + total + '</strong>';
+                            var services = serviceScoresRaw[idx] || 0;
+                            var injects = injectScoresRaw[idx] || 0;
+                            var penalty = slaPenaltiesRaw[idx] || 0;
+                            var total = params[0].value || 0;
+
+                            result += '● Services: ' + services.toLocaleString() + '<br/>';
+                            result += '● Injects: ' + injects.toLocaleString() + '<br/>';
+                            if (slaEnabled && penalty > 0) {
+                                result += '<span style="color:#f85149">● SLA Penalties: -' + penalty.toLocaleString() + '</span><br/>';
+                            }
+                            result += '<strong>Total: ' + total.toLocaleString() + '</strong>';
                             return result;
                         }
                     },
-                    legend: {
-                        data: slaEnabled ? ['Services', 'Injects', 'SLA Penalties'] : ['Services', 'Injects'],
-                        top: 30
-                    },
+                    legend: { show: false },
                     grid: {
                         left: '3%',
-                        right: '4%',
-                        bottom: '3%',
-                        top: '15%',
+                        right: '5%',
+                        bottom: '5%',
+                        top: 20,
                         containLabel: true
                     },
-                    xAxis: [
-                        {
-                            type: 'category',
-                            data: data.labels,
-                        }
-                    ],
                     yAxis: {
-                        type: 'value'
+                        type: 'category',
+                        data: data.labels,
+                        axisLabel: {
+                            color: getTextColor(),
+                            interval: 0,
+                            overflow: 'truncate',
+                            width: 200
+                        },
+                        inverse: true
                     },
-                    series: seriesData
+                    xAxis: {
+                        type: 'value',
+                        axisLabel: { color: getTextColor() }
+                    },
+                    animationDuration: 1000,
+                    animationEasing: 'cubicOut',
+                    series: [{
+                        name: 'Total Score',
+                        data: adjustedScores,
+                        type: 'bar'
+                    }]
                 });
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -135,66 +213,15 @@
                 console.error('Failed to load scoreboard data:', textStatus, errorThrown);
             });
 
-        // Update chart every 30 seconds
-        setInterval(function () {
-            const serviceScores = [];
-            const injectScores = [];
-            const slaPenalties = [];
-            $.get('/api/scoreboard/get_bar_data').done(function (data) {
-                const slaEnabled = data.sla_enabled || false;
-
-                // Service Scores
-                echarts.util.each(data.service_scores, function (score, index) {
-                    serviceScores.push({
-                        value: score,
-                    });
-                });
-                // Inject Scores
-                echarts.util.each(data.inject_scores, function (score, index) {
-                    injectScores.push({
-                        value: score,
-                    });
-                });
-                // SLA Penalties
-                if (slaEnabled && data.sla_penalties) {
-                    echarts.util.each(data.sla_penalties, function (penalty, index) {
-                        slaPenalties.push({
-                            value: -Math.abs(parseInt(penalty) || 0),
-                            itemStyle: {
-                                color: '#c23531'
-                            }
-                        });
-                    });
-                }
-
-                var seriesUpdate = [
-                    { data: serviceScores },
-                    { data: injectScores }
-                ];
-                if (slaEnabled && slaPenalties.length > 0) {
-                    seriesUpdate.push({ data: slaPenalties });
-                }
-
-                teamBarChart.setOption({
-                    title: {
-                        text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
-                    },
-                    series: seriesUpdate
-                });
-            });
-        }, 30000);
-    </script>
-    <script>
-        // Line chart for all teams
-        var teamLineChart = echarts.init(document.getElementById('teamLine'));
+        // ---- Line Chart ----
+        var teamLineChart = echarts.init(document.getElementById('teamLine'), isDark ? 'dark' : null);
         teamLineChart.showLoading();
 
-        // Handle window resize to make charts responsive
         window.addEventListener('resize', function() {
             teamLineChart.resize();
         });
 
-        const seriesList = [];
+        var seriesList = [];
         $.getJSON('/api/scoreboard/get_line_data')
             .done(function (data) {
                 echarts.util.each(data.team, function (team) {
@@ -202,39 +229,39 @@
                         name: team.name,
                         type: 'line',
                         data: team.scores,
-                        itemStyle: {
-                            color: team.color
-                        },
+                        itemStyle: { color: team.color },
                         showSymbol: false
                     });
                 });
                 teamLineChart.hideLoading();
                 teamLineChart.setOption({
-                    title: {
-                        text: 'Service Scores',
-                        x: 'center',
-                    },
-                    tooltip: {
-                        trigger: 'axis'
-                    },
+                    backgroundColor: 'transparent',
+                    tooltip: { trigger: 'axis' },
                     grid: {
                         left: '3%',
                         right: '4%',
-                        bottom: '3%',
+                        bottom: data.rounds.length > 50 ? '15%' : '3%',
                         containLabel: true
                     },
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
-                        data: data.rounds
+                        data: data.rounds,
+                        axisLabel: { color: getTextColor() }
                     },
                     yAxis: {
-                        type: 'value'
+                        type: 'value',
+                        axisLabel: { color: getTextColor() }
                     },
+                    animationDuration: 1000,
+                    animationEasing: 'cubicOut',
+                    dataZoom: data.rounds.length > 50 ? [{
+                        type: 'slider',
+                        xAxisIndex: 0,
+                        start: 0,
+                        end: 100
+                    }] : [],
                     series: seriesList,
-                    // label: {
-                    //     show: true
-                    // },
                 });
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -242,22 +269,48 @@
                 console.error('Failed to load line chart data:', textStatus, errorThrown);
             });
 
-        // Update chart every 30 seconds
+        // ---- Auto-refresh every 30s ----
+        updateRoundCard();
         setInterval(function () {
-            const seriesList = [];
+            updateRoundCard();
+
+            $.get('/api/scoreboard/get_bar_data').done(function (data) {
+                processBarData(data);
+                teamBarChart.setOption({
+                    series: [{ data: adjustedScores }]
+                });
+            });
+
+            var updatedSeries = [];
             $.get('/api/scoreboard/get_line_data').done(function (data) {
                 echarts.util.each(data.team, function (team) {
-                    seriesList.push({
+                    updatedSeries.push({
                         name: team.name,
                         type: 'line',
                         data: team.scores,
                     });
                 });
-                teamLineChart.setOption({
-                    series: seriesList,
-                });
+                teamLineChart.setOption({ series: updatedSeries });
             });
         }, 30000);
+
+        // ---- Theme change observer (watches both data-bs-theme and data-theme) ----
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'data-bs-theme' || mutation.attributeName === 'data-theme') {
+                    var textColor = getTextColor();
+                    teamBarChart.setOption({
+                        xAxis: { axisLabel: { color: textColor } },
+                        yAxis: { axisLabel: { color: textColor } }
+                    });
+                    teamLineChart.setOption({
+                        xAxis: { axisLabel: { color: textColor } },
+                        yAxis: { axisLabel: { color: textColor } }
+                    });
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
     </script>
 </div>
 {% endblock %}

@@ -152,7 +152,32 @@ def permissions():
             blue_team_view_check_output=Setting.get_setting(
                 "blue_team_view_check_output"
             ).value,
+            anonymize_team_names=(
+                Setting.get_setting("anonymize_team_names").value
+                if Setting.get_setting("anonymize_team_names")
+                else False
+            ),
         )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/announcements")
+@login_required
+def announcements():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/announcements.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/welcome")
+@login_required
+def welcome():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/welcome.html", blue_teams=blue_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 

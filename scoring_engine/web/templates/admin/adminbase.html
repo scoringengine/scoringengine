@@ -1,98 +1,74 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container md-page">
+<div class="page-wrap">
   <div class="row">
-    <div class="col-sm-3 lefthand-nav" style="padding-top: 10px;">
-      <div class="list-group text-center">
-          <button type="button" class="btn btn-default btn-lg" id="engine_toggle">
-            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
-          </button>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Stats <b class="pull-right glyphicon glyphicon-list-alt"></b></span>
-          </div>
+    <div class="col-sm-3 col-md-2">
+      <nav class="admin-sidebar" style="padding-top: 0.5rem;">
+        <button type="button" class="engine-toggle-btn" id="engine_toggle">
+          <i class="bi bi-pause-fill"></i> Pause
+        </button>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Stats</div>
+          <a href="/admin/status" class="sidebar-link {% if request.path == '/admin/status' %}active{% endif %}" id="engine-link">
+            <i class="bi bi-activity"></i> <span id="engine-label">Engine</span></a>
+          <a href="/admin/workers" class="sidebar-link {% if request.path == '/admin/workers' %}active{% endif %}">
+            <i class="bi bi-people"></i> Workers</a>
+          <a href="/admin/queues" class="sidebar-link {% if request.path == '/admin/queues' %}active{% endif %}">
+            <i class="bi bi-stack"></i> Queues</a>
         </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
-            href="/admin/status" id="engine">Engine</a>
-          <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
-            href="/admin/workers">Workers</a>
-          <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
-            href="/admin/queues">Queues</a>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <a href="/admin/settings" class="sidebar-link {% if request.path == '/admin/settings' %}active{% endif %}">
+            <i class="bi bi-gear"></i> Competition</a>
+          <a href="/admin/sla" class="sidebar-link {% if request.path == '/admin/sla' %}active{% endif %}">
+            <i class="bi bi-shield-check"></i> SLA & Scoring</a>
+          <a href="/admin/permissions" class="sidebar-link {% if request.path == '/admin/permissions' %}active{% endif %}">
+            <i class="bi bi-lock"></i> Permissions</a>
+          <a href="/admin/manage" class="sidebar-link {% if request.path == '/admin/manage' %}active{% endif %}">
+            <i class="bi bi-person"></i> Users</a>
         </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Settings <b class="pull-right glyphicon glyphicon-cog"></b></span>
-          </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Communication</div>
+          <a href="/admin/announcements" class="sidebar-link {% if request.path == '/admin/announcements' %}active{% endif %}">
+            <i class="bi bi-megaphone"></i> Announcements</a>
+          <a href="/admin/welcome" class="sidebar-link {% if request.path == '/admin/welcome' %}active{% endif %}">
+            <i class="bi bi-house"></i> Welcome Page</a>
         </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/settings' %}active{% endif %}"
-            href="/admin/settings">Competition</a>
-          <a class="list-group-item {% if request.path == '/admin/sla' %}active{% endif %}"
-            href="/admin/sla">SLA & Scoring</a>
-          <a class="list-group-item {% if request.path == '/admin/permissions' %}active{% endif %}"
-            href="/admin/permissions">Website Permissions</a>
-          <a class="list-group-item {% if request.path == '/admin/manage' %}active{% endif %}"
-            href="/admin/manage">Users</a>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Injects</div>
+          <a href="/admin/injects/templates" class="sidebar-link {% if request.path == '/admin/injects/templates' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text"></i> Templates</a>
+          <a href="/admin/injects/scores" class="sidebar-link {% if request.path == '/admin/injects/scores' %}active{% endif %}">
+            <i class="bi bi-bar-chart"></i> Scores</a>
         </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Injects <b class="pull-right glyphicon glyphicon-file"></b></span>
-          </div>
-        </div>
-        <div class="list-group">
-          <a class="list-group-item {% if request.path == '/admin/injects/templates' %}active{% endif %}"
-            href="/admin/injects/templates">Templates</a>
-          <a class="list-group-item {% if request.path == '/admin/injects/scores' %}active{% endif %}"
-            href="/admin/injects/scores">Scores</a>
-        </div>
-      </div>
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
-          </div>
-        </div>
-        <div class="list-group">
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Services</div>
           {% for team in blue_teams %}
-          <a href="#" class="list-group-item" data-toggle="collapse"
-            data-target="#services_team{{team.id}}">{{team.name}}</a>
+          <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#services_team{{team.id}}">
+            <i class="bi bi-chevron-right"></i> {{team.name}}</a>
           <div id="services_team{{team.id}}"
-            class="sublinks collapse {% if service and team.id == service.team.id %}in{% endif %}">
+            class="collapse {% if service and team.id == service.team.id %}show{% endif %}">
             {% for service in team.services %}
             <a href="/admin/service/{{service.id}}"
-              class="list-group-item small {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}"><span
-                class="glyphicon glyphicon-chevron-right"></span> {{service.name}}</a>
+              class="sidebar-link sub {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}">
+              <i class="bi bi-chevron-right"></i> {{service.name}}</a>
             {% endfor %}
           </div>
           {% endfor %}
         </div>
-      </div>
+      </nav>
     </div>
-    <div class="col-sm-9">
-      <div class="panel-body">
-        <div class="panel-group">
-          <div class="panel panel-default">
-            <div class="panel-heading" style="background-color:#f9f9f9">
-              <h2 class="panel-title">
-                {% block header %}{% endblock %}
-              </h2>
-            </div>
-            <div class="panel" style="border-top: 0.5px solid gray;">
-              <div class="panel-body" style="padding-top: 0px;">
-                {% block admincontent %}
-                {% endblock %}
-              </div>
-            </div>
-          </div>
-        </div>
+    <div class="col-sm-9 col-md-10">
+      <div class="page-title-bar" style="margin-top:0.5rem;">
+        <h1 class="page-title">{% block header %}{% endblock %}</h1>
       </div>
+      {% block admincontent %}
+      {% endblock %}
     </div>
   </div>
 </div>
@@ -103,14 +79,24 @@
       url: '/api/admin/get_engine_paused',
       dataType: 'json',
       success: function (data) {
+        var engineLabel = document.getElementById('engine-label');
+        var toggleBtn = document.getElementById('engine_toggle');
         if (!data.paused) {
-          document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause'
-          document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
+          engineLabel.textContent = 'Engine';
+          toggleBtn.textContent = '';
+          var pauseIcon = document.createElement('i');
+          pauseIcon.className = 'bi bi-pause-fill';
+          toggleBtn.appendChild(pauseIcon);
+          toggleBtn.appendChild(document.createTextNode(' Pause'));
+          toggleBtn.className = "engine-toggle-btn running";
         } else {
-          document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
-          document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume'
-          document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
+          engineLabel.textContent = 'Engine';
+          toggleBtn.textContent = '';
+          var playIcon = document.createElement('i');
+          playIcon.className = 'bi bi-play-fill';
+          toggleBtn.appendChild(playIcon);
+          toggleBtn.appendChild(document.createTextNode(' Resume'));
+          toggleBtn.className = "engine-toggle-btn";
         }
       }
     });

@@ -21,13 +21,14 @@ from scoring_engine.sla import get_sla_config, calculate_round_multiplier, calcu
 from . import make_cache_key, mod
 
 
-def is_valid_user_input(string, only_alphanumberdot, only_number):
-    if only_alphanumberdot:
-        regex = r"^[A-Za-z0-9.]+$"
+def is_valid_user_input(string, only_hostname, only_number):
+    if only_hostname:
+        # Valid hostname/IP characters: alphanumeric, dots, hyphens, underscores
+        regex = r"^[A-Za-z0-9._-]+$"
     elif only_number:
         regex = r"^[0-9]+$"
     else:
-        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$"
+        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\)_; !]+$"
         if string.startswith(" ") or string.endswith(" "):
             return False
     return bool(re.match(regex, string))

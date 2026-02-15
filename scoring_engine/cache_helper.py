@@ -31,22 +31,29 @@ def update_all_cache(app_or_ctx=None):
     update_services_navbar()
     update_service_data()
     update_services_data()
+    update_announcements_data()
     update_stats()
 
 
 def update_overview_data():
-    from scoring_engine.web.views.api.overview import overview_data, overview_get_data, overview_get_round_data
+    from scoring_engine.web.views.api.overview import (
+        overview_get_data,
+        overview_get_round_data,
+        _get_overview_data_cached,
+        _get_table_columns_cached,
+    )
 
     cache.delete_memoized(overview_get_data)
-    cache.delete_memoized(overview_data)
     cache.delete_memoized(overview_get_round_data)
+    cache.delete_memoized(_get_overview_data_cached)
+    cache.delete_memoized(_get_table_columns_cached)
 
 
 def update_scoreboard_data():
-    from scoring_engine.web.views.api.scoreboard import scoreboard_get_bar_data, scoreboard_get_line_data
+    from scoring_engine.web.views.api.scoreboard import _get_bar_data_cached, _get_line_data_cached
 
-    cache.delete_memoized(scoreboard_get_bar_data)
-    cache.delete_memoized(scoreboard_get_line_data)
+    cache.delete_memoized(_get_bar_data_cached)
+    cache.delete_memoized(_get_line_data_cached)
 
 
 def update_team_stats(team_id=None):
@@ -85,6 +92,13 @@ def update_services_data(team_id=None):
         cache.delete(f"/api/team/{team_id}/services_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match="*/api/team/*/services_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_announcements_data():
+    """Clear cached announcement data for all visibility contexts."""
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/announcements_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
