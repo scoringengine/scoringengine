@@ -1418,6 +1418,37 @@ table.table-bordered:not(.table-responsive .table) {
     line-height: 1.7;
 }
 
+/* ===== Dropzone file-upload overrides ===== */
+.dropzone {
+    background: var(--raised);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    min-height: 120px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.dropzone:hover,
+.dropzone.dz-drag-hover {
+    border-color: var(--accent-cyan);
+    background: var(--glow-cyan);
+}
+
+.dropzone .dz-message {
+    margin: 1.5em 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+
+.dropzone .dz-preview .dz-details {
+    color: var(--text-primary);
+}
+
+.dropzone .dz-preview.dz-file-preview .dz-image {
+    background: var(--elevated);
+}
+
 /* ===== Mobile responsive ===== */
 @media (max-width: 992px) {
     #overview th {

@@ -148,7 +148,8 @@
   });
 </script>
 <script>
-  var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt'];
+  var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt', '.png', '.jpg', '.jpeg', '.gif', '.svg'];
+  var imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg'];
 
   function getFileExtension(filename) {
     return filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -162,23 +163,35 @@
     var ext = getFileExtension(filename);
     var previewUrl = '/api/inject/{{ inject.id }}/files/' + fileId + '/preview';
     if (ext === '.pdf') {
-      window.open(previewUrl, '_blank');
+      $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;"></iframe>');
+      $('#previewModalTitle').text('Preview: ' + filename);
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
+    } else if (imageExtensions.indexOf(ext) !== -1) {
+      $('#previewModalBody').html('<img src="' + previewUrl + '" class="img-fluid" alt="' + filename + '">');
+      $('#previewModalTitle').text('Preview: ' + filename);
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
     } else {
-      $.ajax({
-        url: previewUrl,
-        success: function (result) {
-          if (ext === '.txt') {
-            $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
-          } else {
-            $('#previewModalBody').html(result);
+      if (ext === '.odt' || ext === '.docx') {
+        $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;background:#fff;"></iframe>');
+        $('#previewModalTitle').text('Preview: ' + filename);
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
+      } else {
+        $.ajax({
+          url: previewUrl,
+          success: function (result) {
+            if (ext === '.txt') {
+              $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
+            } else {
+              $('#previewModalBody').html(result);
+            }
+            $('#previewModalTitle').text('Preview: ' + filename);
+            new bootstrap.Modal(document.getElementById('previewModal')).show();
+          },
+          error: function () {
+            alert('Error loading preview');
           }
-          $('#previewModalTitle').text('Preview: ' + filename);
-          new bootstrap.Modal(document.getElementById('previewModal')).show();
-        },
-        error: function () {
-          alert('Error loading preview');
-        }
-      });
+        });
+      }
     }
   }
 

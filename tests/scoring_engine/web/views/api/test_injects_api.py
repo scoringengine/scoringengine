@@ -807,8 +807,8 @@ class TestInjectsAPI:
         assert resp.content_type.startswith("text/html")
         assert "<p>Hello</p>" in resp.data.decode()
 
-    def test_preview_odt_not_supported(self):
-        """Test that ODT files are not previewable"""
+    def test_preview_odt_file(self):
+        """Test preview of an ODT file returns HTML"""
         template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
         file_obj = InjectFile("test.odt", self.blue_user1, inject, original_filename="report.odt")
@@ -816,8 +816,26 @@ class TestInjectsAPI:
         db.session.commit()
 
         self.login("blueuser1")
-        resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
-        assert resp.status_code == 400
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects._preview_odt", return_value="<p>ODT Content</p>"):
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("text/html")
+        assert "<p>ODT Content</p>" in resp.data.decode()
+
+    def test_preview_image_file(self):
+        """Test preview of a PNG image file"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.png", self.blue_user1, inject, original_filename="screenshot.png")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects.send_file", return_value=("", 200, {"Content-Type": "image/png"})):
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 200
 
     def test_preview_missing_physical_file(self):
         """Test preview returns 404 when physical file is missing"""

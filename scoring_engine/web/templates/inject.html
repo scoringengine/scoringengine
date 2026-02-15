@@ -40,10 +40,8 @@
       {% endif %}
       <!-- <h5>Status</h5> -->
       <h5>Points - {{ inject.score }}</h5>
-      <h5>Start Time - <div id="startTime">{{ inject.template.start_time }}</div>
-      </h5>
-      <h5>End Time - <div id="endTime">{{ inject.template.end_time }}</div>
-      </h5>
+      <h5>Start Time - <span id="startTime">{{ inject.template.start_time }}</span></h5>
+      <h5>End Time - <span id="endTime">{{ inject.template.end_time }}</span></h5>
       <h4>Scenario</h4>
       <p>{{ inject.template.scenario }}</p>
       <h4>Deliverable</h4>
@@ -53,11 +51,9 @@
       <h5>Submitted By</h5>
       <h5>Created</h5>
       <h5>Graded</h5> -->
-      <div class="row">
-        <div class="card card-body bg-light mb-3">
-          <form class="dropzone" id="file-upload"></form>
-        </div>
-      </div>
+      {% if inject.status in ('Draft', 'Revision Requested') %}
+      <form class="dropzone mb-3" id="file-upload"></form>
+      {% endif %}
       <h4>Files</h4>
       <div id="files">
       </div>
@@ -257,7 +253,8 @@
     });
   }
 
-  var previewableExtensions = ['.pdf', '.txt', '.docx'];
+  var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt', '.png', '.jpg', '.jpeg', '.gif', '.svg'];
+  var imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg'];
 
   function getFileExtension(filename) {
     return filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -271,23 +268,35 @@
     var ext = getFileExtension(filename);
     var previewUrl = '/api/inject/{{ inject.id }}/files/' + fileId + '/preview';
     if (ext === '.pdf') {
-      window.open(previewUrl, '_blank');
+      $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;"></iframe>');
+      $('#previewModalTitle').text('Preview: ' + filename);
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
+    } else if (imageExtensions.indexOf(ext) !== -1) {
+      $('#previewModalBody').html('<img src="' + previewUrl + '" class="img-fluid" alt="' + filename + '">');
+      $('#previewModalTitle').text('Preview: ' + filename);
+      new bootstrap.Modal(document.getElementById('previewModal')).show();
     } else {
-      $.ajax({
-        url: previewUrl,
-        success: function (result) {
-          if (ext === '.txt') {
-            $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
-          } else {
-            $('#previewModalBody').html(result);
+      if (ext === '.odt' || ext === '.docx') {
+        $('#previewModalBody').html('<iframe src="' + previewUrl + '" style="width:100%;height:80vh;border:none;background:#fff;"></iframe>');
+        $('#previewModalTitle').text('Preview: ' + filename);
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
+      } else {
+        $.ajax({
+          url: previewUrl,
+          success: function (result) {
+            if (ext === '.txt') {
+              $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
+            } else {
+              $('#previewModalBody').html(result);
+            }
+            $('#previewModalTitle').text('Preview: ' + filename);
+            new bootstrap.Modal(document.getElementById('previewModal')).show();
+          },
+          error: function () {
+            alert('Error loading preview');
           }
-          $('#previewModalTitle').text('Preview: ' + filename);
-          new bootstrap.Modal(document.getElementById('previewModal')).show();
-        },
-        error: function () {
-          alert('Error loading preview');
-        }
-      });
+        });
+      }
     }
   }
 

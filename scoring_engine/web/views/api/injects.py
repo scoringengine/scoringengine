@@ -347,13 +347,24 @@ def api_inject_download(inject_id, file_id):
         abort(404)
 
 
-PREVIEWABLE_EXTENSIONS = {".pdf", ".txt", ".docx"}
+PREVIEWABLE_EXTENSIONS = {".pdf", ".txt", ".docx", ".odt", ".png", ".jpg", ".jpeg", ".gif", ".svg"}
 
 
 def _get_original_extension(file_obj):
     """Get the file extension from the original filename."""
     name = file_obj.original_filename or file_obj.filename
     return os.path.splitext(name)[1].lower()
+
+
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".svg"}
+
+IMAGE_MIMETYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+}
 
 
 def _preview_docx(path):
@@ -363,6 +374,39 @@ def _preview_docx(path):
     with open(path, "rb") as f:
         result = mammoth.convert_to_html(f)
     return result.value
+
+
+def _preview_odt(path):
+    """Convert an .odt file to HTML with embedded images inlined as base64."""
+    import base64
+    import mimetypes
+    import re
+    import zipfile
+
+    from odf.odf2xhtml import ODF2XHTML
+
+    # Extract embedded images from the ODT (which is a ZIP)
+    images = {}
+    with zipfile.ZipFile(path, "r") as zf:
+        for name in zf.namelist():
+            if name.startswith("Pictures/"):
+                images[name] = zf.read(name)
+
+    # Convert to HTML
+    converter = ODF2XHTML()
+    html = converter.odf2xhtml(path)
+
+    # Replace image src references with base64 data URIs
+    def replace_src(match):
+        src = match.group(1)
+        if src in images:
+            mime = mimetypes.guess_type(src)[0] or "application/octet-stream"
+            b64 = base64.b64encode(images[src]).decode("ascii")
+            return f'src="data:{mime};base64,{b64}"'
+        return match.group(0)
+
+    html = re.sub(r'src="([^"]*)"', replace_src, html)
+    return html
 
 
 @mod.route("/api/inject/<inject_id>/files/<file_id>/preview")
@@ -390,6 +434,13 @@ def api_inject_preview(inject_id, file_id):
     if ext == ".txt":
         return send_file(path, mimetype="text/plain")
 
+    if ext in IMAGE_EXTENSIONS:
+        return send_file(path, mimetype=IMAGE_MIMETYPES[ext])
+
     if ext == ".docx":
         html_content = _preview_docx(path)
+        return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+    if ext == ".odt":
+        html_content = _preview_odt(path)
         return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
