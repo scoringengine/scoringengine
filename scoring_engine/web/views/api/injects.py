@@ -1,8 +1,9 @@
 import os
-import pytz
-
+import uuid
 from datetime import datetime, timezone
-from flask import g, request, jsonify, send_file, abort
+
+import pytz
+from flask import abort, g, jsonify, request, send_file
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -10,8 +11,8 @@ from werkzeug.utils import secure_filename
 from scoring_engine.cache import cache
 from scoring_engine.config import config
 from scoring_engine.db import db
+from scoring_engine.models.inject import Comment, File, Inject, Template
 from scoring_engine.models.team import Team
-from scoring_engine.models.inject import Template, Inject, File, Comment
 from scoring_engine.models.user import User
 
 from . import make_cache_key, mod
@@ -108,14 +109,11 @@ def api_injects_file_upload(inject_id):
 
     files = request.files.getlist("file")
     for file in files:
-        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + secure_filename(file.filename)
+        unique_id = uuid.uuid4().hex[:8]
+        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + unique_id + "_" + secure_filename(file.filename)
         path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
 
-        if not os.path.exists(path):
-            os.makedirs(path)
-        # Check if file exists already
-        if db.session.query(File).filter(File.name == filename).one_or_none():
-            return "File name is not unique", 400
+        os.makedirs(path, exist_ok=True)
         file.save(os.path.join(path, filename))
 
         f = File(filename, current_user, inject)
@@ -155,7 +153,9 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
@@ -190,7 +190,9 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time)
+                .astimezone(pytz.timezone(config.timezone))
+                .strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 

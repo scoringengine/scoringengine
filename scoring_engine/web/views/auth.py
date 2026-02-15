@@ -1,13 +1,12 @@
 import uuid
 from urllib.parse import urlparse
-from flask import flash, redirect, request, url_for, g, Blueprint, render_template
-from flask_login import current_user, login_user, logout_user, LoginManager, login_required
-from flask_wtf import FlaskForm
 
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from flask_wtf import FlaskForm
+from sqlalchemy.orm.exc import NoResultFound
 from wtforms import BooleanField, PasswordField, StringField
 from wtforms.validators import InputRequired
-
-from sqlalchemy.orm.exc import NoResultFound
 
 from scoring_engine.db import db
 from scoring_engine.models.user import User
@@ -65,6 +64,10 @@ def login():
     if form.validate_on_submit():
         username = request.form.get("username")
         password = request.form.get("password")
+
+        if len(password.encode("utf-8")) > 72:
+            flash("Password must be 72 bytes or fewer.", "danger")
+            return render_template("login.html", form=form)
 
         try:
             user = db.session.query(User).filter(User.username == username).one()

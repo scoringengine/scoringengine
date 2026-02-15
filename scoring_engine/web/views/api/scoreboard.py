@@ -13,8 +13,7 @@ from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (apply_dynamic_scoring_to_round,
-                                calculate_team_total_penalties, get_sla_config)
+from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
 from . import mod
 
@@ -77,9 +76,7 @@ def calculate_team_scores_with_dynamic_scoring(sla_config):
     team_scores = defaultdict(int)
     for team_id, round_id, round_score in round_scores:
         round_number = rounds.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         team_scores[team_id] += adjusted_score
 
     return dict(team_scores)
@@ -110,9 +107,7 @@ def _get_bar_data_cached(anonymize, show_both):
 
     team_colors = []
 
-    blue_teams = (
-        db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
-    )
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     team_name_map = Team.get_team_name_mapping(anonymize=anonymize, show_both=show_both)
 
     for blue_team in blue_teams:
@@ -164,10 +159,7 @@ def _get_line_data_cached(anonymize, show_both):
     }
 
     blue_teams = (
-        db.session.query(Team.id, Team.name, Team.rgb_color)
-        .filter(Team.color == "Blue")
-        .order_by(Team.id)
-        .all()
+        db.session.query(Team.id, Team.name, Team.rgb_color).filter(Team.color == "Blue").order_by(Team.id).all()
     )
 
     round_scores = (
@@ -184,17 +176,13 @@ def _get_line_data_cached(anonymize, show_both):
     )
 
     # Get round numbers for dynamic scoring
-    rounds_map = {
-        r.id: r.number for r in db.session.query(Round.id, Round.number).all()
-    }
+    rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
 
     scores_dict = defaultdict(lambda: defaultdict(int))
     for team_id, round_id, round_score in round_scores:
         # Apply dynamic scoring multiplier if enabled
         round_number = rounds_map.get(round_id, 0)
-        adjusted_score = apply_dynamic_scoring_to_round(
-            round_number, round_score, sla_config
-        )
+        adjusted_score = apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
         scores_dict[team_id][round_id] = adjusted_score
 
     team_name_map = Team.get_team_name_mapping(anonymize=anonymize, show_both=show_both)

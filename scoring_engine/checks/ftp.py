@@ -1,4 +1,4 @@
-from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
+from scoring_engine.engine.basic_check import CHECKS_BIN_PATH, BasicCheck
 
 
 class FTPCheck(BasicCheck):

@@ -1,14 +1,9 @@
-from scoring_engine.engine.basic_check import BasicCheck, CHECKS_BIN_PATH
+from scoring_engine.engine.basic_check import CHECKS_BIN_PATH, BasicCheck
 
 
 class ElasticsearchCheck(BasicCheck):
-    required_properties = ['index', 'doc_type']
-    CMD = CHECKS_BIN_PATH + '/elasticsearch_check {0} {1} {2} {3}'
+    required_properties = ["index", "doc_type"]
+    CMD = CHECKS_BIN_PATH + "/elasticsearch_check {0} {1} {2} {3}"
 
     def command_format(self, properties):
-        return (
-            self.host,
-            self.port,
-            properties['index'],
-            properties['doc_type']
-        )
+        return (self.host, self.port, properties["index"], properties["doc_type"])

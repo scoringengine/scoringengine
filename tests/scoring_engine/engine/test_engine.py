@@ -1,61 +1,54 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from scoring_engine.checks.agent import AgentCheck
+from scoring_engine.checks.dns import DNSCheck
+from scoring_engine.checks.elasticsearch import ElasticsearchCheck
+from scoring_engine.checks.ftp import FTPCheck
+from scoring_engine.checks.http import HTTPCheck
+from scoring_engine.checks.https import HTTPSCheck
+from scoring_engine.checks.icmp import ICMPCheck
+from scoring_engine.checks.imap import IMAPCheck
+from scoring_engine.checks.imaps import IMAPSCheck
+from scoring_engine.checks.ldap import LDAPCheck
+from scoring_engine.checks.mssql import MSSQLCheck
+from scoring_engine.checks.mysql import MYSQLCheck
+from scoring_engine.checks.nfs import NFSCheck
+from scoring_engine.checks.openvpn import OpenVPNCheck
+from scoring_engine.checks.pop3 import POP3Check
+from scoring_engine.checks.pop3s import POP3SCheck
+from scoring_engine.checks.postgresql import POSTGRESQLCheck
+from scoring_engine.checks.rdp import RDPCheck
+from scoring_engine.checks.smb import SMBCheck
+from scoring_engine.checks.smtp import SMTPCheck
+from scoring_engine.checks.smtps import SMTPSCheck
+from scoring_engine.checks.ssh import SSHCheck
+from scoring_engine.checks.telnet import TelnetCheck
+from scoring_engine.checks.vnc import VNCCheck
+from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
+from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
+from scoring_engine.checks.winrm import WinRMCheck
+from scoring_engine.checks.wordpress import WordpressCheck
+from scoring_engine.db import db
 from scoring_engine.engine.engine import Engine
-
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.web import create_app
-
-from scoring_engine.checks.agent import AgentCheck
-from scoring_engine.checks.icmp import ICMPCheck
-from scoring_engine.checks.ssh import SSHCheck
-from scoring_engine.checks.dns import DNSCheck
-from scoring_engine.checks.ftp import FTPCheck
-from scoring_engine.checks.http import HTTPCheck
-from scoring_engine.checks.https import HTTPSCheck
-from scoring_engine.checks.mysql import MYSQLCheck
-from scoring_engine.checks.mssql import MSSQLCheck
-from scoring_engine.checks.postgresql import POSTGRESQLCheck
-from scoring_engine.checks.pop3 import POP3Check
-from scoring_engine.checks.pop3s import POP3SCheck
-from scoring_engine.checks.imap import IMAPCheck
-from scoring_engine.checks.imaps import IMAPSCheck
-from scoring_engine.checks.smtp import SMTPCheck
-from scoring_engine.checks.smb import SMBCheck
-from scoring_engine.checks.smtps import SMTPSCheck
-from scoring_engine.checks.vnc import VNCCheck
-from scoring_engine.checks.elasticsearch import ElasticsearchCheck
-from scoring_engine.checks.ldap import LDAPCheck
-from scoring_engine.checks.rdp import RDPCheck
-from scoring_engine.checks.wordpress import WordpressCheck
-from scoring_engine.checks.nfs import NFSCheck
-from scoring_engine.checks.openvpn import OpenVPNCheck
-from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
-from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
-from scoring_engine.checks.telnet import TelnetCheck
-from scoring_engine.checks.winrm import WinRMCheck
-
-from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestEngine(UnitTest):
-    def setup_method(self):
-        super(TestEngine, self).setup_method()
+class TestEngine:
+    @pytest.fixture(autouse=True)
+    def setup(self, db_session):
         target_round_time_obj = Setting.get_setting("target_round_time")
         target_round_time_obj.value = 0
-        self.session.add(target_round_time_obj)
+        db.session.add(target_round_time_obj)
         worker_refresh_time_obj = Setting.get_setting("worker_refresh_time")
         worker_refresh_time_obj.value = 0
-        self.session.add(worker_refresh_time_obj)
+        db.session.add(worker_refresh_time_obj)
 
-        self.session.commit()
-
-        # UnitTest already creates app context, no need to create another
-
-    def teardown_method(self):
-        super(TestEngine, self).teardown_method()
+        db.session.commit()
 
     def test_init(self):
         engine = Engine()
@@ -156,17 +149,17 @@ class TestEngine(UnitTest):
     def test_jitter_applies_countdown(self, mock_execute_command):
         """When task_jitter_max_delay > 0, apply_async gets a countdown > 0."""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
         service = Service(
             name="ICMP Service",
             team=team,
             check_name="ICMPCheck",
             host="127.0.0.1",
         )
-        self.session.add(service)
+        db.session.add(service)
         env = Environment(service=service, matching_content="*")
-        self.session.add(env)
-        self.session.commit()
+        db.session.add(env)
+        db.session.commit()
 
         # Fake a completed async result so the engine doesn't wait forever
         mock_result = MagicMock()
@@ -193,17 +186,17 @@ class TestEngine(UnitTest):
     def test_jitter_disabled_passes_zero_countdown(self, mock_execute_command):
         """When task_jitter_max_delay == 0 (default), countdown is 0."""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
         service = Service(
             name="ICMP Service",
             team=team,
             check_name="ICMPCheck",
             host="127.0.0.1",
         )
-        self.session.add(service)
+        db.session.add(service)
         env = Environment(service=service, matching_content="*")
-        self.session.add(env)
-        self.session.commit()
+        db.session.add(env)
+        db.session.commit()
 
         mock_result = MagicMock()
         mock_result.id = "fake-task-id"

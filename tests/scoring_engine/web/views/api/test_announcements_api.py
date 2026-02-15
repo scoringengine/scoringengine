@@ -1,36 +1,32 @@
 """Tests for Announcements API endpoints"""
 import json
 
+import pytest
+
+from scoring_engine.db import db
 from scoring_engine.models.announcement import Announcement
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from scoring_engine.web import create_app
-from tests.scoring_engine.unit_test import UnitTest
 
 
-class TestAnnouncementsAPI(UnitTest):
+class TestAnnouncementsAPI:
 
-    def setup_method(self):
-        super(TestAnnouncementsAPI, self).setup_method()
-        self.app = create_app()
-        self.app.config["TESTING"] = True
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.client = self.app.test_client()
-        self.ctx = self.app.app_context()
-        self.ctx.push()
+    @pytest.fixture(autouse=True)
+    def setup(self, test_client, db_session):
+        self.client = test_client
 
         # Create teams
         self.white_team = Team(name="White Team", color="White")
         self.blue_team1 = Team(name="Blue Team 1", color="Blue")
         self.blue_team2 = Team(name="Blue Team 2", color="Blue")
         self.red_team = Team(name="Red Team", color="Red")
-        self.session.add_all([
+        db.session.add_all([
             self.white_team,
             self.blue_team1,
             self.blue_team2,
             self.red_team,
         ])
-        self.session.commit()
+        db.session.commit()
 
         # Create users
         self.white_user = User(
@@ -45,17 +41,13 @@ class TestAnnouncementsAPI(UnitTest):
         self.red_user = User(
             username="reduser", password="pass", team=self.red_team
         )
-        self.session.add_all([
+        db.session.add_all([
             self.white_user,
             self.blue_user1,
             self.blue_user2,
             self.red_user,
         ])
-        self.session.commit()
-
-    def teardown_method(self):
-        self.ctx.pop()
-        super(TestAnnouncementsAPI, self).teardown_method()
+        db.session.commit()
 
     def login(self, username, password="pass"):
         return self.client.post(
@@ -71,13 +63,13 @@ class TestAnnouncementsAPI(UnitTest):
 
     def test_get_announcements_unauthenticated_sees_global(self):
         """Unauthenticated users see global announcements"""
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Global", content="Hello", audience="global"
         ))
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Blue Only", content="Hi", audience="all_blue"
         ))
-        self.session.commit()
+        db.session.commit()
         resp = self.client.get("/api/announcements")
         assert resp.status_code == 200
         data = resp.json["data"]
@@ -86,16 +78,16 @@ class TestAnnouncementsAPI(UnitTest):
 
     def test_get_announcements_blue_sees_blue(self):
         """Blue team sees global + all_blue announcements"""
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Global", content="G", audience="global"
         ))
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Blue", content="B", audience="all_blue"
         ))
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Red", content="R", audience="all_red"
         ))
-        self.session.commit()
+        db.session.commit()
         self.login("blueuser1")
         resp = self.client.get("/api/announcements")
         data = resp.json["data"]
@@ -106,16 +98,16 @@ class TestAnnouncementsAPI(UnitTest):
 
     def test_get_announcements_red_sees_red(self):
         """Red team sees global + all_red announcements"""
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Global", content="G", audience="global"
         ))
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Blue", content="B", audience="all_blue"
         ))
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="Red", content="R", audience="all_red"
         ))
-        self.session.commit()
+        db.session.commit()
         self.login("reduser")
         resp = self.client.get("/api/announcements")
         data = resp.json["data"]
@@ -127,10 +119,10 @@ class TestAnnouncementsAPI(UnitTest):
     def test_get_announcements_team_specific(self):
         """Team-specific announcements only visible to that team"""
         audience = f"team:{self.blue_team1.id}"
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="For Team 1", content="T", audience=audience
         ))
-        self.session.commit()
+        db.session.commit()
 
         self.login("blueuser1")
         resp = self.client.get("/api/announcements")
@@ -144,10 +136,10 @@ class TestAnnouncementsAPI(UnitTest):
     def test_get_announcements_multi_team(self):
         """Multi-team announcements visible to specified teams"""
         audience = f"teams:{self.blue_team1.id},{self.blue_team2.id}"
-        self.session.add(Announcement(
+        db.session.add(Announcement(
             title="For Both", content="T", audience=audience
         ))
-        self.session.commit()
+        db.session.commit()
 
         self.login("blueuser1")
         resp = self.client.get("/api/announcements")
@@ -168,8 +160,8 @@ class TestAnnouncementsAPI(UnitTest):
         ann1 = Announcement(title="Regular", content="R")
         ann2 = Announcement(title="Pinned", content="P")
         ann2.is_pinned = True
-        self.session.add_all([ann1, ann2])
-        self.session.commit()
+        db.session.add_all([ann1, ann2])
+        db.session.commit()
         resp = self.client.get("/api/announcements")
         data = resp.json["data"]
         assert data[0]["title"] == "Pinned"
@@ -178,8 +170,8 @@ class TestAnnouncementsAPI(UnitTest):
         """Inactive announcements are not shown"""
         ann = Announcement(title="Inactive", content="I")
         ann.is_active = False
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         resp = self.client.get("/api/announcements")
         assert len(resp.json["data"]) == 0
 
@@ -247,8 +239,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_update_success(self):
         """White team can update announcements"""
         ann = Announcement(title="Old", content="Old content")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         self.login("whiteuser")
         resp = self.client.put(
             f"/api/admin/announcements/{ann.id}",
@@ -266,8 +258,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_update_requires_white_team(self):
         """Blue team cannot update announcements"""
         ann = Announcement(title="T", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         self.login("blueuser1")
         resp = self.client.put(
             f"/api/admin/announcements/{ann.id}",
@@ -291,21 +283,21 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_delete_success(self):
         """White team can delete announcements"""
         ann = Announcement(title="Delete Me", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         ann_id = ann.id
         self.login("whiteuser")
         resp = self.client.delete(
             f"/api/admin/announcements/{ann_id}"
         )
         assert resp.status_code == 200
-        assert self.session.get(Announcement, ann_id) is None
+        assert db.session.get(Announcement, ann_id) is None
 
     def test_admin_delete_requires_white_team(self):
         """Blue team cannot delete announcements"""
         ann = Announcement(title="T", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         self.login("blueuser1")
         resp = self.client.delete(
             f"/api/admin/announcements/{ann.id}"
@@ -325,8 +317,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_toggle_pin(self):
         """White team can toggle pin status"""
         ann = Announcement(title="T", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         assert ann.is_pinned is False
         self.login("whiteuser")
         resp = self.client.post(
@@ -343,8 +335,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_toggle_active(self):
         """White team can toggle active status"""
         ann = Announcement(title="T", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         assert ann.is_active is True
         self.login("whiteuser")
         resp = self.client.post(
@@ -356,8 +348,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_toggle_pin_requires_white_team(self):
         """Blue team cannot toggle pin"""
         ann = Announcement(title="T", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         self.login("blueuser1")
         resp = self.client.post(
             f"/api/admin/announcements/{ann.id}/toggle_pin"
@@ -371,8 +363,8 @@ class TestAnnouncementsAPI(UnitTest):
         ann1 = Announcement(title="Active", content="C")
         ann2 = Announcement(title="Inactive", content="C")
         ann2.is_active = False
-        self.session.add_all([ann1, ann2])
-        self.session.commit()
+        db.session.add_all([ann1, ann2])
+        db.session.commit()
         self.login("whiteuser")
         resp = self.client.get("/api/admin/announcements")
         assert resp.status_code == 200
@@ -381,8 +373,8 @@ class TestAnnouncementsAPI(UnitTest):
     def test_admin_get_single(self):
         """Admin can get a single announcement"""
         ann = Announcement(title="Single", content="C")
-        self.session.add(ann)
-        self.session.commit()
+        db.session.add(ann)
+        db.session.commit()
         self.login("whiteuser")
         resp = self.client.get(
             f"/api/admin/announcements/{ann.id}"

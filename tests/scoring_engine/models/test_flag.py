@@ -1,14 +1,14 @@
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
 import pytz
 
-from scoring_engine.models.flag import Flag, Solve, FlagTypeEnum, Platform, Perm
+from scoring_engine.db import db
+from scoring_engine.models.flag import Flag, FlagTypeEnum, Perm, Platform, Solve
 from scoring_engine.models.team import Team
 
-from tests.scoring_engine.unit_test import UnitTest
 
-
-class TestFlag(UnitTest):
+class TestFlag:
 
     def test_init_file_flag(self):
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
@@ -20,7 +20,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.file
         assert flag.platform == Platform.nix
@@ -40,7 +40,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.pipe
         assert flag.platform == Platform.windows
@@ -56,7 +56,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.net
         assert flag.data["port"] == 8080
@@ -71,7 +71,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
         assert flag.type == FlagTypeEnum.reg
         assert flag.platform == Platform.windows
@@ -86,7 +86,7 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=True
+            dummy=True,
         )
         assert flag.dummy is True
 
@@ -100,12 +100,12 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
         assert flag.id is not None
-        assert len(self.session.query(Flag).all()) == 1
+        assert len(db.session.query(Flag).all()) == 1
 
     def test_as_dict(self):
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
@@ -117,10 +117,10 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         flag_dict = flag.as_dict()
         assert "id" in flag_dict
@@ -145,10 +145,10 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.user,
-            dummy=True
+            dummy=True,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         flag_dict = flag.as_dict()
         assert flag_dict["type"] == "net"
@@ -167,10 +167,10 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         localized = flag.localize_start_time
         # Should be a string in format "YYYY-MM-DD HH:MM:SS TZ"
@@ -190,10 +190,10 @@ class TestFlag(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         localized = flag.localize_end_time
         # Should be a string in format "YYYY-MM-DD HH:MM:SS TZ"
@@ -202,11 +202,11 @@ class TestFlag(UnitTest):
         assert any(tz in localized for tz in ["UTC", "EST", "PST", "MST", "CST"])
 
 
-class TestSolve(UnitTest):
+class TestSolve:
 
     def test_init(self):
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -217,14 +217,14 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         solve = Solve(host="10.0.0.1", flag=flag, team=team)
-        self.session.add(solve)
-        self.session.commit()
+        db.session.add(solve)
+        db.session.commit()
 
         assert solve.id is not None
         assert solve.host == "10.0.0.1"
@@ -234,7 +234,7 @@ class TestSolve(UnitTest):
     def test_solve_relationship_to_flag(self):
         """Test that Solve has proper relationship to Flag"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -245,14 +245,14 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         solve = Solve(host="10.0.0.1", flag=flag, team=team)
-        self.session.add(solve)
-        self.session.commit()
+        db.session.add(solve)
+        db.session.commit()
 
         # Access solve through flag relationship
         assert len(flag.solves) == 1
@@ -261,7 +261,7 @@ class TestSolve(UnitTest):
     def test_solve_relationship_to_team(self):
         """Test that Solve has proper relationship to Team"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -272,14 +272,14 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         solve = Solve(host="10.0.0.1", flag=flag, team=team)
-        self.session.add(solve)
-        self.session.commit()
+        db.session.add(solve)
+        db.session.commit()
 
         # Access solve through team relationship
         assert len(team.flag_solves) == 1
@@ -288,7 +288,7 @@ class TestSolve(UnitTest):
     def test_unique_constraint(self):
         """Test that the unique constraint on (flag_id, host, team_id) works"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -299,28 +299,28 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         # Create first solve
         solve1 = Solve(host="10.0.0.1", flag=flag, team=team)
-        self.session.add(solve1)
-        self.session.commit()
+        db.session.add(solve1)
+        db.session.commit()
 
         # Try to create duplicate solve with same flag, host, and team
         solve2 = Solve(host="10.0.0.1", flag=flag, team=team)
-        self.session.add(solve2)
+        db.session.add(solve2)
 
         # Should raise IntegrityError due to unique constraint
         with pytest.raises(Exception):  # SQLAlchemy IntegrityError
-            self.session.commit()
+            db.session.commit()
 
     def test_multiple_solves_different_hosts(self):
         """Test that same flag can be solved from different hosts"""
         team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
+        db.session.add(team)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -331,16 +331,16 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         solve1 = Solve(host="10.0.0.1", flag=flag, team=team)
         solve2 = Solve(host="10.0.0.2", flag=flag, team=team)
-        self.session.add(solve1)
-        self.session.add(solve2)
-        self.session.commit()
+        db.session.add(solve1)
+        db.session.add(solve2)
+        db.session.commit()
 
         assert len(flag.solves) == 2
 
@@ -348,8 +348,8 @@ class TestSolve(UnitTest):
         """Test that same flag can be solved by different teams"""
         team1 = Team(name="Blue Team 1", color="Blue")
         team2 = Team(name="Blue Team 2", color="Blue")
-        self.session.add(team1)
-        self.session.add(team2)
+        db.session.add(team1)
+        db.session.add(team2)
 
         start_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=pytz.UTC)
         end_time = datetime(2025, 1, 1, 18, 0, 0, tzinfo=pytz.UTC)
@@ -360,16 +360,16 @@ class TestSolve(UnitTest):
             start_time=start_time,
             end_time=end_time,
             perm=Perm.root,
-            dummy=False
+            dummy=False,
         )
-        self.session.add(flag)
-        self.session.commit()
+        db.session.add(flag)
+        db.session.commit()
 
         solve1 = Solve(host="10.0.0.1", flag=flag, team=team1)
         solve2 = Solve(host="10.0.0.1", flag=flag, team=team2)
-        self.session.add(solve1)
-        self.session.add(solve2)
-        self.session.commit()
+        db.session.add(solve1)
+        db.session.add(solve2)
+        db.session.commit()
 
         assert len(flag.solves) == 2
         assert len(team1.flag_solves) == 1
