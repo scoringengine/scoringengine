@@ -144,6 +144,7 @@ with app.app_context():
     db.session.add(Setting(name="welcome_page_content", value=welcome_content))
     db.session.add(Setting(name="target_round_time", value=config.target_round_time))
     db.session.add(Setting(name="worker_refresh_time", value=config.worker_refresh_time))
+    db.session.add(Setting(name="worker_max_concurrent_tasks", value=str(config.worker_num_concurrent_tasks)))
     db.session.add(Setting(name="engine_paused", value=config.engine_paused))
     db.session.add(Setting(name="pause_duration", value=config.pause_duration))
     db.session.add(Setting(name="blue_team_update_hostname", value=config.blue_team_update_hostname))

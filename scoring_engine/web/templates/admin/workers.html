@@ -10,14 +10,39 @@
 {% block header %}Worker Stats{% endblock %}
 
 {% block admincontent %}
-  <div class="chart-card mt-3" style="padding:0; overflow:hidden;">
+  <div class="stat-cards-row pt-2">
+    <div class="stat-card">
+      <div class="stat-label">Total Workers</div>
+      <div class="stat-value" id="summary_total_workers">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Running Checks</div>
+      <div class="stat-value text-success" id="summary_total_running">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Completed</div>
+      <div class="stat-value" id="summary_total_completed">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Utilization</div>
+      <div class="stat-value" id="summary_avg_utilization">-</div>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end mt-2 mb-2">
+    <small class="text-muted">Last updated: <span id="last_updated">-</span></small>
+  </div>
+  <div class="chart-card mt-1" style="padding:0; overflow:hidden;">
     <table id="workers" class="table table-sm overview-matrix" width="100%">
       <thead>
         <tr>
           <th><div title="Name of Worker">Name</div></th>
+          <th><div title="Worker connectivity status">Status</div></th>
+          <th><div title="Current utilization percentage">Utilization</div></th>
           <th><div title="Number of processes available">Processes</div></th>
-          <th><div title="Number of currently running checks">Running Checks</div></th>
-          <th><div title="Number of completed checks">Completed Checks</div></th>
+          <th><div title="Number of currently running checks">Running</div></th>
+          <th><div title="Number of completed checks">Completed</div></th>
+          <th><div title="Worker uptime">Uptime</div></th>
+          <th><div title="Peak memory usage (RSS)">Memory</div></th>
           <th><div title="Queues registered to for running service checks">Queue Names</div></th>
           <th><div title="Services that the worker is registered to run">Enabled Services</div></th>
         </tr>
@@ -27,6 +52,29 @@
     </table>
   </div>
   <script>
+    function formatUptime(seconds) {
+      if (!seconds || seconds <= 0) return '-';
+      var d = Math.floor(seconds / 86400);
+      var h = Math.floor((seconds % 86400) / 3600);
+      var m = Math.floor((seconds % 3600) / 60);
+      if (d > 0) return d + 'd ' + h + 'h';
+      if (h > 0) return h + 'h ' + m + 'm';
+      return m + 'm';
+    }
+
+    function updateLastUpdated() {
+      var now = new Date();
+      var timeStr = now.toLocaleTimeString();
+      $('#last_updated').text(timeStr);
+    }
+
+    function updateWorkerSummary(summary) {
+      $('#summary_total_workers').text(summary.total_workers);
+      $('#summary_total_running').text(summary.total_running);
+      $('#summary_total_completed').text(summary.total_completed);
+      $('#summary_avg_utilization').text(summary.avg_utilization_pct + '%');
+    }
+
     $(document).ready(function() {
       // Disable datatables error reporting
       $.fn.dataTable.ext.errMode = 'none';
@@ -39,15 +87,52 @@
           'paging': false,
           'bFilter': false,
           'bInfo': false,
-          "ajax": "/api/admin/get_worker_stats",
+          "ajax": {
+            "url": "/api/admin/get_worker_stats_with_summary",
+            "dataSrc": function(json) {
+              updateLastUpdated();
+              updateWorkerSummary(json.summary);
+              return json.data;
+            }
+          },
           "language": {
             "emptyTable": 'No workers are currently connected <span class="bi bi-exclamation-triangle-fill" style="color:red" title="This means no services will get checked until a worker is connected."></span>',
           },
           "columns": [
             { "data": "worker_name" },
+            {
+              "data": "is_alive",
+              "render": function(data) {
+                if (data) {
+                  return '<span class="bi bi-circle-fill" style="color:#28a745" title="Online"></span>';
+                }
+                return '<span class="bi bi-circle-fill" style="color:#dc3545" title="Offline"></span>';
+              }
+            },
+            {
+              "data": "utilization_pct",
+              "render": function(data) {
+                var color = data < 50 ? '#28a745' : (data < 80 ? '#ffc107' : '#dc3545');
+                return '<div class="progress" style="min-width:80px;height:18px;">' +
+                  '<div class="progress-bar" role="progressbar" style="width:' + data + '%;background-color:' + color + ';" aria-valuenow="' + data + '" aria-valuemin="0" aria-valuemax="100">' +
+                  data + '%</div></div>';
+              }
+            },
             { "data": "num_threads" },
             { "data": "running_tasks" },
             { "data": "completed_tasks" },
+            {
+              "data": "uptime_seconds",
+              "render": function(data) {
+                return formatUptime(data);
+              }
+            },
+            {
+              "data": "max_rss_mb",
+              "render": function(data) {
+                return data + ' MB';
+              }
+            },
             {
               "data": "worker_queues",
               "render": function( data ) {
@@ -65,7 +150,7 @@
                 var text = "";
                 if (typeof data === 'string'){
                   if (data == 'None'){
-                    text = 'None <span class="bi bi-exclamation-triangle-fill" style="color:red" title="This worker isn\' currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
+                    text = 'None <span class="bi bi-exclamation-triangle-fill" style="color:red" title="This worker isn\'t currently running any services, perhaps the queue names for this worker are incorrect?"></span>';
                   }
                   else{
                     text = data;
@@ -89,7 +174,7 @@
           ],
         });
       setInterval( function () {
-        table.ajax.reload();
+        table.ajax.reload(null, false);
       }, 10000 );
     } );
   </script>

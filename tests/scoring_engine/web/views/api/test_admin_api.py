@@ -1,6 +1,7 @@
 """Comprehensive tests for Admin API endpoints"""
 
 import html
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -21,6 +22,9 @@ ADMIN_API_AUTH_PATHS = [
     pytest.param("get", "/api/admin/get_teams", id="get_teams"),
     pytest.param("post", "/api/admin/toggle_engine", id="toggle_engine"),
     pytest.param("get", "/api/admin/get_engine_paused", id="get_engine_paused"),
+    pytest.param("get", "/api/admin/get_worker_summary", id="get_worker_summary"),
+    pytest.param("get", "/api/admin/get_worker_stats_with_summary", id="get_worker_stats_with_summary"),
+    pytest.param("get", "/api/admin/get_uwsgi_stats", id="get_uwsgi_stats"),
 ]
 
 
@@ -534,3 +538,247 @@ class TestAdminAPI:
 
         resp = self.client.get("/api/admin/get_engine_paused")
         assert resp.json["paused"] is True
+
+    # Worker Max Concurrent Tasks Tests
+    def test_update_worker_max_concurrent_tasks_requires_white_team(self):
+        """Test that only white team can update worker max concurrent tasks"""
+        self.login("blueuser")
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "8"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 403
+
+    def test_update_worker_max_concurrent_tasks_success(self):
+        """Test white team can update worker max concurrent tasks"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser")
+
+        with patch("scoring_engine.web.views.api.admin.celery_app") as mock_celery:
+            resp = self.client.post(
+                "/api/admin/update_worker_max_concurrent_tasks",
+                data={"worker_max_concurrent_tasks": "16"},
+                follow_redirects=True,
+            )
+
+            assert resp.status_code == 200
+            mock_celery.control.autoscale.assert_called_once_with(16, 16)
+
+        setting = Setting.get_setting("worker_max_concurrent_tasks")
+        assert setting.value == "16"
+
+    def test_update_worker_max_concurrent_tasks_rejects_non_integer(self):
+        """Test that non-integer input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "abc"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
+
+    def test_update_worker_max_concurrent_tasks_rejects_zero(self):
+        """Test that zero input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "0"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
+
+    def test_update_worker_max_concurrent_tasks_rejects_negative(self):
+        """Test that negative input is rejected"""
+        self.login("whiteuser")
+
+        resp = self.client.post(
+            "/api/admin/update_worker_max_concurrent_tasks",
+            data={"worker_max_concurrent_tasks": "-5"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert b"must be a positive integer" in resp.data
+
+    # Worker Summary Tests
+    def test_get_worker_summary_requires_white_team(self):
+        """Test that only white team can get worker summary"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_worker_summary")
+        assert resp.status_code == 403
+
+    def test_get_worker_summary_returns_data(self):
+        """Test that worker summary returns aggregated stats"""
+        self.login("whiteuser")
+
+        mock_summary = {
+            "total_workers": 2,
+            "total_threads": 10,
+            "total_running": 3,
+            "total_completed": 50,
+            "total_scheduled": 5,
+            "avg_utilization_pct": 30.0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_summary")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert data["total_workers"] == 2
+        assert data["total_threads"] == 10
+        assert data["total_running"] == 3
+        assert data["total_completed"] == 50
+        assert data["total_scheduled"] == 5
+        assert data["avg_utilization_pct"] == 30.0
+
+    def test_get_worker_summary_no_workers(self):
+        """Test worker summary when no workers are connected"""
+        self.login("whiteuser")
+
+        mock_summary = {
+            "total_workers": 0,
+            "total_threads": 0,
+            "total_running": 0,
+            "total_completed": 0,
+            "total_scheduled": 0,
+            "avg_utilization_pct": 0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_summary")
+
+        assert resp.status_code == 200
+        assert resp.json["total_workers"] == 0
+
+    # Combined Worker Stats + Summary Tests
+    def test_get_worker_stats_with_summary_requires_white_team(self):
+        """Test that only white team can get combined worker stats"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_worker_stats_with_summary")
+        assert resp.status_code == 403
+
+    def test_get_worker_stats_with_summary_returns_both(self):
+        """Test that combined endpoint returns both data and summary"""
+        self.login("whiteuser")
+
+        mock_workers = [
+            {
+                "worker_name": "w1",
+                "num_threads": 5,
+                "running_tasks": 2,
+                "completed_tasks": 10,
+                "scheduled_tasks": 1,
+                "utilization_pct": 40.0,
+            }
+        ]
+        mock_summary = {
+            "total_workers": 1,
+            "total_threads": 5,
+            "total_running": 2,
+            "total_completed": 10,
+            "total_scheduled": 1,
+            "avg_utilization_pct": 40.0,
+        }
+
+        with patch("scoring_engine.web.views.api.admin.CeleryStats") as mock_stats:
+            mock_stats.get_worker_stats.return_value = mock_workers
+            mock_stats._compute_summary.return_value = mock_summary
+            resp = self.client.get("/api/admin/get_worker_stats_with_summary")
+
+        assert resp.status_code == 200
+        assert "data" in resp.json
+        assert "summary" in resp.json
+        assert len(resp.json["data"]) == 1
+        assert resp.json["summary"]["total_workers"] == 1
+
+    # uWSGI Stats Tests
+    def test_get_uwsgi_stats_requires_white_team(self):
+        """Test that only white team can get uwsgi stats"""
+        self.login("blueuser")
+        resp = self.client.get("/api/admin/get_uwsgi_stats")
+        assert resp.status_code == 403
+
+    def test_get_uwsgi_stats_returns_data(self):
+        """Test that uwsgi stats returns summary and workers"""
+        self.login("whiteuser")
+
+        mock_response = MagicMock()
+        mock_response.read.return_value = json.dumps({
+            "version": "2.0.31",
+            "listen_queue": 0,
+            "listen_queue_errors": 0,
+            "sockets": [{"max_queue": 100}],
+            "workers": [
+                {
+                    "id": 1,
+                    "pid": 10,
+                    "status": "idle",
+                    "requests": 50,
+                    "exceptions": 0,
+                    "harakiri_count": 0,
+                    "avg_rt": 5000,
+                    "tx": 10240,
+                    "rss": 52428800,
+                    "running_time": 1000000,
+                    "respawn_count": 1,
+                },
+                {
+                    "id": 2,
+                    "pid": 12,
+                    "status": "busy",
+                    "requests": 100,
+                    "exceptions": 2,
+                    "harakiri_count": 1,
+                    "avg_rt": 3000,
+                    "tx": 20480,
+                    "rss": 62914560,
+                    "running_time": 2000000,
+                    "respawn_count": 1,
+                },
+            ],
+        }).encode()
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("scoring_engine.web.views.api.admin.urllib.request.urlopen", return_value=mock_response):
+            resp = self.client.get("/api/admin/get_uwsgi_stats")
+
+        assert resp.status_code == 200
+        data = resp.json
+        assert "summary" in data
+        assert "workers" in data
+        assert data["summary"]["total_workers"] == 2
+        assert data["summary"]["busy_workers"] == 1
+        assert data["summary"]["idle_workers"] == 1
+        assert data["summary"]["total_requests"] == 150
+        assert data["summary"]["total_exceptions"] == 2
+        assert data["summary"]["version"] == "2.0.31"
+        assert len(data["workers"]) == 2
+        assert data["workers"][0]["avg_rt_ms"] == 5.0
+        assert data["workers"][1]["harakiri_count"] == 1
+
+    def test_get_uwsgi_stats_unavailable(self):
+        """Test graceful handling when uwsgi stats server is down"""
+        self.login("whiteuser")
+
+        import urllib.error
+
+        with patch(
+            "scoring_engine.web.views.api.admin.urllib.request.urlopen",
+            side_effect=urllib.error.URLError("connection refused"),
+        ):
+            resp = self.client.get("/api/admin/get_uwsgi_stats")
+
+        assert resp.status_code == 503
+        assert "unavailable" in resp.json["error"]

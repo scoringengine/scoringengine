@@ -44,6 +44,16 @@ def queues():
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/webserver")
+@login_required
+def webserver():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/webserver.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/manage")
 @login_required
 def manage():
@@ -114,12 +124,14 @@ def settings():
         welcome_page_content = Setting.get_setting("welcome_page_content").value
         target_round_time = Setting.get_setting("target_round_time").value
         worker_refresh_time = Setting.get_setting("worker_refresh_time").value
+        worker_max_concurrent_tasks = Setting.get_setting("worker_max_concurrent_tasks").value
         blue_teams = Team.get_all_blue_teams()
         return render_template(
             "admin/settings.html",
             blue_teams=blue_teams,
             target_round_time=target_round_time,
             worker_refresh_time=worker_refresh_time,
+            worker_max_concurrent_tasks=worker_max_concurrent_tasks,
             about_page_content=about_page_content,
             welcome_page_content=welcome_page_content,
         )
