@@ -220,6 +220,13 @@ class ConfigLoader(object):
             "float",
         )
 
+        # Inject Score Visibility
+        self.inject_scores_visible = self.parse_sources(
+            "inject_scores_visible",
+            self.parser["OPTIONS"].get("inject_scores_visible", "false").lower() == "true",
+            "bool",
+        )
+
     def parse_sources(self, key_name, default_value, obj_type="str"):
         """Return a configuration value using environment overrides when present.
 

@@ -186,6 +186,10 @@ with app.app_context():
     }
     db.session.add(Setting(name="welcome_config", value=json.dumps(welcome_config)))
 
+    # Inject Settings
+    logger.info("Creating the Inject Settings")
+    db.session.add(Setting(name="inject_scores_visible", value=config.inject_scores_visible))
+
     db.session.commit()
 
     if options.example:

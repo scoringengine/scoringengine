@@ -256,6 +256,40 @@
     });
   }
 
+  var previewableExtensions = ['.pdf', '.txt', '.docx', '.odt'];
+
+  function getFileExtension(filename) {
+    return filename.substring(filename.lastIndexOf('.')).toLowerCase();
+  }
+
+  function isPreviewable(filename) {
+    return previewableExtensions.indexOf(getFileExtension(filename)) !== -1;
+  }
+
+  function previewFile(fileId, filename) {
+    var ext = getFileExtension(filename);
+    var previewUrl = '/api/inject/{{ inject.id }}/files/' + fileId + '/preview';
+    if (ext === '.pdf') {
+      window.open(previewUrl, '_blank');
+    } else {
+      $.ajax({
+        url: previewUrl,
+        success: function (result) {
+          if (ext === '.txt') {
+            $('#previewModalBody').html('<pre>' + $('<div>').text(result).html() + '</pre>');
+          } else {
+            $('#previewModalBody').html(result);
+          }
+          $('#previewModalTitle').text('Preview: ' + filename);
+          $('#previewModal').modal('show');
+        },
+        error: function () {
+          alert('Error loading preview');
+        }
+      });
+    }
+  }
+
   function updateFiles() {
     var injectStatus = '{{ inject.status }}';
     var canDelete = (injectStatus === 'Draft' || injectStatus === 'Revision Requested');
@@ -266,6 +300,9 @@
 
         $.each(result.data, function (index, value) {
           files += "<p><a href='/api/inject/{{ inject.id }}/files/" + value.id + "/download'>" + value.name + "</a>";
+          if (isPreviewable(value.name)) {
+            files += ' <button class="btn btn-xs btn-info" onclick="previewFile(' + value.id + ', \'' + value.name.replace(/'/g, "\\'") + '\')">Preview</button>';
+          }
           if (canDelete) {
             files += ' <button class="btn btn-xs btn-danger delete-file-btn" data-file-id="' + value.id + '">Delete</button>';
           }
@@ -360,4 +397,21 @@
     });
   });
 </script>
+<!-- File Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="previewModalTitle">Preview</h4>
+      </div>
+      <div class="modal-body" id="previewModalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,6 +1,7 @@
 """Comprehensive tests for Admin API endpoints"""
 
 import html
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from scoring_engine.db import db
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
+from scoring_engine.models.inject import Inject, InjectRubricScore, RubricItem, Template
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
@@ -33,6 +35,9 @@ class TestAdminAPI:
         self.white_team = three_teams["white_team"]
         self.blue_team = three_teams["blue_team"]
         self.red_team = three_teams["red_team"]
+        self.white_user = three_teams["white_user"]
+        self.blue_user = three_teams["blue_user"]
+        self.red_user = three_teams["red_user"]
 
     def login(self, username, password="testpass"):
         return self.client.post(
@@ -534,3 +539,195 @@ class TestAdminAPI:
 
         resp = self.client.get("/api/admin/get_engine_paused")
         assert resp.json["paused"] is True
+
+    # Inject Scores Visibility Toggle Tests
+    def test_toggle_inject_scores_visible_requires_auth(self):
+        """Test that toggle inject scores visible requires authentication"""
+        resp = self.client.post("/api/admin/toggle_inject_scores_visible")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+    def test_toggle_inject_scores_visible_requires_white_team(self):
+        """Test that only white team can toggle inject scores visibility"""
+        self.login("blueuser")
+        resp = self.client.post("/api/admin/toggle_inject_scores_visible")
+        assert resp.status_code == 403
+        assert resp.json["status"] == "Unauthorized"
+
+    def test_toggle_inject_scores_visible_enables(self):
+        """Test toggling inject scores from hidden to visible"""
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser")
+
+        # Default is False
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        assert setting.value is False
+
+        # Toggle to visible
+        with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
+            resp = self.client.post("/api/admin/toggle_inject_scores_visible")
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Success"
+
+        # Verify setting is now True
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        assert setting.value is True
+
+    def test_toggle_inject_scores_visible_disables(self):
+        """Test toggling inject scores from visible back to hidden"""
+        from scoring_engine.db import db
+        from scoring_engine.models.setting import Setting
+
+        self.login("whiteuser")
+
+        # Set to True first
+        setting = Setting.get_setting("inject_scores_visible")
+        setting.value = True
+        db.session.commit()
+        Setting.clear_cache("inject_scores_visible")
+
+        # Toggle back to hidden
+        with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
+            resp = self.client.post("/api/admin/toggle_inject_scores_visible")
+        assert resp.status_code == 200
+
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        assert setting.value is False
+
+    def test_toggle_inject_scores_visible_updates_scoreboard(self):
+        """Test that toggling inject scores triggers scoreboard cache update"""
+        self.login("whiteuser")
+
+        with patch("scoring_engine.web.views.api.admin.update_scoreboard_data") as mock_scoreboard:
+            resp = self.client.post("/api/admin/toggle_inject_scores_visible")
+
+        assert resp.status_code == 200
+        mock_scoreboard.assert_called_once()
+
+    # Reopen Graded Inject Tests
+    def _make_template(self, **kwargs):
+        defaults = dict(
+            title="Test",
+            scenario="Test",
+            deliverable="Test",
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+        )
+        defaults.update(kwargs)
+        return Template(**defaults)
+
+    def test_reopen_inject_requires_auth(self):
+        """Test that reopen inject requires authentication"""
+        resp = self.client.post("/api/admin/inject/1/reopen")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+    def test_reopen_inject_requires_white_team(self):
+        """Test that only white team can reopen injects"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team, template=template)
+        inject.status = "Graded"
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("blueuser")
+        resp = self.client.post(f"/api/admin/inject/{inject.id}/reopen")
+        assert resp.status_code == 403
+        assert resp.json["status"] == "Unauthorized"
+
+    def test_reopen_inject_invalid_id(self):
+        """Test reopen with invalid inject ID"""
+        self.login("whiteuser")
+        resp = self.client.post("/api/admin/inject/99999/reopen")
+        assert resp.status_code == 400
+        assert resp.json["status"] == "Invalid Inject ID"
+
+    def test_reopen_inject_wrong_status(self):
+        """Test reopen rejects non-Graded injects"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team, template=template)
+        inject.status = "Submitted"
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("whiteuser")
+        with patch("scoring_engine.web.views.api.admin.update_inject_data"):
+            with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
+                resp = self.client.post(f"/api/admin/inject/{inject.id}/reopen")
+        assert resp.status_code == 400
+        assert resp.json["status"] == "Inject is not in Graded state"
+
+    def test_reopen_inject_success(self):
+        """Test successful reopen of a graded inject"""
+        template = self._make_template()
+        db.session.add(template)
+        db.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team, template=template)
+        inject.status = "Graded"
+        inject.graded = datetime.now(timezone.utc)
+        db.session.add_all([ri, inject])
+        db.session.flush()
+        score = InjectRubricScore(score=80, inject=inject, rubric_item=ri, grader=self.white_user)
+        db.session.add(score)
+        db.session.commit()
+
+        self.login("whiteuser")
+        with patch("scoring_engine.web.views.api.admin.update_inject_data"):
+            with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
+                resp = self.client.post(f"/api/admin/inject/{inject.id}/reopen")
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Success"
+
+        db.session.refresh(inject)
+        assert inject.status == "Submitted"
+        assert inject.graded is None
+
+    def test_reopen_inject_keeps_rubric_scores(self):
+        """Test that reopening preserves existing rubric scores (grade replaces them anyway)"""
+        template = self._make_template()
+        db.session.add(template)
+        db.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team, template=template)
+        inject.status = "Graded"
+        inject.graded = datetime.now(timezone.utc)
+        db.session.add_all([ri, inject])
+        db.session.flush()
+        score = InjectRubricScore(score=80, inject=inject, rubric_item=ri, grader=self.white_user)
+        db.session.add(score)
+        db.session.commit()
+
+        self.login("whiteuser")
+        with patch("scoring_engine.web.views.api.admin.update_inject_data"):
+            with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
+                resp = self.client.post(f"/api/admin/inject/{inject.id}/reopen")
+
+        assert resp.status_code == 200
+        # Rubric scores should still exist
+        scores = db.session.query(InjectRubricScore).filter(InjectRubricScore.inject_id == inject.id).all()
+        assert len(scores) == 1
+        assert scores[0].score == 80
+
+    def test_reopen_inject_updates_caches(self):
+        """Test that reopening triggers cache updates"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team, template=template)
+        inject.status = "Graded"
+        inject.graded = datetime.now(timezone.utc)
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("whiteuser")
+        with patch("scoring_engine.web.views.api.admin.update_inject_data") as mock_inject:
+            with patch("scoring_engine.web.views.api.admin.update_scoreboard_data") as mock_scoreboard:
+                resp = self.client.post(f"/api/admin/inject/{inject.id}/reopen")
+
+        assert resp.status_code == 200
+        mock_inject.assert_called_once_with(str(inject.id))
+        mock_scoreboard.assert_called_once()

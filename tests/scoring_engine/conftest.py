@@ -71,6 +71,7 @@ def _insert_default_settings():
         ("dynamic_scoring_early_multiplier", "2.0"),
         ("dynamic_scoring_late_start_round", "50"),
         ("dynamic_scoring_late_multiplier", "0.5"),
+        ("inject_scores_visible", False),
     ]
     for name, value in settings:
         db.session.add(Setting(name=name, value=value))

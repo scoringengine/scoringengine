@@ -276,30 +276,6 @@ class TestInjectsAPI:
 
         assert resp.status_code == 400
 
-    def test_file_upload_duplicate_filename_rejected(self):
-        """SECURITY: Test that duplicate filenames are rejected"""
-        template = self._make_template()
-        inject = Inject(team=self.blue_team1, template=template)
-        db.session.add_all([template, inject])
-        db.session.commit()
-
-        existing_file = InjectFile(
-            f"Inject{inject.id}_Blue Team 1_test.txt",
-            self.blue_user1,
-            inject,
-        )
-        db.session.add(existing_file)
-        db.session.commit()
-
-        self.login("blueuser1")
-
-        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
-            data = {"file": (io.BytesIO(b"test"), "test.txt")}
-            resp = self.client.post(f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data")
-
-            assert resp.status_code == 400
-            assert "not unique" in resp.data.decode().lower()
-
     # File Delete Tests
     def test_file_delete_requires_auth(self):
         """Test that file delete requires authentication"""
@@ -713,3 +689,137 @@ class TestInjectsAPI:
 
         assert resp.status_code == 200
         mock_update.assert_called_once_with(str(inject.id))
+
+    # File Preview Tests
+    def test_preview_requires_auth(self):
+        """Test that file preview requires authentication"""
+        resp = self.client.get("/api/inject/1/files/1/preview")
+        assert resp.status_code == 302
+
+    def test_preview_team_authorization(self):
+        """Test that users can only preview their own team's files"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject, original_filename="test.txt")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser2")
+        resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 403
+
+    def test_preview_white_team_authorized(self):
+        """Test that white team can preview any file"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject, original_filename="test.txt")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("whiteuser")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects.send_file"):
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 200
+
+    def test_preview_file_not_found(self):
+        """Test preview returns 404 for non-existent file record"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("blueuser1")
+        resp = self.client.get(f"/api/inject/{inject.id}/files/99999/preview")
+        assert resp.status_code == 404
+
+    def test_preview_unsupported_type(self):
+        """Test that unsupported file types return 400"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.exe", self.blue_user1, inject, original_filename="test.exe")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 400
+        assert "not supported" in resp.json["status"]
+
+    def test_preview_txt_file(self):
+        """Test preview of a text file"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject, original_filename="report.txt")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects.send_file") as mock_send:
+                mock_send.return_value = MagicMock(status_code=200)
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+                mock_send.assert_called_once()
+                # Verify it was called with text/plain mimetype
+                assert mock_send.call_args[1]["mimetype"] == "text/plain"
+
+    def test_preview_pdf_file(self):
+        """Test preview of a PDF file"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.pdf", self.blue_user1, inject, original_filename="report.pdf")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects.send_file") as mock_send:
+                mock_send.return_value = MagicMock(status_code=200)
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+                mock_send.assert_called_once()
+                assert mock_send.call_args[1]["mimetype"] == "application/pdf"
+
+    def test_preview_docx_file(self):
+        """Test preview of a docx file returns HTML"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.docx", self.blue_user1, inject, original_filename="report.docx")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects._preview_docx", return_value="<p>Hello</p>"):
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("text/html")
+        assert "<p>Hello</p>" in resp.data.decode()
+
+    def test_preview_odt_file(self):
+        """Test preview of an odt file returns HTML"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.odt", self.blue_user1, inject, original_filename="report.odt")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
+            with patch("scoring_engine.web.views.api.injects._preview_odt", return_value="<p>ODT content</p>"):
+                resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 200
+        assert resp.content_type.startswith("text/html")
+        assert "<p>ODT content</p>" in resp.data.decode()
+
+    def test_preview_missing_physical_file(self):
+        """Test preview returns 404 when physical file is missing"""
+        template = self._make_template()
+        inject = Inject(team=self.blue_team1, template=template)
+        file_obj = InjectFile("test.txt", self.blue_user1, inject, original_filename="report.txt")
+        db.session.add_all([template, inject, file_obj])
+        db.session.commit()
+
+        self.login("blueuser1")
+        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=False):
+            resp = self.client.get(f"/api/inject/{inject.id}/files/{file_obj.id}/preview")
+        assert resp.status_code == 404

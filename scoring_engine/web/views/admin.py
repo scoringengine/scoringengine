@@ -154,6 +154,7 @@ def permissions():
                 if Setting.get_setting("anonymize_team_names")
                 else False
             ),
+            inject_scores_visible=Setting.get_setting("inject_scores_visible").value,
         )
     else:
         return redirect(url_for("auth.unauthorized"))

@@ -420,6 +420,26 @@ def get_check_progress_total():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/inject/<inject_id>/reopen", methods=["POST"])
+@login_required
+def admin_post_inject_reopen(inject_id):
+    if current_user.is_white_team:
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+        if inject.status != "Graded":
+            return jsonify({"status": "Inject is not in Graded state"}), 400
+
+        inject.status = "Submitted"
+        inject.graded = None
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_scoreboard_data()
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/injects/templates/<template_id>")
 @login_required
 def admin_get_inject_templates_id(template_id):
@@ -1100,6 +1120,22 @@ def admin_add_team():
         else:
             flash("Error: Team name or color not defined.", "danger")
             return redirect(url_for("admin.manage"))
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/toggle_inject_scores_visible", methods=["POST"])
+@login_required
+def admin_toggle_inject_scores_visible():
+    if current_user.is_white_team:
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        setting.value = not setting.value
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("inject_scores_visible")
+        update_scoreboard_data()
+        return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
 

@@ -343,3 +343,89 @@ def api_inject_download(inject_id, file_id):
         return send_file(path, as_attachment=True)
     except FileNotFoundError:
         abort(404)
+
+
+PREVIEWABLE_EXTENSIONS = {".pdf", ".txt", ".docx", ".odt"}
+
+
+def _get_original_extension(file_obj):
+    """Get the file extension from the original filename."""
+    name = file_obj.original_filename or file_obj.filename
+    return os.path.splitext(name)[1].lower()
+
+
+def _preview_docx(path):
+    """Convert a .docx file to simple HTML."""
+    from docx import Document
+
+    doc = Document(path)
+    parts = []
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text:
+            parts.append(f"<p>{text}</p>")
+    for table in doc.tables:
+        parts.append("<table class='table table-bordered'>")
+        for row in table.rows:
+            parts.append("<tr>")
+            for cell in row.cells:
+                parts.append(f"<td>{cell.text}</td>")
+            parts.append("</tr>")
+        parts.append("</table>")
+    return "\n".join(parts)
+
+
+def _preview_odt(path):
+    """Convert an .odt file to simple HTML."""
+    from odf.opendocument import load
+    from odf.text import P
+
+    doc = load(path)
+    parts = []
+    for element in doc.getElementsByType(P):
+        text = element
+        # Extract text content from the element and its children
+        content = ""
+        for node in text.childNodes:
+            if hasattr(node, "data"):
+                content += node.data
+            elif hasattr(node, "__str__"):
+                content += str(node)
+        content = content.strip()
+        if content:
+            parts.append(f"<p>{content}</p>")
+    return "\n".join(parts)
+
+
+@mod.route("/api/inject/<inject_id>/files/<file_id>/preview")
+@login_required
+def api_inject_preview(inject_id, file_id):
+    inject = db.session.get(Inject, inject_id)
+    if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
+        return jsonify({"status": "Unauthorized"}), 403
+
+    file = db.session.query(InjectFile).filter(InjectFile.id == file_id).one_or_none()
+    if file is None:
+        return jsonify({"status": "File not found"}), 404
+
+    ext = _get_original_extension(file)
+    if ext not in PREVIEWABLE_EXTENSIONS:
+        return jsonify({"status": "Preview not supported for this file type"}), 400
+
+    path = os.path.join(config.upload_folder, str(inject.id), inject.team.name, file.filename)
+    if not os.path.exists(path):
+        abort(404)
+
+    if ext == ".pdf":
+        return send_file(path, mimetype="application/pdf")
+
+    if ext == ".txt":
+        return send_file(path, mimetype="text/plain")
+
+    if ext == ".docx":
+        html_content = _preview_docx(path)
+        return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+    if ext == ".odt":
+        html_content = _preview_odt(path)
+        return html_content, 200, {"Content-Type": "text/html; charset=utf-8"}
