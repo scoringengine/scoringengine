@@ -99,7 +99,8 @@
   <table class="table table-sm overview-matrix">
     <thead>
       <tr>
-        <th style="width: 25%">Matching Content</th>
+        <th style="width: 20%">Matching Content</th>
+        <th style="width: 20%">Reject Content</th>
         <th>Properties</th>
       </tr>
     </thead>
@@ -111,6 +112,13 @@
                  data-pk="{{environment.id}}" data-name="matching_content"
                  data-url="{{url_for('api.admin_update_environment')}}"
                  value="{{environment.matching_content}}">
+        </td>
+        <td class="align-top">
+          <input type="text" class="form-control form-control-sm editable-field"
+                 data-pk="{{environment.id}}" data-name="matching_content_reject"
+                 data-url="{{url_for('api.admin_update_environment')}}"
+                 value="{{environment.matching_content_reject or ''}}"
+                 placeholder="Optional reject regex">
         </td>
         <td>
           {% if environment.properties %}

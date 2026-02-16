@@ -11,3 +11,4 @@ class Environment(Base):
     service = relationship("Service")
     properties = relationship("Property", back_populates="environment")
     matching_content = Column(Text, nullable=False)
+    matching_content_reject = Column(Text, nullable=True)

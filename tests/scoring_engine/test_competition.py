@@ -290,6 +290,20 @@ class TestEnvironmentData(CompetitionDataTest):
             "Team1 SSH environment 'matching_content' field must be a valid regex pattern: missing ), unterminated subpattern at position 3"
         )
 
+    def test_matching_content_reject_bad_type(self):
+        self.competition_setup["teams"][0]["services"][0]["environments"][0]["matching_content_reject"] = []
+        self.verify_error("Team1 SSH environment 'matching_content_reject' field must be a string")
+
+    def test_matching_content_reject_bad_regex(self):
+        self.competition_setup["teams"][0]["services"][0]["environments"][0]["matching_content_reject"] = "foo(bar"
+        self.verify_error(
+            "Team1 SSH environment 'matching_content_reject' field must be a valid regex pattern: missing ), unterminated subpattern at position 3"
+        )
+
+    def test_matching_content_reject_valid(self):
+        self.competition_setup["teams"][0]["services"][0]["environments"][0]["matching_content_reject"] = "ERROR|FAIL"
+        Competition(self.competition_setup)
+
     def test_bad_properties_type(self):
         self.competition_setup["teams"][0]["services"][0]["environments"][0]["properties"] = "a string"
         self.verify_error("Team1 SSH environment 'properties' field must be an array")
@@ -360,8 +374,35 @@ class TestGoodSetup(CompetitionDataTest):
 
     def test_environment(self):
         assert self.environment.matching_content == "^SUCCESS"
+        assert self.environment.matching_content_reject is None
         assert len(self.environment.properties) == 1
+
+    def test_environment_with_reject(self):
+        second_env = self.service.environments[1]
+        assert second_env.matching_content == "PID"
+        assert second_env.matching_content_reject is None
 
     def test_property(self):
         assert self.property.name == "commands"
         assert self.property.value == "id;ls -l"
+
+
+class TestGoodSetupWithReject(CompetitionDataTest):
+    @pytest.fixture(autouse=True)
+    def setup(self, db_session):
+        self._init_competition_data()
+        self.competition_setup["teams"][0]["services"][0]["environments"][0]["matching_content_reject"] = "ERROR|FAIL"
+        competition = Competition(self.competition_setup)
+        competition.save()
+        self.blue_teams = Team.get_all_blue_teams()
+        self.blue_team = self.blue_teams[0]
+        self.service = self.blue_team.services[0]
+        self.environment = self.service.environments[0]
+
+    def test_environment_reject_saved(self):
+        assert self.environment.matching_content == "^SUCCESS"
+        assert self.environment.matching_content_reject == "ERROR|FAIL"
+
+    def test_environment_without_reject(self):
+        second_env = self.service.environments[1]
+        assert second_env.matching_content_reject is None
