@@ -1,5 +1,6 @@
 import html
 import json
+import os
 import re
 from datetime import datetime, timezone
 
@@ -361,6 +362,35 @@ def admin_update_anonymize_team_names():
         db.session.commit()
         Setting.clear_cache("anonymize_team_names")
         return redirect(url_for("admin.permissions"))
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/check/<int:check_id>/full_output")
+@login_required
+def admin_get_check_full_output(check_id):
+    if current_user.is_white_team:
+        check = db.session.get(Check, check_id)
+        if not check:
+            return jsonify({"error": "Check not found"}), 404
+
+        team_name = check.service.team.name
+        service_name = check.service.name
+        round_num = check.round.number
+
+        output_path = os.path.join(
+            config.check_output_folder,
+            team_name,
+            service_name,
+            f"round_{round_num}.txt",
+        )
+
+        if not os.path.isfile(output_path):
+            return jsonify({"error": "Full output file not found"}), 404
+
+        with open(output_path, "r") as f:
+            content = f.read()
+
+        return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
     return {"status": "Unauthorized"}, 403
 
 

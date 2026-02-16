@@ -14,6 +14,7 @@ blue_team_view_check_output = True
 anonymize_team_names = True
 timezone = US/Eastern
 upload_folder = /var/uploads
+check_output_folder = /var/check_outputs
 
 debug = False
 
