@@ -139,10 +139,10 @@ def team_services_status(team_id):
         }
     return jsonify(data)
 
-@mod.route("/api/team/<team_id>/machines")
+@mod.route("/api/team/<team_id>/hosts")
 @login_required
 @cache.cached(make_cache_key=make_cache_key)
-def team_machines(team_id):
+def team_hosts(team_id):
     team = db.session.get(Team, team_id)
     if team is None or not current_user.is_blue_team or current_user.team != team:
         return {"status": "Unauthorized"}, 403

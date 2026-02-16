@@ -1068,9 +1068,9 @@ def admin_get_queue_stats():
     else:
         return {"status": "Unauthorized"}, 403
 
-@mod.route("/api/admin/get_machines")
+@mod.route("/api/admin/get_hosts")
 @login_required
-def admin_get_machines():
+def admin_get_hosts():
     if not current_user.is_white_team:
         return {"status": "Unauthorized"}, 403
 

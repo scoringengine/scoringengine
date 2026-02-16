@@ -28,7 +28,7 @@ class TestTeamAPI(UnitTest):
             follow_redirects=True,
         )
 
-    def test_team_machines_returns_distinct_hosts_for_team(self):
+    def test_team_hosts_returns_distinct_hosts_for_team(self):
         self.session.add_all(
             [
                 Service(name="Web", check_name="HTTPCheck", host="host-a", port=80, team=self.blue_team_1),
@@ -40,14 +40,14 @@ class TestTeamAPI(UnitTest):
         self.session.commit()
 
         self.login("blue_user_1", "pass")
-        resp = self.client.get(f"/api/team/{self.blue_team_1.id}/machines")
+        resp = self.client.get(f"/api/team/{self.blue_team_1.id}/hosts")
 
         assert resp.status_code == 200
         assert resp.json == {"data": [{"host": "host-a"}, {"host": "host-b"}, {"host": "host-c"}]}
 
-    def test_team_machines_rejects_other_teams(self):
+    def test_team_hosts_rejects_other_teams(self):
         self.login("blue_user_1", "pass")
-        resp = self.client.get(f"/api/team/{self.blue_team_2.id}/machines")
+        resp = self.client.get(f"/api/team/{self.blue_team_2.id}/hosts")
 
         assert resp.status_code == 403
         assert resp.json == {"status": "Unauthorized"}
