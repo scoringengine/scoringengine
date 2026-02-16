@@ -25,7 +25,7 @@ dependencies = [
   "Flask-Login==0.6.3",
   "Flask-SQLAlchemy==3.1.1",
   "Flask-WTF==1.2.2",
-  "mysqlclient==2.2.7",
+  "mysqlclient==2.2.8",
   "python-dateutil==2.9.0.post0",
   "pytz==2025.2",
   "PyYAML==6.0.3",
