@@ -11,6 +11,12 @@ class TestEnvironment:
         assert environment.id is None
         assert environment.properties == []
         assert environment.matching_content == "*"
+        assert environment.matching_content_reject is None
+
+    def test_init_with_reject(self):
+        environment = Environment(matching_content="^SUCCESS", matching_content_reject="ERROR|FAIL")
+        assert environment.matching_content == "^SUCCESS"
+        assert environment.matching_content_reject == "ERROR|FAIL"
 
     def test_basic_service(self):
         service = generate_sample_model_tree("Service", db.session)

@@ -99,7 +99,8 @@
   <table class="table table-sm overview-matrix">
     <thead>
       <tr>
-        <th style="width: 25%">Matching Content</th>
+        <th style="width: 20%">Matching Content</th>
+        <th style="width: 20%">Reject Content</th>
         <th>Properties</th>
       </tr>
     </thead>
@@ -111,6 +112,13 @@
                  data-pk="{{environment.id}}" data-name="matching_content"
                  data-url="{{url_for('api.admin_update_environment')}}"
                  value="{{environment.matching_content}}">
+        </td>
+        <td class="align-top">
+          <input type="text" class="form-control form-control-sm editable-field"
+                 data-pk="{{environment.id}}" data-name="matching_content_reject"
+                 data-url="{{url_for('api.admin_update_environment')}}"
+                 value="{{environment.matching_content_reject or ''}}"
+                 placeholder="Optional reject regex">
         </td>
         <td>
           {% if environment.properties %}
@@ -327,11 +335,36 @@
         detailRows.splice(idx, 1);
       } else {
         tr.addClass('shown');
-        row.child('<pre style="max-height: 350px; min-height: 10px;">' + row.data().output + '</pre>').show();
+        var checkId = row.data().id;
+        var html = '<pre style="max-height: 350px; min-height: 10px;">' + row.data().output + '</pre>';
+        html += '<button class="btn btn-sm btn-outline-secondary mt-1 view-full-output" data-check-id="' + checkId + '">View Full Output</button>';
+        row.child(html).show();
         if (idx === -1) {
           detailRows.push(tr.attr('id'));
         }
       }
+    });
+
+    // Fetch and display full check output
+    $('#checks tbody').on('click', '.view-full-output', function() {
+      var $btn = $(this);
+      var checkId = $btn.data('check-id');
+      $btn.prop('disabled', true).text('Loading...');
+      $.ajax({
+        url: '/api/admin/check/' + checkId + '/full_output',
+        type: 'GET',
+        dataType: 'text',
+        success: function(data) {
+          $btn.closest('td').find('pre').text(data).css('max-height', 'none');
+          $btn.remove();
+        },
+        error: function(xhr) {
+          var msg = 'Full output not available';
+          try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+          $btn.prop('disabled', false).text('View Full Output');
+          alert(msg);
+        }
+      });
     });
 
     // Handle check result dropdown change

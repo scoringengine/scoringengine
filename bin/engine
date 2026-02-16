@@ -3,7 +3,7 @@
 import os
 import sys
 
-from scoring_engine.db import db, verify_db_ready
+from scoring_engine.db import verify_db_ready
 from scoring_engine.engine.engine import Engine
 from scoring_engine.logger import logger
 from scoring_engine.version import version

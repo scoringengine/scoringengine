@@ -305,9 +305,7 @@ class TestAdminAPI:
 
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data") as mock_scoreboard:
             with patch("scoring_engine.web.views.api.admin.update_overview_data") as mock_overview:
-                self.client.post(
-                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "2"}
-                )
+                self.client.post("/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "2"})
                 mock_scoreboard.assert_called_once()
                 mock_overview.assert_called_once()
 
@@ -324,9 +322,7 @@ class TestAdminAPI:
         # Invalid value (not 1 or 2)
         with patch("scoring_engine.web.views.api.admin.update_scoreboard_data"):
             with patch("scoring_engine.web.views.api.admin.update_overview_data"):
-                self.client.post(
-                    "/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "3"}
-                )
+                self.client.post("/api/admin/update_check", data={"pk": check.id, "name": "check_value", "value": "3"})
 
         # Should not crash, just not update
         db.session.refresh(check)
@@ -410,6 +406,61 @@ class TestAdminAPI:
 
         db.session.refresh(env)
         assert env.matching_content == "^SUCCESS"
+
+    def test_admin_update_matching_content_reject_success(self):
+        """Test that matching_content_reject can be set via admin API"""
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
+        env = Environment(service=service, matching_content="^SUCCESS")
+        db.session.add_all([service, env])
+        db.session.commit()
+
+        self.login("whiteuser")
+        resp = self.client.post(
+            "/api/admin/update_environment_info",
+            data={"pk": env.id, "name": "matching_content_reject", "value": "ERROR|FAIL"},
+        )
+
+        assert resp.status_code == 200
+        assert resp.json["status"] == "Updated Environment Information"
+
+        db.session.refresh(env)
+        assert env.matching_content_reject == "ERROR|FAIL"
+
+    def test_admin_update_matching_content_reject_invalid_regex(self):
+        """Test that invalid regex is rejected for matching_content_reject"""
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
+        env = Environment(service=service, matching_content="^SUCCESS")
+        db.session.add_all([service, env])
+        db.session.commit()
+
+        self.login("whiteuser")
+        resp = self.client.post(
+            "/api/admin/update_environment_info",
+            data={"pk": env.id, "name": "matching_content_reject", "value": "foo(bar"},
+        )
+
+        assert resp.status_code == 400
+        assert "Invalid regex pattern" in resp.json["error"]
+
+        db.session.refresh(env)
+        assert env.matching_content_reject is None
+
+    def test_admin_clear_matching_content_reject(self):
+        """Test that matching_content_reject can be cleared by setting empty value"""
+        service = Service(name="Test", check_name="ICMP IPv4 Check", host="1.2.3.4", team=self.blue_team)
+        env = Environment(service=service, matching_content="^SUCCESS", matching_content_reject="old_pattern")
+        db.session.add_all([service, env])
+        db.session.commit()
+
+        self.login("whiteuser")
+        resp = self.client.post(
+            "/api/admin/update_environment_info",
+            data={"pk": env.id, "name": "matching_content_reject", "value": ""},
+        )
+
+        assert resp.status_code == 200
+        db.session.refresh(env)
+        assert env.matching_content_reject is None
 
     def test_admin_nonexistent_environment(self):
         """Test updating nonexistent environment returns error"""
