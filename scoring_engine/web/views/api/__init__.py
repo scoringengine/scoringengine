@@ -28,3 +28,4 @@ from . import scoreboard
 from . import service
 from . import stats
 from . import team
+from . import status
