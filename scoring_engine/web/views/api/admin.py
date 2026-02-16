@@ -1,5 +1,6 @@
 import html
 import json
+import os
 import re
 from datetime import datetime, timezone
 
@@ -19,10 +20,6 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-from scoring_engine.models.welcome import (
-    get_welcome_config,
-    save_welcome_config,
-)
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
@@ -51,6 +48,7 @@ from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.models.welcome import get_welcome_config, save_welcome_config
 
 from . import mod
 
@@ -363,6 +361,35 @@ def admin_update_anonymize_team_names():
         db.session.commit()
         Setting.clear_cache("anonymize_team_names")
         return redirect(url_for("admin.permissions"))
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/check/<int:check_id>/full_output")
+@login_required
+def admin_get_check_full_output(check_id):
+    if current_user.is_white_team:
+        check = db.session.get(Check, check_id)
+        if not check:
+            return jsonify({"error": "Check not found"}), 404
+
+        team_name = check.service.team.name
+        service_name = check.service.name
+        round_num = check.round.number
+
+        output_path = os.path.join(
+            config.check_output_folder,
+            team_name,
+            service_name,
+            f"round_{round_num}.txt",
+        )
+
+        if not os.path.isfile(output_path):
+            return jsonify({"error": "Full output file not found"}), 404
+
+        with open(output_path, "r") as f:
+            content = f.read()
+
+        return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
     return {"status": "Unauthorized"}, 403
 
 
@@ -1060,18 +1087,17 @@ def admin_get_competition_summary():
         currently_passing = 0
         if last_round > 0:
             currently_passing = (
-                db.session.query(Check)
-                .join(Round)
-                .filter(Round.number == last_round, Check.result == True)
-                .count()
+                db.session.query(Check).join(Round).filter(Round.number == last_round, Check.result == True).count()
             )
 
-        return jsonify({
-            "blue_teams": len(blue_teams),
-            "total_services": total_services,
-            "currently_passing": currently_passing,
-            "overall_uptime": overall_uptime
-        })
+        return jsonify(
+            {
+                "blue_teams": len(blue_teams),
+                "total_services": total_services,
+                "currently_passing": currently_passing,
+                "overall_uptime": overall_uptime,
+            }
+        )
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -1094,10 +1120,15 @@ def admin_update_welcome_config():
     if current_user.is_white_team:
         data = request.get_json()
         if not data:
-            return jsonify({
-                "status": "Error",
-                "message": "No data provided",
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "status": "Error",
+                        "message": "No data provided",
+                    }
+                ),
+                400,
+            )
 
         try:
             config = save_welcome_config(data)
@@ -1113,33 +1144,48 @@ def admin_update_welcome_config():
 def admin_upload_sponsor_logo():
     """Upload a sponsor logo image."""
     import os
+
     from werkzeug.utils import secure_filename
 
     if not current_user.is_white_team:
         return jsonify({"status": "Unauthorized"}), 403
 
     if "file" not in request.files:
-        return jsonify({
-            "status": "Error",
-            "message": "No file provided",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "No file provided",
+                }
+            ),
+            400,
+        )
 
     file = request.files["file"]
     if file.filename == "":
-        return jsonify({
-            "status": "Error",
-            "message": "No file selected",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "No file selected",
+                }
+            ),
+            400,
+        )
 
     # Validate file extension
     allowed = {"png", "jpg", "jpeg", "gif", "svg", "webp"}
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
     if ext not in allowed:
-        return jsonify({
-            "status": "Error",
-            "message": "File type not allowed. Use: "
-            + ", ".join(sorted(allowed)),
-        }), 400
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "File type not allowed. Use: " + ", ".join(sorted(allowed)),
+                }
+            ),
+            400,
+        )
 
     filename = secure_filename(file.filename)
 
@@ -1169,7 +1215,8 @@ def admin_upload_sponsor_logo():
 def serve_sponsor_logo(filename):
     """Serve a sponsor logo from the upload folder."""
     import os
-    from flask import send_from_directory, abort
+
+    from flask import abort, send_from_directory
     from werkzeug.utils import secure_filename
 
     safe_filename = secure_filename(filename)

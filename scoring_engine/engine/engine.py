@@ -268,12 +268,29 @@ class Engine(object):
                             teams[environment.service.team.name]["Failed"].append(environment.service.name)
 
                         check = Check(service=environment.service, round=round_obj)
-                        # Grab the first 35,000 characters of output so it'll fit into our TEXT column,
-                        # which maxes at 2^32 (65536) characters
+                        full_output = task.result["output"]
+
+                        # Write full output to disk for later retrieval
+                        try:
+                            team_name_safe = environment.service.team.name
+                            service_name_safe = environment.service.name
+                            output_dir = os.path.join(
+                                self.config.check_output_folder,
+                                team_name_safe,
+                                service_name_safe,
+                            )
+                            os.makedirs(output_dir, exist_ok=True)
+                            output_path = os.path.join(output_dir, f"round_{self.current_round}.txt")
+                            with open(output_path, "w") as f:
+                                f.write(full_output)
+                        except Exception as write_err:
+                            logger.warning("Failed to write check output to disk: %s", write_err)
+
+                        # Store 5K preview in DB
                         check.finished(
                             result=result,
                             reason=reason,
-                            output=task.result["output"][:35000],
+                            output=full_output[:5000],
                             command=task.result["command"],
                         )
                         cleanup_items.append(check)

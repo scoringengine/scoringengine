@@ -143,6 +143,11 @@ class ConfigLoader(object):
 
         self.upload_folder = self.parse_sources("upload_folder", self.parser["OPTIONS"]["upload_folder"])
 
+        self.check_output_folder = self.parse_sources(
+            "check_output_folder",
+            self.parser["OPTIONS"].get("check_output_folder", "/var/check_outputs"),
+        )
+
         self.db_uri = self.parse_sources("db_uri", self.parser["OPTIONS"]["db_uri"])
 
         self.cache_type = self.parse_sources("cache_type", self.parser["OPTIONS"]["cache_type"])
