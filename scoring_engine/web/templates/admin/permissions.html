@@ -71,6 +71,21 @@
           </ul>
         </div>
       </div>
+      <div class="col-12 col-sm-6 col-md-5 mb-3">
+        <h3 class="section-header">Injects</h3>
+        <div class="chart-card" style="padding:0; overflow:hidden;">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>Show Inject Scores</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input permission-toggle" type="checkbox" role="switch"
+                       data-url="{{ url_for('api.admin_toggle_inject_scores_visible') }}"
+                       {{ 'checked' if inject_scores_visible == true }}>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 

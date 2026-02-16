@@ -73,7 +73,10 @@
                     "data": "score",
                     "width": "5%",
                     "render": function (data, type, row) {
-                        return data + " (" + (100 * data) / row['max_score'] + "%)";
+                        if (data === null) {
+                            return row['max_score'] + " pts available";
+                        }
+                        return data + " (" + (100 * data / row['max_score']).toFixed(2) + "%)";
                     }
                 },
                 {
@@ -89,10 +92,12 @@
                             } else {
                                 return '<span class="badge bg-warning text-dark">' + data + '</span>';
                             }
-                        } else if (data == "Submitted") {
+                        } else if (data == "Submitted" || data == "Resubmitted") {
                             return '<span class="badge bg-success">' + data + '</span>';
                         } else if (data == "Graded") {
-                            return '<span class="badge bg-info text-dark">' + data + '</span>';
+                            return '<span class="badge bg-info text-white">' + data + '</span>';
+                        } else if (data == "Revision Requested") {
+                            return '<span class="badge bg-warning text-dark">' + data + '</span>';
                         } else {
                             return '<span class="badge bg-danger">' + data + '</span>';
                         }

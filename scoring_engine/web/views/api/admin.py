@@ -26,6 +26,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 
 from scoring_engine.cache_helper import (
+    update_all_inject_data,
     update_inject_data,
     update_overview_data,
     update_scoreboard_data,
@@ -40,7 +41,7 @@ from scoring_engine.db import db
 from scoring_engine.engine.execute_command import execute_command
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
-from scoring_engine.models.inject import Inject, Template
+from scoring_engine.models.inject import Inject, InjectComment, InjectRubricScore, RubricItem, Template
 from scoring_engine.models.kb import KB
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
@@ -49,6 +50,7 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.welcome import get_welcome_config, save_welcome_config
+from scoring_engine.notifications import notify_inject_graded, notify_revision_requested
 
 from . import mod
 
@@ -447,6 +449,26 @@ def get_check_progress_total():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/inject/<inject_id>/reopen", methods=["POST"])
+@login_required
+def admin_post_inject_reopen(inject_id):
+    if current_user.is_white_team:
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+        if inject.status != "Graded":
+            return jsonify({"status": "Inject is not in Graded state"}), 400
+
+        inject.status = "Submitted"
+        inject.graded = None
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_scoreboard_data()
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/injects/templates/<template_id>")
 @login_required
 def admin_get_inject_templates_id(template_id):
@@ -457,15 +479,15 @@ def admin_get_inject_templates_id(template_id):
             title=template.title,
             scenario=template.scenario,
             deliverable=template.deliverable,
-            score=template.score,
+            max_score=template.max_score,
             start_time=_ensure_utc_aware(template.start_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
             end_time=_ensure_utc_aware(template.end_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
             enabled=template.enabled,
-            # rubric=[
-            #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-            #     for x in template.rubric
-            # ],
-            teams=[inject.team.name for inject in template.inject if inject.enabled and inject.team],
+            rubric_items=[
+                {"id": x.id, "title": x.title, "description": x.description, "points": x.points, "order": x.order}
+                for x in template.rubric_items
+            ],
+            teams=[inject.team.name for inject in template.injects if inject.enabled and inject.team],
         )
         return jsonify(data)
     else:
@@ -494,8 +516,20 @@ def admin_put_inject_templates_id(template_id):
                 template.enabled = True
             elif data.get("status") == "Disabled":
                 template.enabled = False
-            if data.get("score"):
-                template.score = data["score"]
+            if "rubric_items" in data:
+                # Delete existing rubric items and recreate
+                for item in list(template.rubric_items):
+                    db.session.delete(item)
+                db.session.flush()
+                for idx, ri in enumerate(data["rubric_items"]):
+                    rubric_item = RubricItem(
+                        title=ri["title"],
+                        points=ri["points"],
+                        template=template,
+                        description=ri.get("description"),
+                        order=ri.get("order", idx),
+                    )
+                    db.session.add(rubric_item)
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
@@ -528,7 +562,6 @@ def admin_put_inject_templates_id(template_id):
                 )
                 for inject in injects:
                     inject.enabled = False
-            # TODO - Rubric updates
             db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
@@ -558,7 +591,7 @@ def admin_delete_inject_templates_id(template_id):
 def admin_get_inject_templates():
     if current_user.is_white_team:
         data = list()
-        templates = db.session.query(Template).options(joinedload(Template.inject)).all()
+        templates = db.session.query(Template).options(joinedload(Template.injects)).all()
         for template in templates:
             data.append(
                 dict(
@@ -566,15 +599,21 @@ def admin_get_inject_templates():
                     title=template.title,
                     scenario=template.scenario,
                     deliverable=template.deliverable,
-                    score=template.score,
+                    max_score=template.max_score,
                     start_time=template.start_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
                     end_time=template.end_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
                     enabled=template.enabled,
-                    # rubric=[
-                    #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-                    #     for x in template.rubric
-                    # ],
-                    teams=[inject.team.name for inject in template.inject if inject if inject.enabled if inject.team],
+                    rubric_items=[
+                        {
+                            "id": x.id,
+                            "title": x.title,
+                            "description": x.description,
+                            "points": x.points,
+                            "order": x.order,
+                        }
+                        for x in template.rubric_items
+                    ],
+                    teams=[inject.team.name for inject in template.injects if inject if inject.enabled if inject.team],
                 )
             )
         return jsonify(data=data)
@@ -587,20 +626,96 @@ def admin_get_inject_templates():
 def admin_post_inject_grade(inject_id):
     if current_user.is_white_team:
         data = request.get_json()
-        if "score" in data.keys() and data.get("score") != "":
-            inject = db.session.get(Inject, inject_id)
-            if inject:
-                inject.graded = datetime.now(timezone.utc)
-                inject.status = "Graded"
-                inject.score = data.get("score")
-                db.session.add(inject)
-                db.session.commit()
-                update_inject_data(inject_id)
-                return jsonify({"status": "Success"}), 200
-            else:
-                return jsonify({"status": "Invalid Inject ID"}), 400
-        else:
+        if "rubric_scores" not in data or not data["rubric_scores"]:
             return jsonify({"status": "Invalid Score Provided"}), 400
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+
+        # Validate rubric items belong to the template
+        template_item_ids = {item.id for item in inject.template.rubric_items}
+        template_item_max = {item.id: item.points for item in inject.template.rubric_items}
+        for rs in data["rubric_scores"]:
+            if rs["rubric_item_id"] not in template_item_ids:
+                return jsonify({"status": "Invalid rubric item ID"}), 400
+            if rs["score"] > template_item_max[rs["rubric_item_id"]]:
+                return jsonify({"status": "Score exceeds rubric item max"}), 400
+
+        # Delete existing scores and create new ones
+        for old_score in list(inject.rubric_scores):
+            db.session.delete(old_score)
+        db.session.flush()
+
+        for rs in data["rubric_scores"]:
+            rubric_item = db.session.get(RubricItem, rs["rubric_item_id"])
+            score_obj = InjectRubricScore(
+                score=rs["score"],
+                inject=inject,
+                rubric_item=rubric_item,
+                grader=current_user,
+            )
+            db.session.add(score_obj)
+
+        inject.graded = datetime.now(timezone.utc)
+        inject.status = "Graded"
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_scoreboard_data()
+        notify_inject_graded(inject)
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/inject/<inject_id>/request-revision", methods=["POST"])
+@login_required
+def admin_post_inject_request_revision(inject_id):
+    if current_user.is_white_team:
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+        if inject.status not in ("Submitted", "Resubmitted"):
+            return jsonify({"status": "Inject is not in a submittable state"}), 400
+
+        data = request.get_json() or {}
+        reason = data.get("reason", "Revision requested by grader.")
+
+        inject.status = "Revision Requested"
+        # Create a system comment with the reason
+        comment = InjectComment(content=reason, user=current_user, inject=inject)
+        db.session.add(comment)
+        db.session.commit()
+        update_inject_data(inject_id)
+        notify_revision_requested(inject)
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/injects/template/<int:template_id>/submissions")
+@login_required
+def admin_get_template_submissions(template_id):
+    if current_user.is_white_team:
+        template = db.session.get(Template, template_id)
+        if not template:
+            return jsonify({"status": "Template not found"}), 404
+
+        submissions = []
+        for inject in template.injects:
+            if not inject.team or not inject.enabled:
+                continue
+            submissions.append(
+                {
+                    "id": inject.id,
+                    "team": inject.team.name,
+                    "status": inject.status,
+                    "score": inject.score,
+                    "max_score": template.max_score,
+                    "submitted": inject.submitted.isoformat() if inject.submitted else None,
+                    "graded": inject.graded.isoformat() if inject.graded else None,
+                }
+            )
+        return jsonify(data=submissions), 200
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -614,7 +729,6 @@ def admin_post_inject_templates():
             data.get("title")
             and data.get("scenario")
             and data.get("deliverable")
-            and data.get("score")
             and data.get("start_time")
             and data.get("end_time")
         ):
@@ -622,11 +736,22 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                score=data["score"],
-                start_time=(parse(data["start_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
-                end_time=(parse(data["end_time"]).astimezone(pytz.timezone(config.timezone)).replace(tzinfo=None)),
+                start_time=parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                end_time=parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
             )
             db.session.add(template)
+            db.session.flush()
+            # Create rubric items
+            if data.get("rubric_items"):
+                for i, item_data in enumerate(data["rubric_items"]):
+                    rubric_item = RubricItem(
+                        title=item_data["title"],
+                        description=item_data.get("description", ""),
+                        points=item_data["points"],
+                        order=item_data.get("order", i),
+                        template=template,
+                    )
+                    db.session.add(rubric_item)
             db.session.commit()
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
@@ -789,19 +914,32 @@ def admin_import_inject_templates():
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
-                        score=d["score"],
                         start_time=parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
                         end_time=parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
                         enabled=d["enabled"],
                     )
                     db.session.add(t)
-                    # for rubric in d["rubric"]:
-                    #     r = Rubric(
-                    #         value=rubric["value"],
-                    #         deliverable=rubric["deliverable"],
-                    #         template=t,
-                    #     )
-                    #     db.session.add(r)
+                    db.session.flush()
+                    # Create rubric items (backward compat: if only "score" exists, create default item)
+                    if d.get("rubric_items"):
+                        for idx, item_data in enumerate(d["rubric_items"]):
+                            rubric_item = RubricItem(
+                                title=item_data["title"],
+                                description=item_data.get("description", ""),
+                                points=item_data["points"],
+                                order=item_data.get("order", idx),
+                                template=t,
+                            )
+                            db.session.add(rubric_item)
+                    elif d.get("score"):
+                        rubric_item = RubricItem(
+                            title="Overall Quality",
+                            description="",
+                            points=int(d["score"]),
+                            order=0,
+                            template=t,
+                        )
+                        db.session.add(rubric_item)
                     for team_name in d["teams"]:
                         inject = (
                             db.session.query(Inject)
@@ -847,7 +985,7 @@ def admin_inject_scores():
         )
 
         for inject in injects:
-            if not inject.team:
+            if inject.team is None:
                 continue
             if inject.template.id not in data:
                 data[inject.template.id] = {
@@ -859,7 +997,7 @@ def admin_inject_scores():
                     "id": inject.id,
                     "score": inject.score,
                     "status": inject.status,
-                    "max_score": inject.template.score,
+                    "max_score": inject.template.max_score,
                 }
 
         # Rewrite data to be in the format expected by the frontend
@@ -877,7 +1015,8 @@ def admin_inject_scores():
 def admin_injects_bar():
     if current_user.is_white_team:
         inject_scores = dict(
-            db.session.query(Inject.team_id, func.sum(Inject.score))
+            db.session.query(Inject.team_id, func.sum(InjectRubricScore.score))
+            .join(InjectRubricScore)
             .filter(Inject.status == "Graded")
             .group_by(Inject.team_id)
             .all()
@@ -1014,10 +1153,28 @@ def admin_add_team():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/toggle_inject_scores_visible", methods=["POST"])
+@login_required
+def admin_toggle_inject_scores_visible():
+    if current_user.is_white_team:
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        setting.value = not setting.value
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("inject_scores_visible")
+        update_scoreboard_data()
+        update_all_inject_data()
+        return {"status": "Success"}
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/toggle_engine", methods=["POST"])
 @login_required
 def admin_toggle_engine():
     if current_user.is_white_team:
+        Setting.clear_cache("engine_paused")
         setting = Setting.get_setting("engine_paused")
         setting.value = not setting.value
         db.session.add(setting)

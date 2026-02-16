@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 from scoring_engine.cache import cache
 from scoring_engine.db import db
 from scoring_engine.models.check import Check
-from scoring_engine.models.inject import Inject
+from scoring_engine.models.inject import Inject, InjectRubricScore
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
@@ -91,12 +91,17 @@ def _get_bar_data_cached(anonymize, show_both):
     sla_config = get_sla_config()
     current_scores = calculate_team_scores_with_dynamic_scoring(sla_config)
 
-    inject_scores = dict(
-        db.session.query(Inject.team_id, func.sum(Inject.score))
-        .filter(Inject.status == "Graded")
-        .group_by(Inject.team_id)
-        .all()
-    )
+    inject_scores_visible = Setting.get_setting("inject_scores_visible")
+    if inject_scores_visible and inject_scores_visible.value:
+        inject_scores = dict(
+            db.session.query(Inject.team_id, func.sum(InjectRubricScore.score))
+            .join(InjectRubricScore)
+            .filter(Inject.status == "Graded")
+            .group_by(Inject.team_id)
+            .all()
+        )
+    else:
+        inject_scores = {}
 
     team_data = {}
     team_labels = []

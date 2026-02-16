@@ -17,135 +17,133 @@
 {% block header %}Inject Templates{% endblock %}
 
 {% block admincontent %}
-<div class="card-body">
-  <div class="row">
-    <div class="col-md-6">
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTemplateModal">Add
-        Inject</button>
-    </div>
-    <div class="col-md-6 text-end">
-      <button type="button" id="importTemplatesButton" class="btn btn-primary" data-bs-toggle="modal"
-        data-bs-target="#importTemplatesModal">Import
-        Template(s) <span class="bi bi-box-arrow-in-down"></span></button>
-      <button type="button" id="exportTemplatesButton" class="btn btn-primary" data-bs-toggle="modal"
-        data-bs-target="#exportTemplatesModal">Export
-        Template(s) <span class="bi bi-box-arrow-up"></span></button>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top:1rem;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTemplateModal">
+    <i class="bi bi-plus-lg"></i> Add Inject
+  </button>
+  <div>
+    <button type="button" id="importTemplatesButton" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+      data-bs-target="#importTemplatesModal">
+      <i class="bi bi-box-arrow-in-down"></i> Import
+    </button>
+    <button type="button" id="exportTemplatesButton" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+      data-bs-target="#exportTemplatesModal">
+      <i class="bi bi-box-arrow-up"></i> Export
+    </button>
   </div>
 </div>
-<table id="templates" class="table table-striped table-sm" cellspacing="0" width="100%">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Title</th>
-      <th>Start Time</th>
-      <th>End Time</th>
-      <th>Points</th>
-      <th>Enabled</th>
-      <th></th>
-    </tr>
-  </thead>
-</table>
+<div class="chart-card" style="padding:0; overflow:hidden;">
+  <table id="templates" class="table table-sm overview-matrix" width="100%">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Points</th>
+        <th>Enabled</th>
+        <th></th>
+      </tr>
+    </thead>
+  </table>
+</div>
+
 <!-- Add Template Modal -->
-<div class="modal fade" id="addTemplateModal" tabindex="-1" role="dialog" aria-labelledby="addTemplateModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="addTemplateModal" tabindex="-1" aria-labelledby="addTemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title" id="addTemplateModalLabel">Add Template</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <h4 class="modal-title" id="templateAddModalLabel">Add Template</h4>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="addTemplateId" id="addTemplateId" value="" />
-        <form action="#" class="row g-3" id="templateAddForm">
-          <!-- Title -->
+        <div class="alert alert-danger d-none" id="addTemplateError"></div>
+        <input type="hidden" id="addTemplateId" value="" />
+        <form id="templateAddForm">
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputTitle">Title</label>
-              <input type="text" class="form-control" id="inputTitle" text="" placeholder="Journey to Mordor">
-            </div>
+            <label for="inputTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="inputTitle" placeholder="Journey to Mordor">
           </div>
-          <!-- Scenario -->
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputScenario">Scenario</label>
-              <textarea class="form-control" id="inputScenario" rows="2"
-                placeholder="You have the ring, take it to be destroyed!"></textarea>
-            </div>
+            <label for="inputScenario" class="form-label">Scenario</label>
+            <textarea class="form-control" id="inputScenario" rows="3"
+              placeholder="Supports Markdown formatting"></textarea>
           </div>
-          <!-- Deliverable -->
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputDeliverable">Rubric</label>
-              <textarea class="form-control" id="inputDeliverable" rows="3"
-                placeholder="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring."></textarea>
-            </div>
+            <label for="inputDeliverable" class="form-label">Deliverable</label>
+            <textarea class="form-control" id="inputDeliverable" rows="3"
+              placeholder="Supports Markdown formatting"></textarea>
           </div>
-          <!-- Start Time -->
-          <div class="mb-3">
-            <div class="col-sm-3">
-              <label for="inputStartTime">Start Time</label>
-              <input type="text" class="form-control" id="inputStartTime" placeholder="1995-12-17T03:24:00-0700">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="inputStartTime" class="form-label">Start Time</label>
+              <input type="datetime-local" class="form-control" id="inputStartTime">
             </div>
-            <!-- End Time -->
-            <div class="col-sm-3">
-              <label for="inputEndTime">End Time</label>
-              <input type="text" class="form-control" id="inputEndTime" placeholder="1995-12-17T04:24:00-0700">
+            <div class="col-md-4">
+              <label for="inputEndTime" class="form-label">End Time</label>
+              <input type="datetime-local" class="form-control" id="inputEndTime">
             </div>
-            <!-- Enabled/Disabled -->
-            <div class="col-sm-3">
-              <label for="inputStatus">Status</label>
-              <select class="form-control" id="inputStatus">
+            <div class="col-md-4">
+              <label for="inputStatus" class="form-label">Status</label>
+              <select class="form-select" id="inputStatus">
                 <option>Enabled</option>
                 <option>Disabled</option>
               </select>
             </div>
-            <!-- Score -->
-            <div class="col-sm-3">
-              <label for="inputScore">Score</label>
-              <input type="number" class="form-control" id="inputScore" placeholder="100">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Rubric Items</label>
+            <table class="table table-sm" id="inputRubricItems">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Points</th>
+                  <th style="width:50px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" class="form-control form-control-sm rubric-title" placeholder="Overall Quality"></td>
+                  <td><input type="text" class="form-control form-control-sm rubric-desc" placeholder=""></td>
+                  <td><input type="number" class="form-control form-control-sm rubric-points" placeholder="100"></td>
+                  <td><button type="button" class="btn btn-sm btn-outline-danger remove-rubric-row"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="addRubricItemBtn">
+              <i class="bi bi-plus-lg"></i> Add Rubric Item
+            </button>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Teams</label>
+            <div class="mb-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary team-select-btn" data-target="#teams" data-action="all">All Teams</button>
+              <button type="button" class="btn btn-sm btn-outline-primary team-select-btn" data-target="#teams" data-action="blue">All Blue</button>
+              {% if red_teams %}
+              <button type="button" class="btn btn-sm btn-outline-danger team-select-btn" data-target="#teams" data-action="red">All Red</button>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-outline-secondary team-select-btn" data-target="#teams" data-action="none">None</button>
+            </div>
+            <div class="row" id="teams">
+              {% for blue_team in blue_teams %}
+              <div class="col-sm-4">
+                <div class="form-check">
+                  <input class="form-check-input blue-team" type="checkbox" checked id="addTeam{{ blue_team.id }}">
+                  <label class="form-check-label" for="addTeam{{ blue_team.id }}">{{ blue_team.name }}</label>
+                </div>
+              </div>
+              {% endfor %}
+              {% for red_team in red_teams %}
+              <div class="col-sm-4">
+                <div class="form-check">
+                  <input class="form-check-input red-team" type="checkbox" id="addRedTeam{{ red_team.id }}">
+                  <label class="form-check-label" for="addRedTeam{{ red_team.id }}">{{ red_team.name }}</label>
+                </div>
+              </div>
+              {% endfor %}
             </div>
           </div>
-          <!-- Teams -->
-          <label for="teams">Teams</label>
-          <!-- TODO - Check/uncheck all -->
-          <div class="mb-3" id="teams">
-            {% for blue_team in blue_teams %}
-            <div class="col-sm-4">
-              <label class="form-check-inline">
-                <input class="blue-team" type="checkbox" checked>{{ blue_team.name }}
-              </label>
-            </div>
-            {% endfor %}
-            {% for red_team in red_teams %}
-            <div class="col-sm-4">
-              <label class="form-check-inline">
-                <input class="red-team" type="checkbox">{{ red_team.name }}
-              </label>
-            </div>
-            {% endfor %}
-          </div>
-          <!-- Rubric -->
-          <!-- <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputRubric">Rubric</label>
-              <table class="table" id="inputRubric">
-                <thead>
-                  <tr>
-                    <th>Deliverable</th>
-                    <th>Points</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-            <div class="col-sm-12">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeliverableModal">Add
-                Deliverable</button>
-            </div>
-          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -155,138 +153,97 @@
     </div>
   </div>
 </div>
-<!-- Add Deliverable Modal -->
-<div class="modal fade" id="addDeliverableModal" tabindex="-1" role="dialog" aria-labelledby="addDeliverableModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <h4 class="modal-title">Delete Template</h4>
-      </div>
-      <div class="modal-body">
-        <form action="#" class="row g-3" id="addDeliverableForm">
-          <!-- Deliverable -->
-          <div class="mb-3">
-            <div class="col-sm-10">
-              <label for="inputAddDeliverable">Deliverable</label>
-              <input type="text" class="form-control" id="inputAddDeliverable" text=""
-                placeholder="You saved the world!">
-            </div>
-            <div class="col-sm-2">
-              <label for="inputAddDeliverableValue">Value</label>
-              <input type="number" class="form-control" id="inputAddDeliverableValue" text="" placeholder="100">
-            </div>
-          </div>
-          <!-- Value -->
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="addDeliverableSubmitModal">Add Deliverable</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 <!-- Update Template Modal -->
-<div class="modal fade" id="updateTemplateModal" tabindex="-1" role="dialog" aria-labelledby="updateTemplateModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="updateTemplateModal" tabindex="-1" aria-labelledby="updateTemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title" id="updateTemplateModalLabel">Update Template</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <h4 class="modal-title" id="templateUpdateModalLabel">Update Template</h4>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="updateTemplateId" id="updateTemplateId" value="" />
-        <form action="#" class="row g-3" id="templateUpdateForm">
-          <!-- Title -->
+        <div class="alert alert-danger d-none" id="updateTemplateError"></div>
+        <input type="hidden" id="updateTemplateId" value="" />
+        <form id="templateUpdateForm">
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputUpdateTitle">Title</label>
-              <input type="text" class="form-control" id="inputUpdateTitle" text="" placeholder="Journey to Mordor">
-            </div>
+            <label for="inputUpdateTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="inputUpdateTitle" placeholder="Journey to Mordor">
           </div>
-          <!-- Scenario -->
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputUpdateScenario">Scenario</label>
-              <textarea class="form-control" id="inputUpdateScenario" rows="2"
-                placeholder="You have the ring, take it to be destroyed!"></textarea>
-            </div>
+            <label for="inputUpdateScenario" class="form-label">Scenario</label>
+            <textarea class="form-control" id="inputUpdateScenario" rows="3"
+              placeholder="Supports Markdown formatting"></textarea>
           </div>
-          <!-- Deliverable -->
           <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputUpdateDeliverable">Rubric</label>
-              <textarea class="form-control" id="inputUpdateDeliverable" rows="3"
-                placeholder="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring."></textarea>
-            </div>
+            <label for="inputUpdateDeliverable" class="form-label">Deliverable</label>
+            <textarea class="form-control" id="inputUpdateDeliverable" rows="3"
+              placeholder="Supports Markdown formatting"></textarea>
           </div>
-          <!-- Start Time -->
-          <div class="mb-3">
-            <div class="col-sm-3">
-              <label for="inputUpdateStartTime">Start Time</label>
-              <input type="text" class="form-control" id="inputUpdateStartTime" placeholder="1995-12-17T03:24:00-0700">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="inputUpdateStartTime" class="form-label">Start Time</label>
+              <input type="datetime-local" class="form-control" id="inputUpdateStartTime">
             </div>
-            <!-- End Time -->
-            <div class="col-sm-3">
-              <label for="inputUpdateEndTime">End Time</label>
-              <input type="text" class="form-control" id="inputUpdateEndTime" placeholder="1995-12-17T04:24:00-0700">
+            <div class="col-md-4">
+              <label for="inputUpdateEndTime" class="form-label">End Time</label>
+              <input type="datetime-local" class="form-control" id="inputUpdateEndTime">
             </div>
-            <!-- Enabled/Disabled -->
-            <div class="col-sm-3">
-              <label for="inputUpdateStatus">Status</label>
-              <select class="form-control" id="inputUpdateStatus">
+            <div class="col-md-4">
+              <label for="inputUpdateStatus" class="form-label">Status</label>
+              <select class="form-select" id="inputUpdateStatus">
                 <option>Enabled</option>
                 <option>Disabled</option>
               </select>
             </div>
-            <!-- Score -->
-            <div class="col-sm-3">
-              <label for="inputUpdateScore">Score</label>
-              <input type="number" class="form-control" id="inputUpdateScore" placeholder="100">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Rubric Items</label>
+            <table class="table table-sm" id="inputUpdateRubricItems">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Points</th>
+                  <th style="width:50px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="addUpdateRubricItemBtn">
+              <i class="bi bi-plus-lg"></i> Add Rubric Item
+            </button>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Teams</label>
+            <div class="mb-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary team-select-btn" data-target="#updateTeams" data-action="all">All Teams</button>
+              <button type="button" class="btn btn-sm btn-outline-primary team-select-btn" data-target="#updateTeams" data-action="blue">All Blue</button>
+              {% if red_teams %}
+              <button type="button" class="btn btn-sm btn-outline-danger team-select-btn" data-target="#updateTeams" data-action="red">All Red</button>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-outline-secondary team-select-btn" data-target="#updateTeams" data-action="none">None</button>
+            </div>
+            <div class="row" id="updateTeams">
+              {% for blue_team in blue_teams %}
+              <div class="col-sm-4">
+                <div class="form-check">
+                  <input class="form-check-input blue-team" type="checkbox" id="updateTeam{{ blue_team.id }}">
+                  <label class="form-check-label" for="updateTeam{{ blue_team.id }}">{{ blue_team.name }}</label>
+                </div>
+              </div>
+              {% endfor %}
+              {% for red_team in red_teams %}
+              <div class="col-sm-4">
+                <div class="form-check">
+                  <input class="form-check-input red-team" type="checkbox" id="updateRedTeam{{ red_team.id }}">
+                  <label class="form-check-label" for="updateRedTeam{{ red_team.id }}">{{ red_team.name }}</label>
+                </div>
+              </div>
+              {% endfor %}
             </div>
           </div>
-          <!-- Teams -->
-          <label for="teams">Teams</label>
-          <!-- TODO - Check/uncheck all -->
-          <div class="mb-3" id="updateTeams">
-            {% for blue_team in blue_teams %}
-            <div class="col-sm-4">
-              <label class="form-check-inline">
-                <input class="blue-team" type="checkbox">{{ blue_team.name }}
-              </label>
-            </div>
-            {% endfor %}
-            {% for red_team in red_teams %}
-            <div class="col-sm-4">
-              <label class="form-check-inline">
-                <input class="red-team" type="checkbox">{{ red_team.name }}
-              </label>
-            </div>
-            {% endfor %}
-          </div>
-          <!-- Rubric -->
-          <!-- <div class="mb-3">
-            <div class="col-sm-12">
-              <label for="inputUpdateRubric">Rubric</label>
-              <table class="table" id="inputUpdateRubric">
-                <thead>
-                  <tr>
-                    <th>Deliverable</th>
-                    <th>Points</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </div>
-            <div class="col-sm-12">
-              <button type="button" class="btn btn-primary">Add Deliverable</button>
-            </div>
-          </div> -->
         </form>
       </div>
       <div class="modal-footer">
@@ -296,18 +253,18 @@
     </div>
   </div>
 </div>
+
 <!-- Import Templates Modal -->
-<div class="modal fade" id="importTemplatesModal" tabindex="-1" role="dialog"
-  aria-labelledby="importTemplatesModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="importTemplatesModal" tabindex="-1" aria-labelledby="importTemplatesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title" id="importTemplatesModalLabel">Import Templates</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <h4 class="modal-title" id="importTemplatesModalLabel">Import Templates</h4>
-        <h5 class="modal-title">Warning - Implementing a template with the same ID with overwrite it</h5>
       </div>
       <div class="modal-body">
-        <textarea class="form-control" id="importTemplates" rows="10"></textarea>
+        <p class="text-warning mb-2"><i class="bi bi-exclamation-triangle"></i> Importing a template with an existing ID will overwrite it.</p>
+        <textarea class="form-control" id="importTemplates" rows="10" placeholder="Paste YAML template data here..."></textarea>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -316,37 +273,36 @@
     </div>
   </div>
 </div>
+
 <!-- Export Templates Modal -->
-<div class="modal fade" id="exportTemplatesModal" tabindex="-1" role="dialog"
-  aria-labelledby="exportTemplatesModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="exportTemplatesModal" tabindex="-1" aria-labelledby="exportTemplatesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         <h5 class="modal-title" id="exportTemplatesModalLabel">Export Templates</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <textarea class="form-control" id="exportTemplates" rows="10"></textarea>
+        <textarea class="form-control" id="exportTemplates" rows="10" readonly></textarea>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <!-- <button type="button" class="btn btn-primary">Import</button> -->
       </div>
     </div>
   </div>
 </div>
+
 <!-- Delete Modal -->
-<div class="modal fade" id="templateDeleteModal" tabindex="-1" role="dialog" aria-labelledby="templateDeleteModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog" role="document">
+<div class="modal fade" id="templateDeleteModal" tabindex="-1" aria-labelledby="templateDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title" id="templateDeleteModalLabel">Delete Template</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <h4 class="modal-title">Delete Template</h4>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="deleteTemplateId" id="deleteTemplateId" value="" />
-        Are you sure you want to delete this template?
+        <input type="hidden" id="deleteTemplateId" value="" />
+        <p>Are you sure you want to delete this template?</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -355,13 +311,72 @@
     </div>
   </div>
 </div>
+
 <script>
+  // Convert ISO datetime string to datetime-local input value (YYYY-MM-DDTHH:MM)
+  function isoToDatetimeLocal(isoStr) {
+    if (!isoStr) return '';
+    var d = new Date(isoStr);
+    var year = d.getFullYear();
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    var hours = String(d.getHours()).padStart(2, '0');
+    var minutes = String(d.getMinutes()).padStart(2, '0');
+    return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+  }
+
+  // Append browser timezone offset to a datetime-local value so the server parses it correctly
+  function datetimeLocalToISO(dtLocalVal) {
+    if (!dtLocalVal) return '';
+    var d = new Date(dtLocalVal);
+    var offset = -d.getTimezoneOffset();
+    var sign = offset >= 0 ? '+' : '-';
+    var absOffset = Math.abs(offset);
+    var hh = String(Math.floor(absOffset / 60)).padStart(2, '0');
+    var mm = String(absOffset % 60).padStart(2, '0');
+    return dtLocalVal + ':00' + sign + hh + ':' + mm;
+  }
+
+  // Validate required fields in a form, returns true if valid
+  function validateTemplateForm(prefix) {
+    var isValid = true;
+    var fields = [
+      { id: prefix + 'Title', msg: 'Title is required' },
+      { id: prefix + 'StartTime', msg: 'Start time is required' },
+      { id: prefix + 'EndTime', msg: 'End time is required' },
+    ];
+    // Clear previous validation state
+    fields.forEach(function(f) {
+      var $el = $('#' + f.id);
+      $el.removeClass('is-invalid');
+      $el.next('.invalid-feedback').remove();
+    });
+    fields.forEach(function(f) {
+      var $el = $('#' + f.id);
+      if (!$el.val() || !$el.val().trim()) {
+        $el.addClass('is-invalid');
+        $el.after('<div class="invalid-feedback d-block">' + f.msg + '</div>');
+        isValid = false;
+      }
+    });
+    // Validate end time > start time if both present
+    var startVal = $('#' + prefix + 'StartTime').val();
+    var endVal = $('#' + prefix + 'EndTime').val();
+    if (startVal && endVal && new Date(endVal) <= new Date(startVal)) {
+      var $endEl = $('#' + prefix + 'EndTime');
+      $endEl.addClass('is-invalid');
+      $endEl.next('.invalid-feedback').remove();
+      $endEl.after('<div class="invalid-feedback d-block">End time must be after start time</div>');
+      isValid = false;
+    }
+    return isValid;
+  }
+
   $(document).ready(function () {
     // Disable datatables error reporting
     $.fn.dataTable.ext.errMode = 'none';
 
-    // Inline editing
-    $.fn.editable.defaults.mode = 'inline';
+    var localTz = moment.tz.guess();
 
     var dt = $('#templates').DataTable({
       "ajax": "/api/admin/injects/templates",
@@ -372,17 +387,17 @@
         {
           "data": "start_time",
           "render": function (data, type, row) {
-            return moment.utc(data).tz('America/New_York').format('YYYY-MM-DD HH:mm:ss z');
+            return moment.parseZone(data).tz(localTz).format('YYYY-MM-DD hh:mm A z');
           }
         },
         {
           "data": "end_time",
           "render": function (data, type, row) {
-            return moment.utc(data).tz('America/New_York').format('YYYY-MM-DD HH:mm:ss z');
+            return moment.parseZone(data).tz(localTz).format('YYYY-MM-DD hh:mm A z');
           }
         },
         {
-          "data": "score",
+          "data": "max_score",
         },
         {
           "data": "enabled",
@@ -400,26 +415,24 @@
           render: function (data, type, row, meta) {
             return '<div class="btn-group float-end">' +
               '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">' +
-              '</i> Actions ' +
+              'Actions' +
               '</button>' +
-
               '<ul class="dropdown-menu">' +
-              '<li><a class="dropdown-item template-view" href="#">View/Edit Template</a></li>' +
-              '<li><a class="dropdown-item template-delete" href="#">Delete Template</a></li>' +
+              '<li><a class="dropdown-item template-view" href="#">View/Edit</a></li>' +
+              '<li><a class="dropdown-item template-delete text-danger" href="#">Delete</a></li>' +
               '</ul>' +
               '</div>'
           }
-
         }
       ],
       "lengthChange": false,
       "ordering": false,
       "searching": false,
-      // "scrollX": true,
+      "paging": false,
+      "info": false,
     });
 
-    // TODO - Clear modal values - $('form').get(0).reset()
-    // Use event delegation instead of unbind/bind pattern for dynamically generated elements
+    // View/Edit Template
     $('#templates').on('click', '.template-view', function () {
       var data = dt.row($(this).closest('tr')).data();
 
@@ -429,62 +442,39 @@
       // Query API for template data
       $.getJSON("/api/admin/injects/templates/" + data['id'])
         .done(function (data) {
-          // Update Modal
           $('#updateTemplateId').val(data['id']);
           $('#inputUpdateTitle').val(data['title']);
           $('#inputUpdateScenario').val(data['scenario']);
           $('#inputUpdateDeliverable').val(data['deliverable']);
-          $('#inputUpdateStartTime').val(data['start_time']);
-          $('#inputUpdateEndTime').val(data['end_time']);
-          // $('#inputUpdateStartTime').val(moment.utc(data['start_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
-          // $('#inputUpdateEndTime').val(moment.utc(data['end_time']).tz(moment.tz.guess()).format('YYYY-MM-DD HH:mm:ss z'));
+          $('#inputUpdateStartTime').val(isoToDatetimeLocal(data['start_time']));
+          $('#inputUpdateEndTime').val(isoToDatetimeLocal(data['end_time']));
 
-          // Enabled / Disabled
           if (data['enabled']) {
             $('#inputUpdateStatus').val('Enabled');
           } else {
             $('#inputUpdateStatus').val('Disabled');
           }
 
-          $('#inputUpdateScore').val(data['score']);
+          // Populate rubric items
+          var $rubricBody = $('#inputUpdateRubricItems tbody');
+          $rubricBody.empty();
+          if (data['rubric_items'] && data['rubric_items'].length > 0) {
+            $.each(data['rubric_items'], function(i, item) {
+              $rubricBody.append(
+                '<tr>' +
+                '<td><input type="text" class="form-control form-control-sm rubric-title" value="' + (item.title || '') + '"></td>' +
+                '<td><input type="text" class="form-control form-control-sm rubric-desc" value="' + (item.description || '') + '"></td>' +
+                '<td><input type="number" class="form-control form-control-sm rubric-points" value="' + (item.points || 0) + '"></td>' +
+                '<td><button type="button" class="btn btn-sm btn-outline-danger remove-rubric-row"><i class="bi bi-x-lg"></i></button></td>' +
+                '</tr>'
+              );
+            });
+          }
 
-          // Rubric Table
-          // var Tablrubrice = document.getElementById("inputUpdateRubric");
-
-          // Remove all rows except header
-          // $("#inputUpdateRubric tr").remove();
-
-          // for (let i = 0; i < data['rubric'].length; i++) {
-          //   var row = rubricTable.insertRow();
-          //   row.id = data['rubric'][i]['id'];
-
-          //   var deliverable = row.insertCell(0);
-          //   var points = row.insertCell(1);
-          //   var actions = row.insertCell(2);
-
-          //   deliverable.innerText = data['rubric'][i]['deliverable']
-          //   points.innerText = data['rubric'][i]['value']
-          //   actions.innerHTML = '<div class="btn-group float-end">' +
-          //     '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">' +
-          //     '</i> Actions ' +
-          //     '</button>' +
-          //     '<ul class="dropdown-menu" role="menu">' +
-          //     '<!-- View/Edit -->' +
-          //     '<li>' +
-          //     '<a class="deliverable-view" href="#">View/Edit Deliverable</a>' +
-          //     '</li>' +
-          //     '<!-- Delete -->' +
-          //     '<li>' +
-          //     '<a class="deliverable-delete" href="#">Delete Deliverable</a>' +
-          //     '</li>' +
-          //     '</ul>' +
-          //     '</div>'
-          // }
-
-          // Update Checkboxes
+          // Update team checkboxes
           const teams = data['teams'];
           $('#updateTeams input:checkbox').each(function () {
-            if (teams.includes($(this).parent().text().trim())) {
+            if (teams.includes($(this).closest('.form-check').find('.form-check-label').text().trim())) {
               $(this).prop("checked", true);
             }
           });
@@ -493,7 +483,7 @@
           console.error('Failed to load template data:', textStatus, errorThrown);
           alert('Error loading template data. Please try again.');
         });
-      // Show Modal
+
       var updateModal = new bootstrap.Modal(document.getElementById('updateTemplateModal'));
       updateModal.show();
     });
@@ -509,7 +499,6 @@
     // Import Modal
     $('#importTemplatesSubmit').on('click', function () {
       var data = jsyaml.load($('#importTemplates').val());
-      console.log(data);
       $.ajax({
         url: "/api/admin/injects/templates/import",
         type: 'POST',
@@ -518,8 +507,6 @@
         dataType: "json",
         success: function (result) {
           bootstrap.Modal.getInstance(document.getElementById('importTemplatesModal')).hide();
-          console.log('success');
-          // TODO - POST to API
           dt.ajax.reload();
         },
         error: function (result) {
@@ -528,57 +515,10 @@
       });
     });
 
-    // Add Deliverable Modal
-    // TODO - Fix this randomly adding rows on click
-    // $('#addDeliverableSubmitModal').unbind().click(function () {
-    //   if ($('#inputAddDeliverable').val() && $('#inputAddDeliverableValue').val()) {
-    //     // Rubric Table
-    //     var rubricTable = document.getElementById("inputRubric");
-
-    //     var row = rubricTable.insertRow();
-    //     var deliverable = row.insertCell(0);
-    //     var points = row.insertCell(1);
-    //     var actions = row.insertCell(2);
-
-    //     deliverable.innerText = $('#inputAddDeliverable').val();
-    //     points.innerText = $('#inputAddDeliverableValue').val();
-    //     actions.innerHTML = '<div class="btn-group float-end">' +
-    //       '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">' +
-    //       '</i> Actions ' +
-    //       '</button>' +
-    //       '<ul class="dropdown-menu" role="menu">' +
-    //       '<!-- View/Edit -->' +
-    //       '<li>' +
-    //       '<a class="deliverable-view">View/Edit Deliverable</a>' +
-    //       '</li>' +
-    //       '<!-- Delete -->' +
-    //       '<li>' +
-    //       '<a class="deliverable-delete">Delete Deliverable</a>' +
-    //       '</li>' +
-    //       '</ul>' +
-    //       '</div>'
-
-    //     $('#addDeliverableModal').modal('hide');
-    //   } else {
-    //     alert('Please fill out all fields');
-    //   }
-    // });
-
-    // TODO - Why doesn't this work?
-    // Delete Deliverable Button
-    $('.deliverable-delete').on('click', function (e) {
-      alert('boats');
-      var data = dt.row($(this).closest('tr')).data();
-      $(this).parent('tr').remove();
-      $('#deleteTemplateId').val(data['id']);
-      $('#templateDeleteModal').modal('show');
-    });
-
     // Export Modal
     $('#exportTemplatesButton').on('click', function () {
       $.getJSON("/api/admin/injects/templates")
         .done(function (data) {
-          // Update Modal
           $('#exportTemplates').val(jsyaml.dump(data.data));
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
@@ -605,41 +545,44 @@
     });
 
     // Add Template Submit
-    // Cache DOM elements for better performance
     var $teamsContainer = $('#teams');
     var $addTemplateModal = $('#addTemplateModal');
 
     $('#addTemplateButton').on('click', function () {
-      var templateData = {}
+      $('#addTemplateError').addClass('d-none').text('');
+      if (!validateTemplateForm('input')) return;
 
-      // Remove all rows except header
-      // $("#inputRubric tr").remove();
+      var templateData = {};
 
-      // Get Template ID
-      const templateId = $('#addTemplateId').val();
-
-      // Get Form Values
       templateData['title'] = $('#inputTitle').val();
       templateData['scenario'] = $('#inputScenario').val();
       templateData['deliverable'] = $('#inputDeliverable').val();
-      templateData['start_time'] = $('#inputStartTime').val();
-      templateData['end_time'] = $('#inputEndTime').val();
+      templateData['start_time'] = datetimeLocalToISO($('#inputStartTime').val());
+      templateData['end_time'] = datetimeLocalToISO($('#inputEndTime').val());
       templateData['status'] = $('#inputStatus').val();
-      templateData['score'] = $('#inputScore').val();
 
-      // Selected Teams
+      var rubricItems = [];
+      $('#inputRubricItems tbody tr').each(function(i) {
+        var title = $(this).find('.rubric-title').val();
+        var desc = $(this).find('.rubric-desc').val();
+        var points = parseInt($(this).find('.rubric-points').val()) || 0;
+        if (title) {
+          rubricItems.push({ title: title, description: desc, points: points, order: i });
+        }
+      });
+      templateData['rubric_items'] = rubricItems;
+
       var selectedTeams = [];
       $teamsContainer.find('input:checked').each(function () {
-        selectedTeams.push($(this).parent().text().trim());
+        selectedTeams.push($(this).closest('.form-check').find('.form-check-label').text().trim());
       });
-      templateData['selectedTeams'] = selectedTeams
+      templateData['selectedTeams'] = selectedTeams;
 
-      // Unselected Teams
       var unselectedTeams = [];
       $teamsContainer.find('input:not(:checked)').each(function () {
-        unselectedTeams.push($(this).parent().text().trim());
+        unselectedTeams.push($(this).closest('.form-check').find('.form-check-label').text().trim());
       });
-      templateData['unselectedTeams'] = unselectedTeams
+      templateData['unselectedTeams'] = unselectedTeams;
 
       $.ajax({
         url: "/api/admin/injects/templates",
@@ -652,45 +595,53 @@
           dt.ajax.reload();
         },
         error: function (result) {
-          console.log(result);
-          console.error(result['responseJSON']['status']);
+          var msg = (result.responseJSON && (result.responseJSON.message || result.responseJSON.status)) || 'An error occurred';
+          $('#addTemplateError').removeClass('d-none').text(msg);
         }
       });
     });
 
     // Update Template Submit
-    // Cache DOM elements for better performance
     var $updateTeamsContainer = $('#updateTeams');
     var $updateTemplateModal = $('#updateTemplateModal');
 
     $('#updateTemplateButton').on('click', function () {
-      var templateData = {}
+      $('#updateTemplateError').addClass('d-none').text('');
+      if (!validateTemplateForm('inputUpdate')) return;
 
-      // Get Template ID
+      var templateData = {};
+
       const templateId = $('#updateTemplateId').val();
 
-      // Get Form Values
       templateData['title'] = $('#inputUpdateTitle').val();
       templateData['scenario'] = $('#inputUpdateScenario').val();
       templateData['deliverable'] = $('#inputUpdateDeliverable').val();
-      templateData['start_time'] = $('#inputUpdateStartTime').val();
-      templateData['end_time'] = $('#inputUpdateEndTime').val();
+      templateData['start_time'] = datetimeLocalToISO($('#inputUpdateStartTime').val());
+      templateData['end_time'] = datetimeLocalToISO($('#inputUpdateEndTime').val());
       templateData['status'] = $('#inputUpdateStatus').val();
-      templateData['score'] = $('#inputUpdateScore').val();
 
-      // Selected Teams
+      var rubricItems = [];
+      $('#inputUpdateRubricItems tbody tr').each(function(i) {
+        var title = $(this).find('.rubric-title').val();
+        var desc = $(this).find('.rubric-desc').val();
+        var points = parseInt($(this).find('.rubric-points').val()) || 0;
+        if (title) {
+          rubricItems.push({ title: title, description: desc, points: points, order: i });
+        }
+      });
+      templateData['rubric_items'] = rubricItems;
+
       var selectedTeams = [];
       $updateTeamsContainer.find('input:checked').each(function () {
-        selectedTeams.push($(this).parent().text().trim());
+        selectedTeams.push($(this).closest('.form-check').find('.form-check-label').text().trim());
       });
-      templateData['selectedTeams'] = selectedTeams
+      templateData['selectedTeams'] = selectedTeams;
 
-      // Unselected Teams
       var unselectedTeams = [];
       $updateTeamsContainer.find('input:not(:checked)').each(function () {
-        unselectedTeams.push($(this).parent().text().trim());
+        unselectedTeams.push($(this).closest('.form-check').find('.form-check-label').text().trim());
       });
-      templateData['unselectedTeams'] = unselectedTeams
+      templateData['unselectedTeams'] = unselectedTeams;
 
       $.ajax({
         url: "/api/admin/injects/templates/" + templateId,
@@ -700,13 +651,65 @@
         dataType: "json",
         success: function (result) {
           bootstrap.Modal.getInstance($updateTemplateModal[0]).hide();
-          dt.ajax.reload(null, false);  // Keep Page State
+          dt.ajax.reload(null, false);
         },
         error: function (result) {
-          console.log(result);
-          console.error(result['responseJSON']['status']);
+          var msg = (result.responseJSON && (result.responseJSON.message || result.responseJSON.status)) || 'An error occurred';
+          $('#updateTemplateError').removeClass('d-none').text(msg);
         }
       });
+    });
+
+    // Add rubric item row (Add modal)
+    $('#addRubricItemBtn').on('click', function() {
+      $('#inputRubricItems tbody').append(
+        '<tr>' +
+        '<td><input type="text" class="form-control form-control-sm rubric-title" placeholder="Item title"></td>' +
+        '<td><input type="text" class="form-control form-control-sm rubric-desc" placeholder=""></td>' +
+        '<td><input type="number" class="form-control form-control-sm rubric-points" placeholder="0"></td>' +
+        '<td><button type="button" class="btn btn-sm btn-outline-danger remove-rubric-row"><i class="bi bi-x-lg"></i></button></td>' +
+        '</tr>'
+      );
+    });
+
+    // Add rubric item row (Update modal)
+    $('#addUpdateRubricItemBtn').on('click', function() {
+      $('#inputUpdateRubricItems tbody').append(
+        '<tr>' +
+        '<td><input type="text" class="form-control form-control-sm rubric-title" placeholder="Item title"></td>' +
+        '<td><input type="text" class="form-control form-control-sm rubric-desc" placeholder=""></td>' +
+        '<td><input type="number" class="form-control form-control-sm rubric-points" placeholder="0"></td>' +
+        '<td><button type="button" class="btn btn-sm btn-outline-danger remove-rubric-row"><i class="bi bi-x-lg"></i></button></td>' +
+        '</tr>'
+      );
+    });
+
+    // Remove rubric item row
+    $(document).on('click', '.remove-rubric-row', function() {
+      $(this).closest('tr').remove();
+    });
+
+    // Team quick-select buttons
+    $(document).on('click', '.team-select-btn', function() {
+      var target = $(this).data('target');
+      var action = $(this).data('action');
+      if (action === 'all') {
+        $(target).find('input:checkbox').prop('checked', true);
+      } else if (action === 'none') {
+        $(target).find('input:checkbox').prop('checked', false);
+      } else if (action === 'blue') {
+        $(target).find('input:checkbox').prop('checked', false);
+        $(target).find('input.blue-team').prop('checked', true);
+      } else if (action === 'red') {
+        $(target).find('input:checkbox').prop('checked', false);
+        $(target).find('input.red-team').prop('checked', true);
+      }
+    });
+
+    // Clear validation on input
+    $(document).on('input change', '.is-invalid', function() {
+      $(this).removeClass('is-invalid');
+      $(this).next('.invalid-feedback').remove();
     });
   });
 </script>
