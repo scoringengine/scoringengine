@@ -33,9 +33,9 @@ class TestStatusAPI(UnitTest):
 
         self.session.add_all(
             [
-                Machine(name="alpha", team_id=self.blue_team_1.id, status="healthy", compromised=False),
-                Machine(name="bravo", team_id=self.blue_team_1.id, status="offline", compromised=False),
-                Machine(name="charlie", team_id=self.blue_team_2.id, status="compromised", compromised=True),
+                Machine(name="alpha", team_id=self.blue_team_1.id, status=Machine.STATUS_HEALTHY),
+                Machine(name="bravo", team_id=self.blue_team_1.id, status=Machine.STATUS_OFFLINE),
+                Machine(name="charlie", team_id=self.blue_team_2.id, status=Machine.STATUS_COMPROMISED),
             ]
         )
         self.session.commit()
@@ -59,9 +59,18 @@ class TestStatusAPI(UnitTest):
         assert resp.status_code == 200
         data = resp.json["data"]
         assert len(data) == 3
+        assert [m["name"] for m in data] == ["alpha", "bravo", "charlie"]
 
+        expected_keys = {
+            "id",
+            "team_id",
+            "name",
+            "status",
+            "last_check_in_at",
+            "last_status_change_at",
+        }
         for machine in data:
-            assert set(machine.keys()) == {"id", "team_id", "name", "status", "compromised"}
+            assert set(machine.keys()) == expected_keys
 
     def test_api_status_red_team_sees_all(self):
         self.login("reduser", "pass")
