@@ -251,8 +251,26 @@ class Engine(object):
                                 )
                                 matched = environment.matching_content in task.result["output"]
                             if matched:
-                                result = True
-                                reason = CHECK_SUCCESS_TEXT
+                                # Check reject pattern - if it matches, fail even though content matched
+                                if environment.matching_content_reject:
+                                    try:
+                                        rejected = re.search(environment.matching_content_reject, task.result["output"])
+                                    except re.error:
+                                        logger.warning(
+                                            "Invalid reject regex for environment %s: %r, falling back to literal match",
+                                            environment.id,
+                                            environment.matching_content_reject,
+                                        )
+                                        rejected = environment.matching_content_reject in task.result["output"]
+                                    if rejected:
+                                        result = False
+                                        reason = CHECK_FAILURE_TEXT
+                                    else:
+                                        result = True
+                                        reason = CHECK_SUCCESS_TEXT
+                                else:
+                                    result = True
+                                    reason = CHECK_SUCCESS_TEXT
                             else:
                                 result = False
                                 reason = CHECK_FAILURE_TEXT

@@ -225,6 +225,20 @@ class Competition(dict):
                 team_name, service_name, e
             )
 
+        # Verify optional matching_content_reject
+        if "matching_content_reject" in environment:
+            assert (
+                type(environment["matching_content_reject"]) is str
+            ), "{0} {1} environment 'matching_content_reject' field must be a string".format(team_name, service_name)
+            try:
+                re.compile(environment["matching_content_reject"])
+            except re.error as e:
+                assert (
+                    False
+                ), "{0} {1} environment 'matching_content_reject' field must be a valid regex pattern: {2}".format(
+                    team_name, service_name, e
+                )
+
         # Verify environment properties
         if "properties" in environment:
             assert (
@@ -293,7 +307,9 @@ class Competition(dict):
                             )
                     for environment_dict in service_dict["environments"]:
                         environment_obj = Environment(
-                            service=service_obj, matching_content=environment_dict["matching_content"]
+                            service=service_obj,
+                            matching_content=environment_dict["matching_content"],
+                            matching_content_reject=environment_dict.get("matching_content_reject"),
                         )
                         db.session.add(environment_obj)
                         if "properties" in environment_dict:
