@@ -19,26 +19,32 @@ Let's take a look at what the SSH check file looks like (scoring_engine/checks/s
 
    class SSHCheck(BasicCheck):
       required_properties = ['commands']
-      CMD = CHECKS_BIN_PATH + '/ssh_check {0} {1} {2} {3} {4}'
+      CMD = CHECKS_BIN_PATH + '/ssh_check {0} {1} {2} {3}'
 
       def command_format(self, properties):
           account = self.get_random_account()
+          self._current_account = account
           return (
               self.host,
               self.port,
               account.username,
-              account.password,
               properties['commands']
           )
 
-.. note:: The main point of each check source code, is to generate a command string. The format of this string is defined in the CMD variable. The plugin executes the command_format function, which outputs a list of the parameters to fill in the formatted CMD variable.
+      def command_env(self):
+          if hasattr(self, '_current_account'):
+              return {'SCORING_PASSWORD': self._current_account.password}
+          return {}
+
+.. note:: The main point of each check source code, is to generate a command string. The format of this string is defined in the CMD variable. The plugin executes the command_format function, which outputs a list of the parameters to fill in the formatted CMD variable. Sensitive values like passwords should be passed via environment variables using the ``command_env()`` method instead of command-line arguments, to avoid shell interpretation issues with special characters.
 
 
 - **Line 1** - This is the Class name of the check, and will need to be something you reference in bin/competition.yaml
 - **Line 2** - We specificy what properties this check requires. This can be any value, as long as it's defined in bin/competition.yaml.
-- **Line 3** - This is the format of the command. The SSH Check requires an additional file to be created in addition to this file, which will be stored in CHECKS_BIN_PATH (this is scoring_engine/checks/bin). We're also specifying placeholders as parameters, as we will generate dynamically. If the binary that the command will be running is already on disk, (like ftp or nmap), then we don't need to use the CHECKS_BIN_PATH value, we can reference the absolute path specifically.
+- **Line 3** - This is the format of the command. The SSH Check requires an additional file to be created in addition to this file, which will be stored in CHECKS_BIN_PATH (this is scoring_engine/checks/bin). We're also specifying placeholders as parameters, as we will generate dynamically. Note that the password is **not** included as a placeholder — it is passed via an environment variable instead. If the binary that the command will be running is already on disk, (like ftp or nmap), then we don't need to use the CHECKS_BIN_PATH value, we can reference the absolute path specifically.
 - **Line 5** - This is where we specify the custom parameters that will be passed to the CMD variable. We return a list of parameters that gets filled into the CMD.
 - **Line 6** - This function provides the ability to randomly select an account to use for credentials. This allows the engine to randomize which credentials are used each round.
+- **Line 18-21** - The ``command_env()`` method returns a dictionary of environment variables to pass to the subprocess. Here the password is passed via the ``SCORING_PASSWORD`` env var, which avoids shell mangling of special characters (``$``, ``!``, ``&``, quotes, etc.).
 
 Now that we've created the source code file, let's look at what custom shell script we're referring to in the check source code.
 
@@ -54,20 +60,26 @@ Now that we've created the source code file, let's look at what custom shell scr
   #
   # To install: pip install -I "cryptography>=2.4,<2.5" && pip install "paramiko>=2.4,<2.5"
 
+  import os
   import sys
   import paramiko
 
 
-  if len(sys.argv) != 6:
-      print("Usage: " + sys.argv[0] + " host port username password commands")
-      print("commands parameter supports multiple commands, use ';' as the delimeter")
-      sys.exit(1)
+  # Password is read from the SCORING_PASSWORD environment variable.
+  # This avoids shell interpretation issues with special characters.
+  password_from_env = os.environ.get('SCORING_PASSWORD')
 
-  host = sys.argv[1]
-  port = sys.argv[2]
-  username = sys.argv[3]
-  password = sys.argv[4]
-  commands = sys.argv[5].split(';')
+  if password_from_env is not None and len(sys.argv) == 5:
+      host = sys.argv[1]
+      port = sys.argv[2]
+      username = sys.argv[3]
+      password = password_from_env
+      commands = sys.argv[4].split(';')
+  else:
+      print("Usage: " + sys.argv[0] + " host port username commands")
+      print("  Password is read from the SCORING_PASSWORD environment variable.")
+      print("  commands parameter supports multiple commands, use ';' as the delimeter")
+      sys.exit(1)
 
   # RUN SOME CODE
   last_command_output = "OUTPUT FROM LAST COMMAND"
@@ -79,7 +91,7 @@ Now that we've created the source code file, let's look at what custom shell scr
 For the sake of copy/paste, I've removed what code is actually run for SSH, but that can be seen  `here <https://github.com/scoringengine/scoringengine/blob/master/scoring_engine/checks/bin/ssh_check>`_.
 
 
-As we can see, this is just a simple script (and can in fact be any language as long as it's present on the worker), that takes in a few parameters, and prints something to the screen. The engine takes the output from each command, and determines if a check is successful by matching that against the matching_content value defined in bin/competition.yaml. Any output from this command will also get presented in the Web UI, so it can be used for troubleshooting purposes for white/blue teams.
+As we can see, this is just a simple script (and can in fact be any language as long as it's present on the worker), that takes in a few parameters and reads the password from an environment variable, then prints something to the screen. The engine takes the output from each command, and determines if a check is successful by matching that against the matching_content value defined in bin/competition.yaml. Any output from this command will also get presented in the Web UI, so it can be used for troubleshooting purposes for white/blue teams.
 
 In this example, our matching_content value will be "SUCCESS".
 
@@ -152,7 +164,8 @@ An example unit test for SSH looks like this (tests/scoring_engine/checks/test_s
        accounts = {
            'pwnbus': 'pwnbuspass'
        }
-       cmd = CHECKS_BIN_PATH + "/ssh_check '127.0.0.1' 1234 'pwnbus' 'pwnbuspass' 'ls -l;id'"
+       cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 pwnbus 'ls -l;id'"
+       cmd_env = {'SCORING_PASSWORD': 'pwnbuspass'}
 
 - **Line 1** - Since we're adding additional files, we want to use the dynamically created CHECKS_BIN_PATH variable.
 - **Line 3** - Import the CheckTest parent class which all check tests inherit from.
@@ -160,7 +173,8 @@ An example unit test for SSH looks like this (tests/scoring_engine/checks/test_s
 - **Line 7** - This points to the classname of the check source code.
 - **Line 8-10** - Define an example set of properties the test will use.
 - **Line 11-13** - Define an example set of credentials the test will use.
-- **Line 14** - Define an expected command string to verify the check source code works as expected.
+- **Line 14** - Define an expected command string to verify the check source code works as expected. Note the password is no longer part of the command string.
+- **Line 15** - Define the expected environment variables. The password is passed via ``SCORING_PASSWORD`` instead of as a CLI argument.
 
 
 Verify Unit Test

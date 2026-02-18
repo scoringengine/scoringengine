@@ -49,5 +49,14 @@ class BasicCheck(object):
         cmd = self.CMD.format(*sanitized_args)
         return cmd
 
+    def command_env(self):
+        """Return a dict of environment variables to pass to the subprocess.
+
+        Override in subclasses to pass sensitive data (e.g. passwords) via
+        environment variables instead of command-line arguments. This avoids
+        shell interpretation issues with special characters.
+        """
+        return {}
+
     def get_random_account(self):
         return random.choice(self.environment.service.accounts)

@@ -7,47 +7,53 @@ class TestSSHCheck(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "ls -l;id"}
     accounts = {"pwnbus": "pwnbuspass"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 pwnbus pwnbuspass 'ls -l;id'"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 pwnbus 'ls -l;id'"
+    cmd_env = {"SCORING_PASSWORD": "pwnbuspass"}
 
 
 class TestSSHCheckWithSingleQuotePassword(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "whoami"}
     accounts = {"admin": "pass'word"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'pass'\"'\"'word' whoami"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin whoami"
+    cmd_env = {"SCORING_PASSWORD": "pass'word"}
 
 
 class TestSSHCheckWithDoubleQuotePassword(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "id"}
     accounts = {"admin": 'pass"word'}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'pass\"word' id"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin id"
+    cmd_env = {"SCORING_PASSWORD": 'pass"word'}
 
 
 class TestSSHCheckWithBackslashPassword(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "ls"}
     accounts = {"admin": "pass\\word"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'pass\\word' ls"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin ls"
+    cmd_env = {"SCORING_PASSWORD": "pass\\word"}
 
 
 class TestSSHCheckWithSpacesInPassword(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "pwd"}
     accounts = {"admin": "my secure password"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'my secure password' pwd"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin pwd"
+    cmd_env = {"SCORING_PASSWORD": "my secure password"}
 
 
 class TestSSHCheckWithSpecialCharsPassword(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "echo test"}
     accounts = {"admin": "p@ss$word!&|;"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'p@ss$word!&|;' 'echo test'"
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 admin 'echo test'"
+    cmd_env = {"SCORING_PASSWORD": "p@ss$word!&|;"}
 
 
 class TestSSHCheckWithSpecialCharsUsername(CheckTest):
     check_name = "SSHCheck"
     properties = {"commands": "id"}
     accounts = {"user@domain.com": "password123"}
-    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 user@domain.com password123 id"
-
+    cmd = CHECKS_BIN_PATH + "/ssh_check 127.0.0.1 1234 user@domain.com id"
+    cmd_env = {"SCORING_PASSWORD": "password123"}
