@@ -1,3 +1,4 @@
+import re
 import yaml
 import datetime
 
@@ -165,6 +166,10 @@ class Competition(dict):
         # Verify environment matching_content
         assert 'matching_content' in environment, "{0} {1} environment must have a 'matching_content' field".format(team_name, service_name)
         assert type(environment['matching_content']) is str, "{0} {1} environment 'matching_content' field must be a string".format(team_name, service_name)
+        try:
+            re.compile(environment['matching_content'])
+        except re.error as e:
+            assert False, "{0} {1} environment 'matching_content' field must be a valid regex pattern: {2}".format(team_name, service_name, e)
 
         # Verify environment properties
         if 'properties' in environment:

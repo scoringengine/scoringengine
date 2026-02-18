@@ -126,10 +126,10 @@ class ConfigLoader(object):
             "bool",
         )
 
-        self.blue_team_view_status_page = self.parse_sources(
-            "blue_team_view_status_page",
-            self.parser["OPTIONS"]["blue_team_view_status_page"].lower() == "true",
-            "bool",
+        self.task_jitter_max_delay = self.parse_sources(
+            "task_jitter_max_delay",
+            int(self.parser["OPTIONS"].get("task_jitter_max_delay", "0")),
+            "int",
         )
 
         self.worker_queue = self.parse_sources(

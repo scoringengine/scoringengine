@@ -12,6 +12,7 @@ from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.team import Team
 from scoring_engine.models.inject import Template, Inject, File, Comment
+from scoring_engine.models.user import User
 
 from . import make_cache_key, mod
 
@@ -80,6 +81,10 @@ def api_injects_submit(inject_id):
     inject.status = "Submitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
+
+    # Invalidate cached inject detail for the submitting team
+    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+
     data = list()
     return jsonify(data=data)
 
@@ -139,7 +144,7 @@ def api_inject(inject_id):
     # Comments
     comments = (
         db.session.query(Comment)
-        .options(joinedload(Comment.user).joinedload("team"))
+        .options(joinedload(Comment.user).joinedload(User.team))
         .filter(Comment.inject == inject)
         .order_by(Comment.time)
         .all()
@@ -173,7 +178,7 @@ def api_inject_comments(inject_id):
     data = []
     comments = (
         db.session.query(Comment)
-        .options(joinedload(Comment.user).joinedload("team"))
+        .options(joinedload(Comment.user).joinedload(User.team))
         .filter(Comment.inject == inject)
         .order_by(Comment.time)
         .all()

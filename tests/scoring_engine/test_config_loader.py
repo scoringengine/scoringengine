@@ -44,7 +44,13 @@ class TestConfigLoader(object):
         assert self.config.blue_team_view_status_page is True
 
     def test_db_uri(self):
-        assert self.config.db_uri == "sqlite:////tmp/test_engine.db?check_same_thread=False"
+        # Under xdist each worker gets a unique DB path via env var override
+        worker_id = os.environ.get("PYTEST_XDIST_WORKER")
+        if worker_id is not None:
+            expected = f"sqlite:////tmp/test_engine_{worker_id}.db?check_same_thread=False"
+        else:
+            expected = "sqlite:////tmp/test_engine.db?check_same_thread=False"
+        assert self.config.db_uri == expected
 
     def test_timezone(self):
         assert self.config.timezone == "US/Eastern"
@@ -93,6 +99,12 @@ def test_default_uses_example_config():
     loader should automatically read ``engine.conf.inc`` so that sensible
     defaults are available and tests can execute.
     """
-    cfg = ConfigLoader()  # no explicit path provided
-    # A value from engine.conf.inc confirms the fallback worked
-    assert cfg.db_uri == "sqlite:////tmp/engine.db?check_same_thread=False"
+    # Temporarily clear xdist env override so we test the real file default
+    saved = os.environ.pop("SCORINGENGINE_DB_URI", None)
+    try:
+        cfg = ConfigLoader()  # no explicit path provided
+        # A value from engine.conf.inc confirms the fallback worked
+        assert cfg.db_uri == "sqlite:////tmp/engine.db?check_same_thread=False"
+    finally:
+        if saved is not None:
+            os.environ["SCORINGENGINE_DB_URI"] = saved

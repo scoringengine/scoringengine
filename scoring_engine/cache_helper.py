@@ -88,8 +88,28 @@ def update_services_data(team_id=None):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
-# TODO - Break this into an API cache expiration
-def update_stats():
-    from scoring_engine.web.views.stats import home
+def update_inject_data(inject_id, team_id=None):
+    """Clear cached inject detail for the given inject.
 
-    cache.delete_memoized(home)
+    The cache key for ``/api/inject/<id>`` is ``/api/inject/<id>_<team_id>``.
+    Both the owning team and the white team can view an inject, so we clear
+    all matching keys when ``team_id`` is not provided.
+    """
+    if team_id is not None:
+        cache.delete(f"/api/inject/{inject_id}_{team_id}")
+    elif not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match=f"*/api/inject/{inject_id}_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_stats():
+    # Clear cached /api/stats responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(
+            match="*/api/stats_*"
+        ):
+            cache.delete(
+                key.decode("utf-8").removeprefix(
+                    cache.cache.key_prefix
+                )
+            )

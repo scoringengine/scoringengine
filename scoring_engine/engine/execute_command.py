@@ -28,10 +28,15 @@ def execute_command(job):
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            env=env
+            env=env,
+            timeout=30,
         )
         output = cmd_result.stdout.decode("utf-8")
         job['errored_out'] = False
+    except subprocess.TimeoutExpired as e:
+        job['errored_out'] = True
+        if e.output:
+            output = e.output.decode("utf-8", errors="replace")
     except SoftTimeLimitExceeded:
         job['errored_out'] = True
     job['output'] = output

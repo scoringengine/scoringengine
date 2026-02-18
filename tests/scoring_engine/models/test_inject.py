@@ -509,11 +509,11 @@ class TestComment(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
-        comment = Comment(comment="This is a test comment", user=user, inject=inject)
-        assert comment.comment == "This is a test comment"
-        assert comment.user == user
-        assert comment.inject == inject
-        # Default is applied by database on commit
+        with self.session.no_autoflush:
+            comment = Comment(comment="This is a test comment", user=user, inject=inject)
+            assert comment.comment == "This is a test comment"
+            assert comment.user == user
+            assert comment.inject == inject
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")
@@ -667,10 +667,11 @@ class TestFile(UnitTest):
         self.session.add(inject)
         self.session.commit()
 
-        file = File(name="evidence.pdf", user=user, inject=inject)
-        assert file.name == "evidence.pdf"
-        assert file.user == user
-        assert file.inject == inject
+        with self.session.no_autoflush:
+            file = File(name="evidence.pdf", user=user, inject=inject)
+            assert file.name == "evidence.pdf"
+            assert file.user == user
+            assert file.inject == inject
 
     def test_simple_save(self):
         team = Team(name="Blue Team 1", color="Blue")

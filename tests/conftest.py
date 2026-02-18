@@ -1,5 +1,5 @@
+from os import environ, path
 from sys import modules
-from os import path
 
 import pytest
 from tests.mock_config import MockConfig
@@ -27,6 +27,15 @@ def pytest_configure(config):
     else:
         collect_ignore[:] = ["integration"]
         local_config_location = 'scoring_engine/engine.conf.inc'
+
+    # When running under pytest-xdist, each worker gets a unique DB file
+    # so they don't stomp on each other's SQLite databases.
+    worker_id = environ.get("PYTEST_XDIST_WORKER")
+    if worker_id is not None:
+        environ["SCORINGENGINE_DB_URI"] = (
+            f"sqlite:////tmp/test_engine_{worker_id}.db?check_same_thread=False"
+        )
+
     # This is so that we can override (mock) the config
     # variable, so that we can tell it to load our custom
     # unit test based config file

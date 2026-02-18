@@ -9,16 +9,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      # - name: Set up Docker Compose
-      #   run: |
-      #     sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      #     sudo chmod +x /usr/local/bin/docker-compose
-      #     docker-compose --version
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-paths: |
+            pyproject.toml
+            tests/requirements.txt
 
       - name: Install Python dependencies
         run: |
@@ -26,17 +28,18 @@ jobs:
           pip install -e .
           pip install -r tests/requirements.txt
 
-      # - name: Build Docker images
-      #   run: make build
-
       - name: Run unit tests
-        run: make run-tests
-
-      - name: Run integration tests
-        # run: make run-integration-tests
-        run: ./tests/integration/run.sh
+        run: pytest -v -n auto --cov=scoring_engine tests/
 
       - name: Upload coverage data to coveralls.io
         run: coveralls --service=github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run integration tests
+        run: ./tests/integration/run.sh

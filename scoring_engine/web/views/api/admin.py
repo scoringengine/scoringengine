@@ -9,6 +9,7 @@ from flask import flash, redirect, request, url_for, jsonify
 from flask_login import current_user, login_required
 
 import html
+import re
 
 
 def _ensure_utc_aware(dt):
@@ -41,6 +42,7 @@ from scoring_engine.cache_helper import (
     update_service_data,
     update_team_stats,
     update_services_data,
+    update_inject_data,
 )
 from scoring_engine.celery_stats import CeleryStats
 
@@ -61,7 +63,12 @@ def admin_update_environment():
             environment = db.session.get(Environment, int(request.form["pk"]))
             if environment:
                 if request.form["name"] == "matching_content":
-                    environment.matching_content = html.escape(request.form["value"])
+                    value = html.escape(request.form["value"])
+                    try:
+                        re.compile(value)
+                    except re.error as e:
+                        return jsonify({"error": "Invalid regex pattern: " + str(e)}), 400
+                    environment.matching_content = value
                 db.session.add(environment)
                 db.session.commit()
                 return jsonify({"status": "Updated Environment Information"})
@@ -438,7 +445,7 @@ def admin_get_inject_templates_id(template_id):
             #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
             #     for x in template.rubric
             # ],
-            teams=[inject.team.name for inject in template.inject if inject.enabled],
+            teams=[inject.team.name for inject in template.inject if inject.enabled and inject.team],
         )
         return jsonify(data)
     else:
@@ -584,6 +591,7 @@ def admin_post_inject_grade(inject_id):
                 inject.score = data.get("score")
                 db.session.add(inject)
                 db.session.commit()
+                update_inject_data(inject_id)
                 return jsonify({"status": "Success"}), 200
             else:
                 return jsonify({"status": "Invalid Inject ID"}), 400
@@ -726,7 +734,7 @@ def admin_import_inject_templates():
                             )
                         if d.get("end_time"):
                             t.end_time = (
-                                parse(d["start_time"])
+                                parse(d["end_time"])
                                 .astimezone(pytz.utc)
                                 .replace(tzinfo=None)
                             )
@@ -791,14 +799,10 @@ def admin_import_inject_templates():
                                 inject.enabled = False
 
                     else:
-                        return (
-                            jsonify(
-                                {"status": "Error", "message": "Invalid Template ID"}
-                            ),
-                            400,
-                        )
-                # Otherwise, create the template
-                else:
+                        # Template ID doesn't exist, fall through to create a new one
+                        d.pop("id")
+                if not d.get("id"):
+                    # Create the template
                     t = Template(
                         title=d["title"],
                         scenario=d["scenario"],
@@ -839,11 +843,12 @@ def admin_import_inject_templates():
                                 .filter(Team.name == team_name)
                                 .first()
                             )
-                            inject = Inject(
-                                team=team,
-                                template=t,
-                            )
-                            db.session.add(inject)
+                            if team:
+                                inject = Inject(
+                                    team=team,
+                                    template=t,
+                                )
+                                db.session.add(inject)
             db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
@@ -868,6 +873,8 @@ def admin_inject_scores():
         )
 
         for inject in injects:
+            if not inject.team:
+                continue
             if inject.template.id not in data:
                 data[inject.template.id] = {
                     "title": inject.template.title,
