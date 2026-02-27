@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-paths: |
+          cache-dependency-path: |
             pyproject.toml
             tests/requirements.txt
 
@@ -33,6 +33,7 @@ jobs:
 
       - name: Upload coverage data to coveralls.io
         run: coveralls --service=github
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
