@@ -29,7 +29,10 @@ jobs:
           pip install -r tests/requirements.txt
 
       - name: Run unit tests
-        run: pytest -v -n auto --cov=scoring_engine tests/
+        run: pytest -v -n auto --cov=scoring_engine --timeout=60 tests/
+        timeout-minutes: 10
+        env:
+          SCORINGENGINE_CACHE_TYPE: "null"
 
       - name: Upload coverage data to coveralls.io
         run: coveralls --service=github

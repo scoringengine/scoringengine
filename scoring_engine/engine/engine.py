@@ -53,8 +53,8 @@ class Engine(object):
         self.last_round = False
         self.rounds_run = 0
 
-        signal.signal(signal.SIGINT, partial(engine_sigint_handler, obj=self))
-        signal.signal(signal.SIGTERM, partial(engine_sigint_handler, obj=self))
+        signal.signal(signal.SIGINT, partial(engine_sigint_handler, engine=self))
+        signal.signal(signal.SIGTERM, partial(engine_sigint_handler, engine=self))
 
         self.current_round = Round.get_last_round_num()
 
