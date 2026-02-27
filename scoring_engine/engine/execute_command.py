@@ -1,5 +1,6 @@
 from scoring_engine.celery_app import celery_app
 from celery.exceptions import SoftTimeLimitExceeded
+import os
 import subprocess
 
 from scoring_engine.logger import logger
@@ -13,12 +14,22 @@ def execute_command(job):
         logger.propagate = False
     logger.info("Running cmd for " + str(job))
     try:
+        # Pass environment variables from job to subprocess if present.
+        # This allows checks to pass sensitive data (e.g. passwords) via
+        # env vars instead of command-line arguments, avoiding shell
+        # interpretation issues with special characters.
+        env = None
+        if job.get('env'):
+            env = os.environ.copy()
+            env.update(job['env'])
+
         cmd_result = subprocess.run(
             job['command'],
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             timeout=30,
+            env=env
         )
         output = cmd_result.stdout.decode("utf-8")
         job['errored_out'] = False
