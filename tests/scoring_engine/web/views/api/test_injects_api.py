@@ -187,10 +187,8 @@ class TestInjectsAPI(UnitTest):
         assert resp.status_code == 403
 
     @patch("scoring_engine.web.views.api.injects.os.makedirs")
-    @patch("scoring_engine.web.views.api.injects.os.path.exists")
-    def test_file_upload_path_traversal_prevention(self, mock_exists, mock_makedirs):
+    def test_file_upload_path_traversal_prevention(self, mock_makedirs):
         """SECURITY: Test that path traversal attacks are prevented"""
-        mock_exists.return_value = False
 
         template = Template(
             title="Test",
@@ -308,8 +306,9 @@ class TestInjectsAPI(UnitTest):
 
         assert resp.status_code == 400
 
-    def test_file_upload_duplicate_filename_rejected(self):
-        """SECURITY: Test that duplicate filenames are rejected"""
+    @patch("scoring_engine.web.views.api.injects.os.makedirs")
+    def test_file_upload_same_filename_allowed(self, mock_makedirs):
+        """Test that re-uploading the same filename succeeds with unique stored names"""
         template = Template(
             title="Test",
             scenario="Test",
@@ -322,27 +321,28 @@ class TestInjectsAPI(UnitTest):
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Create existing file
-        existing_file = File(
-            f"Inject{inject.id}_Blue Team 1_test.txt",
-            self.blue_user1,
-            inject
-        )
-        self.session.add(existing_file)
-        self.session.commit()
-
         self.login("blueuser1", "pass")
 
-        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
-            data = {"file": (io.BytesIO(b"test"), "test.txt")}
-            resp = self.client.post(
+        with patch("builtins.open", MagicMock()):
+            data = {"file": (io.BytesIO(b"test1"), "test.txt")}
+            resp1 = self.client.post(
                 f"/api/inject/{inject.id}/upload",
                 data=data,
                 content_type="multipart/form-data"
             )
+            assert resp1.status_code == 200
 
-            assert resp.status_code == 400
-            assert "not unique" in resp.data.decode().lower()
+            data = {"file": (io.BytesIO(b"test2"), "test.txt")}
+            resp2 = self.client.post(
+                f"/api/inject/{inject.id}/upload",
+                data=data,
+                content_type="multipart/form-data"
+            )
+            assert resp2.status_code == 200
+
+            files = self.session.query(File).filter(File.inject_id == inject.id).all()
+            assert len(files) == 2
+            assert files[0].name != files[1].name
 
     # Submit Tests
     def test_inject_submit_requires_auth(self):
