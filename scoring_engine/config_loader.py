@@ -230,6 +230,36 @@ class ConfigLoader(object):
             "float",
         )
 
+        # Weighted Scoring Configuration
+        # Allows admins to balance importance of different score types
+        self.weighted_scoring_enabled = self.parse_sources(
+            "weighted_scoring_enabled",
+            self.parser["OPTIONS"].get("weighted_scoring_enabled", "false").lower()
+            == "true",
+            "bool",
+        )
+
+        # Weight for service uptime scores (default 1.0 = no change)
+        self.service_weight = self.parse_sources(
+            "service_weight",
+            float(self.parser["OPTIONS"].get("service_weight", "1.0")),
+            "float",
+        )
+
+        # Weight for inject scores (default 1.0 = no change)
+        self.inject_weight = self.parse_sources(
+            "inject_weight",
+            float(self.parser["OPTIONS"].get("inject_weight", "1.0")),
+            "float",
+        )
+
+        # Weight for flag capture scores (default 1.0 = no change)
+        self.flag_weight = self.parse_sources(
+            "flag_weight",
+            float(self.parser["OPTIONS"].get("flag_weight", "1.0")),
+            "float",
+        )
+
     def parse_sources(self, key_name, default_value, obj_type="str"):
         """Return a configuration value using environment overrides when present.
 
