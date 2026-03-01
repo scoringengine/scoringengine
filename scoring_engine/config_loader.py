@@ -54,6 +54,10 @@ class ConfigLoader(object):
             "debug", self.parser["OPTIONS"]["debug"].lower() == "true", "bool"
         )
 
+        self.secret_key = self.parse_sources(
+            "secret_key", self.parser["OPTIONS"].get("secret_key", "")
+        )
+
         self.checks_location = self.parse_sources(
             "checks_location",
             self.parser["OPTIONS"]["checks_location"],
