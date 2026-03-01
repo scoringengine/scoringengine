@@ -1,4 +1,6 @@
 import json
+import re
+import subprocess
 import pytz
 
 from tempfile import template
@@ -35,6 +37,12 @@ from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.models.setting import Setting
 from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.engine.engine import Engine
+from scoring_engine.engine.basic_check import (
+    CHECK_SUCCESS_TEXT,
+    CHECK_FAILURE_TEXT,
+    CHECK_TIMED_OUT_TEXT,
+)
 from scoring_engine.cache_helper import (
     update_scoreboard_data,
     update_overview_data,
@@ -1095,3 +1103,173 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+# Global cache for loaded check classes (loaded once per app lifecycle)
+_check_classes = None
+
+
+def _get_check_classes():
+    """Load and cache all check classes."""
+    global _check_classes
+    if _check_classes is None:
+        _check_classes = {}
+        loaded_checks = Engine.load_check_files(config.checks_location)
+        for check_class in loaded_checks:
+            _check_classes[check_class.__name__] = check_class
+    return _check_classes
+
+
+def _execute_check_sync(command, timeout=30):
+    """
+    Execute a check command synchronously (not via Celery).
+
+    Returns dict with output, errored_out, and execution_time_ms.
+    """
+    import time
+    start_time = time.time()
+    try:
+        cmd_result = subprocess.run(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+        )
+        output = cmd_result.stdout.decode("utf-8")
+        errored_out = False
+    except subprocess.TimeoutExpired:
+        output = "Check timed out"
+        errored_out = True
+    except Exception as e:
+        output = f"Error executing check: {str(e)}"
+        errored_out = True
+
+    execution_time_ms = int((time.time() - start_time) * 1000)
+    return {
+        "output": output,
+        "errored_out": errored_out,
+        "execution_time_ms": execution_time_ms,
+    }
+
+
+@mod.route("/api/admin/check/dry_run", methods=["POST"])
+@login_required
+def admin_check_dry_run():
+    """
+    Run a service check without recording results to the database.
+
+    This allows admins to validate check configuration before competition.
+
+    Request JSON:
+    {
+        "service_id": 123,
+        "environment_id": 456  // optional, uses random if not specified
+    }
+
+    Response JSON:
+    {
+        "status": "success" | "error",
+        "result": true | false,
+        "reason": "Check Finished Successfully" | "Check Received Incorrect Content" | "Check Timed Out",
+        "output": "...",
+        "command": "...",
+        "execution_time_ms": 1234,
+        "service_name": "SSH",
+        "team_name": "Blue Team 1",
+        "host": "192.168.1.1",
+        "port": 22,
+        "matching_content": ".*SSH.*"
+    }
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data or "service_id" not in data:
+        return jsonify({
+            "status": "error",
+            "message": "service_id is required"
+        }), 400
+
+    service_id = data.get("service_id")
+    environment_id = data.get("environment_id")
+
+    # Load service
+    service = db.session.get(Service, int(service_id))
+    if not service:
+        return jsonify({
+            "status": "error",
+            "message": f"Service with id {service_id} not found"
+        }), 404
+
+    # Get environment (specific or random)
+    if environment_id:
+        environment = db.session.get(Environment, int(environment_id))
+        if not environment or environment.service_id != service.id:
+            return jsonify({
+                "status": "error",
+                "message": f"Environment {environment_id} not found for service"
+            }), 404
+    else:
+        if not service.environments:
+            return jsonify({
+                "status": "error",
+                "message": "Service has no environments configured"
+            }), 400
+        import random
+        environment = random.choice(service.environments)
+
+    # Load check class
+    check_classes = _get_check_classes()
+    check_class = check_classes.get(service.check_name)
+    if not check_class:
+        return jsonify({
+            "status": "error",
+            "message": f"Check class '{service.check_name}' not found"
+        }), 404
+
+    # Instantiate check and generate command
+    try:
+        check_obj = check_class(environment)
+        command = check_obj.command()
+    except LookupError as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Check configuration error: {str(e)}"
+        }), 400
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Error instantiating check: {str(e)}"
+        }), 500
+
+    # Execute check synchronously
+    exec_result = _execute_check_sync(command, timeout=30)
+
+    # Evaluate result against matching_content
+    if exec_result["errored_out"]:
+        result = False
+        reason = CHECK_TIMED_OUT_TEXT
+    else:
+        if re.search(environment.matching_content, exec_result["output"]):
+            result = True
+            reason = CHECK_SUCCESS_TEXT
+        else:
+            result = False
+            reason = CHECK_FAILURE_TEXT
+
+    return jsonify({
+        "status": "success",
+        "result": result,
+        "reason": reason,
+        "output": exec_result["output"][:35000],  # Limit output size
+        "command": command,
+        "execution_time_ms": exec_result["execution_time_ms"],
+        "service_name": service.name,
+        "team_name": service.team.name,
+        "host": service.host,
+        "port": service.port,
+        "matching_content": environment.matching_content,
+        "environment_id": environment.id,
+    })
