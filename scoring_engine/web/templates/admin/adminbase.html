@@ -56,6 +56,17 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="panel-title">
+            <span>Red Team <b class="pull-right glyphicon glyphicon-fire"></b></span>
+          </div>
+        </div>
+        <div class="list-group">
+          <a class="list-group-item {% if request.path == '/admin/attacks' %}active{% endif %}"
+            href="/admin/attacks">Attack Log</a>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="panel-title">
             <span>Services <b class="pull-right glyphicon glyphicon-tasks"></b></span>
           </div>
         </div>
