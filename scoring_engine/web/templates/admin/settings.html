@@ -19,7 +19,7 @@
         <div class="input-group input-group-md">
           <input class="form-control" id="target_round_time" name="target_round_time"
             placeholder="Insert Target Round Time Value Here (in seconds)" value="{{ target_round_time|safe }}"
-            aria-label="Target Round Time in seconds" required />
+            required />
           <div class="input-group-btn">
             <button type="submit" class="btn btn-primary center-block">Save</button>
           </div>
@@ -39,7 +39,7 @@
       <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
         <div class="input-group input-group-md">
           <input class="form-control" id="worker_refresh_time" name="worker_refresh_time"
-            placeholder="Insert Worker Refresh Time Here (in seconds)" value="{{ worker_refresh_time|safe }}" aria-label="Worker Refresh Time in seconds" required />
+            placeholder="Insert Worker Refresh Time Here (in seconds)" value="{{ worker_refresh_time|safe }}" required />
           <div class="input-group-btn">
             <button type="submit" class="btn btn-primary center-block">Save</button>
           </div>
@@ -53,7 +53,7 @@
   </form>
 
   <div class="col-xs-3">
-    <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
+    <label for="welcome_page_content" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
   </div>
   <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
     <div class="form-group row">
@@ -61,7 +61,7 @@
         <div class="input-group input-group-md">
           <textarea class="form-control" rows="12" style="width: 685px;" id="welcome_page_content"
             name="welcome_page_content" placeholder="Insert Welcome Page Content Here"
-            aria-label="Welcome Page Content" required>{{ welcome_page_content|safe }}</textarea>
+            required>{{ welcome_page_content|safe }}</textarea>
           <label for="about_page_content_footer">* This text shows up on <a href="/">this</a> page</label>
         </div>
         <button type="submit" class="btn btn-primary center-block">Save</button>
@@ -70,7 +70,7 @@
   </form>
 
   <div class="col-xs-3">
-    <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
+    <label for="about_page_content" class="pull-right" style="padding-top: 7px;">About Page Content</label>
   </div>
   <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
     <div class="form-group row" style="margin-bottom: 0px;">
@@ -78,7 +78,7 @@
         <div class="input-group input-group-md">
           <textarea class="form-control" rows="9" style="width: 685px;" id="about_page_content"
             name="about_page_content" placeholder="Insert About Page Content Here"
-            aria-label="About Page Content" required>{{ about_page_content|safe }}</textarea>
+            required>{{ about_page_content|safe }}</textarea>
           <label for="about_page_content_footer">* This text shows up on <a href="/about">this</a> page</label>
         </div>
         <button type="submit" class="btn btn-primary center-block">Save</button>

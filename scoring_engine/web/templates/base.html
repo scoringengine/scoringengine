@@ -14,11 +14,6 @@
   <link href="{{ url_for('static', filename='vendor/css/bootstrap-glyphicons.css') }}" rel="stylesheet">
   <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-  <style>
-    *:focus {
-      outline: 2px solid red !important;
-    }
-  </style>
 </head>
 {% if 'unauthorized' in request.path %}
 
