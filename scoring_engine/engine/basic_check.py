@@ -7,7 +7,11 @@ CHECKS_BIN_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(_
 CHECK_SUCCESS_TEXT = "Check Finished Successfully"
 CHECK_FAILURE_TEXT = "Check Received Incorrect Content"
 CHECK_TIMED_OUT_TEXT = "Check Timed Out"
-
+CHECK_AUTH_FAILED_TEXT = "Check Authentication Failed"
+CHECK_CONNECTION_REFUSED_TEXT = "Check Connection Refused"
+CHECK_CONNECTION_TIMEOUT_TEXT = "Check Connection Timeout"
+CHECK_HOST_UNREACHABLE_TEXT = "Check Host Unreachable"
+CHECK_COMMAND_FAILED_TEXT = "Check Command Failed"
 
 class BasicCheck(object):
     def __init__(self, environment):
@@ -44,6 +48,15 @@ class BasicCheck(object):
                 sanitized_args.append(arg)
         cmd = self.CMD.format(*sanitized_args)
         return cmd
+
+    def command_env(self):
+        """Return a dict of environment variables to pass to the subprocess.
+
+        Override in subclasses to pass sensitive data (e.g. passwords) via
+        environment variables instead of command-line arguments. This avoids
+        shell interpretation issues with special characters.
+        """
+        return {}
 
     def get_random_account(self):
         return random.choice(self.environment.service.accounts)
