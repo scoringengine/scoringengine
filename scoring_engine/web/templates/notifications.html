@@ -15,27 +15,23 @@
   <div class="panel panel-default">
     <!-- Default panel contents -->
     <div class="panel-body">
-      <ul class="nav nav-tabs notifications-tabs" role="tablist" aria-label="Notification filters">
-        <li role="presentation" {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
+      <nav aria-label="Notification filters">
+      <ul class="nav nav-tabs notifications-tabs">
+        <li {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
             id="notifications-tab-unread"
-            role="tab"
             href="/notifications/unread"
             aria-label="Show unread notifications"
-            aria-controls="notifications-tabpanel"
-            aria-selected="{% if request.path=='/notifications/unread' %}true{% else %}false{% endif %}"
             {% if request.path=='/notifications/unread' %}aria-current="page"{% endif %}>Unread{% if notification_count %} <span class="badge" aria-label="{{ notification_count }} unread notifications">{{ notification_count
               }}</span>{% endif %}</a></li>
-        <li role="presentation" {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
+        <li {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
             id="notifications-tab-read"
-            role="tab"
             href="/notifications/read"
             aria-label="Show read notifications"
-            aria-controls="notifications-tabpanel"
-            aria-selected="{% if request.path=='/notifications/read' %}true{% else %}false{% endif %}"
             {% if request.path=='/notifications/read' %}aria-current="page"{% endif %}>Read</a></li>
       </ul>
+      </nav>
       <!-- Table -->
-      <div id="notifications-tabpanel" role="tabpanel" aria-labelledby="{% if request.path=='/notifications/read' %}notifications-tab-read{% else %}notifications-tab-unread{% endif %}">
+      <div id="notifications-tabpanel">
       <table class="table table-bordered" aria-label="Notifications table">
         <caption class="sr-only">Notifications list with message, team, and inject</caption>
         <thead>

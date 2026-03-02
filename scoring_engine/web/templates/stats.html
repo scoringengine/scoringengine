@@ -77,10 +77,10 @@
                 var breakdown = row.service_breakdown || {};
                 $.each(breakdown, function(svc, counts) {
                     if (counts.down > 0) {
-                        failures.push('<span style="color:red;">' + svc + ' x' + counts.down + '</span>');
+                        failures.push('<span style="color:red;"><span class="sr-only">Failed: </span>' + svc + ' x' + counts.down + '</span>');
                     }
                 });
-                var failureText = failures.length > 0 ? failures.join(', ') : '<span style="color:green;">All passing</span>';
+                var failureText = failures.length > 0 ? failures.join(', ') : '<span style="color:green;"><span class="sr-only">Status: </span>All passing</span>';
 
                 roundRows.push([row.round_id, row.start_time, row.end_time, row.total_seconds, ratio, failureText]);
             });
