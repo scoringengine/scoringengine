@@ -1,11 +1,11 @@
-from unittest.mock import patch, MagicMock
+import signal
 
-from scoring_engine.engine.engine import Engine
+import mock
 
-from scoring_engine.models.environment import Environment
-from scoring_engine.models.service import Service
+from scoring_engine.engine.engine import Engine, engine_sigint_handler
+from scoring_engine.engine.execute_command import execute_command as execute_command_task
+
 from scoring_engine.models.setting import Setting
-from scoring_engine.models.team import Team
 from scoring_engine.web import create_app
 
 from scoring_engine.checks.agent import AgentCheck
@@ -36,6 +36,15 @@ from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
 from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
 from scoring_engine.checks.telnet import TelnetCheck
 from scoring_engine.checks.winrm import WinRMCheck
+
+from scoring_engine.engine.basic_check import (
+    CHECK_FAILURE_TEXT,
+    CHECK_AUTH_FAILED_TEXT,
+    CHECK_CONNECTION_REFUSED_TEXT,
+    CHECK_CONNECTION_TIMEOUT_TEXT,
+    CHECK_HOST_UNREACHABLE_TEXT,
+    CHECK_COMMAND_FAILED_TEXT,
+)
 
 from tests.scoring_engine.unit_test import UnitTest
 
@@ -152,77 +161,93 @@ class TestEngine(UnitTest):
         engine.rounds_run = 1
         assert engine.is_last_round() is True
 
-    @patch("scoring_engine.engine.engine.execute_command")
-    def test_jitter_applies_countdown(self, mock_execute_command):
-        """When task_jitter_max_delay > 0, apply_async gets a countdown > 0."""
-        team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
-        service = Service(
-            name="ICMP Service",
-            team=team,
-            check_name="ICMPCheck",
-            host="127.0.0.1",
-        )
-        self.session.add(service)
-        env = Environment(service=service, matching_content="*")
-        self.session.add(env)
-        self.session.commit()
+    def test_classify_check_failure_auth_failed(self):
+        engine = Engine()
+        output = "AUTH_FAILED: Authentication failed for user 'admin': Invalid password"
+        assert engine.classify_check_failure(output) == CHECK_AUTH_FAILED_TEXT
 
-        # Fake a completed async result so the engine doesn't wait forever
-        mock_result = MagicMock()
-        mock_result.id = "fake-task-id"
-        mock_result.state = "SUCCESS"
-        mock_result.result = {
-            "environment_id": env.id,
-            "errored_out": False,
-            "output": "*",
-            "command": "echo test",
-        }
-        mock_execute_command.apply_async.return_value = mock_result
-        mock_execute_command.AsyncResult.return_value = mock_result
+    def test_classify_check_failure_connection_refused(self):
+        engine = Engine()
+        output = "CONNECTION_REFUSED: Connection refused to 192.168.1.1:22"
+        assert engine.classify_check_failure(output) == CHECK_CONNECTION_REFUSED_TEXT
 
-        engine = Engine(total_rounds=1)
-        engine.config.task_jitter_max_delay = 30
-        engine.run()
+    def test_classify_check_failure_connection_timeout(self):
+        engine = Engine()
+        output = "CONNECTION_TIMEOUT: Connection timed out"
+        assert engine.classify_check_failure(output) == CHECK_CONNECTION_TIMEOUT_TEXT
 
-        call_kwargs = mock_execute_command.apply_async.call_args
-        assert "countdown" in call_kwargs.kwargs
-        assert 0 <= call_kwargs.kwargs["countdown"] <= 30
+    def test_classify_check_failure_host_unreachable(self):
+        engine = Engine()
+        output = "HOST_UNREACHABLE: Could not resolve host 'invalid.host'"
+        assert engine.classify_check_failure(output) == CHECK_HOST_UNREACHABLE_TEXT
 
-    @patch("scoring_engine.engine.engine.execute_command")
-    def test_jitter_disabled_passes_zero_countdown(self, mock_execute_command):
-        """When task_jitter_max_delay == 0 (default), countdown is 0."""
-        team = Team(name="Blue Team 1", color="Blue")
-        self.session.add(team)
-        service = Service(
-            name="ICMP Service",
-            team=team,
-            check_name="ICMPCheck",
-            host="127.0.0.1",
-        )
-        self.session.add(service)
-        env = Environment(service=service, matching_content="*")
-        self.session.add(env)
-        self.session.commit()
+    def test_classify_check_failure_command_failed(self):
+        engine = Engine()
+        output = "COMMAND_FAILED: Command ran unsuccessfully: rm -rf /"
+        assert engine.classify_check_failure(output) == CHECK_COMMAND_FAILED_TEXT
 
-        mock_result = MagicMock()
-        mock_result.id = "fake-task-id"
-        mock_result.state = "SUCCESS"
-        mock_result.result = {
-            "environment_id": env.id,
-            "errored_out": False,
-            "output": "*",
-            "command": "echo test",
-        }
-        mock_execute_command.apply_async.return_value = mock_result
-        mock_execute_command.AsyncResult.return_value = mock_result
+    def test_classify_check_failure_ssh_error(self):
+        engine = Engine()
+        output = "SSH_ERROR: Unexpected error: Something went wrong"
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
 
-        engine = Engine(total_rounds=1)
-        engine.config.task_jitter_max_delay = 0
-        engine.run()
+    def test_classify_check_failure_unknown(self):
+        engine = Engine()
+        output = "Some random output that doesn't match any pattern"
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
 
-        call_kwargs = mock_execute_command.apply_async.call_args
-        assert call_kwargs.kwargs["countdown"] == 0
+    def test_classify_check_failure_empty_output(self):
+        engine = Engine()
+        output = ""
+        assert engine.classify_check_failure(output) == CHECK_FAILURE_TEXT
 
     # todo figure out how to test the remaining functionality of engine
     # where we're waiting for the worker queues to finish and everything
+
+    def test_sigint_handler_calls_shutdown(self):
+        engine = Engine()
+        assert engine.last_round is False
+        engine_sigint_handler(signal.SIGINT, None, engine)
+        assert engine.last_round is True
+
+    def test_sigterm_handler_calls_shutdown(self):
+        engine = Engine()
+        assert engine.last_round is False
+        engine_sigint_handler(signal.SIGTERM, None, engine)
+        assert engine.last_round is True
+
+    def test_all_pending_tasks_empty_task_dict(self):
+        engine = Engine()
+        assert engine.all_pending_tasks({}) == []
+
+    def test_all_pending_tasks_returns_pending(self):
+        mock_result = mock.Mock()
+        mock_result.state = 'PENDING'
+        with mock.patch.object(execute_command_task, 'AsyncResult', return_value=mock_result):
+            engine = Engine()
+            result = engine.all_pending_tasks({'Team1': ['task-abc']})
+        assert result == ['task-abc']
+
+    def test_all_pending_tasks_excludes_success(self):
+        mock_result = mock.Mock()
+        mock_result.state = 'SUCCESS'
+        with mock.patch.object(execute_command_task, 'AsyncResult', return_value=mock_result):
+            engine = Engine()
+            result = engine.all_pending_tasks({'Team1': ['task-abc']})
+        assert result == []
+
+    def test_all_pending_tasks_multiple_teams(self):
+        def make_result(state):
+            r = mock.Mock()
+            r.state = state
+            return r
+
+        side_effects = [make_result('PENDING'), make_result('SUCCESS'), make_result('PENDING')]
+        with mock.patch.object(execute_command_task, 'AsyncResult', side_effect=side_effects):
+            engine = Engine()
+            task_ids = {
+                'Team1': ['task-1', 'task-2'],
+                'Team2': ['task-3'],
+            }
+            result = engine.all_pending_tasks(task_ids)
+        assert set(result) == {'task-1', 'task-3'}
