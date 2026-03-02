@@ -6,6 +6,7 @@
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
+{% block main_attrs %}aria-label="Stats" tabindex="-1"{% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
     <div class="row">
@@ -13,13 +14,14 @@
     </div>
     <div class="row">
         <table id="service-summary" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <caption class="sr-only">All-time service uptime summary.</caption>
             <thead>
                 <tr>
-                    <th>Service</th>
-                    <th>Up</th>
-                    <th>Down</th>
-                    <th>Total</th>
-                    <th>Uptime %</th>
+                    <th scope="col">Service</th>
+                    <th scope="col">Up</th>
+                    <th scope="col">Down</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Uptime %</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -28,16 +30,18 @@
     <div class="row">
         <h2 class="text-center">Round Stats</h2>
     </div>
+    <p id="stats-table-description" class="sr-only">Table of competition round timing and service ratio details.</p>
     <div class="row">
-        <table id="stats" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <table id="stats" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-describedby="stats-table-description">
+            <caption class="sr-only">Round statistics including start and end times, duration, and service ratio.</caption>
             <thead>
                 <tr>
-                    <th>Round</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Duration (Seconds)</th>
-                    <th>Service Ratio</th>
-                    <th>Failures by Service</th>
+                    <th scope="col">Round</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
+                    <th scope="col">Duration (Seconds)</th>
+                    <th scope="col">Service Ratio</th>
+                    <th scope="col">Failures by Service</th>
                 </tr>
             </thead>
             <tbody></tbody>

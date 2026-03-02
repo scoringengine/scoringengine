@@ -4,11 +4,20 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/echarts.min.js') }}"></script>
 {% endblock %}
+{% block main_attrs %}aria-label="Scoreboard" tabindex="-1"{% endblock %}
 {% block content %}
 <div class="container md-page">
-    <div id="teamBar" style="width: 100%; height:400px;"></div>
+    <h1 class="sr-only">Scoreboard</h1>
+    <div id="scoreboard_status" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    <div id="scoreboard_alert" role="alert" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
+
+    <h2 class="sr-only">Total Scores Bar Chart</h2>
+    <div id="teamBar" style="width: 100%; height:400px;" role="img" aria-label="Bar chart showing total scores by team" tabindex="0" aria-describedby="teamBarTable"></div>
+    <div id="teamBarTable" class="sr-only"></div>
     <hr>
-    <div id="teamLine" style="width: 100%; height:400px;"></div>
+    <h2 class="sr-only">Service Scores Line Chart</h2>
+    <div id="teamLine" style="width: 100%; height:400px;" role="img" aria-label="Line chart showing service scores over time by team" tabindex="0" aria-describedby="teamLineTable"></div>
+    <div id="teamLineTable" class="sr-only"></div>
     <script>
         // Bar chart for all teams
         var teamBarChart = echarts.init(document.getElementById('teamBar'));
@@ -82,6 +91,7 @@
                 }
 
                 teamBarChart.hideLoading();
+                buildBarTable(data);
                 teamBarChart.setOption({
                     title: {
                         text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
@@ -133,7 +143,37 @@
             .fail(function(jqXHR, textStatus, errorThrown) {
                 teamBarChart.hideLoading();
                 console.error('Failed to load scoreboard data:', textStatus, errorThrown);
+                $('#scoreboard_alert').text('');
+                setTimeout(function () { $('#scoreboard_alert').text('Failed to load bar chart data.'); }, 100);
             });
+
+        function buildBarTable(data) {
+            var html = '<table><caption>Total Scores by Team</caption>';
+            html += '<thead><tr><th scope="col">Team</th><th scope="col">Services</th><th scope="col">Injects</th>';
+            if (data.sla_enabled && data.sla_penalties) {
+                html += '<th scope="col">SLA Penalties</th><th scope="col">Adjusted Total</th>';
+            } else {
+                html += '<th scope="col">Total</th>';
+            }
+            html += '</tr></thead><tbody>';
+            for (var i = 0; i < data.labels.length; i++) {
+                var svc = parseInt(data.service_scores[i]) || 0;
+                var inj = parseInt(data.inject_scores[i]) || 0;
+                var total = svc + inj;
+                html += '<tr><th scope="row">' + data.labels[i] + '</th>';
+                html += '<td>' + svc + '</td><td>' + inj + '</td>';
+                if (data.sla_enabled && data.sla_penalties) {
+                    var penalty = Math.abs(parseInt(data.sla_penalties[i]) || 0);
+                    total -= penalty;
+                    html += '<td>-' + penalty + '</td><td>' + total + '</td>';
+                } else {
+                    html += '<td>' + total + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            $('#teamBarTable').html(html);
+        }
 
         // Update chart every 30 seconds
         setInterval(function () {
@@ -175,12 +215,15 @@
                     seriesUpdate.push({ data: slaPenalties });
                 }
 
+                buildBarTable(data);
                 teamBarChart.setOption({
                     title: {
                         text: slaEnabled ? 'Total Scores (with SLA Penalties)' : 'Total Scores',
                     },
                     series: seriesUpdate
                 });
+                $('#scoreboard_status').text('');
+                setTimeout(function () { $('#scoreboard_status').text('Scoreboard charts updated.'); }, 100);
             });
         }, 30000);
     </script>
@@ -209,6 +252,7 @@
                     });
                 });
                 teamLineChart.hideLoading();
+                buildLineTable(data);
                 teamLineChart.setOption({
                     title: {
                         text: 'Service Scores',
@@ -240,7 +284,21 @@
             .fail(function(jqXHR, textStatus, errorThrown) {
                 teamLineChart.hideLoading();
                 console.error('Failed to load line chart data:', textStatus, errorThrown);
+                $('#scoreboard_alert').text('');
+                setTimeout(function () { $('#scoreboard_alert').text('Failed to load line chart data.'); }, 100);
             });
+
+        function buildLineTable(data) {
+            var html = '<table><caption>Service Scores Over Time by Team</caption>';
+            html += '<thead><tr><th scope="col">Team</th><th scope="col">Latest Score</th></tr></thead><tbody>';
+            echarts.util.each(data.team, function (team) {
+                var latest = team.scores.length > 0 ? team.scores[team.scores.length - 1] : 'N/A';
+                html += '<tr><th scope="row">' + team.name + '</th><td>' + latest + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            html += '<p>' + (data.rounds ? data.rounds.length : 0) + ' rounds completed.</p>';
+            $('#teamLineTable').html(html);
+        }
 
         // Update chart every 30 seconds
         setInterval(function () {
@@ -253,6 +311,7 @@
                         data: team.scores,
                     });
                 });
+                buildLineTable(data);
                 teamLineChart.setOption({
                     series: seriesList,
                 });
