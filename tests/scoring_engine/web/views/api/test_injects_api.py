@@ -215,7 +215,7 @@ class TestInjectsAPI(UnitTest):
         ]
 
         for malicious_name in malicious_filenames:
-            with patch("builtins.open", MagicMock()):
+            with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
                 data = {"file": (io.BytesIO(b"malicious"), malicious_name)}
                 resp = self.client.post(
                     f"/api/inject/{inject.id}/upload",
