@@ -4,6 +4,7 @@ from random import choice, randint, sample
 
 import optparse
 import os
+import sys
 
 from scoring_engine.models.inject import Template, Inject
 from scoring_engine.models.team import Team
@@ -33,18 +34,12 @@ parser.add_option("--example", action="store_true", default=False)
 
 options, arguments = parser.parse_args()
 
-# In order to handle docker-compose usability
-# we have a check to see if the SCORINGENGINE_EXAMPLE environment
-# variable is true. If it is, we want to populate
-# the db with example data
-if "SCORINGENGINE_EXAMPLE" in os.environ and os.environ["SCORINGENGINE_EXAMPLE"].lower() == "true":
+if os.environ.get("SCORINGENGINE_EXAMPLE", "").lower() == "true":
     options.overwrite_db = True
     options.example = True
 
-# If the SCORINGENGINE_OVERWRITE_DB environment variable is set
-# we want to delete any previous data in the db
-if "SCORINGENGINE_OVERWRITE_DB" in os.environ and os.environ["SCORINGENGINE_OVERWRITE_DB"].lower() == "true":
-    options.overwrite_db = os.environ["SCORINGENGINE_OVERWRITE_DB"] == "true"
+if os.environ.get("SCORINGENGINE_OVERWRITE_DB", "").lower() == "true":
+    options.overwrite_db = True
 
 logger.info("Starting Setup v.{0}".format(version))
 
@@ -52,20 +47,23 @@ logger.info("Starting Setup v.{0}".format(version))
 app = create_app()
 
 with app.app_context():
-    if not options.overwrite_db:
-        if verify_db_ready():
-            logger.error("Exiting script and not overwriting db...must use --overwrite-db to overwrite data.")
-            exit()
-        else:
-            # Database doesn't exist, so continuing on to setup script
-            logger.debug("Database doesn't exist yet...")
+    db_ready = verify_db_ready()
+
+    if db_ready and not options.overwrite_db:
+        logger.info("Database already initialized; skipping setup. (use --overwrite-db to reset)")
+        sys.exit(0)
 
     logger.info("Setting up DB")
-    delete_db()
+
+    if options.overwrite_db and db_ready:
+        logger.warning("Overwriting existing DB (--overwrite-db enabled)")
+        delete_db()
+
     init_db()
 
     competition_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "competition.yaml")
-    sample_competition_str = open(competition_config_file, "r").read()
+    with open(competition_config_file, "r") as f:
+        sample_competition_str = f.read()
     competition = Competition.parse_yaml_str(sample_competition_str)
     competition.save()
 
