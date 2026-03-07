@@ -42,4 +42,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run integration tests
+        timeout-minutes: 25
         run: ./tests/integration/run.sh
+
+      - name: Debug docker state (on failure)
+        if: failure()
+        run: |
+          echo "=== docker ps ==="
+          docker ps -a
+          echo "=== docker compose logs (tail) ==="
+          docker compose -f docker-compose.yml -f docker/testbed/docker-compose.yml -f tests/integration/docker-compose.yml -p scoringengine logs --no-color --tail=300 || true
