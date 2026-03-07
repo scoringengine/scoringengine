@@ -54,36 +54,36 @@
           </button>
           <a class="navbar-brand" href="/" aria-label="Go to Home Page">Scoring Engine</a>
         </div>
-        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="">
+        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false">
           <ul class="nav navbar-nav">
-            <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}" aria-label="Go to Scoreboard">Scoreboard</a></li>
-            <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}" aria-label="Go to Overview">Overview</a></li>
+            <li class="navbar-item {% if request.path == '/scoreboard' %}active{% endif %}"><a class="nav-link" href="{{ url_for('scoreboard.home') }}">Scoreboard</a></li>
+            <li class="navbar-item {% if request.path == '/overview' %}active{% endif %}"><a class="nav-link"  href="{{ url_for('overview.home') }}">Overview</a></li>
             {% if current_user.is_authenticated %}
               {% if current_user.is_blue_team %}
               <li class="navbar-item {% if request.path == '/services' %}active{% endif %}"><a class="nav-link"
-                  href="{{ url_for('services.home') }}" aria-label="Go to Services">Services</a></li>
+                  href="{{ url_for('services.home') }}">Services</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_red_team %}
               <li class="navbar-item {% if request.path == '/injects' %}active{% endif %}"><a class="nav-link"
-                  href="{{ url_for('injects.home') }}" aria-label="Go to Injects">Injects</a></li>
+                  href="{{ url_for('injects.home') }}">Injects</a></li>
               {% endif %}
               {% if current_user.is_blue_team or current_user.is_white_team %}
               <li class="navbar-item {% if request.path == '/stats' %}active{% endif %}"><a class="nav-link"
-                  href="{{ url_for('stats.home') }}" aria-label="Go to Stats">Stats</a></li>
+                  href="{{ url_for('stats.home') }}">Stats</a></li>
               {% endif %}
               {% if current_user.is_red_team or current_user.is_white_team %}
               <li class="navbar-item {% if request.path == '/flags' %}active{% endif %}"><a class="nav-link"
-                  href="{{ url_for('flags.home') }}" aria-label="Go to Flags">Flags</a></li>
+                  href="{{ url_for('flags.home') }}">Flags</a></li>
               {% endif %}
               {% if current_user.is_white_team %}
               <li class="navbar-item {% if 'admin' in request.path %}active{% endif %}"><a class="nav-link"
-                  href="{{ url_for('admin.status') }}" aria-label="Go to Admin">Admin</a></li>
+                  href="{{ url_for('admin.status') }}">Admin</a></li>
               {% endif %}
               {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
               {% if not current_user.is_authenticated %}
-              <li class="navbar-item"><a href="{{ url_for('auth.login') }}" aria-label="Go to Login">Login</a></li>
+              <li class="navbar-item"><a href="{{ url_for('auth.login') }}">Login</a></li>
               {% else %}
               <!-- <li class="navbar-item">
                 <a href="{{ url_for('notifications.unread') }}">Notifications {% if notification_count %}<span
@@ -93,13 +93,13 @@
                 <a href="#" data-toggle="dropdown" class="dropdown-toggle navbar-item" style="margin-right: 20px;">{{
                   current_user.get_username }} <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li><a href="{{ url_for('profile.home') }}" aria-label="Go to Profile">Profile</a></li>
+                  <li><a href="{{ url_for('profile.home') }}">Profile</a></li>
                   <li class="divider"></li>
                   <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                 </ul>
               </li>
               {% endif %}
-              <li class="navbar-item"><a href="{{ url_for('about.about') }}" aria-label="Go to About">About</a></li>
+              <li class="navbar-item"><a href="{{ url_for('about.about') }}">About</a></li>
             </ul>
           </div>
           <!--/.nav-collapse -->
