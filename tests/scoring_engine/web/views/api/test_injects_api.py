@@ -672,7 +672,7 @@ class TestInjectsAPI(UnitTest):
         assert resp.status_code == 200
         # Verify the inject detail cache was deleted for this team
         mock_cache.delete.assert_called_with(
-            f"/api/inject/{inject.id}_{self.blue_team1.id}"
+            f"/api/inject/{inject.id}_team_{self.blue_team1.id}"
         )
 
     def test_inject_grade_invalidates_cache(self):
