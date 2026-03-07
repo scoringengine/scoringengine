@@ -289,14 +289,24 @@
             });
 
         function buildLineTable(data) {
-            var html = '<table><caption>Service Scores Over Time by Team</caption>';
-            html += '<thead><tr><th scope="col">Team</th><th scope="col">Latest Score</th></tr></thead><tbody>';
+            var totalRounds = data.rounds ? data.rounds.length : 0;
+            var recentCount = Math.min(5, totalRounds);
+            var startIdx = totalRounds - recentCount;
+            var html = '<table><caption>Service Scores Over Time by Team (last ' + recentCount + ' of ' + totalRounds + ' rounds)</caption>';
+            html += '<thead><tr><th scope="col">Team</th>';
+            for (var r = startIdx; r < totalRounds; r++) {
+                html += '<th scope="col">Round ' + data.rounds[r] + '</th>';
+            }
+            html += '</tr></thead><tbody>';
             echarts.util.each(data.team, function (team) {
-                var latest = team.scores.length > 0 ? team.scores[team.scores.length - 1] : 'N/A';
-                html += '<tr><th scope="row">' + team.name + '</th><td>' + latest + '</td></tr>';
+                html += '<tr><th scope="row">' + team.name + '</th>';
+                for (var r = startIdx; r < totalRounds; r++) {
+                    var score = r < team.scores.length ? team.scores[r] : 'N/A';
+                    html += '<td>' + score + '</td>';
+                }
+                html += '</tr>';
             });
             html += '</tbody></table>';
-            html += '<p>' + (data.rounds ? data.rounds.length : 0) + ' rounds completed.</p>';
             $('#teamLineTable').html(html);
         }
 
