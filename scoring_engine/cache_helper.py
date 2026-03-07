@@ -71,11 +71,9 @@ def update_services_navbar(team_id=None):
 def update_service_data(service_id=None):
     # corresponds with file scoring_engine.web.views.api.service function service_get_checks
 
-    if service_id is not None:
-        # we don't need to know the team_id for the final part because each service id is globally unique so this will only delete one team's cache of a specific service's data
-        cache.delete(f"/api/service/{service_id}/checks_*")
-    elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.scan_iter(match="*/api/service/*/checks_*"):
+    if not isinstance(cache.cache, NullCache):
+        pattern = f"*/api/service/{service_id}/checks_*" if service_id is not None else "*/api/service/*/checks_*"
+        for key in cache.cache._write_client.scan_iter(match=pattern):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 def update_services_data(team_id=None):

@@ -84,8 +84,9 @@ def api_injects_submit(inject_id):
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
 
-    # Invalidate cached inject detail for the submitting team
+    # Invalidate cached inject detail for the submitting team and white team
     cache.delete(f"/api/inject/{inject_id}_team_{g.user.team.id}")
+    cache.delete(f"/api/inject/{inject_id}_white")
 
     data = list()
     return jsonify(data=data)
@@ -122,8 +123,11 @@ def api_injects_file_upload(inject_id):
         db.session.add(f)
         db.session.commit()
 
-        # Delete file cache for inject
+        # Delete file and detail caches (blue team and white team)
         cache.delete(f"/api/inject/{inject_id}/files_team_{g.user.team.id}")
+        cache.delete(f"/api/inject/{inject_id}/files_white")
+        cache.delete(f"/api/inject/{inject_id}_team_{g.user.team.id}")
+        cache.delete(f"/api/inject/{inject_id}_white")
 
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
@@ -215,8 +219,11 @@ def api_inject_add_comment(inject_id):
     db.session.add(c)
     db.session.commit()
 
-    # Delete comment cache for inject
-    cache.delete(f"/api/inject/{inject_id}/comments_team_{g.user.team.id}")
+    # Delete comment and detail caches (both blue team owner and white team can view)
+    cache.delete(f"/api/inject/{inject_id}/comments_team_{inject.team.id}")
+    cache.delete(f"/api/inject/{inject_id}/comments_white")
+    cache.delete(f"/api/inject/{inject_id}_team_{inject.team.id}")
+    cache.delete(f"/api/inject/{inject_id}_white")
 
     return jsonify({"status": "Comment added"}), 200
 
