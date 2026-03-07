@@ -16,7 +16,8 @@
         </div>
         <div class="list-group">
           <a class="list-group-item {% if request.path == '/admin/status' %}active{% endif %}"
-            href="/admin/status" id="engine"><span aria-live="polite">Engine</span></a>
+            href="/admin/status" id="engine">Engine</a>
+          <span id="engine-status-live" class="sr-only" aria-live="polite"></span>
           <a class="list-group-item {% if request.path == '/admin/workers' %}active{% endif %}"
             href="/admin/workers">Workers</a>
           <a class="list-group-item {% if request.path == '/admin/queues' %}active{% endif %}"
@@ -107,11 +108,13 @@
       success: function (data) {
         if (!data.paused) {
           document.getElementById('engine').innerHTML = 'Engine <span class="label label-success">Running</span>';
+          document.getElementById('engine-status-live').textContent = 'Engine is running';
           document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause';
           document.getElementById('engine_toggle').className = "btn btn-danger btn-lg";
           document.getElementById('engine_toggle').setAttribute('aria-label', 'Pause Scoring Engine');
         } else {
           document.getElementById('engine').innerHTML ='Engine <span class="label label-default">Paused</span>';
+          document.getElementById('engine-status-live').textContent = 'Engine is paused';
           document.getElementById('engine_toggle').innerHTML = '<span class="glyphicon glyphicon-play" aria-hidden="true"></span> Resume';
           document.getElementById('engine_toggle').className = "btn btn-success btn-lg";
           document.getElementById('engine_toggle').setAttribute('aria-label', 'Resume Scoring Engine');
