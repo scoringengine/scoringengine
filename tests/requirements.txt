@@ -5,6 +5,6 @@ coveralls==4.0.2
 flake8==7.3.0
 mock==5.2.0  # The mock package is built into the Python standard library since Python 3.3 (unittest.mock).
 pytest==9.0.2
-pytest-cov==6.1.1
+pytest-cov==7.0.0
 pytest-timeout==2.3.1
 pytest-xdist==3.8.0
