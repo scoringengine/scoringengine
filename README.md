@@ -122,6 +122,42 @@ Or combine both for a fresh demo:
 make run-demo
 ```
 
+## Setup Installer
+
+For competitions requiring custom database credentials, Redis configuration, or competition name, use the interactive setup installer instead of the default Quick Start:
+
+```bash
+python3 setup_installer.py
+```
+
+This will prompt for connection details and generate:
+- `.env` — environment variables for Docker Compose
+- `docker/engine.conf.inc` — engine configuration file
+- `docker-compose.override.yml` — mounts the generated config into all containers
+
+Then start the stack normally:
+
+```bash
+docker compose up
+```
+
+### Non-Interactive Mode
+
+For CI or automated deployments, pass all values via environment variables:
+
+```bash
+SE_DB_HOST=mysql \
+SE_DB_PORT=3306 \
+SE_DB_NAME=scoring_engine \
+SE_DB_USER=se_user \
+SE_DB_PASSWORD=CHANGEME \
+SE_REDIS_HOST=redis \
+SE_REDIS_PORT=6379 \
+SE_REDIS_PASSWORD="" \
+SE_COMP_NAME="My Competition" \
+python3 setup_installer.py --non-interactive
+```
+
 ## Pre-built Docker Images
 
 Pre-built images are available from both registries:
