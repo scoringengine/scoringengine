@@ -154,7 +154,6 @@ SE_DB_PASSWORD=CHANGEME \
 SE_REDIS_HOST=redis \
 SE_REDIS_PORT=6379 \
 SE_REDIS_PASSWORD="" \
-SE_COMP_NAME="My Competition" \
 python3 setup_installer.py --non-interactive
 ```
 
