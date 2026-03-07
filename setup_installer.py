@@ -10,6 +10,7 @@ import sys
 import time
 from copy import deepcopy
 from pathlib import Path
+from urllib.parse import quote_plus
 
 CONFIG_DIR = Path.cwd()
 ENV_FILE = CONFIG_DIR / ".env"
@@ -186,19 +187,6 @@ def run_bootstrap_once():
 
 
 # config collection
-def get_engine_settings(advanced=False):
-    print("\nEngine Settings")
-
-    settings = {}
-
-    if advanced:
-        override = prompt("Override Agent PSK?", "n", required=True).strip().lower()
-        if override in ("y", "yes"):
-            settings["agent_psk"] = prompt("Agent PSK", "", required=True, is_password=True)
-
-    return settings
-
-
 def get_db_config():
     print("\n[1/3] Database Configuration")
 
@@ -208,7 +196,7 @@ def get_db_config():
     user = prompt("Database user", "se_user", required=True)
     pw = prompt("Database password", "CHANGEME", required=True, is_password=True)
 
-    uri = f"mysql://{user}:{pw}@{host}:{port}/{name}?charset=utf8mb4"
+    uri = f"mysql://{quote_plus(user)}:{quote_plus(pw)}@{host}:{port}/{name}?charset=utf8mb4"
     return {
         "type": "mysql",
         "host": host,
@@ -235,9 +223,8 @@ def get_redis_config():
 
 def get_competition_info():
     print("\n[3/3] Competition Info")
-    name = prompt("Competition name", default=None, required=True)
     interval = prompt("Scoring interval (seconds)", "300", required=True)
-    return {"competition_name": name, "scoring_interval": interval}
+    return {"scoring_interval": interval}
 
 
 def confirm_summary(config):
@@ -259,16 +246,15 @@ def get_config_noninteractive():
     db_name = env("SE_DB_NAME", "scoring_engine")
     db_user = env("SE_DB_USER", "se_user")
     db_pw = env("SE_DB_PASSWORD", "CHANGEME")
-    db_uri = f"mysql://{db_user}:{db_pw}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+    db_uri = f"mysql://{quote_plus(db_user)}:{quote_plus(db_pw)}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
 
     redis_host = env("SE_REDIS_HOST", "redis")
     redis_port = env("SE_REDIS_PORT", "6379")
     redis_pw = env("SE_REDIS_PASSWORD", "")
 
-    comp_name = env("SE_COMP_NAME", "Integration Test")
     scoring_interval = env("SE_SCORING_INTERVAL", "300")
 
-    cfg = {"deployment_mode": "docker"}
+    cfg = {}
     cfg["engine"] = {}
     cfg["database"] = {
         "type": "mysql",
@@ -285,7 +271,7 @@ def get_config_noninteractive():
         "redis_port": redis_port,
         "redis_password": redis_pw,
     }
-    cfg["competition"] = {"competition_name": comp_name, "scoring_interval": scoring_interval}
+    cfg["competition"] = {"scoring_interval": scoring_interval}
     return cfg
 
 
@@ -297,7 +283,6 @@ def write_env(config):
         f.write(f"REDIS_PORT={config['redis']['redis_port']}\n")
         if config["redis"]["redis_password"]:
             f.write(f"REDIS_PASSWORD={config['redis']['redis_password']}\n")
-        f.write(f"COMP_NAME={config['competition']['competition_name']}\n")
     print(f"Created {ENV_FILE}")
 
 
@@ -365,15 +350,12 @@ def write_engine_conf(config, out_path: Path):
     # start from the repo’s canonical config template
     text = ENGINE_CONF_TEMPLATE.read_text()
 
-    # always patch DB + redis based on installer inputs
+    # always patch DB + redis + scoring interval based on installer inputs
     text = _set_ini_value(text, "db_uri", config["database"]["uri"])
     text = _set_ini_value(text, "redis_host", config["redis"]["redis_host"])
     text = _set_ini_value(text, "redis_port", str(config["redis"]["redis_port"]))
     text = _set_ini_value(text, "redis_password", config["redis"].get("redis_password", ""))
-
-    # only patch agent_psk if it was explicitly provided (advanced mode later)
-    if config.get("engine") and "agent_psk" in config["engine"]:
-        text = _set_ini_value(text, "agent_psk", config["engine"]["agent_psk"])
+    text = _set_ini_value(text, "target_round_time", str(config["competition"]["scoring_interval"]))
 
     out_path.write_text(text)
     print(f"Created {out_path}")
@@ -386,6 +368,9 @@ def safe_cleanup():
             DOCKER_ENGINE_CONF.unlink()
         if ENV_FILE.exists():
             ENV_FILE.unlink()
+        override = CONFIG_DIR / "docker-compose.override.yml"
+        if override.exists():
+            override.unlink()
     except Exception:
         pass
     # tear down containers + volumes
@@ -436,8 +421,8 @@ Press Enter to accept the default values shown in brackets.
     # docker dependency checks up front
     require_docker()
 
-    config = {"deployment_mode": "docker"}
-    config["engine"] = get_engine_settings()
+    config = {}
+    config["engine"] = {}
     config["database"] = get_db_config()
     config["redis"] = get_redis_config()
     config["competition"] = get_competition_info()
@@ -455,6 +440,11 @@ Press Enter to accept the default values shown in brackets.
         write_compose_override()
     except Exception as e:
         sys.exit(f"Failed to write configuration files: {e}")
+
+    if args.no_run:
+        print("\nConfig files written. Skipping docker startup (--no-run).")
+        print("Run 'docker compose up' when ready.")
+        return
 
     # start deps automatically
     docker_compose_up(["mysql", "redis"])
