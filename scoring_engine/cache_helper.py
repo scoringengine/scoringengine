@@ -31,6 +31,8 @@ def update_all_cache(app_or_ctx=None):
     update_services_navbar()
     update_service_data()
     update_services_data()
+    update_sla_data()
+    update_flags_data()
     update_stats()
 
 
@@ -53,7 +55,7 @@ def update_team_stats(team_id=None):
     # corresponds with file scoring_engine.web.views.api.team function services_get_team_data
 
     if team_id is not None:
-        cache.delete(f"/api/team/{team_id}/stats_{team_id}")
+        cache.delete(f"/api/team/{team_id}/stats_team_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match="*/api/team/*/stats_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
@@ -62,7 +64,7 @@ def update_services_navbar(team_id=None):
     # corresponds with file scoring_engine.web.views.api.team function team_services_status
 
     if team_id is not None:
-        cache.delete(f"/api/team/{team_id}/services/status_{team_id}")
+        cache.delete(f"/api/team/{team_id}/services/status_team_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match="*/api/team/*/services/status_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
@@ -71,18 +73,16 @@ def update_services_navbar(team_id=None):
 def update_service_data(service_id=None):
     # corresponds with file scoring_engine.web.views.api.service function service_get_checks
 
-    if service_id is not None:
-        # we don't need to know the team_id for the final part because each service id is globally unique so this will only delete one team's cache of a specific service's data
-        cache.delete(f"/api/service/{service_id}/checks_*")
-    elif not isinstance(cache.cache, NullCache):
-        for key in cache.cache._write_client.scan_iter(match="*/api/service/*/checks_*"):
+    if not isinstance(cache.cache, NullCache):
+        pattern = f"*/api/service/{service_id}/checks_*" if service_id is not None else "*/api/service/*/checks_*"
+        for key in cache.cache._write_client.scan_iter(match=pattern):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 def update_services_data(team_id=None):
     # corresponds with file scoring_engine.web.views.api.team function api_services
 
     if team_id is not None:
-        cache.delete(f"/api/team/{team_id}/services_{team_id}")
+        cache.delete(f"/api/team/{team_id}/services_team_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match="*/api/team/*/services_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
@@ -91,14 +91,29 @@ def update_services_data(team_id=None):
 def update_inject_data(inject_id, team_id=None):
     """Clear cached inject detail for the given inject.
 
-    The cache key for ``/api/inject/<id>`` is ``/api/inject/<id>_<team_id>``.
+    The cache key for ``/api/inject/<id>`` is ``/api/inject/<id>_team_<team_id>``
+    for blue teams or ``/api/inject/<id>_white`` for white team.
     Both the owning team and the white team can view an inject, so we clear
     all matching keys when ``team_id`` is not provided.
     """
     if team_id is not None:
-        cache.delete(f"/api/inject/{inject_id}_{team_id}")
+        cache.delete(f"/api/inject/{inject_id}_team_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match=f"*/api/inject/{inject_id}_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_sla_data():
+    # Clear cached /api/sla responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/sla*_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_flags_data():
+    # Clear cached /api/flags responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/flags*_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 

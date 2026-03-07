@@ -5,8 +5,10 @@ SLA API endpoints for managing SLA penalties and dynamic scoring settings.
 from flask import flash, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
 
+from scoring_engine.cache import cache
 from scoring_engine.cache_helper import (update_overview_data,
-                                         update_scoreboard_data)
+                                         update_scoreboard_data,
+                                         update_sla_data)
 from scoring_engine.db import db
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
@@ -14,7 +16,7 @@ from scoring_engine.sla import (calculate_round_multiplier,
                                 get_dynamic_scoring_info, get_sla_config,
                                 get_team_sla_summary)
 
-from . import mod
+from . import make_cache_key, mod
 
 # ============================================================================
 # SLA Summary Endpoints (Public for authenticated users)
@@ -23,6 +25,7 @@ from . import mod
 
 @mod.route("/api/sla/summary")
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def sla_summary():
     """Get SLA summary for all blue teams."""
     config = get_sla_config()
@@ -45,6 +48,7 @@ def sla_summary():
 
 @mod.route("/api/sla/team/<int:team_id>")
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def sla_team_detail(team_id):
     """Get detailed SLA information for a specific team."""
     team = db.session.get(Team, team_id)
@@ -63,6 +67,7 @@ def sla_team_detail(team_id):
 
 @mod.route("/api/sla/config")
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def sla_config():
     """Get current SLA configuration (admin only)."""
     if not current_user.is_white_team:
@@ -83,6 +88,7 @@ def sla_config():
 
 @mod.route("/api/sla/dynamic-scoring")
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def dynamic_scoring_info():
     """Get current dynamic scoring configuration."""
     config = get_sla_config()
@@ -125,9 +131,10 @@ def _update_setting(name, value, redirect_route="admin.sla"):
 
 
 def _clear_scoring_cache():
-    """Clear Flask cache for scoreboard and overview data."""
+    """Clear Flask cache for scoreboard, overview, and SLA data."""
     update_scoreboard_data()
     update_overview_data()
+    update_sla_data()
 
 
 @mod.route("/api/admin/update_sla_enabled", methods=["POST"])
