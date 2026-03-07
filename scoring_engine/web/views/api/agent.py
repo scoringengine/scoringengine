@@ -11,6 +11,7 @@ import json
 import os
 
 from scoring_engine.cache import agent_cache as cache
+from scoring_engine.cache_helper import update_flags_data
 from scoring_engine.db import db
 from scoring_engine.models.flag import Flag, Solve, Platform
 from scoring_engine.models.check import Check
@@ -97,6 +98,7 @@ def agent_checkin_post():
         ]
         db.session.add_all(solves)
         db.session.commit()
+        update_flags_data()
 
     result = do_checkin(team, host, platform)
     return make_response(crypter.dumps(result), 200, {'Content-Type': 'application/octet-stream'})

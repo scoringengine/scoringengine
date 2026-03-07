@@ -31,6 +31,8 @@ def update_all_cache(app_or_ctx=None):
     update_services_navbar()
     update_service_data()
     update_services_data()
+    update_sla_data()
+    update_flags_data()
     update_stats()
 
 
@@ -98,6 +100,20 @@ def update_inject_data(inject_id, team_id=None):
         cache.delete(f"/api/inject/{inject_id}_team_{team_id}")
     elif not isinstance(cache.cache, NullCache):
         for key in cache.cache._write_client.scan_iter(match=f"*/api/inject/{inject_id}_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_sla_data():
+    # Clear cached /api/sla responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/sla*_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
+
+
+def update_flags_data():
+    # Clear cached /api/flags responses (keyed per-team/role)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/flags*_*"):
             cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
 
 
