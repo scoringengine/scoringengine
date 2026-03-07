@@ -109,10 +109,11 @@ def api_injects_file_upload(inject_id):
         return jsonify({"status": "No file part"}), 400
 
     files = request.files.getlist("file")
+    safe_inject_id = str(int(inject_id))
     for file in files:
         unique_id = uuid.uuid4().hex[:8]
-        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + unique_id + "_" + secure_filename(file.filename)
-        path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
+        filename = "Inject" + safe_inject_id + "_" + current_user.team.name + "_" + unique_id + "_" + secure_filename(file.filename)
+        path = os.path.join(config.upload_folder, safe_inject_id, current_user.team.name)
 
         os.makedirs(path, exist_ok=True)
         file.save(os.path.join(path, filename))
@@ -252,7 +253,8 @@ def api_inject_download(inject_id, file_id):
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403
 
-    path = os.path.join(config.upload_folder, inject_id, inject.team.name, file.name)
+    safe_inject_id = str(int(inject_id))
+    path = os.path.join(config.upload_folder, safe_inject_id, inject.team.name, file.name)
     try:
         return send_file(path, as_attachment=True)
     except FileNotFoundError:
