@@ -2,7 +2,7 @@ from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.announcement import Announcement
-from scoring_engine.models.inject import Inject, Template
+from scoring_engine.models.inject import Inject, InjectComment, InjectFile, InjectRubricScore, RubricItem, Template
 from scoring_engine.models.kb import KB
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round

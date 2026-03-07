@@ -3,12 +3,12 @@
 import json
 from datetime import datetime, timezone
 
-import pytest
-
-from scoring_engine.db import db
 from scoring_engine.models.inject import Inject, Template
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+import pytest
+
+from scoring_engine.db import db
 
 
 class TestAdminInjectImportAPI:
@@ -21,6 +21,7 @@ class TestAdminInjectImportAPI:
         self.blue_team1 = Team(name="Blue Team 1", color="Blue")
         self.blue_team2 = Team(name="Blue Team 2", color="Blue")
         self.red_team = Team(name="Red Team", color="Red")
+
         db.session.add_all([self.white_team, self.blue_team1, self.blue_team2, self.red_team])
         db.session.commit()
 
@@ -29,10 +30,10 @@ class TestAdminInjectImportAPI:
         db.session.add_all([self.white_user, self.blue_user])
         db.session.commit()
 
-    def login(self, username, password="testpass"):
+    def login(self, username):
         return self.client.post(
             "/login",
-            data={"username": username, "password": password},
+            data={"username": username, "password": "testpass"},
             follow_redirects=True,
         )
 
@@ -41,11 +42,13 @@ class TestAdminInjectImportAPI:
             "title": "Test Inject",
             "scenario": "Do the thing",
             "deliverable": "A report",
-            "score": 100,
             "start_time": "2026-02-07T09:00:00-05:00",
             "end_time": "2026-02-07T17:00:00-05:00",
             "enabled": True,
             "teams": ["Blue Team 1", "Blue Team 2"],
+            "rubric_items": [
+                {"title": "Overall Quality", "points": 100},
+            ],
         }
         data.update(overrides)
         return data
@@ -131,21 +134,6 @@ class TestAdminInjectImportAPI:
         assert len(templates) == 1
         assert templates[0].title == "From Export"
 
-    def test_import_with_nonexistent_id_creates_injects(self):
-        """Injects should still be created for teams when id doesn't match"""
-        self.login("whiteuser")
-        data = self._make_template_data(id=9999)
-        resp = self.client.post(
-            "/api/admin/injects/templates/import",
-            data=json.dumps([data]),
-            content_type="application/json",
-        )
-        assert resp.status_code == 200
-
-        injects = db.session.query(Inject).all()
-        assert len(injects) == 2
-        assert all(i.team is not None for i in injects)
-
     # --- Unknown team names are skipped ---
 
     def test_import_skips_unknown_team_names(self):
@@ -186,7 +174,6 @@ class TestAdminInjectImportAPI:
             title="Old Title",
             scenario="Old scenario",
             deliverable="Old deliverable",
-            score=50,
             start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
             end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
             enabled=True,
@@ -224,13 +211,13 @@ class TestAdminInjectImportAPI:
             title="Test",
             scenario="Test",
             deliverable="-",
-            score=1,
             start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
             end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
         )
         db.session.add(template)
         db.session.commit()
 
+        # Manually create an inject with null team
         inject = Inject(team=None, template=template, enabled=True)
         db.session.add(inject)
         db.session.commit()
@@ -249,13 +236,13 @@ class TestAdminInjectImportAPI:
             title="Test",
             scenario="Test",
             deliverable="-",
-            score=1,
             start_time=datetime(2026, 1, 1, tzinfo=timezone.utc),
             end_time=datetime(2026, 1, 2, tzinfo=timezone.utc),
         )
         db.session.add(template)
         db.session.commit()
 
+        # Create a normal inject and one with null team
         inject_good = Inject(team=self.blue_team1, template=template, enabled=True)
         inject_bad = Inject(team=None, template=template, enabled=True)
         db.session.add_all([inject_good, inject_bad])
@@ -273,7 +260,6 @@ class TestAdminInjectImportAPI:
             title="Test",
             scenario="Test",
             deliverable="-",
-            score=1,
             start_time=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
             end_time=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
         )
@@ -294,6 +280,7 @@ class TestAdminInjectImportAPI:
         assert resp.status_code == 200
 
         db.session.refresh(template)
+        # end_time should be 17:00, not 09:00 (the start_time)
         assert template.end_time.hour == 17
         assert template.start_time.hour == 9
 

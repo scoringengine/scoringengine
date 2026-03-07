@@ -340,7 +340,6 @@ class TestAPI:
             title="t",
             scenario="s",
             deliverable="d",
-            score=10,
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
         )

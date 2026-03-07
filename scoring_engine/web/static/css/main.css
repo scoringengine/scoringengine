@@ -1050,12 +1050,31 @@ table.dataTable thead .sorting_desc::after {
     border-radius: var(--radius);
 }
 
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--border-strong);
+    opacity: 1;
+    font-style: italic;
+}
+
 .form-control:focus,
 .form-select:focus {
     background-color: var(--surface);
     border-color: var(--accent-cyan);
     color: var(--text-primary);
     box-shadow: 0 0 0 2px var(--glow-cyan);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--accent-red, #ef4444);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.invalid-feedback {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-red, #ef4444);
 }
 
 .form-label {
@@ -1416,6 +1435,37 @@ table.table-bordered:not(.table-responsive .table) {
 .welcome-message {
     font-family: var(--font-mono);
     line-height: 1.7;
+}
+
+/* ===== Dropzone file-upload overrides ===== */
+.dropzone {
+    background: var(--raised);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    min-height: 120px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.dropzone:hover,
+.dropzone.dz-drag-hover {
+    border-color: var(--accent-cyan);
+    background: var(--glow-cyan);
+}
+
+.dropzone .dz-message {
+    margin: 1.5em 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+
+.dropzone .dz-preview .dz-details {
+    color: var(--text-primary);
+}
+
+.dropzone .dz-preview.dz-file-preview .dz-image {
+    background: var(--elevated);
 }
 
 /* ===== Mobile responsive ===== */

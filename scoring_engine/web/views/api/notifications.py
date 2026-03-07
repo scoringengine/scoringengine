@@ -63,10 +63,32 @@ def api_notifications():
 @mod.route("/api/notifications/read")
 @login_required
 def api_notifications_read():
-    return jsonify(_get_notifications_data(is_read_filter=False))
+    return jsonify(_get_notifications_data(is_read_filter=True))
 
 
 @mod.route("/api/notifications/unread")
 @login_required
 def api_notifications_unread():
     return jsonify(_get_notifications_data(is_read_filter=False))
+
+
+@mod.route("/api/notifications/<int:notification_id>/read", methods=["POST"])
+@login_required
+def api_notification_mark_read(notification_id):
+    notification = db.session.get(Notification, notification_id)
+    if notification is None or notification.team_id != current_user.team_id:
+        return jsonify({"status": "Unauthorized"}), 403
+    notification.is_read = True
+    db.session.commit()
+    return jsonify({"status": "Success"}), 200
+
+
+@mod.route("/api/notifications/read-all", methods=["POST"])
+@login_required
+def api_notifications_mark_all_read():
+    db.session.query(Notification).filter(
+        Notification.team_id == current_user.team_id,
+        Notification.is_read == False,  # noqa: E712
+    ).update({Notification.is_read: True})
+    db.session.commit()
+    return jsonify({"status": "Success"}), 200

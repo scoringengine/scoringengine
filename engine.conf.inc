@@ -77,3 +77,7 @@ dynamic_scoring_early_multiplier = 2.0
 dynamic_scoring_late_start_round = 50
 # Multiplier for late rounds (e.g., 0.5 = 0.5x points)
 dynamic_scoring_late_multiplier = 0.5
+
+# Inject Score Visibility
+# Show inject scores on the public scoreboard (default: hidden for private grading)
+inject_scores_visible = False
