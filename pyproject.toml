@@ -27,7 +27,7 @@ dependencies = [
   "Flask-WTF==1.2.2",
   "mysqlclient==2.2.8",
   "python-dateutil==2.9.0.post0",
-  "pytz==2025.2",
+  "pytz==2026.1.post1",
   "PyYAML==6.0.3",
   "ranking==0.3.2",
   "Werkzeug==3.1.6",
