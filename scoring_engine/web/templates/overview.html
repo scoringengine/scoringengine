@@ -6,26 +6,32 @@
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
+{% block main_attrs %}aria-label="Competition Overview" tabindex="-1"{% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
+    <h1 class="sr-only">Overview</h1>
     <div class="row">
-        <h2 id="round_number" class="text-center"></h2>
-        <h4 id="round_start" class="text-center"></h4>
+        <h2 id="round_number" class="text-center" aria-live="polite" aria-atomic="true"></h2>
+        <h3 id="round_start" class="text-center" aria-live="polite" aria-atomic="true"></h3>
     </div>
     <div class="row">
+        <div id="table_status" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+        <div id="table_alert" role="alert" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
         <table id="overview" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+            <caption class="sr-only">Team scores and service status overview</caption>
             <thead>
                 <tr>
-                    <th></th>
+                    <th scope="col">Service / Metric</th>
                     {% for team in teams %}
-                    <th>{{ team.name }}</th>
+                    <th scope="col">{{ team.name }}</th>
                     {% endfor %}
                 </tr>
             </thead>
         </table>
-        <div id='hint'>Hover over status icon to get host:port information</div>
+        <div id='hint' aria-hidden="true">Hover over status icon to get host:port information</div>
+        <p class="sr-only">Service status is indicated per team: green check for up, red cross for down, question mark for unknown.</p>
         <div id='overview_api_reference'>Want a json formatted version of this data (including ip addresses)? <a
-                href="{{ url_for('api.overview_data') }}">Here</a></div>
+                href="{{ url_for('api.overview_data') }}" aria-label="Overview data in JSON format">Here</a></div>
         <script>
             function refreshheader() {
                 $.ajax({
@@ -35,6 +41,10 @@
                     success: function (data) {
                         $('#round_number').text("Round " + data.number);
                         $('#round_start').text(data.round_start);
+                    },
+                    error: function () {
+                        $('#table_alert').text('');
+                        setTimeout(function () { $('#table_alert').text('Unable to refresh round information.'); }, 100);
                     }
                 });
             }
@@ -65,51 +75,66 @@
                         // Determine row type by label instead of index
                         if (rowLabel === 'Current Score') {
                             if (i == 0) {
+                                $cell.attr('scope', 'row');
                                 $cell.html(`<span style="font-weight:bold">${value}</span>`);
                             } else {
-                                $cell.html(parseFloat(value).toLocaleString());
+                                var formattedScore = parseFloat(value).toLocaleString();
+                                $cell.attr('aria-label', 'Current Score: ' + formattedScore);
+                                $cell.html(formattedScore);
                             }
                         } else if (rowLabel === 'Current Place') {
                             if (i == 0) {
+                                $cell.attr('scope', 'row');
                                 $cell.html(`<span style="font-weight:bold">${value}</span>`);
                             } else {
                                 // Add medal ribbons for top 3
                                 var medal = '';
-                                if (value == 1) medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910"></i>';
-                                else if (value == 2) medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8"></i>';
-                                else if (value == 3) medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38"></i>';
+                                var placeLabel = 'Current Place: ' + value;
+                                if (value == 1) { medal = ' <i class="glyphicon glyphicon-tags" style="color: #C98910" aria-hidden="true"></i><span class="sr-only"> (Gold)</span>'; }
+                                else if (value == 2) { medal = ' <i class="glyphicon glyphicon-tags" style="color: #A8A8A8" aria-hidden="true"></i><span class="sr-only"> (Silver)</span>'; }
+                                else if (value == 3) { medal = ' <i class="glyphicon glyphicon-tags" style="color: #965A38" aria-hidden="true"></i><span class="sr-only"> (Bronze)</span>'; }
+                                if (value == 1) { placeLabel += ' (Gold)'; }
+                                else if (value == 2) { placeLabel += ' (Silver)'; }
+                                else if (value == 3) { placeLabel += ' (Bronze)'; }
+                                $cell.attr('aria-label', placeLabel);
                                 if (medal) $cell.html(value + medal);
                             }
                         } else if (rowLabel === 'SLA Penalties') {
                             // SLA Penalties row - just bold the label
                             if (i == 0) {
+                                $cell.attr('scope', 'row');
                                 $cell.html(`<span style="font-weight:bold">${value}</span>`);
                             }
                             // Leave penalty values as-is (already formatted with HTML from API)
                         } else if (rowLabel === 'Up/Down Ratio') {
                             // Up/Down Ratio row - just bold the label
                             if (i == 0) {
+                                $cell.attr('scope', 'row');
                                 $cell.html(`<span style="font-weight:bold">${value}</span>`);
                             }
                             // Leave ratio values as-is (already formatted with HTML from API)
                         } else {
                             // Service status row
                             if (i == 0) {
+                                $cell.attr('scope', 'row');
                                 $cell.html(`<span style="font-weight:bold">${value}</span>`);
                             } else {
-                                // Determine status icon and color
-                                var icon, color;
+                                // Determine status icon, color, and accessible label
+                                var icon, color, statusLabel;
                                 if (value == 'true') {
                                     icon = 'glyphicon-ok';
                                     color = 'green';
+                                    statusLabel = rowLabel + ': Up';
                                 } else if (value == 'false') {
                                     icon = 'glyphicon-remove';
                                     color = 'red';
+                                    statusLabel = rowLabel + ': Down';
                                 } else {
                                     icon = 'glyphicon-question-sign';
                                     color = 'black';
+                                    statusLabel = rowLabel + ': Unknown';
                                 }
-                                $cell.html(`<span class="glyphicon ${icon}" style="color:${color}"></span>`);
+                                $cell.html(`<span class="glyphicon ${icon}" style="color:${color}" role="img" aria-label="${statusLabel}"></span>`);
                             }
                         }
                     }
@@ -127,7 +152,11 @@
                 }, 30000);
 
                 setInterval(function () {
-                    overview.ajax.reload();
+                    overview.ajax.reload(function () {
+                        // Clear first so screen readers detect the DOM change even when text is identical
+                        $('#table_status').text('');
+                        setTimeout(function () { $('#table_status').text('Scores table updated.'); }, 100);
+                    });
                 }, 30000);
             });
         </script>

@@ -11,6 +11,7 @@
     <link href="{{ url_for('static', filename='vendor/css/bootstrap-editable.css') }}" rel="stylesheet" />
     <script src="{{ url_for('static', filename='vendor/js/utils.js') }}"></script>
 {% endblock %}
+{% block main_attrs %}aria-label="Service" tabindex="-1"{% endblock %}
 {% block content %}
 <script>
   $.fn.editable.defaults.mode = 'inline';
@@ -61,43 +62,44 @@
           masked_div.style.display = 'none';
           show_div.style.display = 'inline-block';
           show_button.innerHTML = "Hide";
+          show_button.setAttribute('aria-label', 'Hide password for account ' + num);
       }
       else {
           masked_div.style.display = 'inline-block';
           show_div.style.display = 'none';
           show_button.innerHTML = "Show";
+          show_button.setAttribute('aria-label', 'Show password for account ' + num);
       }
     }
 </script>
 <div class="container md-page">
   <div class="row">
-    <div class="col-sm-3 lefthand-nav" style="padding-top: 20px;">
+    <nav class="col-sm-3 lefthand-nav" style="padding-top: 20px;" aria-label="Service navigation">
       <div id="service_navbar" class="list-group">
       </div>
-    </div>
-    <div class="col-sm-9">
-      <h2>{{service.name}}</h2>
+    </nav>
+    <section class="col-sm-9" aria-labelledby="service_name_heading">
+      <h1 id="service_name_heading">{{service.name}}</h1>
+      <section aria-labelledby="connection_details_heading">
+      <h3 id="connection_details_heading" class="sr-only">Connection details</h3>
       <table>
+        <caption class="sr-only">Service connection details</caption>
         <tbody>
           <tr>
-            <td style="padding-right:10px">
-              <h4>Host:</h4>
-            </td>
+            <th scope="row" style="padding-right:10px; font-weight:bold;">Host</th>
             <td>
               {% if modify_hostname_setting == true %}
-                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
+                <a href="#" class="editable-textfield" role="button" aria-label="Edit host, current value: {{service.host}}" data-type="text" data-pk="{{service.id}}" data-title="Enter Host" data-name="host" data-url="{{url_for('api.update_host')}}">{{service.host}}</a>
               {% else %}
                 {{service.host}}
               {% endif %}
             </td>
           </tr>
           <tr>
-            <td style="padding-right:10px">
-              <h4>Port:</h4>
-            </td>
+            <th scope="row" style="padding-right:10px; font-weight:bold;">Port</th>
             <td>
               {% if modify_port_setting == true %}
-                <a href="#" class="editable-textfield" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
+                <a href="#" class="editable-textfield" role="button" aria-label="Edit port, current value: {{service.port}}" data-type="text" data-pk="{{service.id}}" data-title="Enter Port" data-name="port" data-url="{{url_for('api.update_port')}}">{{service.port}}</a>
               {% else %}
                 {{service.port}}
               {% endif %}
@@ -105,13 +107,16 @@
           </tr>
         </tbody>
       </table>
+      </section>
       {% if service.accounts %}
-        <h4>Accounts</h4>
+        <section aria-labelledby="accounts_heading">
+        <h3 id="accounts_heading">Accounts</h3>
         <table class="table table-striped table-bordered table-compact editable-table" style="clear: both">
+          <caption class="sr-only">Service accounts with username and password</caption>
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Password</th>
+              <th scope="col">Username</th>
+              <th scope="col">Password</th>
             </tr>
           </thead>
           <tbody>
@@ -119,33 +124,37 @@
               <tr>
                 <td width="30%">
                 {% if modify_account_usernames_setting == true %}
-                  <a href="#" class="editable-textfield username" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a></td>
+                  <a href="#" class="editable-textfield username" role="button" aria-label="Edit username, current value: {{account.username}}" data-type="text" data-pk="{{account.id}}" data-title="Enter Username" data-name="username" data-url="{{url_for('api.update_service_account_info')}}">{{account.username}}</a>
                 {% else %}
                   {{account.username}}
                 {% endif %}
                 </td>
                 <td width="70%">
                 {% if modify_account_passwords_setting == true %}
-                  <a href="#" class="editable-textfield password" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a></td>
+                  <a href="#" class="editable-textfield password" role="button" aria-label="Edit password for {{account.username}}" data-type="text" data-pk="{{account.id}}" data-title="Enter Password" data-name="password" data-url="{{url_for('api.update_service_account_info')}}">{{account.password}}</a>
                 {% else %}
-                  <a href="#" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" role="button" aria-pressed="true" onclick="togglePassword('{{account.id}}')">Show</a>
+                  <button type="button" class="btn btn-primary btn-xs" id="bootstrap_reveal_password_{{account.id}}" aria-label="Show password for {{account.username}}" onclick="togglePassword('{{account.id}}')">Show</button>
                   <div id="masked_password_{{account.id}}" style="display: inline-block;">**********</div><div id="show_password_{{account.id}}" style="display: none;">{{account.password}}</div>
                 {% endif %}
               </tr>
               {% endfor %}
           </tbody>
       </table>
+      </section>
       {% endif %}
-        <h4>Checks</h4>
+        <section aria-labelledby="checks_heading">
+        <h3 id="checks_heading">Checks</h3>
+        <div id="checks_status" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
         <table id="checks" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+          <caption class="sr-only">Service check results by round</caption>
           <thead>
             <tr>
-              <th></th>
-              <th>Round</th>
-              <th>Result</th>
-              <th>Earned</th>
-              <th>Reason</th>
-              <th>Timestamp</th>
+              <th scope="col"><span class="sr-only">Expand/Collapse</span></th>
+              <th scope="col">Round</th>
+              <th scope="col">Result</th>
+              <th scope="col">Earned</th>
+              <th scope="col">Reason</th>
+              <th scope="col">Timestamp</th>
             </tr>
           </thead>
         </table>
@@ -164,12 +173,23 @@
                       if ("{{service.id}}" == value['id']){
                         navbar_row_str += " active"
                       }
-                      navbar_row_str += '">' + key;
+                      var status_text = '';
                       if (value['result'] == 'True'){
-                        navbar_row_str += '<span class="pull-right label label-success" style="margin-top: 2px;">UP</span>'
+                        status_text = 'UP';
+                      } else if (value['result'] == 'False') {
+                        status_text = 'DOWN';
                       }
-                      else if (value['result'] == 'False') {
-                        navbar_row_str += '<span class="pull-right label label-danger" style="margin-top: 2px;">DOWN</span>'
+                      var aria_label = key + (status_text ? ', status: ' + status_text : '');
+                      navbar_row_str += '" aria-label="' + aria_label + '"';
+                      if ("{{service.id}}" == value['id']){
+                        navbar_row_str += ' aria-current="page"';
+                      }
+                      navbar_row_str += '>' + key;
+                      if (status_text == 'UP'){
+                        navbar_row_str += '<span class="pull-right label label-success" aria-hidden="true" style="margin-top: 2px;">UP</span>'
+                      }
+                      else if (status_text == 'DOWN') {
+                        navbar_row_str += '<span class="pull-right label label-danger" aria-hidden="true" style="margin-top: 2px;">DOWN</span>'
                       }
                       navbar_row_str += "</a>"
                       navbar_str += navbar_row_str
@@ -200,14 +220,14 @@
                       "orderable": false,
                       "data": null,
                       "render": function( data ) {
-                        var button_text = `<a class='expand-button'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
+                        var button_text = `<button type='button' class='expand-button btn btn-link btn-xs' aria-label='Expand round ` + data['round'] + `'><span id='span_` + data['round'] + `' class="pull-right glyphicon `;
                         var button_icon = 'glyphicon-plus'
                         if ( window.expanded_rows ){
                             if (window.expanded_rows.indexOf(data['round']) >= 0) {
                               button_icon = 'glyphicon-minus';
                             }
                         }
-                        button_text += button_icon + `"></span></a>`;
+                        button_text += button_icon + `" aria-hidden="true"></span></button>`;
                         return button_text;
                       }
                     },
@@ -237,7 +257,7 @@
                   'order': [[1, 'desc']],
                 });
 
-                $('#checks tbody').on('click', 'a.expand-button', function () {
+                $('#checks tbody').on('click', 'button.expand-button', function () {
                   var tr = $(this).closest('tr');
                   var row = table.row(tr);
 
@@ -264,6 +284,7 @@
                     row.child.hide();
                     icon_span.removeClass('glyphicon-minus')
                     icon_span.addClass('glyphicon-plus')
+                    $(tr).find('button.expand-button').attr('aria-label', 'Expand round ' + row.data().round);
                   }
                   else {
                     // Open the check output row
@@ -271,6 +292,7 @@
                     row.child(output_row).show();
                     icon_span.removeClass('glyphicon-plus')
                     icon_span.addClass('glyphicon-minus')
+                    $(tr).find('button.expand-button').attr('aria-label', 'Collapse round ' + row.data().round);
                   }
                 });
 
@@ -294,13 +316,17 @@
                 }
 
                 setInterval(function() {
-                  table.ajax.reload(expandRows, false);
+                  table.ajax.reload(function (data) {
+                      expandRows(data);
+                      $('#checks_status').text('');
+                      setTimeout(function () { $('#checks_status').text('Checks table updated.'); }, 100);
+                  }, false);
                   refreshServicesNavbar();
                 }, 30000);
             });
           </script>
-        </div>
-      </div>
+        </section>
+      </section>
     </div>
   </div>
 </div>

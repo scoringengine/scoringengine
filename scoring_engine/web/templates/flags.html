@@ -1,58 +1,73 @@
 {% extends 'base.html' %}
-{% block title %}Stats{% endblock %}
+{% block title %}Flags{% endblock %}
 {% block head %}
 {{ super() }}
 <script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
 {% endblock %}
+{% block main_attrs %}aria-label="Flags page"{% endblock %}
 {% block content %}
 <div class="container-fluid md-page">
+    <h1 class="sr-only">Flags</h1>
+    <section aria-labelledby="active-flags-heading">
     <div class="row">
-        <h2 class="text-center">Active Flags</h2>
+        <h2 class="text-center" id="active-flags-heading">Active Flags</h2>
     </div>
     <div class="row">
-        <table id="flags" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <table id="flags" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-labelledby="active-flags-heading">
+            <caption class="sr-only">List of active flags with timing, type, platform, permission, path, and content</caption>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Type</th>
-                    <th>Platform</th>
-                    <th>Permission</th>
-                    <th>Path</th>
-                    <th>Content</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Platform</th>
+                    <th scope="col">Permission</th>
+                    <th scope="col">Path</th>
+                    <th scope="col">Content</th>
                 </tr>
             </thead>
         </table>
     </div>
+    </section>
+    <section aria-labelledby="capture-status-heading">
     <div class="row">
-        <h2 class="text-center">Capture Status for Active Flags</h2>
-	<h5 class="text-center"><span class='glyphicon glyphicon-minus' style='color: gray'></span> means no capture; <span class='glyphicon glyphicon-user' style='color: blue'></span> means user level capture; and <span class='glyphicon glyphicon-fire' style='color: red'></span> means root level capture</h5>
+        <h2 class="text-center" id="capture-status-heading">Capture Status for Active Flags</h2>
+	<p class="text-center">
+	    <span class='glyphicon glyphicon-minus' style='color: gray' aria-hidden='true'></span><span class='sr-only'>Gray minus icon</span> means no capture;
+	    <span class='glyphicon glyphicon-user' style='color: blue' aria-hidden='true'></span><span class='sr-only'>Blue user icon</span> means user level capture; and
+	    <span class='glyphicon glyphicon-fire' style='color: red' aria-hidden='true'></span><span class='sr-only'>Red fire icon</span> means root level capture
+	</p>
     </div>
     <div class="row">
-        <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <table id="solves" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-labelledby="capture-status-heading">
+            <caption class="sr-only">Capture status matrix showing which teams have captured which flags</caption>
             <thead>
                 <tr>
                 </tr>
             </thead>
         </table>
     </div>
+    </section>
+    <section aria-labelledby="capture-stats-heading">
     <div class="row">
-        <h2 class="text-center">Competition Flag Capture Stats</h2>
-	<h5 class="text-center">A lower score means the team is doing better</h5>
-        <table id="totals" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+        <h2 class="text-center" id="capture-stats-heading">Competition Flag Capture Stats</h2>
+	<p class="text-center">A lower score means the team is doing better</p>
+        <table id="totals" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-labelledby="capture-stats-heading">
+            <caption class="sr-only">Competition flag capture totals by team, with Windows, Linux, and total scores</caption>
             <thead>
                 <tr>
-                    <th>Team</th>
-                    <th>Windows Score</th>
-                    <th>nix Score</th>
-                    <th>Total Score</th>
+                    <th scope="col">Team</th>
+                    <th scope="col">Windows Score</th>
+                    <th scope="col">nix Score</th>
+                    <th scope="col">Total Score</th>
                 </tr>
             </thead>
         </table>
     </div>
+    </section>
 </div>
 <script>
   $('#flags').DataTable( {
@@ -86,15 +101,18 @@ $(document).ready(function() {
 			    return data;
 			} else if (Array.isArray(data)) {
 			    if(data[1] == 1) {
-			        return "<span class='glyphicon glyphicon-fire' style='color: red'></span>";
-			    } else if(data[0] == 1) {
-			        return "<span class='glyphicon glyphicon-user' style='color: blue'></span>";
-		            } else {
-			        return "<span class='glyphicon glyphicon-minus' style='color: gray'></span>";
+		        return "<span class='glyphicon glyphicon-fire' style='color: red' aria-hidden='true'></span><span class='sr-only'>Root level capture</span>";
+		    } else if(data[0] == 1) {
+		        return "<span class='glyphicon glyphicon-user' style='color: blue' aria-hidden='true'></span><span class='sr-only'>User level capture</span>";
+	            } else {
+		        return "<span class='glyphicon glyphicon-minus' style='color: gray' aria-hidden='true'></span><span class='sr-only'>No capture</span>";
 			    }
 			}
                     }
 		})), 
+                headerCallback: function(thead) {
+                    $(thead).find('th').attr('scope', 'col');
+                },
                 ordering: false,  // Disable ordering on all columns
             });
         },

@@ -13,12 +13,12 @@
   <form method="POST" action="{{ url_for('api.admin_update_target_round_time') }}" role="form">
     <div class="form-group row">
       <div class="col-xs-3">
-        <label for="ex1" class="pull-right" style="padding-top: 7px;">Target Round Time (s)</label>
+        <label for="target_round_time" class="pull-right" style="padding-top: 7px;">Target Round Time (s)</label>
       </div>
       <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
         <div class="input-group input-group-md">
           <input class="form-control" id="target_round_time" name="target_round_time"
-            placeholder="Insert Targer Round Time Value Here (in seconds)" value="{{ target_round_time|safe }}"
+            placeholder="Insert Target Round Time Value Here (in seconds)" value="{{ target_round_time|safe }}"
             required />
           <div class="input-group-btn">
             <button type="submit" class="btn btn-primary center-block">Save</button>
@@ -34,26 +34,26 @@
   <form method="POST" action="{{ url_for('api.admin_update_worker_refresh_time') }}" role="form">
     <div class="form-group row" style="margin-bottom: 0px;">
       <div class="col-xs-3">
-        <label for="ex1" class="pull-right" style="padding-top: 7px;">Worker Refresh Time (s)</label>
+        <label for="worker_refresh_time" class="pull-right" style="padding-top: 7px;">Worker Refresh Time (s)</label>
       </div>
       <div class="col-xs-2 settings_middle_column" style="padding-top: 5px;">
         <div class="input-group input-group-md">
           <input class="form-control" id="worker_refresh_time" name="worker_refresh_time"
-            placeholder="Insert Worker Refresh Time Here" value="{{ worker_refresh_time|safe }}" required />
+            placeholder="Insert Worker Refresh Time Here (in seconds)" value="{{ worker_refresh_time|safe }}" required />
           <div class="input-group-btn">
             <button type="submit" class="btn btn-primary center-block">Save</button>
           </div>
         </div>
       </div>
       <div class="col-xs-6">
-        <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps iterations of checking
+        <span class="help-block" style="margin-top: 0px;">Determines how long the engine sleeps between iterations of checking
           for finished checks (also displays in the engine log).</span>
       </div>
     </div>
   </form>
 
   <div class="col-xs-3">
-    <label for="ex1" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
+    <label for="welcome_page_content" class="pull-right" style="padding-top: 7px;">Welcome Page Content</label>
   </div>
   <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
     <div class="form-group row">
@@ -70,7 +70,7 @@
   </form>
 
   <div class="col-xs-3">
-    <label for="ex1" class="pull-right" style="padding-top: 7px;">About Page Content</label>
+    <label for="about_page_content" class="pull-right" style="padding-top: 7px;">About Page Content</label>
   </div>
   <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
     <div class="form-group row" style="margin-bottom: 0px;">

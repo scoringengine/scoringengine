@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}About{% endblock %}
+{% block title %}Notifications{% endblock %}
 
 {% block head %}
 {{ super() }}
 {% endblock %}
 
+{% block main_attrs %}aria-label="Notifications" tabindex="-1"{% endblock %}
 {% block content %}
 <div class="container md-page" style="padding-bottom: 0px;">
   <div class="page-header">
@@ -13,44 +14,70 @@
   <div class="panel panel-default">
     <!-- Default panel contents -->
     <div class="panel-body">
-      <ul class="nav nav-tabs">
-        <li role="navigation" {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
-            href="/notifications/unread">Unread{% if notification_count %} <span class="badge">{{ notification_count
+      <nav aria-label="Notification filters">
+      <ul class="nav nav-tabs notifications-tabs">
+        <li {% if request.path=='/notifications/unread' %}class="active" {% endif %}><a
+            id="notifications-tab-unread"
+            href="/notifications/unread"
+            aria-label="Show unread notifications"
+            {% if request.path=='/notifications/unread' %}aria-current="page"{% endif %}>Unread{% if notification_count %} <span class="badge" aria-label="{{ notification_count }} unread notifications">{{ notification_count
               }}</span>{% endif %}</a></li>
-        <li role="navigation" {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
-            href="/notifications/read">Read</a></li>
+        <li {% if request.path=='/notifications/read' %}class="active" {% endif %}><a
+            id="notifications-tab-read"
+            href="/notifications/read"
+            aria-label="Show read notifications"
+            {% if request.path=='/notifications/read' %}aria-current="page"{% endif %}>Read</a></li>
       </ul>
+      </nav>
       <!-- Table -->
-      <table class="table table-bordered">
-        <tbody>
+      <div id="notifications-tabpanel">
+      <table class="table table-bordered" aria-label="Notifications table">
+        <caption class="sr-only">Notifications list with message, team, and inject</caption>
+        <thead>
+          <tr>
+            <th scope="col">Message</th>
+            <th scope="col">Team</th>
+            <th scope="col">Inject</th>
+          </tr>
+        </thead>
+        <tbody id="notificationsBody" aria-live="polite">
           <tr>
             <td>
-              <a href="/admin/injects/1">An inject is ready to be graded</a>
+              <a href="/admin/injects/1" aria-label="Open notification: An inject is ready to be graded">An inject is ready to be graded</a>
             </td>
             <td>Team 1</td>
             <td>Journey to Mordor</td>
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>
+<p id="notificationsStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
 <script>
     // Query API for notifications
     $.ajax({
       url: "/api/notifications",
       success: function (result) {
-        // Append new files
+        var rows = "";
+
+        // Append notification rows
         $.each(result.data, function (index, value) {
-          files += "<p><a href='/" + value.id + "/download'>" + value.name + "</a></p>";
+          var message = value.message || value.name || 'Notification';
+          var team = value.team || '';
+          var injectTitle = value.inject || value.title || '';
+          var notificationLink = value.url || '/admin/injects/' + value.id;
+          rows += "<tr><td><a aria-label='Open notification: " + message + "' href='" + notificationLink + "'>" + message + "</a></td><td>" + team + "</td><td>" + injectTitle + "</td></tr>";
         });
 
-        // Update navbar
-        $("#files").html(files);
-        console.log(files);
+        // Update table body
+        if (rows) {
+          $("#notificationsBody").html(rows);
+        }
       },
       error: function (result) {
-        console.error("An Error Occurred Querying For Files");
+        console.error("An Error Occurred Querying For Notifications");
       }
     });
 </script>
