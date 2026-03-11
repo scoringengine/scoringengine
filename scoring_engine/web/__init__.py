@@ -9,15 +9,12 @@ from scoring_engine.config import config
 from scoring_engine.db import db
 
 
-SECRET_KEY = os.urandom(128)
-
-
 def create_app():
     app = Flask(__name__)
 
     app.config.update(DEBUG=config.debug)
     app.config.update(UPLOAD_FOLDER=config.upload_folder)
-    app.secret_key = SECRET_KEY
+    app.secret_key = config.secret_key if config.secret_key else os.urandom(128)
 
     # Configure Flask-SQLAlchemy
     app.config['SQLALCHEMY_DATABASE_URI'] = config.db_uri
