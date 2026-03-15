@@ -40,3 +40,7 @@ class TestBasicCheck(UnitTest):
         check.required_properties = ['testparam']
         with pytest.raises(LookupError):
             check.set_properties()
+
+    def test_command_env_default_empty(self):
+        check = BasicCheck(self.environment)
+        assert check.command_env() == {}

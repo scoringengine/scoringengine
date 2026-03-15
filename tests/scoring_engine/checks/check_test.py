@@ -27,3 +27,5 @@ class CheckTest(UnitTest):
 
         check_obj = engine.check_name_to_obj(self.check_name)(environment)
         assert check_obj.command() == self.cmd
+        if hasattr(self, 'cmd_env'):
+            assert check_obj.command_env() == self.cmd_env
