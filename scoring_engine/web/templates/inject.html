@@ -27,6 +27,8 @@
     </div>
     <div class="col-sm-9">
       {% if inject.status == 'Submitted' %}
+      <button type="button" class="btn btn-warning pull-right" data-toggle="modal"
+        data-target="#submitInjectConfirmation">Re-Submit Inject</button>
       <h3>{{ inject.template.title }} <span class="label label-success">{{ inject.status}}</span></h3>
       {% elif inject.status == 'Graded' %}
       <h3>{{ inject.template.title }} <span class="label label-info">{{ inject.status}}</span></h3>
