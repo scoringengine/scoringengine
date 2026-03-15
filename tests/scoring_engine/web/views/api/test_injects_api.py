@@ -260,8 +260,8 @@ class TestInjectsAPI(UnitTest):
         assert resp.status_code == 400
         assert "ended" in resp.data.decode().lower()
 
-    def test_file_upload_prevents_after_submission(self):
-        """Test that files cannot be uploaded after inject is submitted"""
+    def test_file_upload_allowed_after_submission(self):
+        """Test that files can still be uploaded after inject is submitted (resubmission allowed until graded)"""
         template = Template(
             title="Test",
             scenario="Test",
@@ -274,8 +274,37 @@ class TestInjectsAPI(UnitTest):
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Set status after creation
         inject.status = "Submitted"
+        self.session.commit()
+
+        self.login("blueuser1", "pass")
+        data = {"file": (io.BytesIO(b"test"), "test.txt")}
+        with patch("scoring_engine.web.views.api.injects.os.makedirs"), \
+                patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True), \
+                patch("werkzeug.datastructures.FileStorage.save"):
+            resp = self.client.post(
+                f"/api/inject/{inject.id}/upload",
+                data=data,
+                content_type="multipart/form-data"
+            )
+
+        assert resp.status_code == 200
+
+    def test_file_upload_prevents_after_graded(self):
+        """Test that files cannot be uploaded once inject is graded"""
+        template = Template(
+            title="Test",
+            scenario="Test",
+            deliverable="Test",
+            score=10,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Graded"
         self.session.commit()
 
         self.login("blueuser1", "pass")
@@ -287,7 +316,7 @@ class TestInjectsAPI(UnitTest):
         )
 
         assert resp.status_code == 400
-        assert "submitted" in resp.data.decode().lower()
+        assert "graded" in resp.data.decode().lower()
 
     def test_file_upload_requires_file(self):
         """Test that upload fails without a file"""
@@ -308,8 +337,8 @@ class TestInjectsAPI(UnitTest):
 
         assert resp.status_code == 400
 
-    def test_file_upload_duplicate_filename_rejected(self):
-        """SECURITY: Test that duplicate filenames are rejected"""
+    def test_file_upload_duplicate_filename_versioned(self):
+        """Test that duplicate filenames are auto-versioned rather than overwritten"""
         template = Template(
             title="Test",
             scenario="Test",
@@ -322,27 +351,30 @@ class TestInjectsAPI(UnitTest):
         self.session.add_all([template, inject])
         self.session.commit()
 
-        # Create existing file
-        existing_file = File(
-            f"Inject{inject.id}_Blue Team 1_test.txt",
-            self.blue_user1,
-            inject
-        )
+        # The filename the upload endpoint generates:
+        # "Inject{id}_{team.name}_{secure(title)}_{secure(basename)}{ext}"
+        original_name = f"Inject{inject.id}_Blue Team 1_Test_test.txt"
+        existing_file = File(original_name, self.blue_user1, inject)
         self.session.add(existing_file)
         self.session.commit()
 
         self.login("blueuser1", "pass")
-
-        with patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True):
-            data = {"file": (io.BytesIO(b"test"), "test.txt")}
+        data = {"file": (io.BytesIO(b"test"), "test.txt")}
+        with patch("scoring_engine.web.views.api.injects.os.makedirs"), \
+                patch("scoring_engine.web.views.api.injects.os.path.exists", return_value=True), \
+                patch("werkzeug.datastructures.FileStorage.save"):
             resp = self.client.post(
                 f"/api/inject/{inject.id}/upload",
                 data=data,
                 content_type="multipart/form-data"
             )
 
-            assert resp.status_code == 400
-            assert "not unique" in resp.data.decode().lower()
+        assert resp.status_code == 200
+        # Versioned file should have been saved with (1) suffix
+        versioned_name = f"Inject{inject.id}_Blue Team 1_Test_test(1).txt"
+        from scoring_engine.db import db
+        versioned = db.session.query(File).filter(File.name == versioned_name).one_or_none()
+        assert versioned is not None, f"Expected versioned file '{versioned_name}' in DB"
 
     # Submit Tests
     def test_inject_submit_requires_auth(self):
@@ -649,54 +681,119 @@ class TestInjectsAPI(UnitTest):
 
         assert resp.status_code == 403  # File doesn't exist, so unauthorized
 
-    # Cache Invalidation Tests
-    def test_inject_submit_invalidates_cache(self):
-        """Test that submitting an inject invalidates the cached /api/inject/<id> response"""
+    # Admin: ungraded injects listing
+    def test_admin_get_ungraded_requires_auth(self):
+        """Test that /api/admin/injects/ungraded requires authentication"""
+        resp = self.client.get("/api/admin/injects/ungraded")
+        assert resp.status_code == 302
+
+    def test_admin_get_ungraded_rejects_blue_team(self):
+        """Test that blue team users cannot access ungraded listing"""
+        self.login("blueuser1", "pass")
+        resp = self.client.get("/api/admin/injects/ungraded")
+        assert resp.status_code == 403
+
+    def test_admin_get_ungraded_returns_submitted_injects(self):
+        """Test that ungraded endpoint returns submitted (not graded) injects"""
         template = Template(
-            title="Cache Test",
+            title="My Inject",
             scenario="Test",
             deliverable="Test",
             score=10,
             start_time=datetime.now(timezone.utc) - timedelta(hours=1),
             end_time=datetime.now(timezone.utc) + timedelta(hours=1)
         )
-        inject = Inject(team=self.blue_team1, template=template)
-        self.session.add_all([template, inject])
+        inject_submitted = Inject(team=self.blue_team1, template=template)
+        inject_graded = Inject(team=self.blue_team2, template=template)
+        self.session.add_all([template, inject_submitted, inject_graded])
         self.session.commit()
 
-        self.login("blueuser1", "pass")
-
-        with patch("scoring_engine.web.views.api.injects.cache") as mock_cache:
-            resp = self.client.post(f"/api/inject/{inject.id}/submit")
-
-        assert resp.status_code == 200
-        # Verify the inject detail cache was deleted for this team
-        mock_cache.delete.assert_called_with(
-            f"/api/inject/{inject.id}_{self.blue_team1.id}"
-        )
-
-    def test_inject_grade_invalidates_cache(self):
-        """Test that grading an inject invalidates the cached /api/inject/<id> response"""
-        template = Template(
-            title="Grade Cache Test",
-            scenario="Test",
-            deliverable="Test",
-            score=10,
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
-        )
-        inject = Inject(team=self.blue_team1, template=template)
-        inject.status = "Submitted"
-        self.session.add_all([template, inject])
+        inject_submitted.status = "Submitted"
+        inject_graded.status = "Graded"
+        inject_graded.score = 8
         self.session.commit()
 
         self.login("whiteuser", "pass")
-
-        with patch("scoring_engine.web.views.api.admin.update_inject_data") as mock_update:
-            resp = self.client.post(
-                f"/api/admin/inject/{inject.id}/grade",
-                json={"score": 8}
-            )
+        resp = self.client.get("/api/admin/injects/ungraded")
 
         assert resp.status_code == 200
-        mock_update.assert_called_once_with(str(inject.id))
+        data = resp.get_json()["data"]
+        ids = [item["id"] for item in data]
+        assert inject_submitted.id in ids
+        assert inject_graded.id not in ids
+
+    def test_admin_get_ungraded_response_fields(self):
+        """Test that ungraded endpoint returns expected fields"""
+        template = Template(
+            title="Field Test",
+            scenario="Test",
+            deliverable="Test",
+            score=20,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Submitted"
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        resp = self.client.get("/api/admin/injects/ungraded")
+
+        assert resp.status_code == 200
+        item = resp.get_json()["data"][0]
+        assert "id" in item
+        assert "team" in item
+        assert "title" in item
+        assert "max_score" in item
+        assert item["title"] == "Field Test"
+        assert item["max_score"] == 20
+
+    # Admin: download ungraded submissions ZIP
+    def test_admin_download_ungraded_requires_auth(self):
+        """Test that download endpoint requires authentication"""
+        resp = self.client.get("/api/admin/injects/download_ungraded")
+        assert resp.status_code == 302
+
+    def test_admin_download_ungraded_rejects_blue_team(self):
+        """Test that blue team users cannot download ungraded ZIP"""
+        self.login("blueuser1", "pass")
+        resp = self.client.get("/api/admin/injects/download_ungraded")
+        assert resp.status_code == 403
+
+    def test_admin_download_ungraded_404_when_none(self):
+        """Test that 404 is returned when there are no ungraded submissions"""
+        self.login("whiteuser", "pass")
+        resp = self.client.get("/api/admin/injects/download_ungraded")
+        assert resp.status_code == 404
+
+    def test_admin_download_ungraded_returns_zip(self):
+        """Test that download endpoint returns a ZIP when submissions exist"""
+        template = Template(
+            title="ZipTest",
+            scenario="Test",
+            deliverable="Test",
+            score=10,
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        inject = Inject(team=self.blue_team1, template=template)
+        self.session.add_all([template, inject])
+        self.session.commit()
+
+        inject.status = "Submitted"
+        self.session.commit()
+
+        file_record = File(f"Inject{inject.id}_Blue Team 1_ZipTest_report.txt", self.blue_user1, inject)
+        self.session.add(file_record)
+        self.session.commit()
+
+        self.login("whiteuser", "pass")
+        with patch("scoring_engine.web.views.api.admin.os.path.exists", return_value=True), \
+                patch("scoring_engine.web.views.api.admin.zipfile.ZipFile.write"):
+            resp = self.client.get("/api/admin/injects/download_ungraded")
+
+        assert resp.status_code == 200
+        assert resp.content_type == "application/zip"

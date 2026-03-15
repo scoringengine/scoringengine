@@ -1,8 +1,9 @@
 import os
+import re
 import pytz
 
 from datetime import datetime, timezone
-from flask import g, request, jsonify, send_file, abort
+from flask import request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -78,13 +79,14 @@ def api_injects_submit(inject_id):
         return jsonify({"status": "Unauthorized"}), 403
     if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return jsonify({"status": "Inject has ended"}), 403
+    # Allow resubmission of injects not yet graded, but update submitted time to now
+    if inject.status == "Graded":
+        return jsonify({"status": "Inject was already graded"}), 403
     inject.status = "Submitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
-
-    # Invalidate cached inject detail for the submitting team
-    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
-
+    team_id = inject.team.id
+    cache.delete(f"/api/inject/{inject_id}_{team_id}")
     data = list()
     return jsonify(data=data)
 
@@ -99,31 +101,53 @@ def api_injects_file_upload(inject_id):
     # Validate inject is still valid
     if _utcnow_for_comparison(inject.template.end_time) > inject.template.end_time:
         return "Inject has ended", 400
-    # Validate inject isn't submitted yet
-    if inject.status != "Draft":
-        return "Inject was already submitted", 400
+    # Validate inject isn't graded yet
+    if inject.status == "Graded":
+        return "Inject was already graded", 400
     # Validate file exists
     if not request.files:
         return jsonify({"status": "No file part"}), 400
 
     files = request.files.getlist("file")
     for file in files:
-        filename = "Inject" + str(inject_id) + "_" + current_user.team.name + "_" + secure_filename(file.filename)
-        path = os.path.join(config.upload_folder, inject_id, current_user.team.name)
+        original_filename = secure_filename(file.filename)
+        file_ext = os.path.splitext(original_filename)[1]
+
+        # Validate extension contains only safe characters (no path separators or special chars)
+        if file_ext and not re.match(r'^\.[a-zA-Z0-9]+$', file_ext):
+            return jsonify({"status": "Invalid file type"}), 400
+
+        # Create base filename WITHOUT extension
+        base_filename = (
+            "Inject" + str(inject.id) + "_"
+            + current_user.team.name + "_"
+            + secure_filename(inject.template.title) + "_"
+            + secure_filename(os.path.splitext(original_filename)[0])
+        )
+
+        # Find the next available version number
+        version = 1
+        filename = base_filename + file_ext
+
+        # Check if file exists and increment version number
+        while db.session.query(File).filter(File.name == filename).one_or_none():
+            filename = f"{base_filename}({version}){file_ext}"
+            version += 1
+
+        path = os.path.join(config.upload_folder, str(inject.id), current_user.team.name)
 
         if not os.path.exists(path):
             os.makedirs(path)
-        # Check if file exists already
-        if db.session.query(File).filter(File.name == filename).one_or_none():
-            return "File name is not unique", 400
+
         file.save(os.path.join(path, filename))
 
         f = File(filename, current_user, inject)
         db.session.add(f)
         db.session.commit()
 
-        # Delete file cache for inject
-        cache.delete(f"/api/inject/{inject_id}/files_{g.user.team.id}")
+        team_id = inject.team.id
+        cache.delete(f"/api/inject/{inject_id}/files_{team_id}")
+        cache.delete(f"/api/inject/{inject_id}_{team_id}")
 
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
@@ -155,7 +179,9 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
@@ -190,7 +216,9 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time)
+                .astimezone(pytz.timezone(config.timezone))
+                .strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 
@@ -215,8 +243,9 @@ def api_inject_add_comment(inject_id):
     db.session.add(c)
     db.session.commit()
 
-    # Delete comment cache for inject
-    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
+    team_id = inject.team.id
+    cache.delete(f"/api/inject/{inject_id}/comments_{team_id}")
+    cache.delete(f"/api/inject/{inject_id}_{team_id}")
 
     return jsonify({"status": "Comment added"}), 200
 
@@ -253,7 +282,7 @@ def api_inject_download(inject_id, file_id):
     if file is None:
         return jsonify({"status": "Unauthorized"}), 403
 
-    path = os.path.join(config.upload_folder, inject_id, inject.team.name, file.name)
+    path = os.path.join(config.upload_folder, str(inject.id), inject.team.name, file.name)
     try:
         return send_file(path, as_attachment=True)
     except FileNotFoundError:
