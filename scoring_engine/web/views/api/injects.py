@@ -3,7 +3,7 @@ import re
 import pytz
 
 from datetime import datetime, timezone
-from flask import g, request, jsonify, send_file, abort
+from flask import request, jsonify, send_file, abort
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -85,6 +85,8 @@ def api_injects_submit(inject_id):
     inject.status = "Submitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.commit()
+    team_id = inject.team.id
+    cache.delete(f"/api/inject/{inject_id}_{team_id}")
     data = list()
     return jsonify(data=data)
 
@@ -136,7 +138,7 @@ def api_injects_file_upload(inject_id):
 
         if not os.path.exists(path):
             os.makedirs(path)
-        
+
         file.save(os.path.join(path, filename))
 
         f = File(filename, current_user, inject)
@@ -177,7 +179,9 @@ def api_inject(inject_id):
             "text": comment.comment,
             "user": comment.user.username,
             "team": comment.user.team.name,
-            "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "added": _ensure_utc_aware(comment.time)
+            .astimezone(pytz.timezone(config.timezone))
+            .strftime("%Y-%m-%d %H:%M:%S %Z"),
         }
         for comment in comments
     ]
@@ -212,7 +216,9 @@ def api_inject_comments(inject_id):
                 "text": comment.comment,
                 "user": comment.user.username,
                 "team": comment.user.team.name,
-                "added": _ensure_utc_aware(comment.time).astimezone(pytz.timezone(config.timezone)).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "added": _ensure_utc_aware(comment.time)
+                .astimezone(pytz.timezone(config.timezone))
+                .strftime("%Y-%m-%d %H:%M:%S %Z"),
             }
         )
 

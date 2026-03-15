@@ -104,12 +104,21 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">&times;</span></button>
+        {% if inject.status == 'Submitted' %}
+        <h4 class="modal-title">Re-Submit Inject</h4>
+        {% else %}
         <h4 class="modal-title">Submit Inject</h4>
+        {% endif %}
       </div>
       <div class="modal-body">
         <input type="hidden" name="injectId" id="injectId" value="{{ inject.id }}" />
+        {% if inject.status == 'Submitted' %}
+        <p>Are you sure you want to re-submit this inject?</p>
+        <p><b>You can re-submit until the inject is graded.</b></p>
+        {% else %}
         <p>Are you sure you want to submit this inject?</p>
         <p><b>You will not be able to edit this inject after submitting.</b></p>
+        {% endif %}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

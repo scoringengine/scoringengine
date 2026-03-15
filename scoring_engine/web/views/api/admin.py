@@ -1,3 +1,4 @@
+import html
 import io
 import json
 import os
@@ -5,15 +6,10 @@ import pytz
 import re
 import zipfile
 
-from tempfile import template
-
 from datetime import datetime, timezone
 from dateutil.parser import parse
 from flask import flash, redirect, request, url_for, jsonify, send_file
 from flask_login import current_user, login_required
-
-import html
-import re
 
 
 def _ensure_utc_aware(dt):
@@ -28,7 +24,7 @@ def _ensure_utc_aware(dt):
 
 from scoring_engine.config import config
 from scoring_engine.db import db
-from scoring_engine.models.inject import Template, Inject, File, Comment
+from scoring_engine.models.inject import Template, Inject, File
 from scoring_engine.models.service import Service
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -55,8 +51,6 @@ from scoring_engine.logger import logger
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
-
-
 
 from . import mod
 
@@ -776,7 +770,7 @@ def admin_import_inject_templates():
                                     )
                                     inject = Inject(
                                         team=team,
-                                        template=template,
+                                        template=t,
                                     )
                                     db.session.add(inject)
                         if d.get("unselectedTeams"):
@@ -988,7 +982,7 @@ def admin_get_ungraded_injects():
                 "max_score": inject.template.score
             })
 
-        return jsonify(data=data)
+        return jsonify(data=data), 200
 
     return {"status": "Unauthorized"}, 403
 
