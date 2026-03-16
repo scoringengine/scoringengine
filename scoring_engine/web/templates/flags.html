@@ -27,7 +27,7 @@
     </div>
 
     <h3 class="section-header">Capture Status for Active Flags</h3>
-    <p class="text-muted"><i class='bi bi-dash-lg' style='color: gray'></i> means no capture; <i class='bi bi-person-fill' style='color: blue'></i> means user level capture; and <i class='bi bi-fire' style='color: red'></i> means root level capture</p>
+    <p class="text-muted"><i class='bi bi-dash-lg' style='color: gray'></i> means no capture; <i class='bi bi-person-fill' style='color: #4da6ff'></i> means user level capture; and <i class='bi bi-fire' style='color: red'></i> means root level capture</p>
     <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
         <table id="solves" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
@@ -86,7 +86,7 @@ $(document).ready(function() {
 			    if(data[1] == 1) {
 			        return "<i class='bi bi-fire' style='color: red'></i>";
 			    } else if(data[0] == 1) {
-			        return "<i class='bi bi-person-fill' style='color: blue'></i>";
+			        return "<i class='bi bi-person-fill' style='color: #4da6ff'></i>";
 		            } else {
 			        return "<i class='bi bi-dash-lg' style='color: gray'></i>";
 			    }
