@@ -27,3 +27,6 @@ engine.conf
 
 # Docker Compose local overrides
 docker-compose.override.yml
+
+# Claude Code worktrees
+.claude/worktrees/
