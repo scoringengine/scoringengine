@@ -11,24 +11,25 @@ Round Stats
 {% endblock %}
 
 {% block admincontent %}
-<div class="engine_stats">
+<div class="engine_stats" aria-live="polite">
   <h4>Engine Stats</h4>
   <table class="table table-striped table-bordered table-compact">
+    <caption class="sr-only">Engine statistics for the current round</caption>
     <tbody>
       <tr>
-        <td>Round</td>
+        <th scope="row">Round</th>
         <td id="round_number"></td>
       </tr>
       <tr>
-        <td>Passed Checks</td>
+        <th scope="row">Passed Checks</th>
         <td id="num_passed_checks"></td>
       </tr>
       <tr>
-        <td>Failed Checks</td>
+        <th scope="row">Failed Checks</th>
         <td id="num_failed_checks"></td>
       </tr>
       <tr>
-        <td>Total Checks</td>
+        <th scope="row">Total Checks</th>
         <td id="total_checks"></td>
       </tr>
     </tbody>

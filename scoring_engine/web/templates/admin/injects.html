@@ -15,31 +15,65 @@
 {% block header %}Inject Scores{% endblock %}
 
 {% block admincontent %}
-<h4>Injects</h4>
+<h4 id="injectsHeader">Injects</h4>
 <!-- TODO - Fix This -->
-<div id="teamBar" style="width: 100%; height:300px;"></div>
-<h4>Blue Team Injects</h4>
-<table id="injects" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+<div id="teamBar" style="width: 100%; height:300px;" aria-labelledby="injectsHeader"></div>
+<h4 id="blueTeamInjectsHeader">Blue Team Injects</h4>
+<div class="mb-3" style="margin-bottom: 15px;">
+  <button id="downloadUngradedBtn" class="btn btn-primary">
+    <span class="glyphicon glyphicon-download-alt"></span> Download All Ungraded Submissions
+  </button>
+  <span id="downloadStatus" style="margin-left: 10px;"></span>
+</div>
+<div class="panel panel-default" style="margin-top:20px;">
+
+  <div class="panel-heading" data-toggle="collapse" data-target="#ungradedCollapse" style="cursor:pointer;">
+    <h4 class="panel-title">
+      <span class="glyphicon glyphicon-chevron-right" id="ungradedArrow"></span>
+      Ungraded Submissions
+    </h4>
+  </div>
+
+  <div id="ungradedCollapse" class="panel-collapse collapse">
+    <div class="panel-body">
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Inject</th>
+            <th>Score</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="ungradedList"></tbody>
+      </table>
+
+    </div>
+  </div>
+
+</div>
+<table id="injects" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-labelledby="blueTeamInjectsHeader">
   <thead>
     <tr>
-      <th>Inject Name</th>
-      <th>Time Left</th>
+      <th scope="col">Inject Name</th>
+      <th scope="col">Time Left</th>
       {% for team in blue_teams %}
-      <th>{{ team.name }}</th>
+      <th scope="col">{{ team.name }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
   </tbody>
 </table>
-<h4>Red Team Injects</h4>
-<table id="redTeamInjects" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+<h4 id="redTeamInjectsHeader">Red Team Injects</h4>
+<table id="redTeamInjects" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-labelledby="redTeamInjectsHeader">
   <thead>
     <tr>
-      <th>Inject Name</th>
-      <th>Time Left</th>
+      <th scope="col">Inject Name</th>
+      <th scope="col">Time Left</th>
       {% for team in blue_teams %}
-      <th>{{ team.name }}</th>
+      <th scope="col">{{ team.name }}</th>
       {% endfor %}
     </tr>
   </thead>
@@ -55,11 +89,84 @@
 
     return days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
   }
+
+  function downloadUngradedSubmissions() {
+    var statusEl = $('#downloadStatus');
+    statusEl.html('<span class="glyphicon glyphicon-refresh"></span> Checking...');
+
+    fetch('/api/admin/injects/download_ungraded')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Error downloading submissions");
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "ungraded_submissions.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        statusEl.html('<span class="text-success">Download started!</span>');
+        setTimeout(function () { statusEl.html(''); }, 3000);
+      })
+      .catch(error => {
+        statusEl.html('<span class="text-warning">' + error.message + '</span>');
+        setTimeout(function () { statusEl.html(''); }, 5000);
+      });
+  }
+
+  function escapeHtml(str) {
+    return $('<div>').text(str).html();
+  }
+
+  function loadUngradedInjects() {
+
+    $.getJSON('/api/admin/injects/ungraded', function(result) {
+
+      let rows = "";
+
+      $.each(result.data, function(index, inject) {
+
+        rows += `
+          <tr>
+            <td>${escapeHtml(inject.team)}</td>
+            <td>${escapeHtml(inject.title)}</td>
+            <td>
+              <input type="number"
+                class="form-control gradeInput"
+                data-id="${inject.id}"
+                placeholder="${inject.max_score}"
+                style="width:100px;">
+            </td>
+            <td>
+              <button class="btn btn-success gradeBtn"
+                      data-id="${inject.id}">
+                Grade
+              </button>
+            </td>
+          </tr>
+        `;
+
+      });
+
+      $('#ungradedList').html(rows);
+
+    });
+
+  }
 </script>
 <script>
   $(document).ready(function () {
     // Disable datatables error reporting
     $.fn.dataTable.ext.errMode = 'none';
+
+    // Download button handler
+    $('#downloadUngradedBtn').click(downloadUngradedSubmissions);
+    loadUngradedInjects();
 
     // TODO - Render this properly
     var dt = $('#injects').DataTable({
@@ -95,7 +202,7 @@
             return data['score'] + " (" + (100 * data['score']) / data['max_score'] + "%)";
           } else if (data['status'] == 'Submitted') {
             // TODO - Add modal for grading / commenting
-            return "<a href=/admin/injects/" + data['id'] + ">Grade Me!</a>";
+            return "<a href=\"/admin/injects/" + data['id'] + "\">Grade Me!</a>";
           } else {
             return "Not Submitted";
           }
@@ -173,6 +280,40 @@
       ]
     });
   });
+  $('#ungradedCollapse').on('show.bs.collapse', function () {
+    $('#ungradedArrow')
+      .removeClass('glyphicon-chevron-right')
+      .addClass('glyphicon-chevron-down');
   });
+
+  $('#ungradedCollapse').on('hide.bs.collapse', function () {
+    $('#ungradedArrow')
+      .removeClass('glyphicon-chevron-down')
+      .addClass('glyphicon-chevron-right');
+  });
+  });
+</script>
+<script>
+$(document).on('click', '.gradeBtn', function () {
+
+  const injectId = $(this).data('id');
+  const score = $(`input[data-id='${injectId}']`).val();
+
+  $.ajax({
+    url: "/api/admin/inject/" + injectId + "/grade",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      score: score
+    }),
+    success: function () {
+      loadUngradedInjects(); // refresh list after grading
+    },
+    error: function (result) {
+      alert(result.responseJSON['status']);
+    }
+  });
+
+});
 </script>
 {% endblock %}
