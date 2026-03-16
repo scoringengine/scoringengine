@@ -405,10 +405,11 @@ def _preview_odt(path):
     from odf.odf2xhtml import ODF2XHTML
 
     # Extract embedded images from the ODT (which is a ZIP)
+    # Images may be under Pictures/ or media/ depending on the ODT generator
     images = {}
     with zipfile.ZipFile(path, "r") as zf:
         for name in zf.namelist():
-            if name.startswith("Pictures/"):
+            if name.startswith(("Pictures/", "media/")):
                 images[name] = zf.read(name)
 
     # Convert to HTML
@@ -425,6 +426,17 @@ def _preview_odt(path):
         return match.group(0)
 
     html = re.sub(r'src="([^"]*)"', replace_src, html)
+
+    # The default odf2xhtml CSS sets img { width:100%; height:100% } which
+    # forces images into their tiny fixed-size container divs.  Override so
+    # images display at their natural size and containers don't clip them.
+    override_css = (
+        "<style>"
+        "img { width:auto !important; height:auto !important; max-width:100%; }"
+        "div[class^='G-'] { position:static !important; width:auto !important; height:auto !important; }"
+        "</style>"
+    )
+    html = html.replace("</head>", override_css + "</head>")
     return html
 
 
