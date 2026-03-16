@@ -10,6 +10,16 @@
 <div class="page-wrap">
   <div class="row">
     <div class="col-sm-3 lefthand-nav" style="padding-top: 4px;">
+      <div class="mb-2">
+        <select id="filter-check-type" class="form-select form-select-sm">
+          <option value="">All Check Types</option>
+        </select>
+      </div>
+      <div class="mb-2">
+        <select id="filter-host" class="form-select form-select-sm">
+          <option value="">All Hosts</option>
+        </select>
+      </div>
       <div id="service_navbar" class="list-group">
       </div>
     </div>
@@ -19,6 +29,10 @@
           <div class="stat-label">Service</div>
           <div class="stat-value" style="font-size:1.5rem">{{service.name}}</div>
           <div class="stat-detail">{{service.host}}:{{service.port}}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Check Type</div>
+          <div class="stat-value" style="font-size:1rem">{{service.check_name}}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Host</div>
@@ -186,32 +200,75 @@
     });
 
     // Services navbar
+    var servicesData = {};
+
+    function renderServicesNavbar() {
+      var filterCheckType = $('#filter-check-type').val();
+      var filterHost = $('#filter-host').val();
+
+      var navbar_str = "";
+      for (var key in servicesData) {
+        var value = servicesData[key];
+        if (filterCheckType && value['check_name'] !== filterCheckType) continue;
+        if (filterHost && value['host'] !== filterHost) continue;
+
+        var navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item';
+        if ("{{service.id}}" == value['id']) {
+          navbar_row_str += " active";
+        }
+        navbar_row_str += '">' + key;
+        if (value['result'] == 'True') {
+          navbar_row_str += '<span class="float-end badge bg-success" style="margin-top: 2px;">UP</span>';
+        } else if (value['result'] == 'False') {
+          navbar_row_str += '<span class="float-end badge bg-danger" style="margin-top: 2px;">DOWN</span>';
+        }
+        navbar_row_str += "</a>";
+        navbar_str += navbar_row_str;
+      }
+      $('div#service_navbar').html(navbar_str);
+    }
+
     function refreshServicesNavbar() {
       $.ajax({
         cache: false,
         url: "/api/team/{{service.team.id}}/services/status",
         dataType: 'json',
         success: function(data) {
-          var navbar_str = "";
+          servicesData = data;
+
+          // Populate filter dropdowns (preserve current selection)
+          var checkTypes = new Set();
+          var hosts = new Set();
           for (var key in data) {
-            var value = data[key];
-            var navbar_row_str = '<a href="/service/' + value['id'] + '" class="list-group-item';
-            if ("{{service.id}}" == value['id']) {
-              navbar_row_str += " active";
-            }
-            navbar_row_str += '">' + key;
-            if (value['result'] == 'True') {
-              navbar_row_str += '<span class="float-end badge bg-success" style="margin-top: 2px;">UP</span>';
-            } else if (value['result'] == 'False') {
-              navbar_row_str += '<span class="float-end badge bg-danger" style="margin-top: 2px;">DOWN</span>';
-            }
-            navbar_row_str += "</a>";
-            navbar_str += navbar_row_str;
+            if (data[key]['check_name']) checkTypes.add(data[key]['check_name']);
+            if (data[key]['host']) hosts.add(data[key]['host']);
           }
-          $('div#service_navbar').html(navbar_str);
+
+          var curCheckType = $('#filter-check-type').val();
+          var curHost = $('#filter-host').val();
+
+          var $checkTypeSelect = $('#filter-check-type');
+          $checkTypeSelect.find('option:not(:first)').remove();
+          Array.from(checkTypes).sort().forEach(function(ct) {
+            $checkTypeSelect.append('<option value="' + ct + '">' + ct + '</option>');
+          });
+          if (curCheckType) $checkTypeSelect.val(curCheckType);
+
+          var $hostSelect = $('#filter-host');
+          $hostSelect.find('option:not(:first)').remove();
+          Array.from(hosts).sort().forEach(function(h) {
+            $hostSelect.append('<option value="' + h + '">' + h + '</option>');
+          });
+          if (curHost) $hostSelect.val(curHost);
+
+          renderServicesNavbar();
         }
       });
     }
+
+    $('#filter-check-type, #filter-host').on('change', function() {
+      renderServicesNavbar();
+    });
 
     refreshServicesNavbar();
 
