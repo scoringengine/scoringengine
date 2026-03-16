@@ -43,19 +43,6 @@
 
   <h3 class="section-header">Page Content</h3>
 
-  <form method="POST" action="{{ url_for('api.admin_update_welcome_page_content') }}" role="form">
-    <div class="mb-3 row">
-      <label for="welcome_page_content" class="col-sm-3 col-form-label text-sm-end">Welcome Page Content</label>
-      <div class="col-sm-9">
-        <textarea class="form-control" rows="10" id="welcome_page_content"
-          name="welcome_page_content" placeholder="Insert Welcome Page Content Here"
-          required>{{ welcome_page_content|safe }}</textarea>
-        <div class="form-text">This text shows up on the <a href="/">home page</a>.</div>
-        <button type="submit" class="btn btn-primary mt-2">Save</button>
-      </div>
-    </div>
-  </form>
-
   <form method="POST" action="{{ url_for('api.admin_update_about_page_content') }}" role="form">
     <div class="mb-3 row">
       <label for="about_page_content" class="col-sm-3 col-form-label text-sm-end">About Page Content</label>

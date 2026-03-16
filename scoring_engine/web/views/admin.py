@@ -120,7 +120,6 @@ def service(id):
 def settings():
     if current_user.is_white_team:
         about_page_content = Setting.get_setting("about_page_content").value
-        welcome_page_content = Setting.get_setting("welcome_page_content").value
         target_round_time = Setting.get_setting("target_round_time").value
         worker_refresh_time = Setting.get_setting("worker_refresh_time").value
         blue_teams = Team.get_all_blue_teams()
@@ -130,7 +129,6 @@ def settings():
             target_round_time=target_round_time,
             worker_refresh_time=worker_refresh_time,
             about_page_content=about_page_content,
-            welcome_page_content=welcome_page_content,
         )
     else:
         return redirect(url_for("auth.unauthorized"))
