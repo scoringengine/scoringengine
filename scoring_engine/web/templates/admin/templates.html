@@ -32,7 +32,7 @@
     </button>
   </div>
 </div>
-<div class="chart-card" style="padding:0; overflow:hidden;">
+<div class="chart-card" style="padding:0; overflow:visible;">
   <table id="templates" class="table table-sm overview-matrix" width="100%">
     <thead>
       <tr>
@@ -414,7 +414,7 @@
           width: "20%",
           render: function (data, type, row, meta) {
             return '<div class="btn-group float-end">' +
-              '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">' +
+              '<button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport">' +
               'Actions' +
               '</button>' +
               '<ul class="dropdown-menu">' +
@@ -461,7 +461,7 @@
           if (data['rubric_items'] && data['rubric_items'].length > 0) {
             $.each(data['rubric_items'], function(i, item) {
               $rubricBody.append(
-                '<tr>' +
+                '<tr data-rubric-id="' + (item.id || '') + '">' +
                 '<td><input type="text" class="form-control form-control-sm rubric-title" value="' + (item.title || '') + '"></td>' +
                 '<td><input type="text" class="form-control form-control-sm rubric-desc" value="' + (item.description || '') + '"></td>' +
                 '<td><input type="number" class="form-control form-control-sm rubric-points" value="' + (item.points || 0) + '"></td>' +
@@ -625,8 +625,9 @@
         var title = $(this).find('.rubric-title').val();
         var desc = $(this).find('.rubric-desc').val();
         var points = parseInt($(this).find('.rubric-points').val()) || 0;
+        var id = $(this).data('rubric-id') || null;
         if (title) {
-          rubricItems.push({ title: title, description: desc, points: points, order: i });
+          rubricItems.push({ id: id, title: title, description: desc, points: points, order: i });
         }
       });
       templateData['rubric_items'] = rubricItems;

@@ -132,7 +132,7 @@ def update_service_account_info():
                         db.session.commit()
                         return jsonify({"status": "Updated Account Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid characters. Allowed: A-Z a-z 0-9 . , @ = : / - | ( ) _ ; and space"})
 
     return jsonify({"error": "Incorrect permissions"})
 
@@ -160,7 +160,7 @@ def update_host():
                         update_service_data(service.id)
                         return jsonify({"status": "Updated Service Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid characters. Allowed: A-Z a-z 0-9 . _ -"})
 
     return jsonify({"error": "Incorrect permissions"})
 
@@ -188,6 +188,6 @@ def update_port():
                         update_service_data(service.id)
                         return jsonify({"status": "Updated Service Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid input. Port must be a number."})
 
     return jsonify({"error": "Incorrect permissions"})

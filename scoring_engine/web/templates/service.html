@@ -145,7 +145,6 @@
           if (response.error) {
             $input.addClass('is-invalid');
             alert('Error: ' + response.error);
-            $input.val(originalValue);  // Restore original value
           } else {
             $input.removeClass('is-invalid').addClass('is-valid');
             $input.data('original-value', newValue);  // Update stored value

@@ -323,7 +323,7 @@ class TestAPI:
             "/api/service/update_host",
             data={"pk": service.id, "name": "host", "value": "bad host"},
         )
-        assert resp.json == {"error": "Invalid input characters detected"}
+        assert resp.json == {"error": "Invalid characters. Allowed: A-Z a-z 0-9 . _ -"}
 
     def test_is_valid_user_input(self):
         assert is_valid_user_input("abc123", True, False)

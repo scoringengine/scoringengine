@@ -525,19 +525,33 @@ def admin_put_inject_templates_id(template_id):
             elif data.get("status") == "Disabled":
                 template.enabled = False
             if "rubric_items" in data:
-                # Delete existing rubric items and recreate
-                for item in list(template.rubric_items):
-                    db.session.delete(item)
-                db.session.flush()
+                # Update existing rubric items in place to preserve scores
+                existing_by_id = {item.id: item for item in template.rubric_items}
+                incoming_ids = set()
                 for idx, ri in enumerate(data["rubric_items"]):
-                    rubric_item = RubricItem(
-                        title=ri["title"],
-                        points=ri["points"],
-                        template=template,
-                        description=ri.get("description"),
-                        order=ri.get("order", idx),
-                    )
-                    db.session.add(rubric_item)
+                    ri_id = ri.get("id")
+                    if ri_id and ri_id in existing_by_id:
+                        # Update existing item
+                        item = existing_by_id[ri_id]
+                        item.title = ri["title"]
+                        item.points = ri["points"]
+                        item.description = ri.get("description")
+                        item.order = ri.get("order", idx)
+                        incoming_ids.add(ri_id)
+                    else:
+                        # Create new item
+                        rubric_item = RubricItem(
+                            title=ri["title"],
+                            points=ri["points"],
+                            template=template,
+                            description=ri.get("description"),
+                            order=ri.get("order", idx),
+                        )
+                        db.session.add(rubric_item)
+                # Delete only items that were removed from the payload
+                for item_id, item in existing_by_id.items():
+                    if item_id not in incoming_ids:
+                        db.session.delete(item)
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
