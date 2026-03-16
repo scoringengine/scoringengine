@@ -155,6 +155,20 @@
       }
     });
 
+    // Live countdown – redraw the Time Left column every second
+    setInterval(function () {
+      dt.rows().every(function () {
+        var data = this.data();
+        var endTime = new Date(data['end_time']);
+        var now = new Date();
+        // Time Left is the second column (index 1)
+        var cell = this.node().querySelectorAll('td')[1];
+        if (cell) {
+          cell.textContent = endTime > now ? formatTimer(endTime - now) : 'Expired';
+        }
+      });
+    }, 1000);
+
   // Bar chart for all teams
   var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
   var teamBarChart = echarts.init(document.getElementById('teamBar'), isDark ? 'dark' : null);

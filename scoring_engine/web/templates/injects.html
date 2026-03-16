@@ -139,6 +139,19 @@
             ],
             'ordering': false,
         });
+
+        // Live countdown – redraw the Time Remaining column every second
+        setInterval(function () {
+            dt.rows().every(function () {
+                var data = this.data();
+                var endTime = new Date(data['end_time']);
+                var now = new Date();
+                var cell = this.node().querySelector('td:last-child');
+                if (cell) {
+                    cell.textContent = endTime > now ? formatTimer(endTime - now) : formatTimer(0);
+                }
+            });
+        }, 1000);
     });
 </script>
 {% endblock %}
