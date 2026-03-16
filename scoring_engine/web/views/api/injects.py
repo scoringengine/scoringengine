@@ -83,8 +83,11 @@ def api_injects_submit(inject_id):
         return jsonify({"status": "Inject cannot be submitted in current state"}), 400
     inject.status = "Submitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
+    comment = InjectComment(f"Inject submitted by {current_user.username}.", current_user, inject)
+    db.session.add(comment)
     db.session.commit()
 
+    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
     cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
     notify_inject_submitted(inject)
 
@@ -103,8 +106,11 @@ def api_injects_resubmit(inject_id):
         return jsonify({"status": "Inject is not in Revision Requested state"}), 400
     inject.status = "Resubmitted"
     inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None)
+    comment = InjectComment(f"Inject resubmitted by {current_user.username}.", current_user, inject)
+    db.session.add(comment)
     db.session.commit()
 
+    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
     cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
     notify_inject_submitted(inject)
 

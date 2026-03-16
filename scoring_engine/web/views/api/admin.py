@@ -27,6 +27,7 @@ from sqlalchemy.sql import func
 
 from scoring_engine.cache_helper import (
     update_all_inject_data,
+    update_inject_comments,
     update_inject_data,
     update_overview_data,
     update_scoreboard_data,
@@ -461,8 +462,15 @@ def admin_post_inject_reopen(inject_id):
 
         inject.status = "Submitted"
         inject.graded = None
+        comment = InjectComment(
+            f"Inject reopened for re-grading by {current_user.username}.",
+            current_user,
+            inject,
+        )
+        db.session.add(comment)
         db.session.commit()
         update_inject_data(inject_id)
+        update_inject_comments(inject_id)
         update_scoreboard_data()
         return jsonify({"status": "Success"}), 200
     else:
@@ -658,8 +666,16 @@ def admin_post_inject_grade(inject_id):
 
         inject.graded = datetime.now(timezone.utc)
         inject.status = "Graded"
+        score = sum(rs["score"] for rs in data["rubric_scores"])
+        comment = InjectComment(
+            f"Inject graded by {current_user.username}. Score: {score}/{inject.template.max_score}.",
+            current_user,
+            inject,
+        )
+        db.session.add(comment)
         db.session.commit()
         update_inject_data(inject_id)
+        update_inject_comments(inject_id)
         update_scoreboard_data()
         notify_inject_graded(inject)
         return jsonify({"status": "Success"}), 200
@@ -686,6 +702,7 @@ def admin_post_inject_request_revision(inject_id):
         db.session.add(comment)
         db.session.commit()
         update_inject_data(inject_id)
+        update_inject_comments(inject_id)
         notify_revision_requested(inject)
         return jsonify({"status": "Success"}), 200
     else:
