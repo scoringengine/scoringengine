@@ -37,15 +37,16 @@
   </div>
 </div>
 <table id="templates" class="table table-striped table-compact" cellspacing="0" width="100%">
+  <caption>Manage Existing Inject Templates</caption>
   <thead>
     <tr>
-      <th>#</th>
-      <th>Title</th>
-      <th>Start Time</th>
-      <th>End Time</th>
-      <th>Points</th>
-      <th>Enabled</th>
-      <th></th>
+      <th scope="col" aria-label="ID number">#</th>
+      <th scope="col">Title</th>
+      <th scope="col">Start Time</th>
+      <th scope="col">End Time</th>
+      <th scope="col">Points</th>
+      <th scope="col">Enabled</th>
+      <th scope="col"></th>
     </tr>
   </thead>
 </table>
@@ -401,9 +402,9 @@
           "data": "enabled",
           "render": function (data, type, row) {
             if (data) {
-              return '<span class="glyphicon glyphicon-ok" style="color:green" aria-hidden="true"></span>';
+              return '<span class="glyphicon glyphicon-ok" style="color:green" aria-hidden="true" aria-label="Is enabled"></span>';
             } else {
-              return '<span class="glyphicon glyphicon-remove" style="color:red" aria-hidden="true"></span>';
+              return '<span class="glyphicon glyphicon-remove" style="color:red" aria-hidden="true" aria-label="Is not enabled"></span>';
             }
           }
         },

@@ -16,14 +16,14 @@
     <h4 class="text-center">Update Password</h4>
     <form method="POST" action="{{ url_for('api.admin_update_password') }}" role="form" class="form-signin">
       <div class="form-group">
-        <select class="selectpicker" name="user_id" data-width="100%" id="userSelect">
+        <select class="selectpicker" name="user_id" data-width="100%" id="userSelect" aria-label="Select user">
           {% for user in users %}
           <option value="{{ user[0] }}">{{ user[1] }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group">
-        <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" required autofocus>
+        <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password" aria-label="Input selected user's new password" required autofocus>
       </div>
       <button type="submit" class="btn btn-primary center-block">Update Password</button>
     </form>
@@ -33,10 +33,10 @@
     <h4 class="text-center">Add User</h4>
     <form method="POST" action="{{ url_for('api.admin_add_user') }}" role="form" class="form-signin">
       <div class="form-group">
-        <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" required>
+        <input type="text" class="form-control" name="username" id="userUsername" placeholder="Username" aria-label="Input new user's username" required>
       </div>
       <div class="form-group">
-        <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" required>
+        <input type="password" class="form-control" name="password" id="userPassword" placeholder="Password" aria-label="Input new user's password" required>
       </div>
       <div class="form-group">
         <select class="selectpicker" name="team_id" data-width="100%" id="team_id">
@@ -53,10 +53,10 @@
     <h4 class="text-center">Add Team</h4>
     <form method="POST" action="{{ url_for('api.admin_add_team') }}" role="form" class="form-signin">
       <div class="form-group">
-        <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" required>
+        <input type="text" class="form-control" name="name" id="team" placeholder="Team Name" aria-label="Input new team's name" required>
       </div>
       <div class="form-group">
-        <select class="selectpicker" name="color" data-width="100%" id="teamSelect">
+        <select class="selectpicker" name="color" data-width="100%" id="teamSelect" aria-label="Select new team's color/type">
           <option value="Red">Red</option>
           <option value="White">White</option>
           <option value="Blue">Blue</option>
@@ -66,12 +66,13 @@
     </form>
   </div>
 
-  <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+  <table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%" aria-live="polite">
+    <caption>Team Information</caption>
     <thead>
       <tr>
-        <th></th>
-        <th>Team Name</th>
-        <th>Color</th>
+        <th scope="col" aria-label="Show/hide team's user information"></th>
+        <th scope="col">Team Name</th>
+        <th scope="col">Color</th>
       </tr>
     </thead>
   </table>
@@ -80,10 +81,11 @@
     function format (data) {
       var rows = [
         '<table id="users" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">',
+        '<caption>Team\'s User Information</caption>',
         '<tr>',
-        '<th>Username</th>',
-        '<th>Password</th>',
-        '<th>Logged In</th>',
+        '<th scope="col">Username</th>',
+        '<th scope="col">Password</th>',
+        '<th scope="col">Logged In</th>',
         '</tr><tbody>'
       ];
 
@@ -113,7 +115,8 @@
               "className": 'details-control',
               "orderable": false,
               "data": null,
-              "defaultContent": ''
+              "defaultContent": '',
+              "ariaTitle": "Show/hide team's user information"
             },
             { "data": "name" },
             { "data": "color" }
