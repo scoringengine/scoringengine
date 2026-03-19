@@ -4,7 +4,8 @@ FROM ${BASE_IMAGE}
 USER root
 
 # Inject upload folder
-RUN mkdir -p /var/uploads && chown -R engine:engine /var/uploads
+RUN mkdir -p /var/uploads && chown -R engine:engine /var/uploads && \
+    mkdir -p /var/check_outputs && chown -R engine:engine /var/check_outputs
 
 USER engine
 
