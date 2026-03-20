@@ -21,7 +21,7 @@ remote_filepath = sys.argv[5]
 upload_file_contents = sys.argv[6]
 
 # Connect and Upload file to server
-session = ftplib.FTP()
+session = ftplib.FTP(timeout=15)
 session.connect(host=host, port=int(port))
 session.login(username, password)
 tmp_fd, tmp_filename = tempfile.mkstemp(text=True)
@@ -47,7 +47,7 @@ if not upload_response_text.startswith("226"):
     sys.exit(1)
 
 # Connect and Download file
-session = ftplib.FTP()
+session = ftplib.FTP(timeout=15)
 session.connect(host=host, port=int(port))
 session.login(username, password)
 downloaded_lines = []

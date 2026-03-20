@@ -23,10 +23,10 @@ commands = sys.argv[6].split(";")
 def connect_and_execute(host, port, timeout, username, password, command):
     try:
         tn = telnetlib.Telnet(host=host, port=port, timeout=5)
-        tn.read_until(b"login: ")
+        tn.read_until(b"login: ", timeout=10)
         tn.write(username.encode("ascii") + b"\n")
         if password:
-            tn.read_until(b"Password: ")
+            tn.read_until(b"Password: ", timeout=10)
             tn.write(password.encode("ascii") + b"\n")
 
         tn.write(b"{0}\n".format(command))

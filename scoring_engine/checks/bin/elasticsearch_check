@@ -31,7 +31,7 @@ headers = {"content-type": "application/json"}
 
 # Insert message into elasticsearch
 url_str = "http://{0}:{1}/{2}/{3}/".format(host, port, index, doc_type)
-insert_resp = requests.post(url_str, json.dumps(message), headers=headers)
+insert_resp = requests.post(url_str, json.dumps(message), headers=headers, timeout=15)
 if insert_resp.status_code != 201:
     print("ERROR: Unable to insert data into elasticsearch")
     print(insert_resp.text)
@@ -46,7 +46,7 @@ time.sleep(2)
 # Search for the message
 url_str = "http://{0}:{1}/{2}/{3}/{4}".format(host, port, index, doc_type, inserted_id)
 
-search_resp = requests.get(url_str, headers=headers)
+search_resp = requests.get(url_str, headers=headers, timeout=15)
 search_resp_json = json.loads(search_resp.text)
 
 if search_resp.status_code == 200 and search_resp_json["found"] is True:

@@ -7,7 +7,7 @@ import sys
 def send_email(username, password, fromuser, touser, subject, body, email_server, port):
     try:
         message = "From: %s\nTo: %s\nSubject: %s\n\n%s" % (fromuser, touser, subject, body)
-        server = smtplib.SMTP(email_server, int(port))
+        server = smtplib.SMTP(email_server, int(port), timeout=15)
         server.starttls()
         server.ehlo()
         server.login(username, password)

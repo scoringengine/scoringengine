@@ -15,7 +15,7 @@ from smb.SMBConnection import SMBConnection
 def check_smb(host, port, share_name, file_name, username, password, remote_name, hash_to_test):
     try:
         conn = SMBConnection(username, password, "name", remote_name, use_ntlm_v2=True, is_direct_tcp=True)
-        conn.connect(host, int(port))
+        conn.connect(host, int(port), timeout=15)
         shares = conn.listShares()
 
         for share in shares:

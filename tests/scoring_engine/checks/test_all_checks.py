@@ -54,14 +54,14 @@ CHECK_PARAMS = [
         "HTTPCheck",
         {"useragent": "testagent", "vhost": "www.example.com", "uri": "/index.html"},
         {},
-        "curl -s -S -4 -v -L --cookie-jar - --header 'Host: www.example.com' -A testagent 127.0.0.1:1234/index.html",
+        "curl -s -S -4 -v -L --max-time 15 --cookie-jar - --header 'Host: www.example.com' -A testagent 127.0.0.1:1234/index.html",
         id="HTTPCheck",
     ),
     pytest.param(
         "HTTPSCheck",
         {"useragent": "testagent", "vhost": "www.example.com", "uri": "/index.html"},
         {},
-        "curl -s -S -4 -v -L --cookie-jar - --ssl-reqd --insecure --header 'Host: www.example.com' -A testagent https://127.0.0.1:1234/index.html",
+        "curl -s -S -4 -v -L --max-time 15 --cookie-jar - --ssl-reqd --insecure --header 'Host: www.example.com' -A testagent https://127.0.0.1:1234/index.html",
         id="HTTPSCheck",
     ),
     pytest.param(
