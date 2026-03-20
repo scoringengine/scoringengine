@@ -1095,3 +1095,133 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/service/<int:service_id>/dependency")
+@login_required
+def admin_get_service_dependency(service_id):
+    """Get dependency info for a service."""
+    if not current_user.is_white_team:
+        return {"status": "Unauthorized"}, 403
+
+    service = db.session.get(Service, service_id)
+    if not service:
+        return jsonify({"error": "Service not found"}), 404
+
+    return jsonify({
+        "service_id": service.id,
+        "service_name": service.name,
+        "parent_id": service.parent_id,
+        "parent_name": service.parent.name if service.parent else None,
+        "children": [
+            {"id": child.id, "name": child.name}
+            for child in service.children
+        ],
+        "dependency_chain": [
+            {"id": s.id, "name": s.name}
+            for s in service.get_dependency_chain()
+        ],
+        "dependency_status": service.dependency_status,
+    })
+
+
+@mod.route("/api/admin/service/<int:service_id>/dependency", methods=["POST"])
+@login_required
+def admin_set_service_dependency(service_id):
+    """Set parent service for a service."""
+    if not current_user.is_white_team:
+        return {"status": "Unauthorized"}, 403
+
+    service = db.session.get(Service, service_id)
+    if not service:
+        return jsonify({"error": "Service not found"}), 404
+
+    data = request.get_json() if request.is_json else request.form
+    parent_id = data.get("parent_id")
+
+    if parent_id is None or parent_id == "":
+        # Clear parent
+        service.parent_id = None
+        db.session.commit()
+        return jsonify({"status": "Parent dependency cleared"})
+
+    parent_id = int(parent_id)
+
+    # Validate parent service exists
+    parent = db.session.get(Service, parent_id)
+    if not parent:
+        return jsonify({"error": "Parent service not found"}), 404
+
+    # Prevent self-reference
+    if parent_id == service_id:
+        return jsonify({"error": "Service cannot be its own parent"}), 400
+
+    # Prevent circular dependencies - check if this would create a loop
+    visited = set()
+    current = parent
+    while current and current.id not in visited:
+        visited.add(current.id)
+        if current.parent_id == service_id:
+            return jsonify({"error": "Would create circular dependency"}), 400
+        current = current.parent
+
+    # Ensure parent is from same team
+    if parent.team_id != service.team_id:
+        return jsonify({"error": "Parent must be from same team"}), 400
+
+    service.parent_id = parent_id
+    db.session.commit()
+
+    return jsonify({
+        "status": "Parent dependency set",
+        "parent_id": parent_id,
+        "parent_name": parent.name,
+    })
+
+
+@mod.route("/api/admin/service/<int:service_id>/dependency", methods=["DELETE"])
+@login_required
+def admin_remove_service_dependency(service_id):
+    """Remove parent service dependency."""
+    if not current_user.is_white_team:
+        return {"status": "Unauthorized"}, 403
+
+    service = db.session.get(Service, service_id)
+    if not service:
+        return jsonify({"error": "Service not found"}), 404
+
+    service.parent_id = None
+    db.session.commit()
+
+    return jsonify({"status": "Parent dependency removed"})
+
+
+@mod.route("/api/admin/team/<int:team_id>/services/dependencies")
+@login_required
+def admin_get_team_service_dependencies(team_id):
+    """Get all service dependencies for a team."""
+    if not current_user.is_white_team:
+        return {"status": "Unauthorized"}, 403
+
+    team = db.session.get(Team, team_id)
+    if not team:
+        return jsonify({"error": "Team not found"}), 404
+
+    services = db.session.query(Service).filter(Service.team_id == team_id).all()
+
+    return jsonify({
+        "team_id": team_id,
+        "team_name": team.name,
+        "services": [
+            {
+                "id": s.id,
+                "name": s.name,
+                "parent_id": s.parent_id,
+                "parent_name": s.parent.name if s.parent else None,
+                "children_ids": [child.id for child in s.children],
+                "last_check_result": s.last_check_result(),
+                "dependency_status": s.dependency_status,
+            }
+            for s in services
+        ],
+    })
