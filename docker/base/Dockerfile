@@ -1,5 +1,5 @@
 # Stage 1: Builder — compile C extensions into a venv
-FROM python:3.14.2-slim-bookworm AS builder
+FROM python:3.14.3-slim-bookworm AS builder
 
 RUN set -eux; \
   apt-get update; \
@@ -25,7 +25,7 @@ d = tomllib.loads(pathlib.Path('/tmp/pyproject.toml').read_text()); \
 print(' '.join(d['project']['dependencies']))")
 
 # Stage 2: Runtime — slim image with only runtime libs
-FROM python:3.14.2-slim-bookworm
+FROM python:3.14.3-slim-bookworm
 
 RUN set -eux; \
   useradd -m engine; \

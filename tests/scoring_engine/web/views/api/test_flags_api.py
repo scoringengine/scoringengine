@@ -98,21 +98,18 @@ class TestFlagsAPI:
         resp = self.client.get("/api/flags/totals")
         assert resp.status_code == 302
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_red_team_authorized(self):
         """Test that red team can access totals"""
         self.login("reduser")
         resp = self.client.get("/api/flags/totals")
         assert resp.status_code == 200
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_white_team_authorized(self):
         """Test that white team can access totals"""
         self.login("whiteuser")
         resp = self.client.get("/api/flags/totals")
         assert resp.status_code == 200
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_blue_team_unauthorized(self):
         """Test that blue team cannot access totals"""
         self.login("blueuser1")
@@ -298,7 +295,6 @@ class TestFlagsAPI:
         assert len(data["rows"]) >= 1
 
     # Totals Tests (Complex SQL)
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_empty(self):
         """Test totals with no flags or solves"""
         self.login("reduser")
@@ -314,7 +310,6 @@ class TestFlagsAPI:
             assert entry["nix_score"] == 0
             assert entry["total_score"] == 0
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_user_level_scoring(self):
         """Test that user-level flags count as 0.5"""
         service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
@@ -327,8 +322,10 @@ class TestFlagsAPI:
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False,
         )
+        db.session.add_all([service, flag])
+        db.session.flush()
         solve = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
-        db.session.add_all([service, flag, solve])
+        db.session.add(solve)
         db.session.commit()
 
         self.login("reduser")
@@ -340,7 +337,6 @@ class TestFlagsAPI:
         assert team1_entry["nix_score"] == 0
         assert team1_entry["total_score"] == 0.5
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_root_level_scoring(self):
         """Test that root-level flags count as 1"""
         service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
@@ -353,8 +349,10 @@ class TestFlagsAPI:
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False,
         )
+        db.session.add_all([service, flag])
+        db.session.flush()
         solve = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
-        db.session.add_all([service, flag, solve])
+        db.session.add(solve)
         db.session.commit()
 
         self.login("reduser")
@@ -366,17 +364,19 @@ class TestFlagsAPI:
         assert team1_entry["win_score"] == 0
         assert team1_entry["total_score"] == 1
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_user_and_root_scoring(self):
         """Test that user + root on same host counts as root (1.0)"""
         service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        # Same start_time so they group together in the SQL query
+        start = datetime.now(timezone.utc) - timedelta(hours=1)
+        end = datetime.now(timezone.utc) + timedelta(hours=1)
         user_flag = Flag(
             type=FlagTypeEnum.file,
             platform=Platform.windows,
             perm=Perm.user,
             data={"path": "C:\\user", "content": "test"},
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            start_time=start,
+            end_time=end,
             dummy=False,
         )
         root_flag = Flag(
@@ -384,13 +384,15 @@ class TestFlagsAPI:
             platform=Platform.windows,
             perm=Perm.root,
             data={"path": "C:\\admin", "content": "test"},
-            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
-            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            start_time=start,
+            end_time=end,
             dummy=False,
         )
+        db.session.add_all([service, user_flag, root_flag])
+        db.session.flush()
         solve_user = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=user_flag.id)
         solve_root = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=root_flag.id)
-        db.session.add_all([service, user_flag, root_flag, solve_user, solve_root])
+        db.session.add_all([solve_user, solve_root])
         db.session.commit()
 
         self.login("reduser")
@@ -401,7 +403,6 @@ class TestFlagsAPI:
         assert team1_entry["win_score"] == 1
         assert team1_entry["total_score"] == 1
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_multiple_hosts(self):
         """Test scoring across multiple hosts"""
         service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
@@ -424,9 +425,11 @@ class TestFlagsAPI:
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False,
         )
+        db.session.add_all([service1, service2, flag1, flag2])
+        db.session.flush()
         solve1 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag1.id)
         solve2 = Solve(host="192.168.1.20", team_id=self.blue_team1.id, flag_id=flag2.id)
-        db.session.add_all([service1, service2, flag1, flag2, solve1, solve2])
+        db.session.add_all([solve1, solve2])
         db.session.commit()
 
         self.login("reduser")
@@ -437,7 +440,6 @@ class TestFlagsAPI:
         assert team1_entry["win_score"] == 2
         assert team1_entry["total_score"] == 2
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
     def test_api_flags_totals_mixed_platforms(self):
         """Test scoring with both Windows and Linux flags"""
         service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
@@ -459,9 +461,11 @@ class TestFlagsAPI:
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False,
         )
+        db.session.add_all([service, win_flag, nix_flag])
+        db.session.flush()
         solve_win = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=win_flag.id)
         solve_nix = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=nix_flag.id)
-        db.session.add_all([service, win_flag, nix_flag, solve_win, solve_nix])
+        db.session.add_all([solve_win, solve_nix])
         db.session.commit()
 
         self.login("reduser")
@@ -473,7 +477,77 @@ class TestFlagsAPI:
         assert team1_entry["nix_score"] == 1
         assert team1_entry["total_score"] == 2
 
-    @pytest.mark.skip(reason="Requires MySQL - uses MySQL-specific IF() function")
+    def test_api_flags_totals_multiple_rounds_same_host(self):
+        """Test scoring across multiple flag rounds (different start/end times) for the same host"""
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+
+        # Round 1: user-level flag
+        round1_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.user,
+            data={"path": "C:\\round1", "content": "test"},
+            start_time=datetime.now(timezone.utc) - timedelta(hours=3),
+            end_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            dummy=False,
+        )
+
+        # Round 2: root-level flag (different time window)
+        round2_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.root,
+            data={"path": "C:\\round2", "content": "test"},
+            start_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+            dummy=False,
+        )
+
+        # Round 3: user + root flags in the same round
+        round3_start = datetime.now(timezone.utc) + timedelta(hours=1)
+        round3_end = datetime.now(timezone.utc) + timedelta(hours=2)
+        round3_user_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.user,
+            data={"path": "C:\\round3_user", "content": "test"},
+            start_time=round3_start,
+            end_time=round3_end,
+            dummy=False,
+        )
+        round3_root_flag = Flag(
+            type=FlagTypeEnum.file,
+            platform=Platform.windows,
+            perm=Perm.root,
+            data={"path": "C:\\round3_root", "content": "test"},
+            start_time=round3_start,
+            end_time=round3_end,
+            dummy=False,
+        )
+
+        db.session.add_all([service, round1_flag, round2_flag, round3_user_flag, round3_root_flag])
+        db.session.flush()
+        solve1 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round1_flag.id)
+        solve2 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round2_flag.id)
+        solve3_user = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round3_user_flag.id)
+        solve3_root = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=round3_root_flag.id)
+        db.session.add_all([solve1, solve2, solve3_user, solve3_root])
+        db.session.commit()
+
+        self.login("reduser")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+
+        # Round 1: user only = 0.5
+        # Round 2: root only = 1.0
+        # Round 3: user + root (same start_time) = 1.0 (root subsumes user)
+        # Total: 0.5 + 1.0 + 1.0 = 2.5
+        assert team1_entry["win_score"] == 2.5
+        assert team1_entry["nix_score"] == 0
+        assert team1_entry["total_score"] == 2.5
+
     def test_api_flags_totals_multiple_teams(self):
         """Test that each team's score is calculated independently"""
         service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
@@ -487,8 +561,10 @@ class TestFlagsAPI:
             end_time=datetime.now(timezone.utc) + timedelta(hours=1),
             dummy=False,
         )
+        db.session.add_all([service1, service2, flag])
+        db.session.flush()
         solve1 = Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=flag.id)
-        db.session.add_all([service1, service2, flag, solve1])
+        db.session.add(solve1)
         db.session.commit()
 
         self.login("reduser")

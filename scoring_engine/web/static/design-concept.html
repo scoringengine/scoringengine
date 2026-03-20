@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scoring Engine — Design Concept</title>
+
+<!-- Fonts: IBM Plex Mono for data, Outfit for headings -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+  :root {
+    /* Base palette — deep navy void */
+    --void: #060a10;
+    --surface: #0c1218;
+    --raised: #111a24;
+    --elevated: #182431;
+    --border: rgba(56, 189, 248, 0.08);
+    --border-strong: rgba(56, 189, 248, 0.15);
+
+    /* Text hierarchy */
+    --text-primary: #e2e8f0;
+    --text-secondary: #64748b;
+    --text-tertiary: #475569;
+
+    /* Accent palette — threat levels */
+    --accent-cyan: #38bdf8;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #a78bfa;
+
+    /* Glows */
+    --glow-cyan: rgba(56, 189, 248, 0.15);
+    --glow-green: rgba(34, 197, 94, 0.15);
+    --glow-red: rgba(239, 68, 68, 0.15);
+
+    /* Fonts */
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    /* Geometry */
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--void);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== Scanline overlay — the signature texture ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(56, 189, 248, 0.008) 2px,
+      rgba(56, 189, 248, 0.008) 4px
+    );
+  }
+
+  /* ===== Navbar — command bar ===== */
+  .cmd-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(6, 10, 16, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .cmd-bar-brand {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .cmd-bar-brand .brand-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--accent-cyan);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--void);
+    font-weight: 900;
+  }
+
+  .cmd-nav {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    height: 100%;
+  }
+
+  .cmd-nav li {
+    display: flex;
+    align-items: center;
+  }
+
+  .cmd-nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 1rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .cmd-nav a:hover {
+    color: var(--text-primary);
+  }
+
+  .cmd-nav a.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+  }
+
+  .cmd-bar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .cmd-bar-right .team-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+
+  .cmd-bar-right .team-badge.red {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent-red);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .cmd-bar-right .team-badge.white {
+    background: rgba(100, 116, 139, 0.15);
+    color: var(--text-secondary);
+    border-color: rgba(100, 116, 139, 0.2);
+  }
+
+  /* ===== Page layout ===== */
+  .page-wrap {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+
+  /* ===== Page title bar ===== */
+  .page-title-bar {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .page-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-green);
+    margin-left: auto;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+  }
+
+  /* ===== Stat cards — tactical readout ===== */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .stat-tile:hover {
+    border-color: var(--border-strong);
+  }
+
+  /* Corner notch — tactical feel */
+  .stat-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 20px;
+    background: var(--accent-cyan);
+    border-radius: 0 0 2px 0;
+    opacity: 0.5;
+  }
+
+  .stat-tile:nth-child(2)::before { background: var(--accent-green); }
+  .stat-tile:nth-child(3)::before { background: var(--accent-red); }
+  .stat-tile:nth-child(4)::before { background: var(--accent-amber); }
+
+  .stat-tile .label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.35rem;
+  }
+
+  .stat-tile .value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .stat-tile .value.cyan { color: var(--accent-cyan); }
+  .stat-tile .value.green { color: var(--accent-green); }
+  .stat-tile .value.red { color: var(--accent-red); }
+  .stat-tile .value.amber { color: var(--accent-amber); }
+  .stat-tile .value.purple { color: var(--accent-purple); }
+
+  .stat-tile .detail {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    margin-top: 0.25rem;
+  }
+
+  /* ===== Section divider ===== */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0 1rem;
+  }
+
+  .section-divider .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border-strong), transparent);
+  }
+
+  /* ===== Data panel (chart/table wrapper) ===== */
+  .data-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .data-panel-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .data-panel-header .panel-title {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+  }
+
+  .data-panel-header .panel-count {
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    background: var(--raised);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: auto;
+  }
+
+  .data-panel-body {
+    padding: 0;
+  }
+
+  .data-panel-body.padded {
+    padding: 1.25rem;
+  }
+
+  /* ===== Overview matrix — the signature table ===== */
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .matrix-table thead th {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-strong);
+    background: var(--raised);
+    position: relative;
+  }
+
+  .matrix-table thead th:first-child {
+    text-align: left;
+    padding-left: 1.25rem;
+  }
+
+  /* Team column color indicator */
+  .matrix-table thead th[data-team-color]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: attr(data-team-color);
+    border-radius: 1px;
+  }
+
+  .matrix-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .matrix-table tbody tr:hover {
+    background: var(--raised);
+  }
+
+  .matrix-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .matrix-table tbody td {
+    padding: 0.55rem 0.75rem;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .matrix-table tbody td:first-child {
+    text-align: left;
+    padding-left: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* Status indicators */
+  .status-up {
+    color: var(--accent-green);
+    font-size: 1.1rem;
+  }
+
+  .status-down {
+    color: var(--accent-red);
+    font-size: 1.1rem;
+  }
+
+  .status-unknown {
+    color: var(--text-tertiary);
+    font-size: 1.1rem;
+  }
+
+  /* Row labels */
+  .row-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .row-label.highlight {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Score cells */
+  .score-cell {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .score-cell.leader {
+    color: var(--accent-amber);
+    font-weight: 700;
+  }
+
+  /* Place medals */
+  .medal { font-size: 0.85rem; margin-left: 0.25rem; }
+  .medal-gold { color: #C98910; }
+  .medal-silver { color: #A8A8A8; }
+  .medal-bronze { color: #965A38; }
+
+  /* ===== Charts placeholder ===== */
+  .chart-placeholder {
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    font-size: 0.8rem;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(56, 189, 248, 0.03), transparent 50%),
+      radial-gradient(ellipse at 70% 50%, rgba(167, 139, 250, 0.03), transparent 50%);
+  }
+
+  /* ===== Progress bars ===== */
+  .progress-row {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-row:last-child {
+    border-bottom: none;
+  }
+
+  .progress-row .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+  }
+
+  .progress-row .progress-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .progress-row .progress-pct {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--raised);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent-green);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .progress-fill.warning {
+    background: var(--accent-amber);
+  }
+
+  /* ===== Admin sidebar ===== */
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .admin-sidebar {
+    position: sticky;
+    top: 68px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-section-title {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+    padding: 0 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .sidebar-link:hover {
+    color: var(--text-primary);
+    background: var(--raised);
+  }
+
+  .sidebar-link.active {
+    color: var(--accent-cyan);
+    background: rgba(56, 189, 248, 0.06);
+  }
+
+  .sidebar-link i {
+    font-size: 0.85rem;
+    width: 18px;
+    text-align: center;
+  }
+
+  .engine-toggle-btn {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--accent-red);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .engine-toggle-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  .engine-toggle-btn.running {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--accent-green);
+  }
+
+  /* ===== Scoreboard bar — horizontal rank bars ===== */
+  .rank-bars {
+    padding: 0;
+  }
+
+  .rank-bar-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 80px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .rank-bar-row:hover {
+    background: var(--raised);
+  }
+
+  .rank-bar-row:last-child {
+    border-bottom: none;
+  }
+
+  .rank-bar-team {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rank-bar-team .rank-num {
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    font-weight: 400;
+    min-width: 18px;
+  }
+
+  .rank-bar-track {
+    height: 20px;
+    background: var(--raised);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .rank-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .rank-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 1px;
+  }
+
+  .rank-bar-score {
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text-primary);
+  }
+
+  /* ===== Footer ===== */
+  .cmd-footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  .cmd-footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .cmd-footer a:hover {
+    color: var(--accent-cyan);
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .cmd-bar { padding: 0 1rem; }
+    .page-wrap { padding: 1rem; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-layout { grid-template-columns: 1fr; }
+    .rank-bar-row { grid-template-columns: 100px 1fr 60px; }
+    .stat-tile .value { font-size: 1.5rem; }
+  }
+
+  /* ===== Animations ===== */
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    animation: fade-in-up 0.4s ease-out both;
+  }
+
+  .animate-in:nth-child(1) { animation-delay: 0ms; }
+  .animate-in:nth-child(2) { animation-delay: 50ms; }
+  .animate-in:nth-child(3) { animation-delay: 100ms; }
+  .animate-in:nth-child(4) { animation-delay: 150ms; }
+  .animate-in:nth-child(5) { animation-delay: 200ms; }
+</style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="cmd-bar">
+  <a class="cmd-bar-brand" href="#">
+    <span class="brand-icon">SE</span>
+    Scoring Engine
+  </a>
+  <ul class="cmd-nav">
+    <li><a href="#" class="active">Overview</a></li>
+    <li><a href="#">Scoreboard</a></li>
+    <li><a href="#">Services</a></li>
+    <li><a href="#">Stats</a></li>
+    <li><a href="#">Admin</a></li>
+  </ul>
+  <div class="cmd-bar-right">
+    <a href="#" style="color: var(--text-secondary); font-size: 1rem; text-decoration:none; position:relative;">
+      <i class="bi bi-megaphone"></i>
+      <span style="position:absolute; top:-4px; right:-6px; background:var(--accent-red); color:#fff; font-size:0.55rem; width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">3</span>
+    </a>
+    <span class="team-badge white">White</span>
+    <span style="color:var(--text-secondary); font-size:0.8rem;">admin</span>
+    <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem;" title="Toggle theme">
+      <i class="bi bi-sun-fill"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ==================== OVERVIEW PAGE ==================== -->
+<div class="page-wrap">
+  <div class="page-title-bar">
+    <h1 class="page-title">Overview</h1>
+    <span class="page-subtitle">Competition Dashboard</span>
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      Live &middot; Round 47
+    </div>
+  </div>
+
+  <!-- Stat tiles -->
+  <div class="stat-grid">
+    <div class="stat-tile animate-in">
+      <div class="label">Current Round</div>
+      <div class="value cyan">47</div>
+      <div class="detail">12:34:56 elapsed</div>
+    </div>
+    <div class="stat-tile animate-in">
+      <div class="label">Services Up</div>
+      <div class="value green">38</div>
+      <div class="detail">this round</div>
+    </div>
+    <div class="stat-tile animate-in">
+      <div class="label">Services Down</div>
+      <div class="value red">7</div>
+      <div class="detail">this round</div>
+    </div>
+    <div class="stat-tile animate-in">
+      <div class="label">Leader</div>
+      <div class="value amber" style="font-size:1.2rem;">Team Alpha</div>
+      <div class="detail">182,450 pts</div>
+    </div>
+  </div>
+
+  <!-- Service Status Matrix -->
+  <div class="section-divider">
+    <span class="section-label">Service Status</span>
+  </div>
+
+  <div class="data-panel animate-in" style="animation-delay:200ms">
+    <div class="data-panel-body">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th style="border-bottom: 2px solid #58a6ff;">Team 1</th>
+            <th style="border-bottom: 2px solid #f97583;">Team 2</th>
+            <th style="border-bottom: 2px solid #3fb950;">Team 3</th>
+            <th style="border-bottom: 2px solid #d2a8ff;">Team 4</th>
+            <th style="border-bottom: 2px solid #f59e0b;">Team 5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label highlight">Current Score</td>
+            <td class="score-cell leader">182,450</td>
+            <td class="score-cell">156,200</td>
+            <td class="score-cell">148,900</td>
+            <td class="score-cell">142,100</td>
+            <td class="score-cell">138,750</td>
+          </tr>
+          <tr>
+            <td class="row-label highlight">Current Place</td>
+            <td>1 <span class="medal medal-gold"><i class="bi bi-award-fill"></i></span></td>
+            <td>2 <span class="medal medal-silver"><i class="bi bi-award-fill"></i></span></td>
+            <td>3 <span class="medal medal-bronze"><i class="bi bi-award-fill"></i></span></td>
+            <td>4</td>
+            <td>5</td>
+          </tr>
+          <tr>
+            <td class="row-label">SSH</td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-x-circle-fill status-down"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+          </tr>
+          <tr>
+            <td class="row-label">HTTP</td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-x-circle-fill status-down"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+          </tr>
+          <tr>
+            <td class="row-label">DNS</td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-x-circle-fill status-down"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+          </tr>
+          <tr>
+            <td class="row-label">SMTP</td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-x-circle-fill status-down"></i></td>
+          </tr>
+          <tr>
+            <td class="row-label">FTP</td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-x-circle-fill status-down"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+            <td><i class="bi bi-check-circle-fill status-up"></i></td>
+          </tr>
+          <tr>
+            <td class="row-label highlight">Up/Down Ratio</td>
+            <td>5/0</td>
+            <td>3/2</td>
+            <td>4/1</td>
+            <td>4/1</td>
+            <td>4/1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== SCOREBOARD SECTION ==================== -->
+  <div class="section-divider" style="margin-top: 3rem;">
+    <span class="section-label">Scoreboard Preview</span>
+  </div>
+
+  <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-tile animate-in">
+      <div class="label">Current Round</div>
+      <div class="value cyan">47</div>
+      <div class="detail">~3m per round</div>
+    </div>
+    <div class="stat-tile animate-in">
+      <div class="label">Leading Team</div>
+      <div class="value amber" style="font-size:1.2rem">Team Alpha</div>
+      <div class="detail">182,450 pts</div>
+    </div>
+    <div class="stat-tile animate-in">
+      <div class="label">Total Teams</div>
+      <div class="value purple">5</div>
+      <div class="detail">competing</div>
+    </div>
+  </div>
+
+  <!-- Rank bars (replacing bar chart for visual concept) -->
+  <div class="data-panel animate-in" style="animation-delay:250ms">
+    <div class="data-panel-header">
+      <span class="panel-title">Total Scores</span>
+      <span class="panel-count">5 teams</span>
+    </div>
+    <div class="data-panel-body rank-bars">
+      <div class="rank-bar-row">
+        <div class="rank-bar-team"><span class="rank-num">#1</span> Team Alpha</div>
+        <div class="rank-bar-track">
+          <div class="rank-bar-fill" style="width:100%; background: linear-gradient(90deg, #58a6ff 0%, #58a6ff 100%);"></div>
+        </div>
+        <div class="rank-bar-score">182,450</div>
+      </div>
+      <div class="rank-bar-row">
+        <div class="rank-bar-team"><span class="rank-num">#2</span> Team Bravo</div>
+        <div class="rank-bar-track">
+          <div class="rank-bar-fill" style="width:85.6%; background: linear-gradient(90deg, #f97583 0%, #f97583 100%);"></div>
+        </div>
+        <div class="rank-bar-score">156,200</div>
+      </div>
+      <div class="rank-bar-row">
+        <div class="rank-bar-team"><span class="rank-num">#3</span> Team Charlie</div>
+        <div class="rank-bar-track">
+          <div class="rank-bar-fill" style="width:81.6%; background: linear-gradient(90deg, #3fb950 0%, #3fb950 100%);"></div>
+        </div>
+        <div class="rank-bar-score">148,900</div>
+      </div>
+      <div class="rank-bar-row">
+        <div class="rank-bar-team"><span class="rank-num">#4</span> Team Delta</div>
+        <div class="rank-bar-track">
+          <div class="rank-bar-fill" style="width:77.9%; background: linear-gradient(90deg, #d2a8ff 0%, #d2a8ff 100%);"></div>
+        </div>
+        <div class="rank-bar-score">142,100</div>
+      </div>
+      <div class="rank-bar-row">
+        <div class="rank-bar-team"><span class="rank-num">#5</span> Team Echo</div>
+        <div class="rank-bar-track">
+          <div class="rank-bar-fill" style="width:76.0%; background: linear-gradient(90deg, #f59e0b 0%, #f59e0b 100%);"></div>
+        </div>
+        <div class="rank-bar-score">138,750</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart placeholder -->
+  <div class="data-panel animate-in" style="animation-delay:300ms">
+    <div class="data-panel-header">
+      <span class="panel-title">Score Progression</span>
+    </div>
+    <div class="data-panel-body">
+      <div class="chart-placeholder">
+        <span><i class="bi bi-graph-up" style="font-size:1.5rem; margin-right:0.5rem;"></i> ECharts line graph renders here</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ADMIN STATUS SECTION ==================== -->
+  <div class="section-divider" style="margin-top: 3rem;">
+    <span class="section-label">Admin Status Preview</span>
+  </div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <button class="engine-toggle-btn">
+        <i class="bi bi-pause-fill"></i> Pause Engine
+      </button>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Stats</div>
+        <a href="#" class="sidebar-link active"><i class="bi bi-activity"></i> Engine</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-people"></i> Workers</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-stack"></i> Queues</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Settings</div>
+        <a href="#" class="sidebar-link"><i class="bi bi-gear"></i> Competition</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-shield-check"></i> SLA & Scoring</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-lock"></i> Permissions</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-person"></i> Users</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Communication</div>
+        <a href="#" class="sidebar-link"><i class="bi bi-megaphone"></i> Announcements</a>
+        <a href="#" class="sidebar-link"><i class="bi bi-house"></i> Welcome Page</a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div>
+      <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="stat-tile animate-in">
+          <div class="label">Blue Teams</div>
+          <div class="value cyan">5</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Total Services</div>
+          <div class="value purple">25</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Currently Passing</div>
+          <div class="value green">38</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Overall Uptime</div>
+          <div class="value amber">84%</div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span class="section-label">Engine Stats</span>
+      </div>
+
+      <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="stat-tile animate-in">
+          <div class="label">Round</div>
+          <div class="value cyan">47</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Passed Checks</div>
+          <div class="value green">1,847</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Failed Checks</div>
+          <div class="value red">503</div>
+        </div>
+        <div class="stat-tile animate-in">
+          <div class="label">Total Checks</div>
+          <div class="value amber">2,350</div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span class="section-label">Current Round Status</span>
+      </div>
+
+      <div class="data-panel animate-in" style="animation-delay:200ms">
+        <div class="data-panel-body">
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="progress-label">Round Progress</span>
+              <span class="progress-pct">78%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill warning" style="width:78%"></div>
+            </div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="progress-label">Team Alpha</span>
+              <span class="progress-pct">100%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="progress-label">Team Bravo</span>
+              <span class="progress-pct">60%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill warning" style="width:60%"></div>
+            </div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-meta">
+              <span class="progress-label">Team Charlie</span>
+              <span class="progress-pct">100%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="cmd-footer">
+  <i class="bi bi-tag-fill"></i> v3.0.0-dev
+  &nbsp;&middot;&nbsp;
+  <a href="#"><i class="bi bi-book"></i> Docs</a>
+  &nbsp;&middot;&nbsp;
+  <a href="#"><i class="bi bi-github"></i> GitHub</a>
+</footer>
+
+</body>
+</html>

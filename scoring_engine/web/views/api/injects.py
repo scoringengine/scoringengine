@@ -187,8 +187,8 @@ def api_inject_delete_file(inject_id, file_id):
 
 
 @mod.route("/api/inject/<inject_id>")
-@cache.cached(make_cache_key=make_cache_key)
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def api_inject(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
@@ -265,8 +265,8 @@ def api_inject(inject_id):
 
 
 @mod.route("/api/inject/<inject_id>/comments")
-@cache.cached(make_cache_key=make_cache_key)
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def api_inject_comments(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):
@@ -323,8 +323,8 @@ def api_inject_add_comment(inject_id):
 
 
 @mod.route("/api/inject/<inject_id>/files")
-@cache.cached(make_cache_key=make_cache_key)
 @login_required
+@cache.cached(make_cache_key=make_cache_key)
 def api_inject_files(inject_id):
     inject = db.session.get(Inject, inject_id)
     if inject is None or not (current_user.team == inject.team or current_user.is_white_team):

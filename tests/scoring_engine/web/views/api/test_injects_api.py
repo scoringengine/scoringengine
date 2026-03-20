@@ -174,10 +174,8 @@ class TestInjectsAPI:
         assert resp.status_code == 403
 
     @patch("scoring_engine.web.views.api.injects.os.makedirs")
-    @patch("scoring_engine.web.views.api.injects.os.path.exists")
-    def test_file_upload_path_traversal_prevention(self, mock_exists, mock_makedirs):
+    def test_file_upload_path_traversal_prevention(self, mock_makedirs):
         """SECURITY: Test that path traversal attacks are prevented"""
-        mock_exists.return_value = False
 
         template = self._make_template()
         inject = Inject(team=self.blue_team1, template=template)
@@ -195,7 +193,7 @@ class TestInjectsAPI:
         ]
 
         for malicious_name in malicious_filenames:
-            with patch("builtins.open", MagicMock()):
+            with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
                 data = {"file": (io.BytesIO(b"malicious"), malicious_name)}
                 resp = self.client.post(
                     f"/api/inject/{inject.id}/upload", data=data, content_type="multipart/form-data"
