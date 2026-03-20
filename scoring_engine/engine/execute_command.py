@@ -6,7 +6,7 @@ from scoring_engine.celery_app import celery_app
 from scoring_engine.logger import logger
 
 
-@celery_app.task(name="execute_command", acks_late=True, reject_on_worker_lost=True, soft_time_limit=30)
+@celery_app.task(name="execute_command", acks_late=True, reject_on_worker_lost=True, soft_time_limit=30, time_limit=60)
 def execute_command(job):
     output = ""
     # Disable duplicate celery log messages

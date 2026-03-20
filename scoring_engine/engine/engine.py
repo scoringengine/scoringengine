@@ -182,6 +182,7 @@ class Engine(object):
             random.shuffle(services)
             jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
+            task_env_map = {}  # task_id -> environment_id for timeout fallback
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
@@ -197,6 +198,7 @@ class Engine(object):
                 if team_name not in task_ids:
                     task_ids[team_name] = []
                 task_ids[team_name].append(task.id)
+                task_env_map[task.id] = environment.id
 
             # This array keeps track of all current round objects
             # incase we need to backout any changes to prevent
@@ -213,14 +215,29 @@ class Engine(object):
                 self.db.session.commit()
 
                 pending_tasks = self.all_pending_tasks(task_ids)
+                round_wait_start = time.time()
+                # Hard ceiling: 3x the target round time or 5 minutes, whichever is greater
+                target_round_time = int(Setting.get_setting("target_round_time").value)
+                max_round_wait = max(target_round_time * 3, 300)
                 while pending_tasks:
+                    elapsed = time.time() - round_wait_start
+                    if elapsed >= max_round_wait:
+                        logger.warning(
+                            "Round timeout reached (%.0fs). Revoking %d stuck task(s) and proceeding.",
+                            elapsed,
+                            len(pending_tasks),
+                        )
+                        for stuck_task_id in pending_tasks:
+                            execute_command.AsyncResult(stuck_task_id).revoke(terminate=True)
+                        break
                     worker_refresh_time = int(Setting.get_setting("worker_refresh_time").value)
                     waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
                     pending_tasks = self.all_pending_tasks(task_ids)
-                logger.info("All jobs have finished for this round")
+                else:
+                    logger.info("All jobs have finished for this round")
 
                 logger.info("Determining check results and saving to db")
                 round_obj = Round(round_start=round_start_time, number=self.current_round)
@@ -236,44 +253,65 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        environment = self.db.session.get(Environment, task.result["environment_id"])
-                        if task.result["errored_out"]:
+                        task_result = task.result if task.state == "SUCCESS" else None
+
+                        # Handle stuck/revoked/failed tasks via env mapping
+                        if task_result is None or not isinstance(task_result, dict):
+                            env_id = task_env_map.get(task_id)
+                            if env_id is None:
+                                logger.warning("No result or env mapping for task %s (state=%s), skipping", task_id, task.state)
+                                continue
+                            environment = self.db.session.get(Environment, env_id)
+                            if environment is None:
+                                logger.warning("Environment %s not found for timed-out task %s, skipping", env_id, task_id)
+                                continue
+                            logger.warning(
+                                "Task %s stuck/failed (state=%s), marking %s - %s as timed out",
+                                task_id, task.state, environment.service.team.name, environment.service.name,
+                            )
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
+                            full_output = "Task did not complete within the round time limit."
                         else:
-                            try:
-                                matched = re.search(environment.matching_content, task.result["output"])
-                            except re.error:
-                                logger.warning(
-                                    "Invalid regex pattern for environment %s: %r, falling back to literal match",
-                                    environment.id,
-                                    environment.matching_content,
-                                )
-                                matched = environment.matching_content in task.result["output"]
-                            if matched:
-                                # Check reject pattern - if it matches, fail even though content matched
-                                if environment.matching_content_reject:
-                                    try:
-                                        rejected = re.search(environment.matching_content_reject, task.result["output"])
-                                    except re.error:
-                                        logger.warning(
-                                            "Invalid reject regex for environment %s: %r, falling back to literal match",
-                                            environment.id,
-                                            environment.matching_content_reject,
-                                        )
-                                        rejected = environment.matching_content_reject in task.result["output"]
-                                    if rejected:
-                                        result = False
-                                        reason = CHECK_FAILURE_TEXT
+                            environment = self.db.session.get(Environment, task_result["environment_id"])
+                            full_output = task_result["output"]
+                            if task_result["errored_out"]:
+                                result = False
+                                reason = CHECK_TIMED_OUT_TEXT
+                            else:
+                                try:
+                                    matched = re.search(environment.matching_content, task_result["output"])
+                                except re.error:
+                                    logger.warning(
+                                        "Invalid regex pattern for environment %s: %r, falling back to literal match",
+                                        environment.id,
+                                        environment.matching_content,
+                                    )
+                                    matched = environment.matching_content in task_result["output"]
+                                if matched:
+                                    # Check reject pattern - if it matches, fail even though content matched
+                                    if environment.matching_content_reject:
+                                        try:
+                                            rejected = re.search(environment.matching_content_reject, task_result["output"])
+                                        except re.error:
+                                            logger.warning(
+                                                "Invalid reject regex for environment %s: %r, falling back to literal match",
+                                                environment.id,
+                                                environment.matching_content_reject,
+                                            )
+                                            rejected = environment.matching_content_reject in task_result["output"]
+                                        if rejected:
+                                            result = False
+                                            reason = CHECK_FAILURE_TEXT
+                                        else:
+                                            result = True
+                                            reason = CHECK_SUCCESS_TEXT
                                     else:
                                         result = True
                                         reason = CHECK_SUCCESS_TEXT
                                 else:
-                                    result = True
-                                    reason = CHECK_SUCCESS_TEXT
-                            else:
-                                result = False
-                                reason = CHECK_FAILURE_TEXT
+                                    result = False
+                                    reason = CHECK_FAILURE_TEXT
 
                         if environment.service.team.name not in teams:
                             teams[environment.service.team.name] = {
@@ -286,7 +324,6 @@ class Engine(object):
                             teams[environment.service.team.name]["Failed"].append(environment.service.name)
 
                         check = Check(service=environment.service, round=round_obj)
-                        full_output = task.result["output"]
 
                         # Write full output to disk for later retrieval
                         try:
@@ -305,11 +342,12 @@ class Engine(object):
                             logger.warning("Failed to write check output to disk: %s", write_err)
 
                         # Store 5K preview in DB
+                        command = task_result["command"] if task_result else ""
                         check.finished(
                             result=result,
                             reason=reason,
                             output=full_output[:5000],
-                            command=task.result["command"],
+                            command=command,
                         )
                         cleanup_items.append(check)
                         self.db.session.add(check)
