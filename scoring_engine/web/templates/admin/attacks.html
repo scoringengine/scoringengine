@@ -1,0 +1,310 @@
+{% extends 'admin/adminbase.html' %}
+{% block title %}Admin - Attack Log{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
+<link href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" rel="stylesheet" />
+<style>
+  .stat-box {
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .stat-box h3 {
+    margin: 0 0 5px 0;
+    font-size: 28px;
+  }
+  .stat-box small {
+    color: #666;
+  }
+  .correlation-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+  .correlation-card.has-failures {
+    border-left: 4px solid #d9534f;
+  }
+  .correlation-card.no-failures {
+    border-left: 4px solid #5cb85c;
+  }
+  .failure-item {
+    background: #fcf8e3;
+    padding: 5px 10px;
+    margin: 5px 0;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .failure-item.after-capture {
+    background: #f2dede;
+  }
+  .timestamp {
+    font-family: monospace;
+    font-size: 11px;
+    color: #666;
+  }
+</style>
+{% endblock %}
+
+{% block header %}Attack Log & Correlation{% endblock %}
+
+{% block admincontent %}
+<div style="padding-top: 20px;">
+
+  <!-- Summary Stats -->
+  <h4>Attack Summary</h4>
+  <div class="row" id="summary-stats">
+    <div class="col-md-3">
+      <div class="stat-box">
+        <h3 id="stat-total">-</h3>
+        <small>Total Captures</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <h3 id="stat-nix">-</h3>
+        <small>Linux Captures</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <h3 id="stat-win">-</h3>
+        <small>Windows Captures</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <h3 id="stat-root">-</h3>
+        <small>Root/Admin Captures</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Captures by Team -->
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Top Red Teams (Attackers)</h5>
+      <table class="table table-condensed" id="red-team-table">
+        <thead>
+          <tr><th>Team</th><th>Captures</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h5>Most Targeted (Victims)</h5>
+      <table class="table table-condensed" id="victim-table">
+        <thead>
+          <tr><th>Team</th><th>Captures Against</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Attack Timeline -->
+  <h4>Recent Captures</h4>
+  <div class="form-inline" style="margin-bottom: 15px;">
+    <div class="form-group">
+      <label for="filter-team">Filter by Victim Team:</label>
+      <select id="filter-team" class="form-control input-sm">
+        <option value="">All Teams</option>
+        {% for team in blue_teams %}
+        <option value="{{ team.id }}">{{ team.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-sm btn-default" onclick="loadTimeline()">Refresh</button>
+  </div>
+
+  <table id="timeline" class="table table-striped table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Host</th>
+        <th>Red Team</th>
+        <th>Blue Team</th>
+        <th>Platform</th>
+        <th>Permission</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <hr>
+
+  <!-- Attack/Failure Correlation -->
+  <h4>Attack/Failure Correlation</h4>
+  <p class="text-muted">Shows service check failures that occurred within a time window of flag captures,
+    helping identify if a failure was caused by red team activity or self-inflicted.</p>
+
+  <div class="form-inline" style="margin-bottom: 15px;">
+    <div class="form-group">
+      <label for="correlation-window">Time Window:</label>
+      <select id="correlation-window" class="form-control input-sm">
+        <option value="60">1 minute</option>
+        <option value="180">3 minutes</option>
+        <option value="300" selected>5 minutes</option>
+        <option value="600">10 minutes</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-left: 15px;">
+      <label for="correlation-team">Team:</label>
+      <select id="correlation-team" class="form-control input-sm">
+        <option value="">All Teams</option>
+        {% for team in blue_teams %}
+        <option value="{{ team.id }}">{{ team.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-sm btn-primary" onclick="loadCorrelation()">Analyze</button>
+  </div>
+
+  <div id="correlation-summary" class="alert alert-info" style="display: none;">
+    Analyzed <strong id="corr-total">0</strong> captures.
+    <strong id="corr-with-failures">0</strong> had nearby service failures.
+    <strong id="corr-likely-caused">0</strong> likely caused by attack (failure occurred after capture).
+  </div>
+
+  <div id="correlation-results"></div>
+
+</div>
+
+<script>
+$(document).ready(function() {
+  loadSummary();
+  loadTimeline();
+});
+
+function loadSummary() {
+  $.getJSON('/api/attacks/summary', function(data) {
+    $('#stat-total').text(data.total_captures);
+
+    // Platform stats
+    var nixCount = 0, winCount = 0;
+    data.by_platform.forEach(function(p) {
+      if (p.platform === 'nix') nixCount = p.count;
+      if (p.platform === 'win') winCount = p.count;
+    });
+    $('#stat-nix').text(nixCount);
+    $('#stat-win').text(winCount);
+
+    // Root/admin stats
+    var rootCount = 0;
+    data.by_permission.forEach(function(p) {
+      if (p.perm === 'root') rootCount = p.count;
+    });
+    $('#stat-root').text(rootCount);
+
+    // Red team table
+    var redHtml = '';
+    data.by_red_team.forEach(function(t) {
+      redHtml += '<tr><td>' + t.team + '</td><td>' + t.count + '</td></tr>';
+    });
+    $('#red-team-table tbody').html(redHtml || '<tr><td colspan="2">No data</td></tr>');
+
+    // Victim table
+    var victimHtml = '';
+    data.by_victim.forEach(function(t) {
+      victimHtml += '<tr><td>' + t.team + '</td><td>' + t.count + '</td></tr>';
+    });
+    $('#victim-table tbody').html(victimHtml || '<tr><td colspan="2">No data</td></tr>');
+  });
+}
+
+function loadTimeline() {
+  var teamId = $('#filter-team').val();
+  var url = '/api/attacks/timeline?limit=50';
+  if (teamId) url += '&team_id=' + teamId;
+
+  $.getJSON(url, function(data) {
+    var html = '';
+    data.data.forEach(function(capture) {
+      var time = capture.captured_at_local || 'Unknown';
+      var redTeam = capture.red_team ? capture.red_team.name : 'Unknown';
+      var blueTeam = capture.blue_team ? capture.blue_team.name : 'Unknown';
+      var platform = capture.flag ? capture.flag.platform : '-';
+      var perm = capture.flag ? capture.flag.perm : '-';
+
+      var permClass = perm === 'root' ? 'danger' : 'warning';
+
+      html += '<tr>';
+      html += '<td class="timestamp">' + time + '</td>';
+      html += '<td>' + capture.host + '</td>';
+      html += '<td><span class="label label-danger">' + redTeam + '</span></td>';
+      html += '<td><span class="label label-primary">' + blueTeam + '</span></td>';
+      html += '<td>' + platform + '</td>';
+      html += '<td><span class="label label-' + permClass + '">' + perm + '</span></td>';
+      html += '</tr>';
+    });
+
+    $('#timeline tbody').html(html || '<tr><td colspan="6">No captures recorded</td></tr>');
+  });
+}
+
+function loadCorrelation() {
+  var window = $('#correlation-window').val();
+  var teamId = $('#correlation-team').val();
+  var url = '/api/attacks/correlation?window_seconds=' + window + '&limit=30';
+  if (teamId) url += '&team_id=' + teamId;
+
+  $('#correlation-results').html('<p>Loading...</p>');
+
+  $.getJSON(url, function(data) {
+    // Update summary
+    $('#correlation-summary').show();
+    $('#corr-total').text(data.summary.total_captures);
+    $('#corr-with-failures').text(data.summary.captures_with_nearby_failures);
+    $('#corr-likely-caused').text(data.summary.likely_attack_caused_failures);
+
+    // Build results
+    var html = '';
+    data.correlations.forEach(function(corr) {
+      var cardClass = corr.failure_count > 0 ? 'has-failures' : 'no-failures';
+      var capture = corr.capture;
+
+      html += '<div class="correlation-card ' + cardClass + '">';
+      html += '<div class="row">';
+      html += '<div class="col-md-6">';
+      html += '<strong>Capture:</strong> ' + capture.host + ' ';
+      html += '<span class="label label-danger">' + (capture.red_team || 'Unknown') + '</span> ';
+      html += '<span class="label label-default">' + capture.flag_platform + '/' + capture.flag_perm + '</span>';
+      html += '<br><span class="timestamp">' + capture.captured_at + '</span>';
+      html += '</div>';
+      html += '<div class="col-md-6">';
+
+      if (corr.failure_count === 0) {
+        html += '<span class="text-success">No nearby service failures</span>';
+      } else {
+        html += '<strong>' + corr.failure_count + ' failures nearby:</strong>';
+        corr.related_failures.forEach(function(f) {
+          var failClass = f.before_or_after === 'after' ? 'after-capture' : '';
+          var timeLabel = f.seconds_from_capture > 0 ?
+            '+' + f.seconds_from_capture + 's after' :
+            Math.abs(f.seconds_from_capture) + 's before';
+
+          html += '<div class="failure-item ' + failClass + '">';
+          html += '<strong>' + f.service_name + '</strong> (' + f.team_name + ') ';
+          html += '<span class="label label-' + (f.before_or_after === 'after' ? 'danger' : 'warning') + '">' + timeLabel + '</span>';
+          if (f.reason) html += '<br><small>' + f.reason.substring(0, 100) + '</small>';
+          html += '</div>';
+        });
+      }
+
+      html += '</div></div></div>';
+    });
+
+    $('#correlation-results').html(html || '<p class="text-muted">No captures with timestamps available for correlation.</p>');
+  }).fail(function() {
+    $('#correlation-results').html('<p class="text-danger">Error loading correlation data.</p>');
+  });
+}
+</script>
+{% endblock %}

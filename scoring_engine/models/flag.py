@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     ForeignKey,
+    func,
 )
 
 # from sqlalchemy.dialects.postgresql import UUID
@@ -95,5 +96,15 @@ class Solve(Base):
     host = Column(String(260), nullable=False)
     flag_id = Column(String(36), ForeignKey("flags.id"))
     team_id = Column(Integer, ForeignKey("teams.id"))
+    captured_at = Column(DateTime(timezone=True), default=func.now(), nullable=True)
     flag = relationship("Flag", backref="solves", lazy="joined")
     team = relationship("Team", backref="flag_solves", lazy="joined")
+
+    @property
+    def localize_captured_at(self):
+        """Get captured_at timestamp in configured timezone."""
+        if self.captured_at is None:
+            return None
+        return _ensure_utc_aware(self.captured_at).astimezone(
+            pytz.timezone(config.timezone)
+        ).strftime("%Y-%m-%d %H:%M:%S %Z")
