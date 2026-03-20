@@ -20,6 +20,7 @@ def execute_command(job):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             timeout=30,
+            start_new_session=True,
         )
         output = cmd_result.stdout.decode("utf-8")
         job["errored_out"] = False

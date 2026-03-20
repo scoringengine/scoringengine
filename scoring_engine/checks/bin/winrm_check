@@ -25,7 +25,7 @@ commands = sys.argv[4].split(";")
 
 def connect_and_execute(host, username, password, command):
     try:
-        s = winrm.Session(host, auth=(username, password), transport="ntlm")
+        s = winrm.Session(host, auth=(username, password), transport="ntlm", read_timeout_sec=15, operation_timeout_sec=10)
         split = command.split(" ")
         if len(split) == 1:
             r = s.run_cmd(split[0], [])
