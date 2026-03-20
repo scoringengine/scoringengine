@@ -2,6 +2,7 @@ import html
 import json
 import os
 import re
+import time
 from datetime import datetime, timezone
 
 import pytz
@@ -1573,28 +1574,70 @@ def admin_rollback():
             {"status": "error", "message": f"round_number ({round_number}) exceeds current round ({current_round})"}
         ), 400
 
-    # Get rounds to delete
-    rounds_to_delete = db.session.query(Round).filter(Round.number >= round_number).all()
-    round_ids = [r.id for r in rounds_to_delete]
+    # Pause the engine to prevent race conditions during rollback
+    was_paused = Setting.get_setting("engine_paused").value
+    if not was_paused:
+        setting = Setting.get_setting("engine_paused")
+        setting.value = True
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("engine_paused")
+        # Wait for the engine to finish its current round and notice the pause
+        time.sleep(5)
 
-    # Count checks to delete
-    checks_count = db.session.query(Check).filter(Check.round_id.in_(round_ids)).count()
+    try:
+        # Revoke any pending Celery tasks for rounds being rolled back
+        task_kb_entries = (
+            db.session.query(KB)
+            .filter(KB.round_num >= round_number, KB.name == "task_ids")
+            .all()
+        )
+        revoked_count = 0
+        for kb_entry in task_kb_entries:
+            try:
+                task_dict = json.loads(kb_entry.value)
+                for team_name, task_id_list in task_dict.items():
+                    for task_id in task_id_list:
+                        execute_command.AsyncResult(task_id).revoke(terminate=True)
+                        revoked_count += 1
+            except (json.JSONDecodeError, TypeError):
+                pass
 
-    # Count KB entries to delete
-    kb_count = db.session.query(KB).filter(KB.round_num >= round_number).count()
+        # Get rounds to delete
+        rounds_to_delete = db.session.query(Round).filter(Round.number >= round_number).all()
+        round_ids = [r.id for r in rounds_to_delete]
 
-    # Delete checks first (foreign key constraint)
-    db.session.query(Check).filter(Check.round_id.in_(round_ids)).delete(synchronize_session=False)
+        # Count checks to delete
+        checks_count = db.session.query(Check).filter(Check.round_id.in_(round_ids)).count()
 
-    # Delete KB entries
-    db.session.query(KB).filter(KB.round_num >= round_number).delete(synchronize_session=False)
+        # Count KB entries to delete
+        kb_count = db.session.query(KB).filter(KB.round_num >= round_number).count()
 
-    # Delete rounds
-    rounds_count = len(rounds_to_delete)
-    for round_obj in rounds_to_delete:
-        db.session.delete(round_obj)
+        # Delete checks in batches to avoid lock wait timeout
+        BATCH_SIZE = 500
+        for i in range(0, len(round_ids), BATCH_SIZE):
+            batch_ids = round_ids[i : i + BATCH_SIZE]
+            db.session.query(Check).filter(Check.round_id.in_(batch_ids)).delete(synchronize_session=False)
+            db.session.commit()
 
-    db.session.commit()
+        # Delete KB entries
+        db.session.query(KB).filter(KB.round_num >= round_number).delete(synchronize_session=False)
+        db.session.commit()
+
+        # Delete rounds
+        rounds_count = len(rounds_to_delete)
+        db.session.query(Round).filter(Round.number >= round_number).delete(synchronize_session=False)
+        db.session.commit()
+
+    finally:
+        # Unpause engine if we paused it (even on error)
+        if not was_paused:
+            Setting.clear_cache("engine_paused")
+            setting = Setting.get_setting("engine_paused")
+            setting.value = False
+            db.session.add(setting)
+            db.session.commit()
+            Setting.clear_cache("engine_paused")
 
     # Clear all caches to force recalculation
     from flask import current_app

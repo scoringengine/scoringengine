@@ -1,6 +1,7 @@
 """Tests for the score rollback API endpoints."""
 
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 
@@ -9,11 +10,18 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 
 
 class TestScoreRollback:
+    @pytest.fixture(autouse=True)
+    def mock_sleep(self):
+        """Mock time.sleep so rollback's engine-pause wait doesn't slow tests."""
+        with patch("scoring_engine.web.views.api.admin.time.sleep"):
+            yield
+
     @pytest.fixture(autouse=True)
     def setup(self, test_client, db_session):
         self.client = test_client
@@ -198,3 +206,38 @@ class TestScoreRollback:
 
         resp = self.client.post("/api/admin/rollback", json={"round_number": -1, "confirm": True})
         assert resp.status_code == 400
+
+    def test_rollback_unpauses_engine_after_completion(self):
+        """Rollback should pause engine during operation and restore original pause state."""
+        self.create_rounds(5)
+        self.login_white_team()
+
+        # Engine should not be paused before rollback
+        Setting.clear_cache("engine_paused")
+        assert not Setting.get_setting("engine_paused").value
+
+        resp = self.client.post("/api/admin/rollback", json={"round_number": 3, "confirm": True})
+        assert resp.status_code == 200
+
+        # Engine should be unpaused after rollback completes
+        Setting.clear_cache("engine_paused")
+        assert not Setting.get_setting("engine_paused").value
+
+    def test_rollback_preserves_already_paused_state(self):
+        """If engine was already paused, rollback should leave it paused."""
+        self.create_rounds(5)
+        self.login_white_team()
+
+        # Pause the engine first
+        setting = Setting.get_setting("engine_paused")
+        setting.value = True
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("engine_paused")
+
+        resp = self.client.post("/api/admin/rollback", json={"round_number": 3, "confirm": True})
+        assert resp.status_code == 200
+
+        # Engine should still be paused (not unpaused by rollback)
+        Setting.clear_cache("engine_paused")
+        assert Setting.get_setting("engine_paused").value

@@ -172,6 +172,16 @@ class Engine(object):
                 self.sleep(pause_duration)
                 continue
 
+            # Re-sync round counter from DB (handles rollback while paused or between rounds)
+            db_round = Round.get_last_round_num()
+            if db_round < self.current_round:
+                logger.warning(
+                    "Round rollback detected: engine was at round %d, DB says %d. Re-syncing.",
+                    self.current_round,
+                    db_round,
+                )
+                self.current_round = db_round
+
             self.current_round += 1
             logger.info("Running round: " + str(self.current_round))
             round_start_time = datetime.now()
