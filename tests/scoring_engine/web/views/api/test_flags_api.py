@@ -575,3 +575,165 @@ class TestFlagsAPI:
         team2_entry = next(e for e in data if e["team"] == "Blue Team 2")
         assert team1_entry["total_score"] == 1
         assert team2_entry["total_score"] == 0
+
+    def test_api_flags_totals_many_rounds_accumulate(self):
+        """Regression: scores must grow linearly across many flag rounds.
+
+        This catches the bug where COUNT(*) was in the wrong subquery,
+        causing scores to stop accumulating after several rounds.
+        """
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        db.session.add(service)
+        db.session.flush()
+
+        # Simulate 8 flag rounds on the same host, each with a root-level capture
+        base = datetime.now(timezone.utc) - timedelta(hours=10)
+        flags = []
+        for i in range(8):
+            flag = Flag(
+                type=FlagTypeEnum.file,
+                platform=Platform.nix,
+                perm=Perm.root,
+                data={"path": f"/round{i}", "content": "test"},
+                start_time=base + timedelta(hours=i),
+                end_time=base + timedelta(hours=i, minutes=30),
+                dummy=False,
+            )
+            flags.append(flag)
+
+        db.session.add_all(flags)
+        db.session.flush()
+
+        solves = [Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=f.id) for f in flags]
+        db.session.add_all(solves)
+        db.session.commit()
+
+        self.login("reduser")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+        # 8 root captures × 1.0 each = 8.0
+        assert team1_entry["nix_score"] == 8.0
+        assert team1_entry["total_score"] == 8.0
+
+    def test_api_flags_totals_many_rounds_user_only(self):
+        """Verify user-level scoring accumulates correctly across many rounds."""
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        db.session.add(service)
+        db.session.flush()
+
+        base = datetime.now(timezone.utc) - timedelta(hours=10)
+        flags = []
+        for i in range(6):
+            flag = Flag(
+                type=FlagTypeEnum.file,
+                platform=Platform.windows,
+                perm=Perm.user,
+                data={"path": f"C:\\round{i}", "content": "test"},
+                start_time=base + timedelta(hours=i),
+                end_time=base + timedelta(hours=i, minutes=30),
+                dummy=False,
+            )
+            flags.append(flag)
+
+        db.session.add_all(flags)
+        db.session.flush()
+
+        solves = [Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=f.id) for f in flags]
+        db.session.add_all(solves)
+        db.session.commit()
+
+        self.login("reduser")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+        # 6 user captures × 0.5 each = 3.0
+        assert team1_entry["win_score"] == 3.0
+        assert team1_entry["total_score"] == 3.0
+
+    def test_api_flags_totals_multi_host_multi_round(self):
+        """Scores accumulate correctly across multiple hosts and rounds."""
+        service1 = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        service2 = Service(name="Host2", check_name="AgentCheck", host="192.168.1.20", team=self.blue_team1, port=0)
+        db.session.add_all([service1, service2])
+        db.session.flush()
+
+        base = datetime.now(timezone.utc) - timedelta(hours=10)
+        flags = []
+        solves_data = []
+
+        # 4 rounds, alternating hosts, mix of root and user
+        for i in range(4):
+            host = "192.168.1.10" if i % 2 == 0 else "192.168.1.20"
+            perm = Perm.root if i < 2 else Perm.user
+            flag = Flag(
+                type=FlagTypeEnum.file,
+                platform=Platform.nix,
+                perm=perm,
+                data={"path": f"/r{i}", "content": "test"},
+                start_time=base + timedelta(hours=i),
+                end_time=base + timedelta(hours=i, minutes=30),
+                dummy=False,
+            )
+            flags.append(flag)
+            solves_data.append(host)
+
+        db.session.add_all(flags)
+        db.session.flush()
+
+        solves = [
+            Solve(host=solves_data[i], team_id=self.blue_team1.id, flag_id=flags[i].id) for i in range(4)
+        ]
+        db.session.add_all(solves)
+        db.session.commit()
+
+        self.login("reduser")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+        # Round 0: host1, root = 1.0
+        # Round 1: host2, root = 1.0
+        # Round 2: host1, user = 0.5
+        # Round 3: host2, user = 0.5
+        # Total: 3.0
+        assert team1_entry["nix_score"] == 3.0
+        assert team1_entry["total_score"] == 3.0
+
+    def test_api_flags_totals_expired_flags_still_counted(self):
+        """Expired flags (end_time in the past) must still count toward totals."""
+        service = Service(name="Host1", check_name="AgentCheck", host="192.168.1.10", team=self.blue_team1, port=0)
+        db.session.add(service)
+        db.session.flush()
+
+        # All flags are expired (end_time in the past)
+        base = datetime.now(timezone.utc) - timedelta(hours=10)
+        flags = []
+        for i in range(4):
+            flag = Flag(
+                type=FlagTypeEnum.file,
+                platform=Platform.nix,
+                perm=Perm.root,
+                data={"path": f"/old{i}", "content": "test"},
+                start_time=base + timedelta(hours=i),
+                end_time=base + timedelta(hours=i, minutes=30),
+                dummy=False,
+            )
+            flags.append(flag)
+
+        db.session.add_all(flags)
+        db.session.flush()
+
+        solves = [Solve(host="192.168.1.10", team_id=self.blue_team1.id, flag_id=f.id) for f in flags]
+        db.session.add_all(solves)
+        db.session.commit()
+
+        self.login("reduser")
+        resp = self.client.get("/api/flags/totals")
+        data = resp.json["data"]
+
+        team1_entry = next(e for e in data if e["team"] == "Blue Team 1")
+        assert team1_entry["nix_score"] == 4.0
+        assert team1_entry["total_score"] == 4.0
