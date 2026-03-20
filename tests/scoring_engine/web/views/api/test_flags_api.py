@@ -294,7 +294,7 @@ class TestFlagsAPI:
 
         assert len(data["rows"]) >= 1
 
-    # Totals Tests (Complex SQL)
+    # Totals Tests
     def test_api_flags_totals_empty(self):
         """Test totals with no flags or solves"""
         self.login("reduser")

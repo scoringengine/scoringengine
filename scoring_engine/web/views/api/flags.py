@@ -127,62 +127,67 @@ def api_flags_totals():
     if not current_user.is_red_team and not current_user.is_white_team:
         return jsonify({"status": "Unauthorized"}), 403
 
-    totals = {}  # [ Team0, Win Score, Nix Score ]
+    totals = {}
     blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
     for blue_team in blue_teams:
         totals[blue_team.name] = [blue_team.name, 0, 0]
 
-    for platform_enum in [Platform.windows, Platform.nix]:
-        # Subquery 1: Determine permission level per (team, host, start_time)
-        # If root perm exists in the group, level is "root"; otherwise "user"
-        subquery1 = (
-            db.session.query(
-                Solve.team_id,
-                Solve.host,
-                case(
-                    (func.max(case((Flag.perm == Perm.root, 1), else_=0)) == 1, "root"),
-                    else_="user",
-                ).label("level"),
-            )
-            .join(Flag, Flag.id == Solve.flag_id)
-            .filter(Flag.platform == platform_enum)
-            .group_by(Solve.team_id, Flag.platform, Solve.host, Flag.start_time)
-            .subquery()
+    # Subquery 1: Determine permission level per (team, platform, host, start_time).
+    # If any root perm exists in the group → "root", otherwise → "user".
+    perm_levels = (
+        db.session.query(
+            Solve.team_id,
+            Flag.platform,
+            Solve.host,
+            case(
+                (func.max(case((Flag.perm == Perm.root, 1), else_=0)) == 1, "root"),
+                else_="user",
+            ).label("level"),
         )
+        .join(Flag, Flag.id == Solve.flag_id)
+        .group_by(Solve.team_id, Flag.platform, Solve.host, Flag.start_time)
+        .subquery()
+    )
 
-        # Subquery 2: Compute red_amt based on level
-        subquery2 = (
-            db.session.query(
-                (subquery1.c.team_id).label("BlueTeamId"),
-                case(
-                    (subquery1.c.level == "user", 0.5 * func.count()),
-                    else_=1 * func.count(),
-                ).label("red_amt"),
-            )
-            .group_by(subquery1.c.team_id, subquery1.c.level)
-            .order_by(subquery1.c.team_id, subquery1.c.level.desc())
-            .subquery()
+    # Subquery 2: Score each (team, platform, level) group.
+    # COUNT(*) counts distinct (host, start_time) combinations per level.
+    # user → 0.5 per combo, root → 1.0 per combo.
+    scores = (
+        db.session.query(
+            perm_levels.c.team_id,
+            perm_levels.c.platform,
+            case(
+                (perm_levels.c.level == "user", 0.5 * func.count()),
+                else_=1.0 * func.count(),
+            ).label("red_amt"),
         )
+        .group_by(perm_levels.c.team_id, perm_levels.c.platform, perm_levels.c.level)
+        .subquery()
+    )
 
-        # Final Query: Sum red_amt per BlueTeamId
-        final_query = (
-            db.session.query(
-                Team.name.label("BlueTeam"),
-                func.sum(subquery2.c.red_amt).label("RedScore"),
-            )
-            .join(Team, subquery2.c.BlueTeamId == Team.id)
-            .group_by(subquery2.c.BlueTeamId)
-            .order_by(func.sum(subquery2.c.red_amt))
+    # Final: Sum scores per (team, platform) and join to team names.
+    results = (
+        db.session.query(
+            Team.name.label("BlueTeam"),
+            scores.c.platform,
+            func.sum(scores.c.red_amt).label("RedScore"),
         )
+        .join(Team, scores.c.team_id == Team.id)
+        .group_by(scores.c.team_id, scores.c.platform)
+        .order_by(func.sum(scores.c.red_amt))
+        .all()
+    )
 
-        # Execute Query
-        results = final_query.all()
-
-        for row in results:
-            if platform_enum == Platform.windows:
-                totals[row.BlueTeam][1] = row.RedScore
-            elif platform_enum == Platform.nix:
-                totals[row.BlueTeam][2] = row.RedScore
+    for row in results:
+        team_name = row[0]
+        platform = row[1]
+        score = float(row[2])
+        if team_name not in totals:
+            continue
+        if platform in (Platform.windows, "windows", "win"):
+            totals[team_name][1] = score
+        elif platform in (Platform.nix, "nix"):
+            totals[team_name][2] = score
 
     data = []
     for team in totals.values():
