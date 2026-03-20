@@ -182,6 +182,34 @@ class TestStatsAPI:
         assert data["summary"]["HTTP"]["down"] == 1
         assert data["summary"]["HTTP"]["total"] == 3
 
+    def test_stats_api_white_team_all_down_multi_team(self):
+        """White team view: all services down across multiple teams shows 0 up."""
+        # Create same-named services for both blue teams
+        services = []
+        for team in [self.blue_team, self.blue_team2]:
+            for name in ["SSH", "HTTP", "DNS"]:
+                svc = Service(name=name, check_name=f"{name} Check", host="10.0.0.1", team=team)
+                db.session.add(svc)
+                services.append(svc)
+        db.session.commit()
+
+        # All checks fail
+        self._create_round_with_checks(1, services, [False] * len(services))
+
+        self.login("whiteuser")
+        resp = self.client.get("/api/stats")
+        data = resp.json
+
+        assert len(data["data"]) == 1
+        round_data = data["data"][0]
+        assert round_data["num_up_services"] == 0
+        assert round_data["num_down_services"] == 6  # 3 services * 2 teams
+
+        # Verify per-service breakdown
+        for svc_name in ["SSH", "HTTP", "DNS"]:
+            assert round_data["service_breakdown"][svc_name]["up"] == 0
+            assert round_data["service_breakdown"][svc_name]["down"] == 2  # 2 teams
+
     # --- Empty State Test ---
 
     def test_stats_api_no_rounds(self):

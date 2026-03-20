@@ -5,7 +5,6 @@ from functools import wraps
 import pytz
 from flask import jsonify, request
 from flask_login import current_user, login_required
-from sqlalchemy import desc
 from sqlalchemy.sql import case, func
 
 from scoring_engine.cache import cache
@@ -53,24 +52,24 @@ def _build_stats_query(team_id=None):
     last_round = Round.get_last_round_num()
     query = (
         db.session.query(
-            Round.id.label("round_id"),
+            Round.number.label("round_id"),
             Round.round_start,
             Round.round_end,
             Service.name.label("service_name"),
-            func.sum(case((Check.result == True, 1), else_=0)).label("num_successful_checks"),
-            func.sum(case((Check.result == False, 1), else_=0)).label("num_unsuccessful_checks"),
+            func.sum(case((Check.result.is_(True), 1), else_=0)).label("num_successful_checks"),
+            func.sum(case((Check.result.is_(False), 1), else_=0)).label("num_unsuccessful_checks"),
         )
-        .outerjoin(Check, Round.id == Check.round_id)
+        .join(Check, Round.id == Check.round_id)
         .join(Service, Check.service_id == Service.id)
-        .filter(Round.id <= last_round)
+        .filter(Round.number <= last_round)
     )
 
     if team_id is not None:
         query = query.filter(Service.team_id == team_id)
 
     return (
-        query.group_by(Round.id, Round.round_start, Round.round_end, Service.name)
-        .order_by(Round.id.desc(), Service.name)
+        query.group_by(Round.number, Round.round_start, Round.round_end, Service.name)
+        .order_by(Round.number.desc(), Service.name)
         .all()
     )
 
