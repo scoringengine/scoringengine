@@ -384,6 +384,7 @@ def admin_get_check_full_output(check_id):
         service_name = check.service.name
         round_num = check.round.number
 
+        # Try disk file first, fall back to DB output
         output_path = os.path.join(
             config.check_output_folder,
             team_name,
@@ -391,11 +392,11 @@ def admin_get_check_full_output(check_id):
             f"round_{round_num}.txt",
         )
 
-        if not os.path.isfile(output_path):
-            return jsonify({"error": "Full output file not found"}), 404
-
-        with open(output_path, "r") as f:
-            content = f.read()
+        if os.path.isfile(output_path):
+            with open(output_path, "r") as f:
+                content = f.read()
+        else:
+            content = check.output or ""
 
         return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
     return {"status": "Unauthorized"}, 403
