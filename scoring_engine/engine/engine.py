@@ -26,6 +26,7 @@ from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.kb import KB
 from scoring_engine.models.round import Round
+from scoring_engine.models.property import Property
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 
@@ -201,9 +202,12 @@ class Engine(object):
             self.round_running = True
             self.rounds_run += 1
 
-            # Eager-load environments to avoid N+1 queries (one per service)
-            # Service.team is already lazy="joined" so it comes for free
-            services = self.db.session.query(Service).options(selectinload(Service.environments)).all()[:]
+            # Eager-load environments, properties, and accounts to avoid N+1 queries.
+            # Service.team is already lazy="joined" so it comes for free.
+            services = self.db.session.query(Service).options(
+                selectinload(Service.environments).selectinload(Environment.properties),
+                selectinload(Service.accounts),
+            ).all()[:]
             logger.info("Loaded %d services from database", len(services))
             random.shuffle(services)
             jitter_max = self.config.task_jitter_max_delay
