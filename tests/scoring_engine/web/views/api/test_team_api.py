@@ -9,6 +9,7 @@ from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.web.views.api.team import calculate_ranks
 
@@ -200,6 +201,34 @@ class TestTeamServicesAPI:
         resp = self.client.get(f"/api/team/{self.blue_team.id}/services")
         data = resp.get_json()["data"]
         assert len(data) == 2
+
+    def test_dynamic_scoring_enabled(self):
+        """When dynamic scoring is enabled, scores use round multipliers."""
+        setting = Setting.get_setting("dynamic_scoring_enabled")
+        setting.value = True
+        db.session.commit()
+        Setting.clear_cache("dynamic_scoring_enabled")
+
+        service = self._create_service(self.blue_team, name="SSH", host="10.0.0.1", port=22)
+        service.points = 100
+        db.session.commit()
+
+        # Create rounds in early phase (default early_multiplier=2.0, early_rounds=10)
+        for i in range(1, 4):
+            r = Round(number=i)
+            db.session.add(r)
+            db.session.flush()
+            check = Check(service=service, round=r, result=True, output="OK")
+            db.session.add(check)
+        db.session.commit()
+
+        self.login(self.blue_user.username)
+        resp = self.client.get(f"/api/team/{self.blue_team.id}/services")
+        data = resp.get_json()["data"]
+        assert len(data) == 1
+        # With 2.0 multiplier, 3 checks * 100pts * 2.0 = 600
+        assert data[0]["score_earned"] == "600"
+        assert data[0]["max_score"] == "600"
 
 
 class TestTeamServicesStatusAPI:

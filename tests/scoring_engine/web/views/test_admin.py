@@ -1,6 +1,9 @@
+from datetime import datetime, timezone
+
 import pytest
 
 from scoring_engine.db import db
+from scoring_engine.models.inject import Inject, Template
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
@@ -13,6 +16,11 @@ ADMIN_PATHS = [
     "/admin/manage",
     "/admin/permissions",
     "/admin/settings",
+    "/admin/injects/templates",
+    "/admin/injects/scores",
+    "/admin/announcements",
+    "/admin/welcome",
+    "/admin/sla",
 ]
 
 
@@ -78,5 +86,63 @@ class TestAdmin:
         db.session.commit()
         self.client.post("/login", data={"username": "testuser_red", "password": "testpass_red"})
         resp = self.client.get("/admin/service/3")
+        assert resp.status_code == 302
+        assert "unauthorized" in str(resp.data)
+
+    def test_inject_detail_auth_and_access(self):
+        blue_team = Team(name="Blue Team", color="Blue")
+        db.session.add(blue_team)
+        db.session.flush()
+        template = Template(
+            title="Test",
+            scenario="Test scenario",
+            deliverable="Test deliverable",
+            start_time=datetime.now(timezone.utc),
+            end_time=datetime.now(timezone.utc),
+        )
+        db.session.add(template)
+        db.session.flush()
+        inject = Inject(team=blue_team, template=template)
+        db.session.add(inject)
+        db.session.commit()
+
+        # Requires auth
+        resp = self.client.get(f"/admin/injects/{inject.id}")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+        # White team can access
+        resp = self._auth_and_get_path(f"/admin/injects/{inject.id}")
+        assert resp.status_code == 200
+
+    def test_inject_detail_unauthorized_non_white(self):
+        red_team = Team(name="Red Team", color="Red")
+        db.session.add(red_team)
+        user = User(username="testuser_red2", password="testpass_red", team=red_team)
+        db.session.add(user)
+        db.session.commit()
+        self.client.post("/login", data={"username": "testuser_red2", "password": "testpass_red"})
+        resp = self.client.get("/admin/injects/1")
+        assert resp.status_code == 302
+        assert "unauthorized" in str(resp.data)
+
+    def test_template_submissions_auth_and_access(self):
+        # Requires auth
+        resp = self.client.get("/admin/injects/template/1/submissions")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+
+        # White team can access
+        resp = self._auth_and_get_path("/admin/injects/template/1/submissions")
+        assert resp.status_code == 200
+
+    def test_template_submissions_unauthorized_non_white(self):
+        red_team = Team(name="Red Team", color="Red")
+        db.session.add(red_team)
+        user = User(username="testuser_red3", password="testpass_red", team=red_team)
+        db.session.add(user)
+        db.session.commit()
+        self.client.post("/login", data={"username": "testuser_red3", "password": "testpass_red"})
+        resp = self.client.get("/admin/injects/template/1/submissions")
         assert resp.status_code == 302
         assert "unauthorized" in str(resp.data)
