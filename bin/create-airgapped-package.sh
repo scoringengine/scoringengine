@@ -19,6 +19,22 @@ PACKAGE_DIR="scoringengine-airgapped"
 IMAGES_DIR="${PACKAGE_DIR}/docker-images"
 OUTPUT_ARCHIVE="scoringengine-airgapped.tar.gz"
 
+# Load versions from .env.example (can be overridden by .env or environment)
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+    # shellcheck source=/dev/null
+    source "${SCRIPT_DIR}/.env"
+elif [ -f "${SCRIPT_DIR}/.env.example" ]; then
+    # shellcheck source=/dev/null
+    source "${SCRIPT_DIR}/.env.example"
+fi
+
+# Image versions — defaults match .env.example
+PYTHON_VERSION="${PYTHON_VERSION:-3.14.3-slim-bookworm}"
+REDIS_VERSION="${REDIS_VERSION:-7.0.4}"
+MARIADB_VERSION="${MARIADB_VERSION:-10}"
+NGINX_VERSION="${NGINX_VERSION:-1.27.3-alpine3.20-slim}"
+
 echo -e "${GREEN}=== Scoring Engine Airgapped Package Creator ===${NC}"
 echo ""
 echo "This script will create a complete airgapped deployment package."
@@ -76,17 +92,17 @@ mkdir -p "${IMAGES_DIR}"
 echo ""
 echo -e "${GREEN}Step 3: Exporting base Docker images...${NC}"
 
-echo "  - Exporting python:3.14.1-slim-bookworm..."
-docker save python:3.14.1-slim-bookworm -o "${IMAGES_DIR}/python-base.tar"
+echo "  - Exporting python:${PYTHON_VERSION}..."
+docker save "python:${PYTHON_VERSION}" -o "${IMAGES_DIR}/python-base.tar"
 
-echo "  - Exporting redis:7.0.4..."
-docker save redis:7.0.4 -o "${IMAGES_DIR}/redis.tar"
+echo "  - Exporting redis:${REDIS_VERSION}..."
+docker save "redis:${REDIS_VERSION}" -o "${IMAGES_DIR}/redis.tar"
 
-echo "  - Exporting mariadb:10..."
-docker save mariadb:10 -o "${IMAGES_DIR}/mariadb.tar"
+echo "  - Exporting mariadb:${MARIADB_VERSION}..."
+docker save "mariadb:${MARIADB_VERSION}" -o "${IMAGES_DIR}/mariadb.tar"
 
-echo "  - Exporting nginx:1.23.1..."
-docker save nginx:1.23.1 -o "${IMAGES_DIR}/nginx.tar"
+echo "  - Exporting nginx:${NGINX_VERSION}..."
+docker save "nginx:${NGINX_VERSION}" -o "${IMAGES_DIR}/nginx.tar"
 
 # Step 4: Export application images
 echo ""
@@ -161,7 +177,7 @@ echo ""
 echo "All images loaded successfully!"
 echo ""
 echo "Loaded images:"
-docker images | grep -E "(scoringengine|redis|mariadb|nginx|python)" | grep -E "(3.14.1-slim-bookworm|7.0.4|10|1.23.1|latest)"
+docker images | grep -E "(scoringengine|redis|mariadb|nginx|python)"
 
 echo ""
 echo "Next steps:"
@@ -303,10 +319,10 @@ DOCKER IMAGES:
 --------------
 
 Base Images:
-  - python:3.14.1-slim-bookworm
-  - redis:7.0.4
-  - mariadb:10
-  - nginx:1.23.1
+  - python:${PYTHON_VERSION}
+  - redis:${REDIS_VERSION}
+  - mariadb:${MARIADB_VERSION}
+  - nginx:${NGINX_VERSION}
 
 Application Images:
   - scoringengine/base

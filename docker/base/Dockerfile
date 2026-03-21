@@ -1,44 +1,48 @@
+# syntax=docker/dockerfile:1
 # Stage 1: Builder — compile C extensions into a venv
-FROM python:3.14.3-slim-bookworm AS builder
+ARG PYTHON_VERSION=3.14.3-slim-bookworm
+FROM python:${PYTHON_VERSION} AS builder
 
-RUN set -eux; \
-  apt-get update; \
-  apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    libssl-dev \
-    pkg-config \
-    libmariadb-dev-compat \
-    libmariadb-dev \
-  ; \
-  rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,id=apt-cache-builder,target=/var/cache/apt \
+    --mount=type=cache,id=apt-lists-builder,target=/var/lib/apt/lists \
+    set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      gcc \
+      libmariadb-dev \
+      libmariadb-dev-compat \
+      libssl-dev \
+      pkg-config
 
 RUN python3 -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 
 # Install deps first (cached until pyproject.toml changes)
 COPY pyproject.toml /tmp/pyproject.toml
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir $(python3 -c "\
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip setuptools wheel && \
+    pip install $(python3 -c "\
 import tomllib, pathlib; \
 d = tomllib.loads(pathlib.Path('/tmp/pyproject.toml').read_text()); \
 print(' '.join(d['project']['dependencies']))")
 
 # Stage 2: Runtime — slim image with only runtime libs
-FROM python:3.14.3-slim-bookworm
+ARG PYTHON_VERSION=3.14.3-slim-bookworm
+FROM python:${PYTHON_VERSION}
 
-RUN set -eux; \
-  useradd -m engine; \
-  apt-get update; \
-  apt-get install -y --no-install-recommends \
-    curl \
-    libssl3 \
-    libmariadb3 \
-    iputils-ping \
-  ; \
-  rm -rf /var/lib/apt/lists/* && \
-  mkdir /app && \
-  chown engine:engine /app
+RUN --mount=type=cache,id=apt-cache-runtime,target=/var/cache/apt \
+    --mount=type=cache,id=apt-lists-runtime,target=/var/lib/apt/lists \
+    set -eux; \
+    useradd -m -u 1000 engine; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      curl \
+      iputils-ping \
+      libmariadb3 \
+      libssl3 \
+    && mkdir /app \
+    && chown engine:engine /app
 
 COPY --from=builder --chown=engine:engine /opt/venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
@@ -53,4 +57,5 @@ USER engine
 COPY --chown=engine:engine scoring_engine /app/scoring_engine
 
 # Fast — deps already in venv, just creates egg-link
-RUN pip install --no-cache-dir -e .
+RUN --mount=type=cache,target=/home/engine/.cache/pip \
+    pip install -e .

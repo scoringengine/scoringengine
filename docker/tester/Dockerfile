@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM scoringengine/base
 
 USER root
@@ -15,8 +16,12 @@ RUN \
 
 USER engine
 
-COPY scoring_engine /app/scoring_engine
-RUN pip install -e .
-COPY tests /app/tests
-RUN pip install -r /app/tests/requirements.txt
+# Install test deps BEFORE copying tests for better layer caching
+COPY tests/requirements.txt /tmp/test-requirements.txt
+RUN --mount=type=cache,target=/home/engine/.cache/pip \
+    pip install -r /tmp/test-requirements.txt
 
+COPY scoring_engine /app/scoring_engine
+RUN --mount=type=cache,target=/home/engine/.cache/pip \
+    pip install -e .
+COPY tests /app/tests

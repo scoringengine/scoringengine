@@ -1,7 +1,7 @@
 ---
 services:
   redis:
-    image: "redis:7.0.4"
+    image: "redis:${REDIS_VERSION:-7.0.4}"
     command: ["redis-server", "--save", ""]
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
@@ -16,7 +16,7 @@ services:
     # ports:
     #   - 6379:6379
   mysql:
-    image: mariadb:10
+    image: "mariadb:${MARIADB_VERSION:-10}"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-CHANGEME}
       - MYSQL_DATABASE=scoring_engine
@@ -35,7 +35,7 @@ services:
     # ports:
     #   - 3306:3306
   nginx:
-    image: nginx:1.23.1
+    image: "nginx:${NGINX_VERSION:-1.27.3-alpine3.20-slim}"
     depends_on:
       web:
         condition: service_healthy
@@ -60,6 +60,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/base/Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.14.3-slim-bookworm}
       cache_from:
         - scoringengine/base
         - base:latest
