@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="midnight" data-bs-theme="dark">
 <script>
-  // Apply saved theme immediately to prevent flash (always dark mode)
+  // Apply saved theme immediately to prevent flash
   (function() {
     var t = localStorage.getItem('se-theme') || 'midnight';
+    var mode = t === 'daylight' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.setAttribute('data-bs-theme', mode);
   })();
 </script>
 <head>
@@ -74,7 +76,9 @@
 
       // Theme picker logic
       function setVisualTheme(themeId) {
+        var mode = themeId === 'daylight' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', themeId);
+        document.documentElement.setAttribute('data-bs-theme', mode);
         localStorage.setItem('se-theme', themeId);
         updateThemePickerUI();
       }
@@ -188,6 +192,12 @@
                   <i class="bi bi-palette"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" id="theme-picker-menu">
+                  <li><a class="dropdown-item theme-option" href="#" data-theme="daylight">
+                    <span class="theme-swatch" style="background:#f8f9fa; border-color:#c0c3c8"></span>
+                    Daylight
+                    <i class="bi bi-check2 theme-check d-none"></i>
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item theme-option" href="#" data-theme="midnight">
                     <span class="theme-swatch" style="background:#0a0a0a"></span>
                     Midnight Clean
