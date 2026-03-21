@@ -30,5 +30,9 @@ def execute_command(job):
             output = e.output.decode("utf-8", errors="replace")
     except SoftTimeLimitExceeded:
         job["errored_out"] = True
-    job["output"] = output
+    # Cap output stored in Redis to avoid bloating Celery result backend.
+    # Large outputs (e.g. full HTML pages from HTTP checks) cause massive
+    # serialization overhead on every AsyncResult.state/.result call.
+    MAX_OUTPUT = 10000
+    job["output"] = output[:MAX_OUTPUT]
     return job
