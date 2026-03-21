@@ -1,91 +1,82 @@
-from tests.scoring_engine.web.web_test import WebTest
+import pytest
+
+from scoring_engine.db import db
+from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
-from scoring_engine.models.service import Service
+
+ADMIN_PATHS = [
+    "/admin",
+    "/admin/status",
+    "/admin/workers",
+    "/admin/queues",
+    "/admin/manage",
+    "/admin/permissions",
+    "/admin/settings",
+]
 
 
-class TestAdmin(WebTest):
-    def setup_method(self):
-        super(TestAdmin, self).setup_method()
-        user = self.create_default_user()
-        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host='127.0.0.1', team=user.team)
-        self.session.add(service)
-        self.session.commit()
+class TestAdmin:
 
-    def unauthorized_admin_test(self, path):
-        red_team = Team(name="Red Team", color="Red")
-        self.session.add(red_team)
-        user = User(username="testuser_red", password="testpass_red", team=red_team)
-        self.session.add(user)
-        self.session.commit()
-        self.login('testuser_red', 'testpass_red')
+    @pytest.fixture(autouse=True)
+    def setup(self, test_client, db_session):
+        self.client = test_client
+        team = Team(name="Team 1", color="White")
+        db.session.add(team)
+        user = User(username="testuser", password="testpass", team=team)
+        db.session.add(user)
+        db.session.commit()
+
+        service = Service(name="Example Service", check_name="ICMP IPv4 Check", host="127.0.0.1", team=team)
+        db.session.add(service)
+        db.session.commit()
+
+    def _auth_and_get_path(self, path):
+        self.client.post("/login", data={"username": "testuser", "password": "testpass"})
+        return self.client.get(path)
+
+    @pytest.mark.parametrize("path", ADMIN_PATHS)
+    def test_auth_required(self, path):
         resp = self.client.get(path)
         assert resp.status_code == 302
-        assert 'unauthorized' in str(resp.data)
+        assert "/login?" in resp.location
+        resp = self._auth_and_get_path(path)
+        assert resp.status_code == 200
 
-    def test_auth_required_admin(self):
-        self.verify_auth_required('/admin')
-        stats_resp = self.auth_and_get_path('/admin')
-        assert stats_resp.status_code == 200
-
-    def test_auth_required_admin_status(self):
-        self.verify_auth_required('/admin/status')
-        stats_resp = self.auth_and_get_path('/admin/status')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_status(self):
-        self.unauthorized_admin_test('/admin/status')
-
-    def test_auth_required_admin_workers(self):
-        self.verify_auth_required('/admin/workers')
-        stats_resp = self.auth_and_get_path('/admin/workers')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_workers(self):
-        self.unauthorized_admin_test('/admin/workers')
-
-    def test_auth_required_admin_queues(self):
-        self.verify_auth_required('/admin/queues')
-        stats_resp = self.auth_and_get_path('/admin/queues')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_queues(self):
-        self.unauthorized_admin_test('/admin/queues')
-
-    def test_auth_required_admin_manage(self):
-        self.verify_auth_required('/admin/manage')
-        stats_resp = self.auth_and_get_path('/admin/manage')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_manage(self):
-        self.unauthorized_admin_test('/admin/manage')
-
-    def test_auth_required_admin_permissions(self):
-        self.verify_auth_required('/admin/permissions')
-        stats_resp = self.auth_and_get_path('/admin/permissions')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_permissions(self):
-        self.unauthorized_admin_test('/admin/permissions')
-
-    def test_auth_required_admin_settings(self):
-        self.verify_auth_required('/admin/settings')
-        stats_resp = self.auth_and_get_path('/admin/settings')
-        assert stats_resp.status_code == 200
-
-    def test_auth_bad_auth_settings(self):
-        self.unauthorized_admin_test('/admin/settings')
+    @pytest.mark.parametrize("path", ADMIN_PATHS[1:])  # /admin itself doesn't have unauthorized test
+    def test_unauthorized(self, path):
+        red_team = Team(name="Red Team", color="Red")
+        db.session.add(red_team)
+        user = User(username="testuser_red", password="testpass_red", team=red_team)
+        db.session.add(user)
+        db.session.commit()
+        self.client.post("/login", data={"username": "testuser_red", "password": "testpass_red"})
+        resp = self.client.get(path)
+        assert resp.status_code == 302
+        assert "unauthorized" in str(resp.data)
 
     def test_auth_required_admin_service(self):
-        self.verify_auth_required('/admin/service/1')
-        stats_resp = self.auth_and_get_path('/admin/service/1')
-        assert stats_resp.status_code == 200
+        resp = self.client.get("/admin/service/1")
+        assert resp.status_code == 302
+        assert "/login?" in resp.location
+        resp = self._auth_and_get_path("/admin/service/1")
+        assert resp.status_code == 200
 
     def test_admin_bad_service(self):
-        self.verify_auth_required('/admin/service/200')
-        resp = self.auth_and_get_path('/admin/service/200')
+        resp = self.client.get("/admin/service/200")
         assert resp.status_code == 302
-        assert 'unauthorized' in str(resp.data)
+        assert "/login?" in resp.location
+        resp = self._auth_and_get_path("/admin/service/200")
+        assert resp.status_code == 302
+        assert "unauthorized" in str(resp.data)
 
     def test_auth_bad_auth_team(self):
-        self.unauthorized_admin_test('/admin/service/3')
+        red_team = Team(name="Red Team", color="Red")
+        db.session.add(red_team)
+        user = User(username="testuser_red", password="testpass_red", team=red_team)
+        db.session.add(user)
+        db.session.commit()
+        self.client.post("/login", data={"username": "testuser_red", "password": "testpass_red"})
+        resp = self.client.get("/admin/service/3")
+        assert resp.status_code == 302
+        assert "unauthorized" in str(resp.data)

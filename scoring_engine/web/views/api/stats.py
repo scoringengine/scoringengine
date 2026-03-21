@@ -5,7 +5,6 @@ from functools import wraps
 import pytz
 from flask import jsonify, request
 from flask_login import current_user, login_required
-from sqlalchemy import desc
 from sqlalchemy.sql import case, func
 
 from scoring_engine.cache import cache
@@ -20,9 +19,9 @@ def _ensure_utc_aware(dt):
         return pytz.utc.localize(dt)
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
-from scoring_engine.cache_helper import (update_overview_data,
-                                         update_service_data,
-                                         update_services_data)
+
+
+from scoring_engine.cache_helper import update_overview_data, update_service_data, update_services_data
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.account import Account
@@ -53,30 +52,24 @@ def _build_stats_query(team_id=None):
     last_round = Round.get_last_round_num()
     query = (
         db.session.query(
-            Round.id.label("round_id"),
+            Round.number.label("round_id"),
             Round.round_start,
             Round.round_end,
             Service.name.label("service_name"),
-            func.sum(case((Check.result == True, 1), else_=0)).label(
-                "num_successful_checks"
-            ),
-            func.sum(case((Check.result == False, 1), else_=0)).label(
-                "num_unsuccessful_checks"
-            ),
+            func.sum(case((Check.result.is_(True), 1), else_=0)).label("num_successful_checks"),
+            func.sum(case((Check.result.is_(False), 1), else_=0)).label("num_unsuccessful_checks"),
         )
-        .outerjoin(Check, Round.id == Check.round_id)
+        .join(Check, Round.id == Check.round_id)
         .join(Service, Check.service_id == Service.id)
-        .filter(Round.id <= last_round)
+        .filter(Round.number <= last_round)
     )
 
     if team_id is not None:
         query = query.filter(Service.team_id == team_id)
 
     return (
-        query.group_by(
-            Round.id, Round.round_start, Round.round_end, Service.name
-        )
-        .order_by(Round.id.desc(), Service.name)
+        query.group_by(Round.number, Round.round_start, Round.round_end, Service.name)
+        .order_by(Round.number.desc(), Service.name)
         .all()
     )
 
@@ -112,12 +105,8 @@ def _build_response(rows):
         if round_id not in rounds:
             rounds[round_id] = {
                 "round_id": round_id,
-                "start_time": _ensure_utc_aware(round_start)
-                .astimezone(tz)
-                .strftime("%Y-%m-%d %H:%M:%S %Z"),
-                "end_time": _ensure_utc_aware(round_end)
-                .astimezone(tz)
-                .strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "start_time": _ensure_utc_aware(round_start).astimezone(tz).strftime("%Y-%m-%d %H:%M:%S %Z"),
+                "end_time": _ensure_utc_aware(round_end).astimezone(tz).strftime("%Y-%m-%d %H:%M:%S %Z"),
                 "total_seconds": (round_end - round_start).seconds,
                 "num_up_services": 0,
                 "num_down_services": 0,
@@ -138,9 +127,7 @@ def _build_response(rows):
         summary[service_name]["total"] += up + down
 
     # Sort by round_id descending
-    stats = sorted(
-        rounds.values(), key=lambda r: r["round_id"], reverse=True
-    )
+    stats = sorted(rounds.values(), key=lambda r: r["round_id"], reverse=True)
 
     return {"data": stats, "summary": dict(summary)}
 
@@ -150,11 +137,7 @@ def _build_response(rows):
 @cache.cached(make_cache_key=make_cache_key)
 def api_stats():
     team = db.session.get(Team, current_user.team.id)
-    if (
-        team is None
-        or not current_user.team == team
-        or not (current_user.is_blue_team or current_user.is_white_team)
-    ):
+    if team is None or not current_user.team == team or not (current_user.is_blue_team or current_user.is_white_team):
         return jsonify({"status": "Unauthorized"}), 403
 
     if current_user.is_blue_team:

@@ -34,6 +34,7 @@ def verify_db_ready():
     ready = True
     try:
         from scoring_engine.models.user import User
+
         db.session.get(User, 1)
     except (OperationalError, ProgrammingError):
         ready = False

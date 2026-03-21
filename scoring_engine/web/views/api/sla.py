@@ -6,15 +6,16 @@ from flask import flash, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
 
 from scoring_engine.cache import cache
-from scoring_engine.cache_helper import (update_overview_data,
-                                         update_scoreboard_data,
-                                         update_sla_data)
+from scoring_engine.cache_helper import update_overview_data, update_scoreboard_data, update_sla_data
 from scoring_engine.db import db
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
-from scoring_engine.sla import (calculate_round_multiplier,
-                                get_dynamic_scoring_info, get_sla_config,
-                                get_team_sla_summary)
+from scoring_engine.sla import (
+    calculate_round_multiplier,
+    get_dynamic_scoring_info,
+    get_sla_config,
+    get_team_sla_summary,
+)
 
 from . import make_cache_key, mod
 
@@ -194,9 +195,7 @@ def admin_update_sla_penalty_max_percent():
         if "sla_penalty_max_percent" in request.form:
             value = request.form["sla_penalty_max_percent"]
             if not value.isdigit() or int(value) < 1:
-                flash(
-                    "Error: Max penalty percent must be a positive integer.", "danger"
-                )
+                flash("Error: Max penalty percent must be a positive integer.", "danger")
                 return redirect(url_for("admin.sla"))
             return _update_setting("sla_penalty_max_percent", value)
         flash("Error: sla_penalty_max_percent not specified.", "danger")

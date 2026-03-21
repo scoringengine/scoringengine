@@ -1,0 +1,423 @@
+#!/usr/bin/env python
+"""Seed the database with example injects from the 2026 SECCDC Quals competition.
+
+Usage: python bin/seed_injects /path/to/2026_seccdc_quals-injects_backup.zip
+
+Creates templates, rubric items, injects with various statuses,
+comments, and links uploaded files from the archive.
+"""
+
+import os
+import sys
+import zipfile
+from datetime import datetime, timedelta, timezone
+from random import choice, randint
+
+from scoring_engine.config import config
+from scoring_engine.db import db
+from scoring_engine.logger import logger
+from scoring_engine.models.inject import (
+    Inject,
+    InjectComment,
+    InjectFile,
+    InjectRubricScore,
+    RubricItem,
+    Template,
+)
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+from scoring_engine.web import create_app
+
+# ---------------------------------------------------------------------------
+# Template definitions from the real competition
+# ---------------------------------------------------------------------------
+TEMPLATES = [
+    {
+        "title": "Final Report",
+        "scenario": (
+            "Team,\n\nThank you for joining our engineering security team as an independent contributor!\n"
+            "We would like you to give us a comprehensive overview of our network. Ideally, we would\n"
+            "like a report containing the following:\n"
+            "\u2022 A map listing out each machine, its services, mac address, IP address, hostname, and operating system.\n"
+            "\u2022 Application information about each machine, what is listening, and what version.\n"
+            "\u2022 The biggest security concerns you have about our network.\n\n"
+            "Defend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Comprehensive network security report (PDF or DOCX)",
+        "hours_before_end": 8,
+        "hours_duration": 8,
+        "rubric": [
+            ("Network Map", "Machine inventory with IP, MAC, hostname, OS", 25),
+            ("Application Inventory", "Listening services and versions per host", 20),
+            ("Security Concerns", "Identified vulnerabilities and misconfigurations", 20),
+            ("Presentation Quality", "Professional formatting and clarity", 10),
+        ],
+    },
+    {
+        "title": "Vibe Coded AI-Enhanced App",
+        "scenario": (
+            "Team,\n\nWe\u2019ve had so many dental injuries at WWPI that we decided to develop an in-house "
+            "dental practice. Our vibe-coders on the software development team got a dental clinic application "
+            "up quickly.\n\nPlease review the application for vulnerabilities and provide a 1-page PDF outlining "
+            "any concerns about deploying it.\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "1-page vulnerability assessment PDF",
+        "hours_before_end": 8,
+        "hours_duration": 8,
+        "rubric": [
+            ("Vulnerability Identification", "Found critical vulnerabilities", 30),
+            ("Risk Assessment", "Impact analysis of each finding", 25),
+            ("Recommendations", "Actionable remediation steps", 15),
+            ("Clarity", "Well-organized and professional", 10),
+        ],
+    },
+    {
+        "title": "Russian Log Storage Proposal",
+        "scenario": (
+            "Team,\n\nOur former colleague Tim now works at a Russian datacenter that can store our logs at a "
+            "hugely discounted rate. They assure us they employ strict authentication over HTTP.\n\n"
+            "We're currently spending thousands in log retention on U.S. servers. Is there anything "
+            "sensitive in our logs? Should we take the discount?\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Analysis of log sensitivity and recommendation",
+        "hours_before_end": 8,
+        "hours_duration": 2,
+        "rubric": [
+            ("Log Analysis", "Identified sensitive data in logs", 10),
+            ("Risk Assessment", "Evaluated data sovereignty and compliance risks", 10),
+            ("Recommendation", "Clear recommendation with justification", 5),
+        ],
+    },
+    {
+        "title": "Threat Hunting, Part 1",
+        "scenario": (
+            "Team,\n\nThings feel like they've been a bit... off. The network is acting weird, my computer "
+            "throws weird errors, and our websites run slower than ever. I think we've been hacked.\n\n"
+            "Write a comprehensive report detailing how the initial threat actor gained access, including "
+            "reconnaissance, exploitation, lateral movement, and persistence. Include IoCs such as attacker "
+            "IPs, usernames, and malware info.\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Threat hunting report with IoCs and evidence",
+        "hours_before_end": 8,
+        "hours_duration": 2,
+        "rubric": [
+            ("Initial Access Vector", "Identified how attacker gained entry", 10),
+            ("Lateral Movement", "Traced movement through network", 5),
+            ("IoCs", "Attacker IPs, usernames, malware identified", 5),
+            ("Evidence Quality", "Screenshots and artifacts provided", 5),
+        ],
+    },
+    {
+        "title": "Threat Hunting, Part 2",
+        "scenario": (
+            "Team,\n\nA commercial threat provider reports that APT GraveThread has been advertising access "
+            "to our company on dark web forums, offering domain credentials. They\u2019re known to use "
+            "MITRE T1190 \u2013 Exploit Public-Facing Application.\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Updated threat hunting report",
+        "hours_before_end": 6,
+        "hours_duration": 2,
+        "rubric": [
+            ("Public-Facing Exploitation", "Found evidence of T1190", 10),
+            ("Credential Compromise", "Identified compromised accounts", 10),
+            ("Updated IoCs", "New indicators from this phase", 5),
+        ],
+    },
+    {
+        "title": "MY CAT?!",
+        "scenario": (
+            "Team,\n\nI JUST ACCIDENTALLY DELETED MY FAVORITE CAT PICTURE FROM MY PORTABLE HARD DRIVE. "
+            "I plugged it into one of the servers at /mnt/usbthumbdrive. Can you PLEASE recover my cat picture "
+            "and send me a report showing how you did it? INCLUDE A SCREENSHOT OF MY CAT.\n\n"
+            "Defend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Data recovery report with recovered cat picture",
+        "hours_before_end": 6,
+        "hours_duration": 2,
+        "rubric": [
+            ("Cat Picture Recovery", "Successfully recovered the image", 10),
+            ("Recovery Process", "Documented the recovery methodology", 10),
+            ("Screenshots", "Process screenshots included", 5),
+        ],
+    },
+    {
+        "title": "Threat Hunting, Part 3",
+        "scenario": (
+            "Team,\n\nAPT GraveThread actor 'tjnull' bragged in an IRC chat about sustained access. "
+            "When asked about persistence he said: 'idk man, I\u2019m just a drifter who likes scanning "
+            "web applications and using ssh man.'\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Updated threat hunting report",
+        "hours_before_end": 4,
+        "hours_duration": 2,
+        "rubric": [
+            ("Web Application Persistence", "Found web-based persistence", 10),
+            ("SSH Persistence", "Found SSH-based persistence", 10),
+            ("Updated Timeline", "Comprehensive attack timeline", 5),
+        ],
+    },
+    {
+        "title": "Threat Hunting, Part 4",
+        "scenario": (
+            "Team,\n\nAPT GraveThread actor 'tjnull' is known to use open source and custom tools for "
+            "persistence. He often leaves references to himself in his code. Search the disk of the machine "
+            "(drifter) for anything containing the string.\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Final threat hunting report",
+        "hours_before_end": 2,
+        "hours_duration": 2,
+        "rubric": [
+            ("Custom Tool Discovery", "Found attacker tools on disk", 10),
+            ("Malware Analysis", "Analyzed tool functionality", 10),
+            ("Complete Attack Chain", "Full attack narrative", 5),
+        ],
+    },
+    {
+        "title": "Email User Guide",
+        "scenario": (
+            "Team,\n\nI\u2019ve been informed we have a website for viewing emails. Please make a guide "
+            "showing me how to log in, check emails, and compose a new one. Include screenshots showing "
+            "the buttons and demonstrating that it works.\n\nDefend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Email system user guide with screenshots",
+        "hours_before_end": 4,
+        "hours_duration": 2,
+        "rubric": [
+            ("Login Instructions", "Clear login walkthrough", 8),
+            ("Email Reading", "How to read/manage emails", 7),
+            ("Email Composing", "How to compose and send", 5),
+            ("Screenshots", "Annotated screenshots throughout", 5),
+        ],
+    },
+    {
+        "title": "Illegal Music Investigation",
+        "scenario": (
+            "Team,\n\nWe\u2019ve received word that a user was downloading music illegally. Search the "
+            "network and report all music found, including who put it there.\n\n"
+            "Defend the Frontier,\nRudolph Esteves"
+        ),
+        "deliverable": "Music piracy investigation report",
+        "hours_before_end": 2,
+        "hours_duration": 2,
+        "rubric": [
+            ("Music Files Found", "All illegal music files located", 20),
+            ("User Attribution", "Identified who downloaded them", 15),
+            ("Evidence", "File paths, timestamps, user activity logs", 10),
+            ("Recommendations", "How to prevent future incidents", 5),
+        ],
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Comments to sprinkle on injects
+# ---------------------------------------------------------------------------
+BLUE_COMMENTS = [
+    "Uploading our initial findings. We'll update before the deadline.",
+    "We found some interesting artifacts on the drifter machine. Analyzing now.",
+    "Quick question - should we include the network diagram in this report or submit separately?",
+    "Updated our report with additional screenshots from the investigation.",
+    "We're having trouble accessing the logs on the mail server. Is that expected?",
+    "Added our remediation steps to the appendix.",
+    "Finished the vulnerability scan. Writing up the results now.",
+    "Found evidence of the attacker on 3 additional hosts. Updating report.",
+]
+
+WHITE_COMMENTS = [
+    "Good start, but we need more detail on the remediation steps taken.",
+    "Make sure to include timestamps with your evidence screenshots.",
+    "Your network diagram is missing the DMZ segment. Please update.",
+    "Great work on identifying the persistence mechanism. Can you elaborate on the IOCs?",
+    "Remember to document the tools you used for the investigation.",
+    "Please resubmit with the corrected timeline.",
+    "Excellent report. Very thorough analysis.",
+    "Consider adding a section on lessons learned.",
+]
+
+
+def seed_injects(archive_path):
+    app = create_app()
+    with app.app_context():
+        # Check if templates already exist
+        existing = db.session.query(Template).count()
+        if existing > 0:
+            logger.info(f"Found {existing} existing templates. Skipping seed.")
+            return
+
+        blue_teams = Team.get_all_blue_teams()
+        if not blue_teams:
+            logger.error("No blue teams found. Run setup first.")
+            sys.exit(1)
+
+        white_team = db.session.query(Team).filter(Team.color == "White").first()
+        if not white_team:
+            logger.error("No white team found. Run setup first.")
+            sys.exit(1)
+
+        white_users = db.session.query(User).filter(User.team == white_team).all()
+        white_user = white_users[0] if white_users else None
+
+        # Base time: templates spread over 8 hours starting 2 hours ago
+        base_time = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=2)
+
+        # Create templates and rubric items
+        logger.info(f"Creating {len(TEMPLATES)} inject templates...")
+        templates = []
+        for t_def in TEMPLATES:
+            start = base_time
+            end = base_time + timedelta(hours=t_def["hours_duration"] + t_def["hours_before_end"])
+            template = Template(
+                title=t_def["title"],
+                scenario=t_def["scenario"],
+                deliverable=t_def["deliverable"],
+                start_time=start,
+                end_time=end,
+            )
+            db.session.add(template)
+            db.session.flush()
+
+            for order, (title, desc, points) in enumerate(t_def["rubric"]):
+                ri = RubricItem(
+                    title=title,
+                    points=points,
+                    template=template,
+                    description=desc,
+                    order=order,
+                )
+                db.session.add(ri)
+
+            templates.append(template)
+        db.session.flush()
+
+        # Create injects for each blue team
+        logger.info(f"Creating injects for {len(blue_teams)} blue teams...")
+        statuses = ["Draft", "Submitted", "Revision Requested", "Resubmitted", "Graded"]
+        all_injects = []
+
+        for template in templates:
+            for team in blue_teams:
+                inject = Inject(team=team, template=template)
+                # Vary the statuses
+                inject.status = choice(statuses)
+                if inject.status in ("Submitted", "Resubmitted", "Graded"):
+                    inject.submitted = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
+                        minutes=randint(10, 120)
+                    )
+                if inject.status == "Graded":
+                    inject.graded = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=randint(1, 30))
+                db.session.add(inject)
+                db.session.flush()
+
+                # Grade injects that are "Graded"
+                if inject.status == "Graded":
+                    for ri in template.rubric_items:
+                        score = InjectRubricScore(
+                            score=randint(0, ri.points),
+                            inject=inject,
+                            rubric_item=ri,
+                            grader=white_user,
+                        )
+                        db.session.add(score)
+
+                # Add comments to non-Draft injects
+                if inject.status != "Draft" and white_user:
+                    blue_users = db.session.query(User).filter(User.team == team).all()
+                    blue_user = blue_users[0] if blue_users else None
+                    if blue_user:
+                        c = InjectComment(choice(BLUE_COMMENTS), blue_user, inject)
+                        db.session.add(c)
+                    if inject.status in ("Revision Requested", "Graded"):
+                        c = InjectComment(choice(WHITE_COMMENTS), white_user, inject)
+                        db.session.add(c)
+
+                all_injects.append(inject)
+
+        db.session.commit()
+        logger.info(f"Created {len(all_injects)} injects")
+
+        # Extract files from archive
+        if archive_path and os.path.exists(archive_path):
+            logger.info("Extracting files from archive...")
+            upload_folder = config.upload_folder
+            files_added = 0
+
+            with zipfile.ZipFile(archive_path, "r") as zf:
+                # Build a mapping of inject_id/team_name -> file entries from the archive
+                # Archive structure: var/lib/docker/volumes/scoringengine_injects/_data/{id}/{team}/file
+                archive_files = {}
+                for entry in zf.namelist():
+                    if entry.endswith("/"):
+                        continue
+                    parts = entry.split("/")
+                    # .../_data/{inject_id}/{team_name}/{filename}
+                    data_idx = None
+                    for i, p in enumerate(parts):
+                        if p == "_data" and i + 2 < len(parts):
+                            data_idx = i
+                            break
+                    if data_idx is None:
+                        continue
+                    team_name = parts[data_idx + 2]
+                    filename = parts[-1]
+                    original_filename = filename.split("_", 3)[-1] if "_" in filename else filename
+                    archive_files.setdefault(team_name, []).append(
+                        {"zip_path": entry, "filename": filename, "original_filename": original_filename}
+                    )
+
+                # Attach files to injects that are submitted/graded
+                for inject in all_injects:
+                    if inject.status in ("Draft",):
+                        continue
+
+                    team_name = inject.team.name
+                    team_files = archive_files.get(team_name, [])
+                    if not team_files:
+                        # Try variations
+                        for key in archive_files:
+                            if key.lower().replace(" ", "") == team_name.lower().replace(" ", ""):
+                                team_files = archive_files[key]
+                                break
+                    if not team_files:
+                        continue
+
+                    # Pick 1-2 files for this inject
+                    num_files = min(len(team_files), randint(1, 2))
+                    selected = []
+                    for i in range(num_files):
+                        selected.append(team_files[i % len(team_files)])
+
+                    for file_info in selected:
+                        # Extract to the correct location
+                        dest_dir = os.path.join(upload_folder, str(inject.id), team_name)
+                        os.makedirs(dest_dir, exist_ok=True)
+                        dest_path = os.path.join(dest_dir, file_info["filename"])
+
+                        try:
+                            with zf.open(file_info["zip_path"]) as src, open(dest_path, "wb") as dst:
+                                dst.write(src.read())
+                        except Exception as e:
+                            logger.warning(f"Failed to extract {file_info['zip_path']}: {e}")
+                            continue
+
+                        blue_users = db.session.query(User).filter(User.team == inject.team).all()
+                        blue_user = blue_users[0] if blue_users else None
+
+                        f = InjectFile(
+                            file_info["filename"],
+                            blue_user,
+                            inject,
+                            original_filename=file_info["original_filename"],
+                        )
+                        db.session.add(f)
+                        files_added += 1
+
+                db.session.commit()
+                logger.info(f"Added {files_added} files to injects")
+        else:
+            logger.info("No archive provided or not found. Skipping file extraction.")
+
+        logger.info("Inject seeding complete!")
+
+
+if __name__ == "__main__":
+    archive = sys.argv[1] if len(sys.argv) > 1 else None
+    seed_injects(archive)

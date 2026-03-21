@@ -2,17 +2,15 @@
 {% block title %}Stats{% endblock %}
 {% block head %}
 {{ super() }}
-<script src="{{ url_for('static', filename='vendor/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap.min.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap.min.css') }}" />
+<script src="{{ url_for('static', filename='vendor/js/dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/js/dataTables.bootstrap5.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/css/dataTables.bootstrap5.min.css') }}" />
 {% endblock %}
 {% block content %}
-<div class="container-fluid md-page">
-    <div class="row">
-        <h2 class="text-center">All-Time Service Statistics</h2>
-    </div>
-    <div class="row">
-        <table id="service-summary" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+<div class="page-wrap">
+    <h3 class="section-header">All-Time Service Statistics</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
+        <table id="service-summary" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
                     <th>Service</th>
@@ -25,17 +23,15 @@
             <tbody></tbody>
         </table>
     </div>
-    <div class="row">
-        <h2 class="text-center">Round Stats</h2>
-    </div>
-    <div class="row">
-        <table id="stats" class="table table-striped table-bordered table-compact" cellspacing="0" width="100%">
+    <h3 class="section-header">Round Stats</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
+        <table id="stats" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
                 <tr>
                     <th>Round</th>
                     <th>Start Time</th>
                     <th>End Time</th>
-                    <th>Duration (Seconds)</th>
+                    <th>Duration</th>
                     <th>Service Ratio</th>
                     <th>Failures by Service</th>
                 </tr>
@@ -45,6 +41,21 @@
     </div>
 </div>
 <script>
+    function formatDuration(seconds) {
+        if (seconds < 60) {
+            return seconds + 's';
+        } else if (seconds < 3600) {
+            var mins = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return mins + 'm ' + secs + 's';
+        } else {
+            var hours = Math.floor(seconds / 3600);
+            var mins = Math.floor((seconds % 3600) / 60);
+            var secs = seconds % 60;
+            return hours + 'h ' + mins + 'm ' + secs + 's';
+        }
+    }
+
     $.ajax({
         url: '/api/stats',
         dataType: 'json',
@@ -56,7 +67,7 @@
                 var pct = counts.total > 0 ? ((counts.up / counts.total) * 100).toFixed(1) : '0.0';
                 summaryRows.push([serviceName, counts.up, counts.down, counts.total, pct + '%']);
             });
-            var summaryTable = $('#service-summary').DataTable({
+            $('#service-summary').DataTable({
                 data: summaryRows,
                 paging: false,
                 searching: false,
@@ -67,20 +78,20 @@
             var roundRows = [];
             var data = response.data || [];
             $.each(data, function(i, row) {
-                var ratio = row.num_up_services + ' <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span> / ' + row.num_down_services + ' <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>';
+                var ratio = row.num_up_services + ' <i class="bi bi-chevron-up text-success" aria-hidden="true"></i> / ' + row.num_down_services + ' <i class="bi bi-chevron-down text-danger" aria-hidden="true"></i>';
 
                 var failures = [];
                 var breakdown = row.service_breakdown || {};
                 $.each(breakdown, function(svc, counts) {
                     if (counts.down > 0) {
-                        failures.push('<span style="color:red;">' + svc + ' x' + counts.down + '</span>');
+                        failures.push('<span class="text-danger">' + svc + ' x' + counts.down + '</span>');
                     }
                 });
-                var failureText = failures.length > 0 ? failures.join(', ') : '<span style="color:green;">All passing</span>';
+                var failureText = failures.length > 0 ? failures.join(', ') : '<span class="text-success">All passing</span>';
 
-                roundRows.push([row.round_id, row.start_time, row.end_time, row.total_seconds, ratio, failureText]);
+                roundRows.push([row.round_id, row.start_time, row.end_time, formatDuration(row.total_seconds), ratio, failureText]);
             });
-            var roundTable = $('#stats').DataTable({
+            $('#stats').DataTable({
                 data: roundRows,
                 order: [[0, 'desc']]
             });

@@ -1,15 +1,14 @@
-import json
-import pytz
-
-from tempfile import template
-
-from datetime import datetime, timezone
-from dateutil.parser import parse
-from flask import flash, redirect, request, url_for, jsonify
-from flask_login import current_user, login_required
-
 import html
+import json
+import os
 import re
+import time
+from datetime import datetime, timezone
+
+import pytz
+from dateutil.parser import parse
+from flask import flash, jsonify, redirect, request, url_for
+from flask_login import current_user, login_required
 
 
 def _ensure_utc_aware(dt):
@@ -22,35 +21,41 @@ def _ensure_utc_aware(dt):
     # Already aware - convert to UTC
     return dt.astimezone(pytz.utc)
 
-from scoring_engine.config import config
-from scoring_engine.db import db
-from scoring_engine.models.inject import Template, Inject
-from scoring_engine.models.service import Service
-from scoring_engine.models.check import Check
-from scoring_engine.models.environment import Environment
-from scoring_engine.models.property import Property
-from scoring_engine.models.kb import KB
-from scoring_engine.models.round import Round
-from scoring_engine.models.team import Team
-from scoring_engine.models.user import User
-from scoring_engine.models.setting import Setting
-from scoring_engine.engine.execute_command import execute_command
-from scoring_engine.cache_helper import (
-    update_scoreboard_data,
-    update_overview_data,
-    update_services_navbar,
-    update_service_data,
-    update_team_stats,
-    update_services_data,
-    update_inject_data,
-)
-from scoring_engine.celery_stats import CeleryStats
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func
 
-
+from scoring_engine.cache_helper import (
+    update_all_cache,
+    update_all_inject_data,
+    update_inject_comments,
+    update_inject_data,
+    update_overview_data,
+    update_scoreboard_data,
+    update_service_data,
+    update_services_data,
+    update_services_navbar,
+    update_team_stats,
+)
+from scoring_engine.celery_stats import CeleryStats
+from scoring_engine.config import config
+from scoring_engine.db import db
+from scoring_engine.engine.basic_check import CHECK_FAILURE_TEXT, CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
+from scoring_engine.engine.engine import Engine
+from scoring_engine.engine.execute_command import execute_command
+from scoring_engine.models.check import Check
+from scoring_engine.models.environment import Environment
+from scoring_engine.models.inject import Inject, InjectComment, InjectRubricScore, RubricItem, Template
+from scoring_engine.models.kb import KB
+from scoring_engine.models.property import Property
+from scoring_engine.models.round import Round
+from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
+from scoring_engine.models.welcome import get_welcome_config, save_welcome_config
+from scoring_engine.notifications import notify_inject_graded, notify_revision_requested
 
 from . import mod
 
@@ -62,13 +67,14 @@ def admin_update_environment():
         if "name" in request.form and "value" in request.form and "pk" in request.form:
             environment = db.session.get(Environment, int(request.form["pk"]))
             if environment:
-                if request.form["name"] == "matching_content":
+                if request.form["name"] in ("matching_content", "matching_content_reject"):
                     value = html.escape(request.form["value"])
-                    try:
-                        re.compile(value)
-                    except re.error as e:
-                        return jsonify({"error": "Invalid regex pattern: " + str(e)}), 400
-                    environment.matching_content = value
+                    if value:
+                        try:
+                            re.compile(value)
+                        except re.error as e:
+                            return jsonify({"error": "Invalid regex pattern: " + str(e)}), 400
+                    setattr(environment, request.form["name"], value or None)
                 db.session.add(environment)
                 db.session.commit()
                 return jsonify({"status": "Updated Environment Information"})
@@ -347,16 +353,60 @@ def admin_update_blueteam_view_check_output():
     return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/update_anonymize_team_names", methods=["POST"])
+@login_required
+def admin_update_anonymize_team_names():
+    if current_user.is_white_team:
+        setting = Setting.get_setting("anonymize_team_names")
+        if setting is None:
+            # Create the setting if it doesn't exist
+            setting = Setting(name="anonymize_team_names", value=True)
+        elif setting.value is True:
+            setting.value = False
+        else:
+            setting.value = True
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("anonymize_team_names")
+        return redirect(url_for("admin.permissions"))
+    return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/check/<int:check_id>/full_output")
+@login_required
+def admin_get_check_full_output(check_id):
+    if current_user.is_white_team:
+        check = db.session.get(Check, check_id)
+        if not check:
+            return jsonify({"error": "Check not found"}), 404
+
+        team_name = check.service.team.name
+        service_name = check.service.name
+        round_num = check.round.number
+
+        # Try disk file first, fall back to DB output
+        output_path = os.path.join(
+            config.check_output_folder,
+            team_name,
+            service_name,
+            f"round_{round_num}.txt",
+        )
+
+        if os.path.isfile(output_path):
+            with open(output_path, "r") as f:
+                content = f.read()
+        else:
+            content = check.output or ""
+
+        return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
+    return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/get_round_progress")
 @login_required
 def get_check_progress_total():
     if current_user.is_white_team:
-        task_id_settings = (
-            db.session.query(KB)
-            .filter_by(name="task_ids")
-            .order_by(KB.round_num.desc())
-            .first()
-        )
+        task_id_settings = db.session.query(KB).filter_by(name="task_ids").order_by(KB.round_num.desc()).first()
         total_stats = {}
         total_stats["finished"] = 0
         total_stats["pending"] = 0
@@ -397,12 +447,37 @@ def get_check_progress_total():
             elif team_total_tasks == 0:
                 team_total_percentage = 100
             elif team_stat and team_stat["finished"]:
-                team_total_percentage = int(
-                    (team_stat["finished"] / team_total_tasks) * 100
-                )
+                team_total_percentage = int((team_stat["finished"] / team_total_tasks) * 100)
             output_dict[team_name] = team_total_percentage
 
         return json.dumps(output_dict)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/inject/<inject_id>/reopen", methods=["POST"])
+@login_required
+def admin_post_inject_reopen(inject_id):
+    if current_user.is_white_team:
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+        if inject.status != "Graded":
+            return jsonify({"status": "Inject is not in Graded state"}), 400
+
+        inject.status = "Submitted"
+        inject.graded = None
+        comment = InjectComment(
+            f"Inject reopened for re-grading by {current_user.username}.",
+            current_user,
+            inject,
+        )
+        db.session.add(comment)
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_inject_comments(inject_id)
+        update_scoreboard_data()
+        return jsonify({"status": "Success"}), 200
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -417,19 +492,15 @@ def admin_get_inject_templates_id(template_id):
             title=template.title,
             scenario=template.scenario,
             deliverable=template.deliverable,
-            score=template.score,
-            start_time=_ensure_utc_aware(template.start_time).astimezone(
-                pytz.timezone(config.timezone)
-            ).isoformat(),
-            end_time=_ensure_utc_aware(template.end_time).astimezone(
-                pytz.timezone(config.timezone)
-            ).isoformat(),
+            max_score=template.max_score,
+            start_time=_ensure_utc_aware(template.start_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
+            end_time=_ensure_utc_aware(template.end_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
             enabled=template.enabled,
-            # rubric=[
-            #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-            #     for x in template.rubric
-            # ],
-            teams=[inject.team.name for inject in template.inject if inject.enabled and inject.team],
+            rubric_items=[
+                {"id": x.id, "title": x.title, "description": x.description, "points": x.points, "order": x.order}
+                for x in template.rubric_items
+            ],
+            teams=[inject.team.name for inject in template.injects if inject.enabled and inject.team],
         )
         return jsonify(data)
     else:
@@ -450,20 +521,42 @@ def admin_put_inject_templates_id(template_id):
             if data.get("deliverable"):
                 template.deliverable = data["deliverable"]
             if data.get("start_time"):
-                template.start_time = (
-                    parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
-                )
+                template.start_time = parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
             if data.get("end_time"):
-                template.end_time = (
-                    parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
-                )
+                template.end_time = parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
             elif data.get("status") == "Disabled":
                 template.enabled = False
-            if data.get("score"):
-                template.score = data["score"]
+            if "rubric_items" in data:
+                # Update existing rubric items in place to preserve scores
+                existing_by_id = {item.id: item for item in template.rubric_items}
+                incoming_ids = set()
+                for idx, ri in enumerate(data["rubric_items"]):
+                    ri_id = ri.get("id")
+                    if ri_id and ri_id in existing_by_id:
+                        # Update existing item
+                        item = existing_by_id[ri_id]
+                        item.title = ri["title"]
+                        item.points = ri["points"]
+                        item.description = ri.get("description")
+                        item.order = ri.get("order", idx)
+                        incoming_ids.add(ri_id)
+                    else:
+                        # Create new item
+                        rubric_item = RubricItem(
+                            title=ri["title"],
+                            points=ri["points"],
+                            template=template,
+                            description=ri.get("description"),
+                            order=ri.get("order", idx),
+                        )
+                        db.session.add(rubric_item)
+                # Delete only items that were removed from the payload
+                for item_id, item in existing_by_id.items():
+                    if item_id not in incoming_ids:
+                        db.session.delete(item)
             if data.get("selectedTeams"):
                 for team_name in data["selectedTeams"]:
                     inject = (
@@ -479,9 +572,7 @@ def admin_put_inject_templates_id(template_id):
                         inject.enabled = True
                     # Otherwise, create the inject
                     else:
-                        team = (
-                            db.session.query(Team).filter(Team.name == team_name).first()
-                        )
+                        team = db.session.query(Team).filter(Team.name == team_name).first()
                         inject = Inject(
                             team=team,
                             template=template,
@@ -498,7 +589,6 @@ def admin_put_inject_templates_id(template_id):
                 )
                 for inject in injects:
                     inject.enabled = False
-            # TODO - Rubric updates
             db.session.commit()
             return jsonify({"status": "Success"}), 200
         else:
@@ -528,7 +618,7 @@ def admin_delete_inject_templates_id(template_id):
 def admin_get_inject_templates():
     if current_user.is_white_team:
         data = list()
-        templates = db.session.query(Template).options(joinedload(Template.inject)).all()
+        templates = db.session.query(Template).options(joinedload(Template.injects)).all()
         for template in templates:
             data.append(
                 dict(
@@ -536,25 +626,21 @@ def admin_get_inject_templates():
                     title=template.title,
                     scenario=template.scenario,
                     deliverable=template.deliverable,
-                    score=template.score,
-                    start_time=template.start_time.astimezone(
-                        pytz.timezone(config.timezone)
-                    ).isoformat(),
-                    end_time=template.end_time.astimezone(
-                        pytz.timezone(config.timezone)
-                    ).isoformat(),
+                    max_score=template.max_score,
+                    start_time=template.start_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
+                    end_time=template.end_time.astimezone(pytz.timezone(config.timezone)).isoformat(),
                     enabled=template.enabled,
-                    # rubric=[
-                    #     {"id": x.id, "value": x.value, "deliverable": x.deliverable}
-                    #     for x in template.rubric
-                    # ],
-                    teams=[
-                        inject.team.name
-                        for inject in template.inject
-                        if inject
-                        if inject.enabled
-                        if inject.team
+                    rubric_items=[
+                        {
+                            "id": x.id,
+                            "title": x.title,
+                            "description": x.description,
+                            "points": x.points,
+                            "order": x.order,
+                        }
+                        for x in template.rubric_items
                     ],
+                    teams=[inject.team.name for inject in template.injects if inject if inject.enabled if inject.team],
                 )
             )
         return jsonify(data=data)
@@ -567,20 +653,105 @@ def admin_get_inject_templates():
 def admin_post_inject_grade(inject_id):
     if current_user.is_white_team:
         data = request.get_json()
-        if "score" in data.keys() and data.get("score") != "":
-            inject = db.session.get(Inject, inject_id)
-            if inject:
-                inject.graded = datetime.now(timezone.utc)
-                inject.status = "Graded"
-                inject.score = data.get("score")
-                db.session.add(inject)
-                db.session.commit()
-                update_inject_data(inject_id)
-                return jsonify({"status": "Success"}), 200
-            else:
-                return jsonify({"status": "Invalid Inject ID"}), 400
-        else:
+        if "rubric_scores" not in data or not data["rubric_scores"]:
             return jsonify({"status": "Invalid Score Provided"}), 400
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+
+        # Validate rubric items belong to the template
+        template_item_ids = {item.id for item in inject.template.rubric_items}
+        template_item_max = {item.id: item.points for item in inject.template.rubric_items}
+        for rs in data["rubric_scores"]:
+            if rs["rubric_item_id"] not in template_item_ids:
+                return jsonify({"status": "Invalid rubric item ID"}), 400
+            if rs["score"] > template_item_max[rs["rubric_item_id"]]:
+                return jsonify({"status": "Score exceeds rubric item max"}), 400
+
+        # Delete existing scores and create new ones
+        for old_score in list(inject.rubric_scores):
+            db.session.delete(old_score)
+        db.session.flush()
+
+        for rs in data["rubric_scores"]:
+            rubric_item = db.session.get(RubricItem, rs["rubric_item_id"])
+            score_obj = InjectRubricScore(
+                score=rs["score"],
+                inject=inject,
+                rubric_item=rubric_item,
+                grader=current_user,
+            )
+            db.session.add(score_obj)
+
+        inject.graded = datetime.now(timezone.utc)
+        inject.status = "Graded"
+        score = sum(rs["score"] for rs in data["rubric_scores"])
+        comment = InjectComment(
+            f"Inject graded by {current_user.username}. Score: {score}/{inject.template.max_score}.",
+            current_user,
+            inject,
+        )
+        db.session.add(comment)
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_inject_comments(inject_id)
+        update_scoreboard_data()
+        notify_inject_graded(inject)
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/inject/<inject_id>/request-revision", methods=["POST"])
+@login_required
+def admin_post_inject_request_revision(inject_id):
+    if current_user.is_white_team:
+        inject = db.session.get(Inject, inject_id)
+        if not inject:
+            return jsonify({"status": "Invalid Inject ID"}), 400
+        if inject.status not in ("Submitted", "Resubmitted"):
+            return jsonify({"status": "Inject is not in a submittable state"}), 400
+
+        data = request.get_json() or {}
+        reason = data.get("reason", "Revision requested by grader.")
+
+        inject.status = "Revision Requested"
+        # Create a system comment with the reason
+        comment = InjectComment(content=reason, user=current_user, inject=inject)
+        db.session.add(comment)
+        db.session.commit()
+        update_inject_data(inject_id)
+        update_inject_comments(inject_id)
+        notify_revision_requested(inject)
+        return jsonify({"status": "Success"}), 200
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/injects/template/<int:template_id>/submissions")
+@login_required
+def admin_get_template_submissions(template_id):
+    if current_user.is_white_team:
+        template = db.session.get(Template, template_id)
+        if not template:
+            return jsonify({"status": "Template not found"}), 404
+
+        submissions = []
+        for inject in template.injects:
+            if not inject.team or not inject.enabled:
+                continue
+            submissions.append(
+                {
+                    "id": inject.id,
+                    "team": inject.team.name,
+                    "status": inject.status,
+                    "score": inject.score,
+                    "max_score": template.max_score,
+                    "submitted": inject.submitted.isoformat() if inject.submitted else None,
+                    "graded": inject.graded.isoformat() if inject.graded else None,
+                }
+            )
+        return jsonify(data=submissions), 200
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -594,7 +765,6 @@ def admin_post_inject_templates():
             data.get("title")
             and data.get("scenario")
             and data.get("deliverable")
-            and data.get("score")
             and data.get("start_time")
             and data.get("end_time")
         ):
@@ -602,19 +772,22 @@ def admin_post_inject_templates():
                 title=data["title"],
                 scenario=data["scenario"],
                 deliverable=data["deliverable"],
-                score=data["score"],
-                start_time=(
-                    parse(data["start_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
-                ),
-                end_time=(
-                    parse(data["end_time"])
-                    .astimezone(pytz.timezone(config.timezone))
-                    .replace(tzinfo=None)
-                ),
+                start_time=parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                end_time=parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
             )
             db.session.add(template)
+            db.session.flush()
+            # Create rubric items
+            if data.get("rubric_items"):
+                for i, item_data in enumerate(data["rubric_items"]):
+                    rubric_item = RubricItem(
+                        title=item_data["title"],
+                        description=item_data.get("description", ""),
+                        points=item_data["points"],
+                        order=item_data.get("order", i),
+                        template=template,
+                    )
+                    db.session.add(rubric_item)
             db.session.commit()
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
@@ -636,9 +809,7 @@ def admin_post_inject_templates():
                         inject.enabled = True
                     # Otherwise, create the inject
                     else:
-                        team = (
-                            db.session.query(Team).filter(Team.name == team_name).first()
-                        )
+                        team = db.session.query(Team).filter(Team.name == team_name).first()
                         inject = Inject(
                             team=team,
                             template=template,
@@ -711,17 +882,9 @@ def admin_import_inject_templates():
                         if d.get("deliverable"):
                             t.deliverable = d["deliverable"]
                         if d.get("start_time"):
-                            t.start_time = (
-                                parse(d["start_time"])
-                                .astimezone(pytz.utc)
-                                .replace(tzinfo=None)
-                            )
+                            t.start_time = parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                         if d.get("end_time"):
-                            t.end_time = (
-                                parse(d["end_time"])
-                                .astimezone(pytz.utc)
-                                .replace(tzinfo=None)
-                            )
+                            t.end_time = parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                         if d.get("enabled"):
                             t.enabled = True
                         else:
@@ -760,11 +923,7 @@ def admin_import_inject_templates():
                                     inject.enabled = True
                                 # Otherwise, create the inject
                                 else:
-                                    team = (
-                                        db.session.query(Team)
-                                        .filter(Team.name == team_name)
-                                        .first()
-                                    )
+                                    team = db.session.query(Team).filter(Team.name == team_name).first()
                                     inject = Inject(
                                         team=team,
                                         template=template,
@@ -791,23 +950,32 @@ def admin_import_inject_templates():
                         title=d["title"],
                         scenario=d["scenario"],
                         deliverable=d["deliverable"],
-                        score=d["score"],
-                        start_time=parse(d["start_time"])
-                        .astimezone(pytz.utc)
-                        .replace(tzinfo=None),
-                        end_time=parse(d["end_time"])
-                        .astimezone(pytz.utc)
-                        .replace(tzinfo=None),
+                        start_time=parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                        end_time=parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
                         enabled=d["enabled"],
                     )
                     db.session.add(t)
-                    # for rubric in d["rubric"]:
-                    #     r = Rubric(
-                    #         value=rubric["value"],
-                    #         deliverable=rubric["deliverable"],
-                    #         template=t,
-                    #     )
-                    #     db.session.add(r)
+                    db.session.flush()
+                    # Create rubric items (backward compat: if only "score" exists, create default item)
+                    if d.get("rubric_items"):
+                        for idx, item_data in enumerate(d["rubric_items"]):
+                            rubric_item = RubricItem(
+                                title=item_data["title"],
+                                description=item_data.get("description", ""),
+                                points=item_data["points"],
+                                order=item_data.get("order", idx),
+                                template=t,
+                            )
+                            db.session.add(rubric_item)
+                    elif d.get("score"):
+                        rubric_item = RubricItem(
+                            title="Overall Quality",
+                            description="",
+                            points=int(d["score"]),
+                            order=0,
+                            template=t,
+                        )
+                        db.session.add(rubric_item)
                     for team_name in d["teams"]:
                         inject = (
                             db.session.query(Inject)
@@ -822,11 +990,7 @@ def admin_import_inject_templates():
                             inject.enabled = True
                         # Otherwise, create the inject
                         else:
-                            team = (
-                                db.session.query(Team)
-                                .filter(Team.name == team_name)
-                                .first()
-                            )
+                            team = db.session.query(Team).filter(Team.name == team_name).first()
                             if team:
                                 inject = Inject(
                                     team=team,
@@ -857,7 +1021,7 @@ def admin_inject_scores():
         )
 
         for inject in injects:
-            if not inject.team:
+            if inject.team is None:
                 continue
             if inject.template.id not in data:
                 data[inject.template.id] = {
@@ -869,7 +1033,7 @@ def admin_inject_scores():
                     "id": inject.id,
                     "score": inject.score,
                     "status": inject.status,
-                    "max_score": inject.template.score,
+                    "max_score": inject.template.max_score,
                 }
 
         # Rewrite data to be in the format expected by the frontend
@@ -887,7 +1051,8 @@ def admin_inject_scores():
 def admin_injects_bar():
     if current_user.is_white_team:
         inject_scores = dict(
-            db.session.query(Inject.team_id, func.sum(Inject.score))
+            db.session.query(Inject.team_id, func.sum(InjectRubricScore.score))
+            .join(InjectRubricScore)
             .filter(Inject.status == "Graded")
             .group_by(Inject.team_id)
             .all()
@@ -896,9 +1061,7 @@ def admin_injects_bar():
         team_data = {}
         team_labels = []
         team_inject_scores = []
-        blue_teams = (
-            db.session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
-        )
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.name).all()
         for blue_team in blue_teams:
             team_labels.append(blue_team.name)
             team_inject_scores.append(str(inject_scores.get(blue_team.id, 0)))
@@ -971,9 +1134,7 @@ def admin_update_password():
     if current_user.is_white_team:
         if "user_id" in request.form and "password" in request.form:
             try:
-                user_obj = (
-                    db.session.query(User).filter(User.id == request.form["user_id"]).one()
-                )
+                user_obj = db.session.query(User).filter(User.id == request.form["user_id"]).one()
             except NoResultFound:
                 return redirect(url_for("auth.login"))
             user_obj.update_password(html.escape(request.form["password"]))
@@ -993,14 +1154,8 @@ def admin_update_password():
 @login_required
 def admin_add_user():
     if current_user.is_white_team:
-        if (
-            "username" in request.form
-            and "password" in request.form
-            and "team_id" in request.form
-        ):
-            team_obj = (
-                db.session.query(Team).filter(Team.id == request.form["team_id"]).one()
-            )
+        if "username" in request.form and "password" in request.form and "team_id" in request.form:
+            team_obj = db.session.query(Team).filter(Team.id == request.form["team_id"]).one()
             user_obj = User(
                 username=html.escape(request.form["username"]),
                 password=html.escape(request.form["password"]),
@@ -1022,9 +1177,7 @@ def admin_add_user():
 def admin_add_team():
     if current_user.is_white_team:
         if "name" in request.form and "color" in request.form:
-            team_obj = Team(
-                html.escape(request.form["name"]), html.escape(request.form["color"])
-            )
+            team_obj = Team(html.escape(request.form["name"]), html.escape(request.form["color"]))
             db.session.add(team_obj)
             db.session.commit()
             flash("Team successfully added.", "success")
@@ -1036,16 +1189,34 @@ def admin_add_team():
         return {"status": "Unauthorized"}, 403
 
 
+@mod.route("/api/admin/toggle_inject_scores_visible", methods=["POST"])
+@login_required
+def admin_toggle_inject_scores_visible():
+    if current_user.is_white_team:
+        Setting.clear_cache("inject_scores_visible")
+        setting = Setting.get_setting("inject_scores_visible")
+        setting.value = not setting.value
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("inject_scores_visible")
+        update_scoreboard_data()
+        update_all_inject_data()
+        return {"status": "Success"}
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
 @mod.route("/api/admin/toggle_engine", methods=["POST"])
 @login_required
 def admin_toggle_engine():
     if current_user.is_white_team:
+        Setting.clear_cache("engine_paused")
         setting = Setting.get_setting("engine_paused")
         setting.value = not setting.value
         db.session.add(setting)
         db.session.commit()
         Setting.clear_cache("engine_paused")
-        return {'status': "Success"}
+        return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
 
@@ -1056,12 +1227,8 @@ def admin_get_engine_stats():
     if current_user.is_white_team:
         engine_stats = {}
         engine_stats["round_number"] = Round.get_last_round_num()
-        engine_stats["num_passed_checks"] = (
-            db.session.query(Check).filter_by(result=True).count()
-        )
-        engine_stats["num_failed_checks"] = (
-            db.session.query(Check).filter_by(result=False).count()
-        )
+        engine_stats["num_passed_checks"] = db.session.query(Check).filter_by(result=True).count()
+        engine_stats["num_failed_checks"] = db.session.query(Check).filter_by(result=False).count()
         engine_stats["total_checks"] = db.session.query(Check).count()
         return jsonify(engine_stats)
     else:
@@ -1095,3 +1262,456 @@ def admin_get_queue_stats():
         return jsonify(data=queue_stats)
     else:
         return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/get_competition_summary")
+@login_required
+def admin_get_competition_summary():
+    if current_user.is_white_team:
+        blue_teams = db.session.query(Team).filter(Team.color == "Blue").all()
+        total_services = db.session.query(Service).join(Team).filter(Team.color == "Blue").count()
+        total_checks = db.session.query(Check).count()
+        passed_checks = db.session.query(Check).filter_by(result=True).count()
+
+        overall_uptime = 0.0
+        if total_checks > 0:
+            overall_uptime = round((passed_checks / total_checks) * 100, 1)
+
+        last_round = Round.get_last_round_num()
+        currently_passing = 0
+        if last_round > 0:
+            currently_passing = (
+                db.session.query(Check).join(Round).filter(Round.number == last_round, Check.result == True).count()
+            )
+
+        return jsonify(
+            {
+                "blue_teams": len(blue_teams),
+                "total_services": total_services,
+                "currently_passing": currently_passing,
+                "overall_uptime": overall_uptime,
+            }
+        )
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/config", methods=["GET"])
+@login_required
+def admin_get_welcome_config():
+    """Get the welcome page configuration."""
+    if current_user.is_white_team:
+        config = get_welcome_config()
+        return jsonify(data=config)
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/config", methods=["PUT"])
+@login_required
+def admin_update_welcome_config():
+    """Update the welcome page configuration."""
+    if current_user.is_white_team:
+        data = request.get_json()
+        if not data:
+            return (
+                jsonify(
+                    {
+                        "status": "Error",
+                        "message": "No data provided",
+                    }
+                ),
+                400,
+            )
+
+        try:
+            config = save_welcome_config(data)
+            return jsonify({"status": "Success", "data": config})
+        except ValueError as e:
+            return jsonify({"status": "Error", "message": str(e)}), 400
+    else:
+        return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/admin/welcome/upload_logo", methods=["POST"])
+@login_required
+def admin_upload_sponsor_logo():
+    """Upload a sponsor logo image."""
+    import os
+
+    from werkzeug.utils import secure_filename
+
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    if "file" not in request.files:
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "No file provided",
+                }
+            ),
+            400,
+        )
+
+    file = request.files["file"]
+    if file.filename == "":
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "No file selected",
+                }
+            ),
+            400,
+        )
+
+    # Validate file extension
+    allowed = {"png", "jpg", "jpeg", "gif", "svg", "webp"}
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed:
+        return (
+            jsonify(
+                {
+                    "status": "Error",
+                    "message": "File type not allowed. Use: " + ", ".join(sorted(allowed)),
+                }
+            ),
+            400,
+        )
+
+    filename = secure_filename(file.filename)
+
+    # Save to the shared upload folder (Docker volume), not the static dir.
+    # Static files are served by nginx from a separate container/mount,
+    # so uploads to the web container's static/ dir would be inaccessible.
+    sponsors_dir = os.path.join(config.upload_folder, "sponsors")
+    os.makedirs(sponsors_dir, exist_ok=True)
+
+    # Avoid overwriting: add suffix if file exists
+    filepath = os.path.join(sponsors_dir, filename)
+    if os.path.exists(filepath):
+        name, dot_ext = os.path.splitext(filename)
+        counter = 1
+        while os.path.exists(filepath):
+            filename = f"{name}_{counter}{dot_ext}"
+            filepath = os.path.join(sponsors_dir, filename)
+            counter += 1
+
+    file.save(filepath)
+
+    url = f"/api/admin/welcome/sponsor_logo/{filename}"
+    return jsonify({"status": "Success", "url": url})
+
+
+@mod.route("/api/admin/welcome/sponsor_logo/<filename>")
+def serve_sponsor_logo(filename):
+    """Serve a sponsor logo from the upload folder."""
+    import os
+
+    from flask import abort, send_from_directory
+    from werkzeug.utils import secure_filename
+
+    safe_filename = secure_filename(filename)
+    if not safe_filename:
+        abort(404)
+    sponsors_dir = os.path.join(config.upload_folder, "sponsors")
+    return send_from_directory(sponsors_dir, safe_filename)
+
+
+# Global cache for loaded check classes (loaded once per app lifecycle)
+_check_classes = None
+
+
+def _get_check_classes():
+    """Load and cache all check classes."""
+    global _check_classes
+    if _check_classes is None:
+        _check_classes = {}
+        loaded_checks = Engine.load_check_files(config.checks_location)
+        for check_class in loaded_checks:
+            _check_classes[check_class.__name__] = check_class
+    return _check_classes
+
+
+@mod.route("/api/admin/check/dry_run", methods=["POST"])
+@login_required
+def admin_check_dry_run():
+    """
+    Run a service check without recording results to the database.
+    Dispatches to a Celery worker so the check runs in an environment
+    that has the required tools (SSH client, DNS utils, etc.).
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data or "service_id" not in data:
+        return jsonify({"status": "error", "message": "service_id is required"}), 400
+
+    service_id = data.get("service_id")
+    environment_id = data.get("environment_id")
+
+    service = db.session.get(Service, int(service_id))
+    if not service:
+        return jsonify({"status": "error", "message": f"Service with id {service_id} not found"}), 404
+
+    # Get environment (specific or random)
+    if environment_id:
+        environment = db.session.get(Environment, int(environment_id))
+        if not environment or environment.service_id != service.id:
+            return jsonify({"status": "error", "message": f"Environment {environment_id} not found for service"}), 404
+    else:
+        if not service.environments:
+            return jsonify({"status": "error", "message": "Service has no environments configured"}), 400
+        import random
+
+        environment = random.choice(service.environments)
+
+    # Load check class and generate command
+    check_classes = _get_check_classes()
+    check_class = check_classes.get(service.check_name)
+    if not check_class:
+        return jsonify({"status": "error", "message": f"Check class '{service.check_name}' not found"}), 404
+
+    try:
+        check_obj = check_class(environment)
+        command = check_obj.command()
+    except LookupError as e:
+        return jsonify({"status": "error", "message": f"Check configuration error: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error instantiating check: {str(e)}"}), 500
+
+    # Dispatch to a Celery worker via the service's worker queue
+    import time
+
+    job = {"command": command}
+    start_time = time.time()
+    try:
+        result = execute_command.apply_async(args=[job], queue=service.worker_queue)
+        completed_job = result.get(timeout=35)
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Worker execution failed: {str(e)}"}), 500
+    execution_time_ms = int((time.time() - start_time) * 1000)
+
+    # Evaluate result against matching_content
+    if completed_job.get("errored_out"):
+        check_result = False
+        reason = CHECK_TIMED_OUT_TEXT
+    else:
+        output = completed_job.get("output", "")
+        if re.search(environment.matching_content, output):
+            check_result = True
+            reason = CHECK_SUCCESS_TEXT
+        else:
+            check_result = False
+            reason = CHECK_FAILURE_TEXT
+
+    return jsonify(
+        {
+            "status": "success",
+            "result": check_result,
+            "reason": reason,
+            "output": completed_job.get("output", "")[:35000],
+            "command": command,
+            "execution_time_ms": execution_time_ms,
+            "service_name": service.name,
+            "team_name": service.team.name,
+            "host": service.host,
+            "port": service.port,
+            "matching_content": environment.matching_content,
+            "environment_id": environment.id,
+        }
+    )
+
+
+@mod.route("/api/admin/rollback", methods=["POST"])
+@login_required
+def admin_rollback():
+    """
+    Rollback competition data to a specific round.
+
+    Deletes all rounds, checks, and KB entries from the specified round onwards.
+    This is a destructive operation - use with caution.
+
+    Request JSON:
+    {
+        "round_number": 10,  // Delete this round and all after it
+        "confirm": true      // Required to confirm destructive action
+    }
+    """
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Request body required"}), 400
+
+    round_number = data.get("round_number")
+    confirm = data.get("confirm", False)
+
+    if round_number is None:
+        return jsonify({"status": "error", "message": "round_number is required"}), 400
+
+    try:
+        round_number = int(round_number)
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": "round_number must be an integer"}), 400
+
+    if round_number < 1:
+        return jsonify({"status": "error", "message": "round_number must be >= 1"}), 400
+
+    if not confirm:
+        return jsonify({"status": "error", "message": "confirm=true required for destructive operation"}), 400
+
+    # Get current round count for validation
+    current_round = Round.get_last_round_num()
+    if current_round == 0:
+        return jsonify({"status": "error", "message": "No rounds exist to rollback"}), 400
+
+    if round_number > current_round:
+        return jsonify(
+            {"status": "error", "message": f"round_number ({round_number}) exceeds current round ({current_round})"}
+        ), 400
+
+    # Pause the engine to prevent race conditions during rollback
+    was_paused = Setting.get_setting("engine_paused").value
+    if not was_paused:
+        setting = Setting.get_setting("engine_paused")
+        setting.value = True
+        db.session.add(setting)
+        db.session.commit()
+        Setting.clear_cache("engine_paused")
+        # Wait for the engine to finish its current round and notice the pause
+        time.sleep(5)
+
+    try:
+        # Revoke any pending Celery tasks for rounds being rolled back
+        task_kb_entries = (
+            db.session.query(KB)
+            .filter(KB.round_num >= round_number, KB.name == "task_ids")
+            .all()
+        )
+        revoked_count = 0
+        for kb_entry in task_kb_entries:
+            try:
+                task_dict = json.loads(kb_entry.value)
+                for team_name, task_id_list in task_dict.items():
+                    for task_id in task_id_list:
+                        execute_command.AsyncResult(task_id).revoke(terminate=True)
+                        revoked_count += 1
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        # Get rounds to delete
+        rounds_to_delete = db.session.query(Round).filter(Round.number >= round_number).all()
+        round_ids = [r.id for r in rounds_to_delete]
+
+        # Count checks to delete
+        checks_count = db.session.query(Check).filter(Check.round_id.in_(round_ids)).count()
+
+        # Count KB entries to delete
+        kb_count = db.session.query(KB).filter(KB.round_num >= round_number).count()
+
+        # Delete checks in batches to avoid lock wait timeout
+        BATCH_SIZE = 500
+        for i in range(0, len(round_ids), BATCH_SIZE):
+            batch_ids = round_ids[i : i + BATCH_SIZE]
+            db.session.query(Check).filter(Check.round_id.in_(batch_ids)).delete(synchronize_session=False)
+            db.session.commit()
+
+        # Delete KB entries
+        db.session.query(KB).filter(KB.round_num >= round_number).delete(synchronize_session=False)
+        db.session.commit()
+
+        # Delete rounds
+        rounds_count = len(rounds_to_delete)
+        db.session.query(Round).filter(Round.number >= round_number).delete(synchronize_session=False)
+        db.session.commit()
+
+    finally:
+        # Unpause engine if we paused it (even on error)
+        if not was_paused:
+            Setting.clear_cache("engine_paused")
+            setting = Setting.get_setting("engine_paused")
+            setting.value = False
+            db.session.add(setting)
+            db.session.commit()
+            Setting.clear_cache("engine_paused")
+
+    # Clear all caches to force recalculation
+    from flask import current_app
+
+    update_all_cache(current_app)
+
+    return jsonify(
+        {
+            "status": "success",
+            "message": f"Rolled back to before round {round_number}",
+            "deleted": {
+                "rounds": rounds_count,
+                "checks": checks_count,
+                "kb_entries": kb_count,
+            },
+            "new_current_round": Round.get_last_round_num(),
+        }
+    )
+
+
+@mod.route("/api/admin/rollback/preview", methods=["POST"])
+@login_required
+def admin_rollback_preview():
+    """Preview what would be deleted by a rollback operation."""
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Request body required"}), 400
+
+    round_number = data.get("round_number")
+    if round_number is None:
+        return jsonify({"status": "error", "message": "round_number is required"}), 400
+
+    try:
+        round_number = int(round_number)
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": "round_number must be an integer"}), 400
+
+    if round_number < 1:
+        return jsonify({"status": "error", "message": "round_number must be >= 1"}), 400
+
+    current_round = Round.get_last_round_num()
+    if current_round == 0:
+        return jsonify(
+            {
+                "status": "success",
+                "current_round": 0,
+                "round_number": round_number,
+                "will_delete": {"rounds": 0, "checks": 0, "kb_entries": 0},
+            }
+        )
+
+    # Get rounds that would be deleted
+    rounds_to_delete = db.session.query(Round).filter(Round.number >= round_number).all()
+    round_ids = [r.id for r in rounds_to_delete]
+
+    # Count checks
+    checks_count = db.session.query(Check).filter(Check.round_id.in_(round_ids)).count() if round_ids else 0
+
+    # Count KB entries
+    kb_count = db.session.query(KB).filter(KB.round_num >= round_number).count()
+
+    return jsonify(
+        {
+            "status": "success",
+            "current_round": current_round,
+            "round_number": round_number,
+            "will_delete": {
+                "rounds": len(rounds_to_delete),
+                "checks": checks_count,
+                "kb_entries": kb_count,
+            },
+        }
+    )

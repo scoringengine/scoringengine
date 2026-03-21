@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-megaphone"></i> Announcements</h1>
+        <button class="btn btn-sm btn-outline-primary d-none" id="mark-all-read">
+          <i class="bi bi-check2-all"></i> Mark All Read
+        </button>
+      </div>
+
+      <div id="announcements-container">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  function saveReadId(annId) {
+    var ids = _getReadIds();
+    if (ids.indexOf(annId) === -1) {
+      ids.push(annId);
+      localStorage.setItem(_LS_KEY, JSON.stringify(ids));
+    }
+  }
+
+  function renderAnnouncements(announcements) {
+    var container = $('#announcements-container');
+    container.empty();
+
+    if (announcements.length === 0) {
+      container.html(
+        '<div class="alert alert-info">' +
+        '<i class="bi bi-info-circle"></i> No announcements at this time.' +
+        '</div>'
+      );
+      return;
+    }
+
+    var readIds = _getReadIds();
+
+    announcements.forEach(function(a) {
+      var isRead = readIds.indexOf(a.id) !== -1;
+      var isPinned = a.is_pinned;
+
+      var borderClass = isRead ? '' : 'border-primary border-2 unread';
+      if (isPinned) borderClass += ' border-warning';
+
+      var headerBg = isPinned ? 'bg-warning bg-opacity-25' : '';
+
+      var pinHtml = isPinned
+        ? '<i class="bi bi-pin-angle-fill text-warning me-1" title="Pinned"></i>'
+        : '';
+
+      var newBadge = isRead
+        ? ''
+        : '<span class="badge bg-primary me-1 new-badge">New</span>';
+
+      var markReadBtn = isRead
+        ? ''
+        : '<button class="btn btn-sm btn-outline-secondary mark-read-btn" title="Mark as read"><i class="bi bi-check2"></i></button>';
+
+      var authorHtml = a.author_name
+        ? '<i class="bi bi-person"></i> ' + $('<span>').text(a.author_name).html() + ' &bull; '
+        : '';
+
+      var createdDate = '';
+      var createdTitle = '';
+      if (a.created_at) {
+        var d = new Date(a.created_at);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        createdDate = months[d.getMonth()] + ' ' + String(d.getDate()).padStart(2, '0') + ', ' + d.getFullYear() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        createdTitle = d.toISOString();
+      }
+
+      var card = $(
+        '<div class="card mb-3 announcement-card ' + borderClass + '" data-id="' + a.id + '">' +
+          '<div class="card-header d-flex justify-content-between align-items-center ' + headerBg + '">' +
+            '<div>' +
+              pinHtml +
+              newBadge +
+              '<strong></strong>' +
+            '</div>' +
+            '<div class="d-flex align-items-center gap-2">' +
+              markReadBtn +
+              '<small class="text-muted">' +
+                authorHtml +
+                '<i class="bi bi-clock"></i> ' +
+                '<span title="' + createdTitle + '">' + createdDate + '</span>' +
+              '</small>' +
+            '</div>' +
+          '</div>' +
+          '<div class="card-body"></div>' +
+        '</div>'
+      );
+
+      // Set text content safely for title, HTML content for body
+      card.find('strong').text(a.title);
+      card.find('.card-body').html(a.content);
+
+      container.append(card);
+    });
+
+    // Show "Mark All Read" if there are unread announcements
+    if ($('.announcement-card.unread').length > 0) {
+      $('#mark-all-read').removeClass('d-none');
+    }
+
+    // Bind mark-read buttons
+    $('.mark-read-btn').click(function(e) {
+      e.preventDefault();
+      var card = $(this).closest('.announcement-card');
+      saveReadId(card.data('id'));
+      card.removeClass('border-primary border-2 unread');
+      card.find('.new-badge').remove();
+      card.find('.mark-read-btn').remove();
+      if ($('.announcement-card.unread').length === 0) {
+        $('#mark-all-read').fadeOut();
+      }
+      updateAnnouncementsBadge();
+    });
+  }
+
+  // Fetch announcements from cached API
+  $.ajax({
+    url: '/api/announcements',
+    dataType: 'json',
+    success: function(resp) {
+      renderAnnouncements(resp.data || []);
+    },
+    error: function() {
+      $('#announcements-container').html(
+        '<div class="alert alert-danger">' +
+        '<i class="bi bi-exclamation-triangle"></i> Failed to load announcements.' +
+        '</div>'
+      );
+    }
+  });
+
+  // Mark all as read
+  $('#mark-all-read').click(function() {
+    var btn = $(this);
+    var ids = _getReadIds();
+    $('.announcement-card.unread').each(function() {
+      var card = $(this);
+      var annId = card.data('id');
+      if (ids.indexOf(annId) === -1) {
+        ids.push(annId);
+      }
+      card.removeClass('border-primary border-2 unread');
+      card.find('.new-badge').remove();
+      card.find('.mark-read-btn').remove();
+    });
+    localStorage.setItem(_LS_KEY, JSON.stringify(ids));
+    btn.fadeOut();
+    updateAnnouncementsBadge();
+  });
+});
+</script>
+{% endblock %}

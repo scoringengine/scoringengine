@@ -1,33 +1,30 @@
-from flask import request, jsonify
-from flask_login import current_user, login_required
+import html
 import re
 
-import html
+from flask import jsonify, request
+from flask_login import current_user, login_required
 
 from scoring_engine.cache import cache
+from scoring_engine.cache_helper import update_overview_data, update_service_data, update_services_data
 from scoring_engine.db import db
-from scoring_engine.cache_helper import (
-    update_overview_data,
-    update_services_data,
-    update_service_data,
-)
 from scoring_engine.models.account import Account
-from scoring_engine.models.service import Service
-from scoring_engine.models.setting import Setting
 from scoring_engine.models.check import Check
 from scoring_engine.models.round import Round
-from scoring_engine.sla import get_sla_config, calculate_round_multiplier, calculate_sla_penalty_percent
+from scoring_engine.models.service import Service
+from scoring_engine.models.setting import Setting
+from scoring_engine.sla import calculate_round_multiplier, calculate_sla_penalty_percent, get_sla_config
 
 from . import make_cache_key, mod
 
 
-def is_valid_user_input(string, only_alphanumberdot, only_number):
-    if only_alphanumberdot:
-        regex = r"^[A-Za-z0-9.]+$"
+def is_valid_user_input(string, only_hostname, only_number):
+    if only_hostname:
+        # Valid hostname/IP characters: alphanumeric, dots, hyphens, underscores
+        regex = r"^[A-Za-z0-9._-]+$"
     elif only_number:
         regex = r"^[0-9]+$"
     else:
-        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\); !]+$"
+        regex = r"^[A-Za-z0-9\.,@=:\/\-\|\(\)_; !]+$"
         if string.startswith(" ") or string.endswith(" "):
             return False
     return bool(re.match(regex, string))
@@ -84,18 +81,20 @@ def service_get_checks(service_id):
             sla_penalty_applied = 0
             consecutive_failures += 1
 
-        data.append({
-            "id": check.id,
-            "round": round_number,
-            "result": check.result,
-            "earned_score": earned_score,
-            "multiplier": multiplier,
-            "sla_penalty": sla_penalty_applied,
-            "timestamp": check.local_completed_timestamp,
-            "reason": check.reason,
-            "output": check.output,
-            "command": check.command,
-        })
+        data.append(
+            {
+                "id": check.id,
+                "round": round_number,
+                "result": check.result,
+                "earned_score": earned_score,
+                "multiplier": multiplier,
+                "sla_penalty": sla_penalty_applied,
+                "timestamp": check.local_completed_timestamp,
+                "reason": check.reason,
+                "output": check.output,
+                "command": check.command,
+            }
+        )
 
     # Reverse to show most recent first (descending order)
     data.reverse()
@@ -133,7 +132,7 @@ def update_service_account_info():
                         db.session.commit()
                         return jsonify({"status": "Updated Account Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid characters. Allowed: A-Z a-z 0-9 . , @ = : / - | ( ) _ ; and space"})
 
     return jsonify({"error": "Incorrect permissions"})
 
@@ -150,7 +149,9 @@ def update_host():
 
                 service = db.session.query(Service).get(int(request.form["pk"]))
                 if service:
-                    if (service.team == current_user.team or current_user.is_white_team) and request.form["name"] == "host":
+                    if (service.team == current_user.team or current_user.is_white_team) and request.form[
+                        "name"
+                    ] == "host":
                         service.host = html.escape(request.form["value"])
                         db.session.add(service)
                         db.session.commit()
@@ -159,7 +160,7 @@ def update_host():
                         update_service_data(service.id)
                         return jsonify({"status": "Updated Service Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid characters. Allowed: A-Z a-z 0-9 . _ -"})
 
     return jsonify({"error": "Incorrect permissions"})
 
@@ -176,7 +177,9 @@ def update_port():
 
                 service = db.session.query(Service).get(int(request.form["pk"]))
                 if service:
-                    if (service.team == current_user.team or current_user.is_white_team) and request.form["name"] == "port":
+                    if (service.team == current_user.team or current_user.is_white_team) and request.form[
+                        "name"
+                    ] == "port":
                         service.port = int(html.escape(request.form["value"]))
                         db.session.add(service)
                         db.session.commit()
@@ -185,6 +188,6 @@ def update_port():
                         update_service_data(service.id)
                         return jsonify({"status": "Updated Service Information"})
             else:
-                return jsonify({"error": "Invalid input characters detected"})
+                return jsonify({"error": "Invalid input. Port must be a number."})
 
     return jsonify({"error": "Incorrect permissions"})

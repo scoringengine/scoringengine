@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from flask import jsonify
 from flask_login import current_user, login_required
 from sqlalchemy import desc, func
@@ -196,6 +197,8 @@ def team_services_status(team_id):
             Service.name,
             Check.service_id,
             Check.result,
+            Service.check_name,
+            Service.host,
         )
         .select_from(Check)
         .join(Service)
@@ -205,9 +208,11 @@ def team_services_status(team_id):
         .all()
     )
 
-    for service_name, service_id, check_result in checks:
+    for service_name, service_id, check_result, check_name, host in checks:
         data[service_name] = {
             "id": str(service_id),
             "result": str(check_result),
+            "check_name": str(check_name),
+            "host": str(host),
         }
     return jsonify(data)

@@ -1,14 +1,14 @@
-from flask import Blueprint, redirect, render_template, url_for
-from flask_login import current_user, login_required
 from operator import itemgetter
 
-from scoring_engine.models.user import User
-from scoring_engine.models.team import Team
+from flask import Blueprint, redirect, render_template, url_for
+from flask_login import current_user, login_required
+
+from scoring_engine.db import db
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
-from scoring_engine.db import db
-
+from scoring_engine.models.team import Team
+from scoring_engine.models.user import User
 
 mod = Blueprint("admin", __name__)
 
@@ -67,9 +67,7 @@ def inject_templates():
     if current_user.is_white_team:
         blue_teams = Team.get_all_blue_teams()
         red_teams = Team.get_all_red_teams()
-        return render_template(
-            "admin/templates.html", blue_teams=blue_teams, red_teams=red_teams
-        )
+        return render_template("admin/templates.html", blue_teams=blue_teams, red_teams=red_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 
@@ -94,6 +92,15 @@ def inject_inject(inject_id):
         return redirect(url_for("auth.unauthorized"))
 
 
+@mod.route("/admin/injects/template/<int:template_id>/submissions")
+@login_required
+def template_submissions(template_id):
+    if current_user.is_white_team:
+        return render_template("admin/template_submissions.html", template_id=template_id)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
 @mod.route("/admin/service/<id>")
 @login_required
 def service(id):
@@ -103,9 +110,7 @@ def service(id):
         if service is None:
             return redirect(url_for("auth.unauthorized"))
 
-        return render_template(
-            "admin/service.html", service=service, blue_teams=blue_teams
-        )
+        return render_template("admin/service.html", service=service, blue_teams=blue_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 
@@ -115,7 +120,6 @@ def service(id):
 def settings():
     if current_user.is_white_team:
         about_page_content = Setting.get_setting("about_page_content").value
-        welcome_page_content = Setting.get_setting("welcome_page_content").value
         target_round_time = Setting.get_setting("target_round_time").value
         worker_refresh_time = Setting.get_setting("worker_refresh_time").value
         blue_teams = Team.get_all_blue_teams()
@@ -125,7 +129,6 @@ def settings():
             target_round_time=target_round_time,
             worker_refresh_time=worker_refresh_time,
             about_page_content=about_page_content,
-            welcome_page_content=welcome_page_content,
         )
     else:
         return redirect(url_for("auth.unauthorized"))
@@ -139,20 +142,38 @@ def permissions():
         return render_template(
             "admin/permissions.html",
             blue_teams=blue_teams,
-            blue_team_update_hostname=Setting.get_setting(
-                "blue_team_update_hostname"
-            ).value,
+            blue_team_update_hostname=Setting.get_setting("blue_team_update_hostname").value,
             blue_team_update_port=Setting.get_setting("blue_team_update_port").value,
-            blue_team_update_account_usernames=Setting.get_setting(
-                "blue_team_update_account_usernames"
-            ).value,
-            blue_team_update_account_passwords=Setting.get_setting(
-                "blue_team_update_account_passwords"
-            ).value,
-            blue_team_view_check_output=Setting.get_setting(
-                "blue_team_view_check_output"
-            ).value,
+            blue_team_update_account_usernames=Setting.get_setting("blue_team_update_account_usernames").value,
+            blue_team_update_account_passwords=Setting.get_setting("blue_team_update_account_passwords").value,
+            blue_team_view_check_output=Setting.get_setting("blue_team_view_check_output").value,
+            anonymize_team_names=(
+                Setting.get_setting("anonymize_team_names").value
+                if Setting.get_setting("anonymize_team_names")
+                else False
+            ),
+            inject_scores_visible=Setting.get_setting("inject_scores_visible").value,
         )
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/announcements")
+@login_required
+def announcements():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/announcements.html", blue_teams=blue_teams)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/welcome")
+@login_required
+def welcome():
+    if current_user.is_white_team:
+        blue_teams = Team.get_all_blue_teams()
+        return render_template("admin/welcome.html", blue_teams=blue_teams)
     else:
         return redirect(url_for("auth.unauthorized"))
 

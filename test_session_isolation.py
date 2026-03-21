@@ -4,21 +4,22 @@ Test to verify Flask-SQLAlchemy is properly creating new sessions per request
 and fixing the stale data issue that required the monkeypatch.
 """
 
-from scoring_engine.web import create_app
-from scoring_engine.db import db, init_db, delete_db
+from scoring_engine.db import db, delete_db, init_db
 from scoring_engine.models.setting import Setting
+from scoring_engine.web import create_app
+
 
 def test_session_isolation():
     """Verify that sessions are isolated between requests."""
     app = create_app()
-    app.config['TESTING'] = True
+    app.config["TESTING"] = True
 
     with app.app_context():
         delete_db()
         init_db()
 
         # Create a setting
-        setting = Setting(name='test_setting', value='initial_value')
+        setting = Setting(name="test_setting", value="initial_value")
         db.session.add(setting)
         db.session.commit()
         setting_id = setting.id
@@ -33,7 +34,7 @@ def test_session_isolation():
 
         setting1 = db.session.get(Setting, setting_id)
         print(f"Request 1 - Loaded setting: {setting1.value}")
-        assert setting1.value == 'initial_value'
+        assert setting1.value == "initial_value"
 
         # Store the setting object's ID to track if it's the same instance later
         setting1_obj_id = id(setting1)
@@ -43,7 +44,7 @@ def test_session_isolation():
         # (In real scenario, this would be another worker/request)
         with app.app_context():
             other_setting = db.session.get(Setting, setting_id)
-            other_setting.value = 'modified_value'
+            other_setting.value = "modified_value"
             db.session.commit()
             print("✓ Simulated external update to 'modified_value'")
 
@@ -82,7 +83,7 @@ def test_session_isolation():
         # THIS IS THE CRITICAL TEST
         # With proper Flask-SQLAlchemy, this should be 'modified_value'
         # Without it (or with the old global session), it would be 'initial_value' (stale)
-        if setting2.value == 'modified_value':
+        if setting2.value == "modified_value":
             print("✅ SUCCESS: Got fresh data from database!")
             print("✅ Flask-SQLAlchemy is properly creating new sessions per request")
             print("✅ The monkeypatch is no longer needed!")
@@ -93,9 +94,9 @@ def test_session_isolation():
             return False
 
     print()
-    print("="*60)
+    print("=" * 60)
     print("Test Details:")
-    print("="*60)
+    print("=" * 60)
     print("What this test proves:")
     print("1. Each request gets a new session (different session IDs)")
     print("2. Session identity map is cleared between requests")
@@ -119,19 +120,19 @@ def test_session_isolation():
 def test_concurrent_modifications():
     """Test that concurrent modifications don't cause stale data issues."""
     app = create_app()
-    app.config['TESTING'] = True
+    app.config["TESTING"] = True
 
     print()
-    print("="*60)
+    print("=" * 60)
     print("Testing Concurrent Modifications Scenario")
-    print("="*60)
+    print("=" * 60)
 
     with app.app_context():
         delete_db()
         init_db()
 
         # Create test setting
-        setting = Setting(name='concurrent_test', value='0')
+        setting = Setting(name="concurrent_test", value="0")
         db.session.add(setting)
         db.session.commit()
         setting_id = setting.id
@@ -145,7 +146,7 @@ def test_concurrent_modifications():
         # Request B updates it (simulated)
         with app.app_context():
             setting_b = db.session.get(Setting, setting_id)
-            setting_b.value = '1'
+            setting_b.value = "1"
             db.session.commit()
             print("Request B - Updated value to: 1")
 
@@ -160,7 +161,7 @@ def test_concurrent_modifications():
         value_c = setting_c.value
         print(f"Request C - Read value (new request): {value_c}")
 
-        if value_c == '1':
+        if value_c == "1":
             print("✅ SUCCESS: New request sees updated value!")
         else:
             print(f"❌ FAILURE: Got stale value {value_c}")
@@ -169,10 +170,10 @@ def test_concurrent_modifications():
     return True
 
 
-if __name__ == '__main__':
-    print("="*60)
+if __name__ == "__main__":
+    print("=" * 60)
     print("Flask-SQLAlchemy Session Isolation Test")
-    print("="*60)
+    print("=" * 60)
     print()
     print("This test verifies that the Flask-SQLAlchemy migration")
     print("fixes the stale data issue that required the monkeypatch.")
@@ -188,10 +189,10 @@ if __name__ == '__main__':
             success = False
 
         print()
-        print("="*60)
+        print("=" * 60)
         if success:
             print("✅ ALL TESTS PASSED")
-            print("="*60)
+            print("=" * 60)
             print()
             print("Conclusion: Flask-SQLAlchemy is properly isolating sessions.")
             print("The monkeypatch is no longer needed because:")
@@ -200,13 +201,14 @@ if __name__ == '__main__':
             print("- No stale data carried over between requests")
         else:
             print("❌ TESTS FAILED")
-            print("="*60)
+            print("=" * 60)
             print()
             print("The root cause may not be fully fixed!")
             print("You may still need the monkeypatch or further investigation.")
     except Exception as e:
         print(f"❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 

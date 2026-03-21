@@ -2,6 +2,7 @@
 services:
   redis:
     image: "redis:7.0.4"
+    command: ["redis-server", "--save", ""]
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 30s
@@ -104,6 +105,8 @@ services:
     restart: on-failure
     networks:
       - default
+    volumes:
+      - check_outputs:/var/check_outputs
     environment:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
@@ -157,10 +160,12 @@ services:
       - default
     volumes:
       - injects:/var/uploads/
+      - check_outputs:/var/check_outputs
     environment:
       - SCORINGENGINE_VERSION
 
 volumes:
+  check_outputs:
   injects:
   redis:
   mysql:

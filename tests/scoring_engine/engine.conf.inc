@@ -13,6 +13,7 @@ blue_team_update_account_passwords = True
 blue_team_view_check_output = True
 timezone = US/Eastern
 upload_folder = /var/uploads
+check_output_folder = /tmp/test_check_outputs
 
 debug = False
 

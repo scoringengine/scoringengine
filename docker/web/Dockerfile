@@ -4,10 +4,8 @@ FROM ${BASE_IMAGE}
 USER root
 
 # Inject upload folder
-RUN mkdir -p /var/uploads && chown -R engine:engine /var/uploads
-
-# Install curl for docker health check
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /var/uploads && chown -R engine:engine /var/uploads && \
+    mkdir -p /var/check_outputs && chown -R engine:engine /var/check_outputs
 
 USER engine
 
