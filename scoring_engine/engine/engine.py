@@ -138,6 +138,40 @@ class Engine(object):
             self._check_map = {check.__name__: check for check in self.checks}
         return self._check_map.get(check_name)
 
+    @staticmethod
+    def _safe_regex_search(pattern, text, env_id=None, timeout=5):
+        """Run re.search with a timeout to prevent ReDoS hangs.
+
+        Uses signal.alarm on the main thread. Falls back to literal
+        match if the regex takes longer than *timeout* seconds or is invalid.
+        """
+        def _alarm_handler(signum, frame):
+            raise TimeoutError("Regex timed out")
+
+        old_handler = signal.signal(signal.SIGALRM, _alarm_handler)
+        signal.alarm(timeout)
+        try:
+            result = re.search(pattern, text)
+        except TimeoutError:
+            logger.warning(
+                "Regex timed out after %ds for environment %s, pattern %r — falling back to literal match",
+                timeout,
+                env_id,
+                pattern,
+            )
+            result = pattern in text
+        except re.error:
+            logger.warning(
+                "Invalid regex pattern for environment %s: %r, falling back to literal match",
+                env_id,
+                pattern,
+            )
+            result = pattern in text
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+        return result
+
     def sleep(self, seconds):
         try:
             time.sleep(seconds)
@@ -349,27 +383,15 @@ class Engine(object):
                                 result = False
                                 reason = CHECK_TIMED_OUT_TEXT
                             else:
-                                try:
-                                    matched = re.search(environment.matching_content, full_output)
-                                except re.error:
-                                    logger.warning(
-                                        "Invalid regex pattern for environment %s: %r, falling back to literal match",
-                                        environment.id,
-                                        environment.matching_content,
-                                    )
-                                    matched = environment.matching_content in full_output
+                                matched = self._safe_regex_search(
+                                    environment.matching_content, full_output, environment.id
+                                )
                                 if matched:
                                     # Check reject pattern - if it matches, fail even though content matched
                                     if environment.matching_content_reject:
-                                        try:
-                                            rejected = re.search(environment.matching_content_reject, full_output)
-                                        except re.error:
-                                            logger.warning(
-                                                "Invalid reject regex for environment %s: %r, falling back to literal match",
-                                                environment.id,
-                                                environment.matching_content_reject,
-                                            )
-                                            rejected = environment.matching_content_reject in full_output
+                                        rejected = self._safe_regex_search(
+                                            environment.matching_content_reject, full_output, environment.id
+                                        )
                                         if rejected:
                                             result = False
                                             reason = CHECK_FAILURE_TEXT
