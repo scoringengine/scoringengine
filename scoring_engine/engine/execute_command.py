@@ -33,6 +33,6 @@ def execute_command(job):
     # Cap output stored in Redis to avoid bloating Celery result backend.
     # Large outputs (e.g. full HTML pages from HTTP checks) cause massive
     # serialization overhead on every AsyncResult.state/.result call.
-    MAX_OUTPUT = 10000
+    MAX_OUTPUT = 5000
     job["output"] = output[:MAX_OUTPUT]
     return job
