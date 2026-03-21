@@ -2,6 +2,7 @@
 services:
   redis:
     image: "redis:7.0.4"
+    command: ["redis-server", "--save", ""]
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 30s
