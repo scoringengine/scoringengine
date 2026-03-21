@@ -273,8 +273,6 @@ class Engine(object):
 
                 logger.info("Determining check results and saving to db")
                 round_obj = Round(round_start=round_start_time, number=self.current_round)
-                round_end_time = datetime.now()
-                round_obj.round_end = round_end_time
                 cleanup_items.append(round_obj)
                 self.db.session.add(round_obj)
                 self.db.session.commit()
@@ -403,6 +401,8 @@ class Engine(object):
                         cleanup_items.append(check)
                         self.db.session.add(check)
                 logger.info("Processed %d check results, committing to database", total_tasks)
+                round_end_time = datetime.now()
+                round_obj.round_end = round_end_time
                 self.db.session.commit()
                 logger.info("Database commit complete")
 
