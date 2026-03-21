@@ -296,7 +296,9 @@ class Engine(object):
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
-                        task_result = task.result if task.state == "SUCCESS" else None
+                        # Fetch meta once to avoid double deserialization of large results
+                        task_state = task.state
+                        task_result = task.result if task_state == "SUCCESS" else None
                         processed_count += 1
                         if processed_count % 100 == 0:
                             logger.info("Processing results: %d/%d tasks", processed_count, total_tasks)
@@ -305,7 +307,7 @@ class Engine(object):
                         if task_result is None or not isinstance(task_result, dict):
                             env_id = task_env_map.get(task_id)
                             if env_id is None:
-                                logger.warning("No result or env mapping for task %s (state=%s), skipping", task_id, task.state)
+                                logger.warning("No result or env mapping for task %s (state=%s), skipping", task_id, task_state)
                                 continue
                             environment = env_cache.get(env_id)
                             if environment is None:
@@ -313,7 +315,7 @@ class Engine(object):
                                 continue
                             logger.warning(
                                 "Task %s stuck/failed (state=%s), marking %s - %s as timed out",
-                                task_id, task.state, environment.service.team.name, environment.service.name,
+                                task_id, task_state, environment.service.team.name, environment.service.name,
                             )
                             result = False
                             reason = CHECK_TIMED_OUT_TEXT
@@ -323,32 +325,32 @@ class Engine(object):
                             if environment is None:
                                 logger.warning("Environment %s not found for task %s, skipping", task_result["environment_id"], task_id)
                                 continue
-                            full_output = task_result["output"]
+                            full_output = task_result["output"][:5000]
                             if task_result["errored_out"]:
                                 result = False
                                 reason = CHECK_TIMED_OUT_TEXT
                             else:
                                 try:
-                                    matched = re.search(environment.matching_content, task_result["output"])
+                                    matched = re.search(environment.matching_content, full_output)
                                 except re.error:
                                     logger.warning(
                                         "Invalid regex pattern for environment %s: %r, falling back to literal match",
                                         environment.id,
                                         environment.matching_content,
                                     )
-                                    matched = environment.matching_content in task_result["output"]
+                                    matched = environment.matching_content in full_output
                                 if matched:
                                     # Check reject pattern - if it matches, fail even though content matched
                                     if environment.matching_content_reject:
                                         try:
-                                            rejected = re.search(environment.matching_content_reject, task_result["output"])
+                                            rejected = re.search(environment.matching_content_reject, full_output)
                                         except re.error:
                                             logger.warning(
                                                 "Invalid reject regex for environment %s: %r, falling back to literal match",
                                                 environment.id,
                                                 environment.matching_content_reject,
                                             )
-                                            rejected = environment.matching_content_reject in task_result["output"]
+                                            rejected = environment.matching_content_reject in full_output
                                         if rejected:
                                             result = False
                                             reason = CHECK_FAILURE_TEXT
