@@ -204,6 +204,7 @@ class Engine(object):
             # Eager-load environments to avoid N+1 queries (one per service)
             # Service.team is already lazy="joined" so it comes for free
             services = self.db.session.query(Service).options(selectinload(Service.environments)).all()[:]
+            logger.info("Loaded %d services from database", len(services))
             random.shuffle(services)
             jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
@@ -225,6 +226,9 @@ class Engine(object):
                 task_ids[team_name].append(task.id)
                 task_env_map[task.id] = environment.id
 
+            total_tasks = sum(len(ids) for ids in task_ids.values())
+            logger.info("Dispatched %d tasks to %d team queues", total_tasks, len(task_ids))
+
             # This array keeps track of all current round objects
             # incase we need to backout any changes to prevent
             # inconsistent check results
@@ -238,6 +242,7 @@ class Engine(object):
                 cleanup_items.append(latest_kb)
                 self.db.session.add(latest_kb)
                 self.db.session.commit()
+                logger.info("Saved task manifest to KB, waiting for workers")
 
                 completed_tasks = set()
                 pending_tasks = self.all_pending_tasks(task_ids, completed_tasks)
@@ -391,7 +396,9 @@ class Engine(object):
                         )
                         cleanup_items.append(check)
                         self.db.session.add(check)
+                logger.info("Processed %d check results, committing to database", total_tasks)
                 self.db.session.commit()
+                logger.info("Database commit complete")
 
             except Exception as e:
                 # We got an error while writing to db (could be normal docker stop command)
