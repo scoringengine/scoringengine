@@ -75,6 +75,7 @@ class Engine(object):
     def add_check(self, check_obj):
         self.checks.append(check_obj)
         self.checks = sorted(self.checks, key=lambda check: check.__name__)
+        self._check_map = {check.__name__: check for check in self.checks}
 
     def load_checks(self):
         logger.debug("Loading checks source from " + str(self.checks_location))
@@ -132,10 +133,9 @@ class Engine(object):
         return found_checks
 
     def check_name_to_obj(self, check_name):
-        for check in self.checks:
-            if check.__name__ == check_name:
-                return check
-        return None
+        if not hasattr(self, "_check_map"):
+            self._check_map = {check.__name__: check for check in self.checks}
+        return self._check_map.get(check_name)
 
     def sleep(self, seconds):
         try:
@@ -242,8 +242,10 @@ class Engine(object):
                 completed_tasks = set()
                 pending_tasks = self.all_pending_tasks(task_ids, completed_tasks)
                 round_wait_start = time.time()
-                # Hard ceiling: 3x the target round time or 5 minutes, whichever is greater
+                # Pre-fetch settings used in the wait loop
                 target_round_time = int(Setting.get_setting("target_round_time").value)
+                worker_refresh_time = int(Setting.get_setting("worker_refresh_time").value)
+                # Hard ceiling: 3x the target round time or 5 minutes, whichever is greater
                 max_round_wait = max(target_round_time * 3, 300)
                 while pending_tasks:
                     elapsed = time.time() - round_wait_start
@@ -256,7 +258,6 @@ class Engine(object):
                         for stuck_task_id in pending_tasks:
                             execute_command.AsyncResult(stuck_task_id).revoke(terminate=True)
                         break
-                    worker_refresh_time = int(Setting.get_setting("worker_refresh_time").value)
                     waiting_info = "Waiting for all jobs to finish (sleeping " + str(worker_refresh_time) + " seconds)"
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
