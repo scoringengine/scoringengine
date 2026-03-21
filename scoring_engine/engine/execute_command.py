@@ -22,7 +22,7 @@ def execute_command(job):
             timeout=30,
             start_new_session=True,
         )
-        output = cmd_result.stdout.decode("utf-8")
+        output = cmd_result.stdout.decode("utf-8", errors="replace")
         job["errored_out"] = False
     except subprocess.TimeoutExpired as e:
         job["errored_out"] = True

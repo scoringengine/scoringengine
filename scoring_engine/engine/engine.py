@@ -13,6 +13,7 @@ from functools import partial
 from pathlib import Path
 
 from flask import current_app
+from sqlalchemy.orm import selectinload
 
 from scoring_engine.cache_helper import update_all_cache
 from scoring_engine.config import config
@@ -145,13 +146,25 @@ class Engine(object):
     def is_last_round(self):
         return self.last_round or (self.rounds_run == self.total_rounds and self.total_rounds != 0)
 
-    def all_pending_tasks(self, tasks):
+    def all_pending_tasks(self, tasks, completed=None):
+        """Return list of task IDs still in PENDING state.
+
+        Args:
+            tasks: dict of team_name -> [task_id, ...]
+            completed: optional set of already-completed task IDs to skip
+        """
+        if completed is None:
+            completed = set()
         pending_tasks = []
         for team_name, task_ids in tasks.items():
             for task_id in task_ids:
+                if task_id in completed:
+                    continue
                 task = execute_command.AsyncResult(task_id)
                 if task.state == "PENDING":
                     pending_tasks.append(task_id)
+                else:
+                    completed.add(task_id)
         return pending_tasks
 
     def run(self):
@@ -188,7 +201,9 @@ class Engine(object):
             self.round_running = True
             self.rounds_run += 1
 
-            services = self.db.session.query(Service).all()[:]
+            # Eager-load environments to avoid N+1 queries (one per service)
+            # Service.team is already lazy="joined" so it comes for free
+            services = self.db.session.query(Service).options(selectinload(Service.environments)).all()[:]
             random.shuffle(services)
             jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
@@ -224,7 +239,8 @@ class Engine(object):
                 self.db.session.add(latest_kb)
                 self.db.session.commit()
 
-                pending_tasks = self.all_pending_tasks(task_ids)
+                completed_tasks = set()
+                pending_tasks = self.all_pending_tasks(task_ids, completed_tasks)
                 round_wait_start = time.time()
                 # Hard ceiling: 3x the target round time or 5 minutes, whichever is greater
                 target_round_time = int(Setting.get_setting("target_round_time").value)
@@ -245,7 +261,7 @@ class Engine(object):
                     waiting_info += " " + str(len(pending_tasks)) + " left in queue."
                     logger.info(waiting_info)
                     self.sleep(worker_refresh_time)
-                    pending_tasks = self.all_pending_tasks(task_ids)
+                    pending_tasks = self.all_pending_tasks(task_ids, completed_tasks)
                 else:
                     logger.info("All jobs have finished for this round")
 
@@ -256,6 +272,16 @@ class Engine(object):
                 cleanup_items.append(round_obj)
                 self.db.session.add(round_obj)
                 self.db.session.commit()
+
+                # Pre-fetch all environments needed for result processing in one query
+                all_env_ids = list(set(task_env_map.values()))
+                env_query = (
+                    self.db.session.query(Environment)
+                    .options(selectinload(Environment.service))
+                    .filter(Environment.id.in_(all_env_ids))
+                    .all()
+                )
+                env_cache = {e.id: e for e in env_query}
 
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
@@ -271,7 +297,7 @@ class Engine(object):
                             if env_id is None:
                                 logger.warning("No result or env mapping for task %s (state=%s), skipping", task_id, task.state)
                                 continue
-                            environment = self.db.session.get(Environment, env_id)
+                            environment = env_cache.get(env_id)
                             if environment is None:
                                 logger.warning("Environment %s not found for timed-out task %s, skipping", env_id, task_id)
                                 continue
@@ -283,7 +309,10 @@ class Engine(object):
                             reason = CHECK_TIMED_OUT_TEXT
                             full_output = "Task did not complete within the round time limit."
                         else:
-                            environment = self.db.session.get(Environment, task_result["environment_id"])
+                            environment = env_cache.get(task_result["environment_id"])
+                            if environment is None:
+                                logger.warning("Environment %s not found for task %s, skipping", task_result["environment_id"], task_id)
+                                continue
                             full_output = task_result["output"]
                             if task_result["errored_out"]:
                                 result = False
@@ -391,6 +420,11 @@ class Engine(object):
 
             logger.info("Updating Caches")
             update_all_cache(current_app)
+
+            # Clear session identity map to prevent bloat across rounds.
+            # Without this, the session accumulates hundreds of objects per round
+            # and the next Service query stalls reconciling stale state.
+            self.db.session.expire_all()
 
             self.round_running = False
 

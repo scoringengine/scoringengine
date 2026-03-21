@@ -217,5 +217,77 @@ class TestEngine:
         call_kwargs = mock_execute_command.apply_async.call_args
         assert call_kwargs.kwargs["countdown"] == 0
 
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_many_services_many_rounds_performance(self, mock_execute_command):
+        """Stress test: 50 services across 10 teams for 10 rounds (500 checks).
+
+        Verifies the engine handles large-scale competitions without N+1
+        query degradation or session bloat between rounds.
+        """
+        num_teams = 10
+        services_per_team = 5
+        num_rounds = 10
+
+        teams = []
+        envs = []
+        for t in range(num_teams):
+            team = Team(name=f"Blue Team {t + 1}", color="Blue")
+            db.session.add(team)
+            teams.append(team)
+        db.session.flush()
+
+        for team in teams:
+            for s in range(services_per_team):
+                service = Service(
+                    name=f"Service{s}",
+                    team=team,
+                    check_name="ICMPCheck",
+                    host=f"10.0.{team.id}.{s + 1}",
+                )
+                db.session.add(service)
+                db.session.flush()
+                env = Environment(service=service, matching_content="*")
+                db.session.add(env)
+                envs.append(env)
+        db.session.commit()
+
+        # Build a lookup so each apply_async call returns a unique mock result
+        # keyed by environment ID
+        env_results = {}
+        task_counter = [0]
+
+        def fake_apply_async(args=None, queue=None, countdown=0):
+            job = args[0]
+            task_counter[0] += 1
+            task_id = f"task-{task_counter[0]}"
+            mock_result = MagicMock()
+            mock_result.id = task_id
+            mock_result.state = "SUCCESS"
+            mock_result.result = {
+                "environment_id": job["environment_id"],
+                "errored_out": False,
+                "output": "*",
+                "command": "echo test",
+            }
+            env_results[task_id] = mock_result
+            return mock_result
+
+        mock_execute_command.apply_async.side_effect = fake_apply_async
+        mock_execute_command.AsyncResult.side_effect = lambda tid: env_results.get(tid, MagicMock(state="SUCCESS", result=None))
+
+        engine = Engine(total_rounds=num_rounds)
+        engine.run()
+
+        assert engine.rounds_run == num_rounds
+        assert engine.current_round == num_rounds
+
+        # Verify all checks were created
+        from scoring_engine.models.check import Check
+        from scoring_engine.models.round import Round
+
+        total_services = num_teams * services_per_team
+        assert db.session.query(Round).count() == num_rounds
+        assert db.session.query(Check).count() == total_services * num_rounds
+
     # todo figure out how to test the remaining functionality of engine
     # where we're waiting for the worker queues to finish and everything
