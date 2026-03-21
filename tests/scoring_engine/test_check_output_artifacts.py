@@ -105,7 +105,7 @@ class TestCheckOutputAPI:
         resp = self.client.get("/api/admin/check/99999/full_output")
         assert resp.status_code == 404
 
-    def test_file_not_found(self):
+    def test_file_not_found_falls_back_to_db(self):
         team = self.teams["blue_team"]
         service = Service(name="TestService", check_name="ICMP IPv4 Check", host="1.2.3.4", team=team)
         round_obj = Round(number=99)
@@ -118,5 +118,5 @@ class TestCheckOutputAPI:
 
         self.login("whiteuser")
         resp = self.client.get(f"/api/admin/check/{check.id}/full_output")
-        assert resp.status_code == 404
-        assert resp.json["error"] == "Full output file not found"
+        assert resp.status_code == 200
+        assert resp.data.decode() == "preview"
