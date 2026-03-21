@@ -1,4 +1,5 @@
-FROM nginx:1.27.3-alpine3.20-slim
+ARG NGINX_VERSION=1.27.3-alpine3.20-slim
+FROM nginx:${NGINX_VERSION}
 
 COPY docker/nginx/files/web.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/files/scoringengine.crt /etc/nginx/scoringengine.crt

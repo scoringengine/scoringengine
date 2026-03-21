@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ARG BASE_IMAGE=ghcr.io/scoringengine/scoringengine/base:latest
 FROM ${BASE_IMAGE}
 
@@ -5,41 +6,30 @@ USER root
 
 # Install system dependencies in a single layer to reduce image size
 # This consolidates all apt-get operations to minimize layers
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    # allows adding HTTPS apt repos for MSSQL checks
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
-    # verifies apt repository signatures for MSSQL checks
-    gpg \
-    # ICMP ping checks
-    iputils-ping \
-    # HTTP/HTTPS/WordPress checks
     curl \
-    # MySQL checks
     default-mysql-client \
-    # LDAP checks
-    ldap-utils \
-    # POP3/IMAP/VNC login checks
-    medusa \
-    # DNS checks
     dnsutils \
-    # PostgreSQL checks
-    postgresql-client \
-    # NFS checks
-    nfs-common \
-    # OpenVPN checks
-    openvpn \
-    # OpenVPN check uses ip command
+    gpg \
     iproute2 \
-    # OpenVPN check runs openvpn via sudo
+    iputils-ping \
+    ldap-utils \
+    medusa \
+    nfs-common \
+    openvpn \
+    postgresql-client \
     sudo \
-    # RDP checks - virtual X server for freerdp
-    xvfb \
-  && rm -rf /var/lib/apt/lists/*
+    xvfb
 
 # Install Microsoft SQL Server tools and freerdp in single layer
 # freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
 # Some distributions ship only a generic "freerdp" package
-RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
     dpkg -i /tmp/packages-microsoft-prod.deb && \
     rm /tmp/packages-microsoft-prod.deb && \
     apt-get update && \
@@ -50,12 +40,12 @@ RUN curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/conf
       unixodbc-dev \
     && (apt-get install -y --no-install-recommends freerdp2-x11 || \
         apt-get install -y --no-install-recommends freerdp3-x11 || \
-        apt-get install -y --no-install-recommends freerdp) \
-    && rm -rf /var/lib/apt/lists/*
+        apt-get install -y --no-install-recommends freerdp)
 
 # Worker-specific Python packages + Playwright in a single pip layer
 # Note: update docker/engine/Dockerfile as well when changing playwright version
-RUN pip install --no-cache-dir -I \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -I \
     # SSH checks
     "paramiko==3.5.0" \
     # WinRM checks
@@ -82,4 +72,4 @@ RUN playwright install chromium
 # Xvfb is a virtual X server which tricks freerdp2
 # into thinking it has a screen. This is used for
 # RDP scorechecks.
-CMD Xvfb :1 -screen 0 1024x768x16 & /app/bin/worker
+CMD ["sh", "-c", "Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]
