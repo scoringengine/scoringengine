@@ -289,13 +289,19 @@ class Engine(object):
                 )
                 env_cache = {e.id: e for e in env_query}
 
+                logger.info("Pre-fetched %d environments, processing task results", len(env_cache))
+
                 # We keep track of the number of passed and failed checks per round
                 # so we can report a little bit at the end of each round
                 teams = {}
+                processed_count = 0
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
                         task = execute_command.AsyncResult(task_id)
                         task_result = task.result if task.state == "SUCCESS" else None
+                        processed_count += 1
+                        if processed_count % 100 == 0:
+                            logger.info("Processing results: %d/%d tasks", processed_count, total_tasks)
 
                         # Handle stuck/revoked/failed tasks via env mapping
                         if task_result is None or not isinstance(task_result, dict):
