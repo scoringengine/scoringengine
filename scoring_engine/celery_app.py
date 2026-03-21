@@ -22,3 +22,7 @@ celery_app.conf.redis_socket_keepalive = True
 # Limit Redis connection pool size to prevent connection exhaustion.
 # Default is unlimited, which leads to 1000+ connections under load.
 celery_app.conf.redis_max_connections = 50
+# Expire task results after 5 minutes. The engine processes results
+# immediately after each round, so they don't need to persist.
+# Without this, results accumulate forever and bloat Redis memory.
+celery_app.conf.result_expires = 300
