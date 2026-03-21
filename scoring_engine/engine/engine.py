@@ -214,12 +214,19 @@ class Engine(object):
                 if check_class is None:
                     raise LookupError("Unable to map service to check code for " + str(service.check_name))
                 logger.debug("Adding " + service.team.name + " - " + service.name + " check to queue")
+                dispatch_start = time.time()
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str)
                 countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
                 task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
+                dispatch_elapsed = time.time() - dispatch_start
+                if dispatch_elapsed > 1.0:
+                    logger.warning(
+                        "Slow task dispatch: %s - %s took %.1fs (check=%s)",
+                        service.team.name, service.name, dispatch_elapsed, service.check_name,
+                    )
                 team_name = environment.service.team.name
                 if team_name not in task_ids:
                     task_ids[team_name] = []
@@ -295,13 +302,21 @@ class Engine(object):
                 processed_count = 0
                 for team_name, task_ids in task_ids.items():
                     for task_id in task_ids:
+                        task_start = time.time()
                         task = execute_command.AsyncResult(task_id)
                         # Fetch meta once to avoid double deserialization of large results
                         task_state = task.state
                         task_result = task.result if task_state == "SUCCESS" else None
+                        task_elapsed = time.time() - task_start
                         processed_count += 1
                         if processed_count % 100 == 0:
                             logger.info("Processing results: %d/%d tasks", processed_count, total_tasks)
+                        if task_elapsed > 1.0:
+                            output_len = len(task_result.get("output", "")) if isinstance(task_result, dict) else 0
+                            logger.warning(
+                                "Slow task result fetch: task %s took %.1fs (state=%s, output_len=%d)",
+                                task_id, task_elapsed, task_state, output_len,
+                            )
 
                         # Handle stuck/revoked/failed tasks via env mapping
                         if task_result is None or not isinstance(task_result, dict):
