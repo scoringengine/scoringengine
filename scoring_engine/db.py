@@ -30,32 +30,44 @@ def init_db():
     stamp_alembic_head()
 
 
+def _get_alembic_config():
+    """Return an Alembic Config if the alembic directory exists, else None."""
+    import os
+
+    from alembic.config import Config
+
+    alembic_dir = os.path.join(os.path.dirname(__file__), "..", "alembic")
+    alembic_ini = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
+    if not os.path.isdir(alembic_dir):
+        return None
+    cfg = Config(alembic_ini)
+    cfg.set_main_option("script_location", alembic_dir)
+    return cfg
+
+
 def stamp_alembic_head():
     """Mark the database as being at the latest Alembic revision.
 
     Called after ``create_all()`` so that fresh databases start with the
     full migration history already applied (no need to run upgrades).
+    Silently skips if the alembic directory is not present (e.g. test containers).
     """
-    import os
-
     from alembic import command
-    from alembic.config import Config
 
-    alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
-    alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "alembic"))
-    command.stamp(alembic_cfg, "head")
+    cfg = _get_alembic_config()
+    if cfg is None:
+        return
+    command.stamp(cfg, "head")
 
 
 def run_migrations():
     """Run any pending Alembic migrations to bring the schema up to date."""
-    import os
-
     from alembic import command
-    from alembic.config import Config
 
-    alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
-    alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "alembic"))
-    command.upgrade(alembic_cfg, "head")
+    cfg = _get_alembic_config()
+    if cfg is None:
+        raise RuntimeError("Alembic directory not found — cannot run migrations")
+    command.upgrade(cfg, "head")
 
 
 def verify_db_ready():
