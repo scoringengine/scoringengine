@@ -16,6 +16,10 @@ from scoring_engine.sla import calculate_round_multiplier, calculate_sla_penalty
 
 from . import make_cache_key, mod
 
+MAX_USERNAME_LENGTH = 256
+MAX_PASSWORD_LENGTH = 256
+MAX_HOST_LENGTH = 256
+
 
 def is_valid_user_input(string, only_hostname, only_number):
     if only_hostname:
@@ -111,12 +115,19 @@ def update_service_account_info():
     if current_user.is_white_team or current_user.is_blue_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
             if is_valid_user_input(request.form["value"], False, False):
-                if request.form["name"] == "username":
+                field_name = request.form["name"]
+                value = request.form["value"]
+
+                if field_name == "username":
+                    if len(value) > MAX_USERNAME_LENGTH:
+                        return jsonify({"error": f"Username must be {MAX_USERNAME_LENGTH} characters or fewer."})
                     modify_usernames_setting = Setting.get_setting("blue_team_update_account_usernames")
                     if modify_usernames_setting.value is False and current_user.is_blue_team:
                         return jsonify({"error": "Incorrect permissions"})
 
-                elif request.form["name"] == "password":
+                elif field_name == "password":
+                    if len(value) > MAX_PASSWORD_LENGTH:
+                        return jsonify({"error": f"Password must be {MAX_PASSWORD_LENGTH} characters or fewer."})
                     modify_passwords_setting = Setting.get_setting("blue_team_update_account_passwords")
                     if modify_passwords_setting.value is False and current_user.is_blue_team:
                         return jsonify({"error": "Incorrect permissions"})
@@ -124,10 +135,10 @@ def update_service_account_info():
                 account = db.session.query(Account).get(int(request.form["pk"]))
                 if account:
                     if current_user.team == account.service.team or current_user.is_white_team:
-                        if request.form["name"] == "username":
-                            account.username = html.escape(request.form["value"])
-                        elif request.form["name"] == "password":
-                            account.password = html.escape(request.form["value"])
+                        if field_name == "username":
+                            account.username = html.escape(value)
+                        elif field_name == "password":
+                            account.password = html.escape(value)
                         db.session.add(account)
                         db.session.commit()
                         return jsonify({"status": "Updated Account Information"})
@@ -143,6 +154,8 @@ def update_host():
     if current_user.is_white_team or current_user.is_blue_team:
         if "name" in request.form and "value" in request.form and "pk" in request.form:
             if is_valid_user_input(request.form["value"], True, False):
+                if len(request.form["value"]) > MAX_HOST_LENGTH:
+                    return jsonify({"error": f"Hostname must be {MAX_HOST_LENGTH} characters or fewer."})
                 modify_hostname_setting = Setting.get_setting("blue_team_update_hostname")
                 if modify_hostname_setting.value is False and current_user.is_blue_team:
                     return jsonify({"error": "Incorrect permissions"})

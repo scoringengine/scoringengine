@@ -38,7 +38,7 @@ class Service(Base):
     accounts = relationship("Account", back_populates="service")
     points = Column(Integer, default=100)
     environments = relationship("Environment", back_populates="service")
-    host = Column(String(50), nullable=False)
+    host = Column(String(256), nullable=False)
     port = Column(Integer, default=0)
     worker_queue = Column(String(50), default="main")
 
