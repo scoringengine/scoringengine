@@ -40,6 +40,7 @@
           <input type="text" class="form-control form-control-sm editable-field text-center"
                  data-pk="{{service.id}}" data-name="host"
                  data-url="{{url_for('api.update_host')}}"
+                 maxlength="256"
                  value="{{service.host}}">
           {% else %}
           <div class="stat-value" style="font-size:1rem">{{service.host}}</div>
@@ -76,6 +77,7 @@
                 <input type="text" class="form-control form-control-sm editable-field"
                        data-pk="{{account.id}}" data-name="username"
                        data-url="{{url_for('api.update_service_account_info')}}"
+                       maxlength="256"
                        value="{{account.username}}">
                 {% else %}
                 <span class="form-control-plaintext">{{account.username}}</span>
@@ -87,6 +89,7 @@
                   <input type="password" class="form-control form-control-sm editable-field password-field"
                          data-pk="{{account.id}}" data-name="password"
                          data-url="{{url_for('api.update_service_account_info')}}"
+                         maxlength="256"
                          value="{{account.password}}">
                   <button class="btn btn-outline-secondary btn-sm toggle-password" type="button">
                     <i class="bi bi-eye"></i>
