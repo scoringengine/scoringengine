@@ -25,8 +25,37 @@ def delete_db():
 
 
 def init_db():
-    """Create all database tables"""
+    """Create all database tables and stamp Alembic to head revision."""
     db.create_all()
+    stamp_alembic_head()
+
+
+def stamp_alembic_head():
+    """Mark the database as being at the latest Alembic revision.
+
+    Called after ``create_all()`` so that fresh databases start with the
+    full migration history already applied (no need to run upgrades).
+    """
+    import os
+
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
+    alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "alembic"))
+    command.stamp(alembic_cfg, "head")
+
+
+def run_migrations():
+    """Run any pending Alembic migrations to bring the schema up to date."""
+    import os
+
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
+    alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "alembic"))
+    command.upgrade(alembic_cfg, "head")
 
 
 def verify_db_ready():

@@ -35,6 +35,8 @@ Many competitions run offline. Use `./bin/create-airgapped-package.sh`. All deps
 ## Structure
 
 ```
+alembic/                # Database migrations (Alembic)
+├── versions/           # Migration scripts
 scoring_engine/
 ├── checks/           # Service check implementations (SSH, HTTP, DNS, etc.)
 ├── engine/           # Core: engine.py, basic_check.py, job.py (Celery tasks)
@@ -47,7 +49,7 @@ scoring_engine/
 └── cache_helper.py   # Redis cache invalidation helpers
 tests/                # Mirrors main structure; plain classes + pytest fixtures
 docker/               # Container build files
-bin/                  # Entry points: setup, engine, web, worker
+bin/                  # Entry points: setup, engine, web, worker, migrate
 ```
 
 ## Team Roles
@@ -83,10 +85,49 @@ Priority: `SCORINGENGINE_*` env vars → `SCORINGENGINE_CONFIG_FILE` → `engine
 - `SCORINGENGINE_OVERWRITE_DB=true` — reset database
 - `SCORINGENGINE_EXAMPLE=true` — load example data
 
+## Database Migrations (Alembic)
+
+Schema changes use Alembic for safe, versioned migrations.
+
+```
+alembic/
+├── env.py              # Flask app context integration
+├── script.py.mako      # Migration template
+└── versions/           # Migration scripts (001_, 002_, ...)
+```
+
+**Key flows:**
+- **Fresh install** (`bin/setup`): `create_all()` builds schema, then stamps Alembic to head — no migrations run
+- **Upgrade existing DB** (`bin/migrate`): runs all pending Alembic migrations
+- **Check for pending** (`bin/migrate --check`): exits 1 if migrations are pending (useful for CI)
+
+**Creating a new migration:**
+```bash
+# Auto-generate from model changes (review the output!):
+alembic revision --autogenerate -m "description of change"
+
+# Or write manually:
+alembic revision -m "description of change"
+# Then edit alembic/versions/<rev>_description_of_change.py
+```
+
+**Migration best practices:**
+- Always provide both `upgrade()` and `downgrade()`
+- Use `batch_alter_table` for SQLite compatibility in tests
+- Test migrations against both fresh DB (stamp) and existing DB (upgrade)
+- Name files with sequential prefixes: `001_`, `002_`, etc.
+
+**Helper functions** (in `scoring_engine/db.py`):
+- `init_db()` — creates all tables + stamps Alembic head
+- `run_migrations()` — runs `alembic upgrade head`
+- `stamp_alembic_head()` — marks DB at latest revision without running migrations
+
 ## Commands
 
 ```bash
 docker compose up                              # Start all services
+python bin/migrate                             # Run pending DB migrations
+python bin/migrate --check                     # Check for pending migrations
 make run-tests                                 # Tests with coverage
 make run-integration-tests                     # Integration tests (requires testbed)
 pre-commit run --all-files                     # Lint (black, isort, flake8)

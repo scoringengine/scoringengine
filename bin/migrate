@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+"""Run pending Alembic database migrations.
+
+Usage:
+    python bin/migrate            # upgrade to latest
+    python bin/migrate --check    # exit 1 if migrations are pending
+"""
+import optparse
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from scoring_engine.db import db, run_migrations, verify_db_ready
+from scoring_engine.logger import logger
+from scoring_engine.web import create_app
+
+parser = optparse.OptionParser()
+parser.add_option("--check", action="store_true", default=False, help="Check for pending migrations without applying")
+options, arguments = parser.parse_args()
+
+app = create_app()
+
+with app.app_context():
+    if not verify_db_ready():
+        logger.error("Database is not accessible. Run bin/setup first for a fresh install.")
+        sys.exit(1)
+
+    if options.check:
+        from alembic.config import Config
+        from alembic import command, script
+        from alembic.runtime.migration import MigrationContext
+
+        alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "..", "alembic.ini"))
+        alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "..", "alembic"))
+
+        script_dir = script.ScriptDirectory.from_config(alembic_cfg)
+        head = script_dir.get_current_head()
+
+        with db.engine.connect() as conn:
+            migration_context = MigrationContext.configure(conn)
+            current = migration_context.get_current_revision()
+
+        if current == head:
+            logger.info("Database is up to date (revision: %s)", current)
+            sys.exit(0)
+        else:
+            logger.warning("Pending migrations: current=%s, head=%s", current, head)
+            sys.exit(1)
+    else:
+        logger.info("Running database migrations...")
+        run_migrations()
+        logger.info("Migrations complete.")
