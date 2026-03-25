@@ -38,13 +38,15 @@ def update_all_cache(app_or_ctx=None):
 
 def update_overview_data():
     from scoring_engine.web.views.api.overview import (
-        overview_get_data,
         overview_get_round_data,
         _get_overview_data_cached,
         _get_table_columns_cached,
     )
 
-    cache.delete_memoized(overview_get_data)
+    # overview_get_data uses @cache.cached with make_cache_key (per-role keys)
+    if not isinstance(cache.cache, NullCache):
+        for key in cache.cache._write_client.scan_iter(match="*/api/overview/get_data_*"):
+            cache.delete(key.decode("utf-8").removeprefix(cache.cache.key_prefix))
     cache.delete_memoized(overview_get_round_data)
     cache.delete_memoized(_get_overview_data_cached)
     cache.delete_memoized(_get_table_columns_cached)

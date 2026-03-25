@@ -704,11 +704,14 @@ class TestInjectsAPI:
 
         self.login("blueuser1")
 
-        with patch("scoring_engine.web.views.api.injects.cache") as mock_cache:
+        with patch("scoring_engine.web.views.api.injects.update_inject_data") as mock_data, patch(
+            "scoring_engine.web.views.api.injects.update_inject_comments"
+        ) as mock_comments:
             resp = self.client.post(f"/api/inject/{inject.id}/submit")
 
         assert resp.status_code == 200
-        mock_cache.delete.assert_called_with(f"/api/inject/{inject.id}_{self.blue_team1.id}")
+        mock_data.assert_called_with(str(inject.id), self.blue_team1.id)
+        mock_comments.assert_called_with(str(inject.id), self.blue_team1.id)
 
     def test_inject_grade_invalidates_cache(self):
         """Test that grading an inject invalidates the cached /api/inject/<id> response"""

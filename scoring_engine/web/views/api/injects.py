@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 
 import pytz
-from flask import abort, g, jsonify, request, send_file
+from flask import abort, jsonify, request, send_file
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -15,6 +15,7 @@ from scoring_engine.models.inject import Inject, InjectComment, InjectFile, Temp
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
+from scoring_engine.cache_helper import update_inject_comments, update_inject_data, update_inject_files
 from scoring_engine.notifications import notify_inject_comment, notify_inject_submitted
 
 from . import make_cache_key, mod
@@ -87,8 +88,8 @@ def api_injects_submit(inject_id):
     db.session.add(comment)
     db.session.commit()
 
-    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
-    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+    update_inject_data(inject_id, current_user.team.id)
+    update_inject_comments(inject_id, current_user.team.id)
     notify_inject_submitted(inject)
 
     return jsonify(data=[])
@@ -110,8 +111,8 @@ def api_injects_resubmit(inject_id):
     db.session.add(comment)
     db.session.commit()
 
-    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
-    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+    update_inject_data(inject_id, current_user.team.id)
+    update_inject_comments(inject_id, current_user.team.id)
     notify_inject_submitted(inject)
 
     return jsonify(data=[])
@@ -145,7 +146,7 @@ def api_injects_file_upload(inject_id):
         db.session.add(f)
         db.session.commit()
 
-        cache.delete(f"/api/inject/{inject_id}/files_{g.user.team.id}")
+        update_inject_files(inject_id, current_user.team.id)
 
     return jsonify({"status": "Inject Submitted Successfully"}), 200
 
@@ -180,8 +181,8 @@ def api_inject_delete_file(inject_id, file_id):
     db.session.delete(file_obj)
     db.session.commit()
 
-    cache.delete(f"/api/inject/{inject_id}/files_{g.user.team.id}")
-    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+    update_inject_files(inject_id, current_user.team.id)
+    update_inject_data(inject_id, current_user.team.id)
 
     return jsonify({"status": "File deleted"}), 200
 
@@ -315,8 +316,8 @@ def api_inject_add_comment(inject_id):
     db.session.add(c)
     db.session.commit()
 
-    cache.delete(f"/api/inject/{inject_id}/comments_{g.user.team.id}")
-    cache.delete(f"/api/inject/{inject_id}_{g.user.team.id}")
+    update_inject_comments(inject_id, current_user.team.id)
+    update_inject_data(inject_id, current_user.team.id)
     notify_inject_comment(inject, current_user)
 
     return jsonify({"status": "Comment added"}), 200

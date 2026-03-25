@@ -1201,6 +1201,7 @@ def admin_toggle_inject_scores_visible():
         Setting.clear_cache("inject_scores_visible")
         update_scoreboard_data()
         update_all_inject_data()
+        update_overview_data()
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403

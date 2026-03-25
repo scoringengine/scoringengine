@@ -14,7 +14,7 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.sla import apply_dynamic_scoring_to_round, calculate_team_total_penalties, get_sla_config
 
-from . import mod
+from . import make_cache_key, mod
 
 
 def get_anonymize_mode():
@@ -136,7 +136,7 @@ def overview_get_columns():
 
 
 @mod.route("/api/overview/get_data")
-@cache.memoize()
+@cache.cached(make_cache_key=make_cache_key)
 def overview_get_data():
     """Get overview table data. This endpoint returns positional data matching columns."""
     data = []
@@ -284,6 +284,11 @@ def overview_get_data():
         # Loop through dictionary to create datatables formatted list
         for k, v in service_dict.items():
             data.append([k] + v)
-        return jsonify(data=data)
+
+        result = {"data": data}
+        inject_scores_visible = Setting.get_setting("inject_scores_visible")
+        if inject_scores_visible and not inject_scores_visible.value:
+            result["inject_scores_hidden"] = True
+        return jsonify(result)
     else:
         return "{}"

@@ -132,7 +132,7 @@ class InjectRubricScore(Base):
     inject = relationship("Inject", back_populates="rubric_scores")
 
     rubric_item_id = Column(Integer, ForeignKey("rubric_item.id"))
-    rubric_item = relationship("RubricItem")
+    rubric_item = relationship("RubricItem", back_populates="scores")
 
     grader_id = Column(Integer, ForeignKey("users.id"))
     grader = relationship("User")
