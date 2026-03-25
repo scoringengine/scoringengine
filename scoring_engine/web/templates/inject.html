@@ -130,6 +130,9 @@
     // Load files and update every 30 seconds
     updateFiles();
     setInterval(updateFiles, 30000);
+
+    // Refresh inject detail every 30 seconds
+    setInterval(loadInjectDetail, 30000);
   });
 
   function loadInjectDetail() {
