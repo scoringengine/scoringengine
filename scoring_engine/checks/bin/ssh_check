@@ -5,48 +5,123 @@
 # The idea of running separate sessions is to verify
 # the state of the machine was changed via SSH
 # IE: Login, create a file, logout, login, verify file is still there, logout
-#
-# To install: pip install -I "cryptography>=2.4,<2.5" && pip install "paramiko>=2.4,<2.5"
 
+import socket
 import sys
 
 import paramiko
 
-if len(sys.argv) != 6:
-    print("Usage: " + sys.argv[0] + " host port username password commands")
+if len(sys.argv) < 6:
+    print("Usage: " + sys.argv[0] + " host port username password commands [show_command]")
     print("commands parameter supports multiple commands, use ';' as the delimeter")
+    print("show_command: optional, 'true' to include the command in output")
     sys.exit(1)
 
 host = sys.argv[1]
-port = sys.argv[2]
+port = int(sys.argv[2])
 username = sys.argv[3]
 password = sys.argv[4]
 commands = sys.argv[5].split(";")
+show_command = len(sys.argv) > 6 and sys.argv[6].lower() == "true"
 
 
-def connect_and_execute(host, port, username, password, command):
+def print_step(step, status, detail=""):
+    """Print a structured step line for check output."""
+    icon = "[+]" if status == "ok" else "[-]"
+    line = f"{icon} {step}"
+    if detail:
+        line += f": {detail}"
+    print(line)
+
+
+def check_reachable(host, port):
+    """Test TCP connectivity to the host."""
     try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname=host, port=port, username=username, password=password, look_for_keys=False, timeout=15)
-        client_stdin, client_stdout, client_stderr = client.exec_command(command, timeout=15)
-        stdout_output = client_stdout.readlines()
-        stderr_output = client_stderr.readlines()
-        client.close()
-        return "".join(stdout_output), "".join(stderr_output)
+        sock = socket.create_connection((host, port), timeout=10)
+        sock.close()
+        return True, None
+    except socket.timeout:
+        return False, "Connection timed out"
+    except ConnectionRefusedError:
+        return False, "Connection refused"
+    except OSError as e:
+        return False, str(e)
+
+
+def connect_ssh(host, port, username, password):
+    """Attempt SSH authentication. Returns (client, error_msg)."""
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(
+            hostname=host,
+            port=port,
+            username=username,
+            password=password,
+            look_for_keys=False,
+            timeout=15,
+        )
+        return client, None
+    except paramiko.AuthenticationException:
+        return None, "Authentication failed"
+    except paramiko.SSHException as e:
+        return None, f"SSH error: {e}"
     except Exception as e:
-        print(e)
-        sys.exit(1)
+        return None, str(e)
 
 
-last_command_output = ""
-for command in commands:
-    command_stdout, command_stderr = connect_and_execute(host, port, username, password, command)
-    if command_stderr:
-        print("ERROR: Command ran unsuccessfully: " + str(command))
-        print(command_stderr)
-        sys.exit(1)
-    last_command_output = command_stdout.rstrip()
+def execute_command(client, command):
+    """Execute a command and return (stdout, stderr, exit_code)."""
+    client_stdin, client_stdout, client_stderr = client.exec_command(command, timeout=15)
+    exit_code = client_stdout.channel.recv_exit_status()
+    stdout_output = "".join(client_stdout.readlines())
+    stderr_output = "".join(client_stderr.readlines())
+    return stdout_output, stderr_output, exit_code
 
+
+# Step 1: Check reachability
+reachable, err = check_reachable(host, port)
+if not reachable:
+    print_step("Reachable", "fail", f"{host}:{port} - {err}")
+    sys.exit(1)
+print_step("Reachable", "ok", f"{host}:{port}")
+
+# Step 2: Authenticate
+client, err = connect_ssh(host, port, username, password)
+if client is None:
+    print_step("Authentication", "fail", err)
+    sys.exit(1)
+print_step("Authentication", "ok", f"logged in as {username}")
+
+# Step 3: Execute commands
+try:
+    last_stdout = ""
+    for i, command in enumerate(commands, 1):
+        cmd_label = f"Command {i}/{len(commands)}"
+        if show_command:
+            cmd_label += f" [{command}]"
+
+        stdout, stderr, exit_code = execute_command(client, command)
+
+        if exit_code != 0:
+            print_step(cmd_label, "fail", f"exit code {exit_code}")
+            if stderr.strip():
+                print(f"    stderr: {stderr.strip()}")
+            if stdout.strip():
+                print(f"    stdout: {stdout.strip()}")
+            sys.exit(1)
+
+        if stderr.strip():
+            print_step(cmd_label, "fail", f"stderr output received")
+            print(f"    stderr: {stderr.strip()}")
+            sys.exit(1)
+
+        print_step(cmd_label, "ok", f"exit code {exit_code}, output length {len(stdout)}")
+        last_stdout = stdout.rstrip()
+finally:
+    client.close()
+
+# Final output
 print("SUCCESS")
-print(last_command_output)
+if last_stdout:
+    print(last_stdout)

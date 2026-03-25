@@ -187,7 +187,7 @@ CHECK_PARAMS = [
         "SSHCheck",
         {"commands": "ls -l;id"},
         {"pwnbus": "pwnbuspass"},
-        P + "/ssh_check 127.0.0.1 1234 pwnbus pwnbuspass 'ls -l;id'",
+        P + "/ssh_check 127.0.0.1 1234 pwnbus pwnbuspass 'ls -l;id' false",
         id="SSHCheck",
     ),
     pytest.param(
