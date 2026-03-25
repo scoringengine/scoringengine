@@ -19,6 +19,7 @@ CMD ["uwsgi", "--socket", ":5000", "--wsgi-file", "bin/web", "--master", \
      "--ignore-sigpipe", \
      "--ignore-write-errors", \
      "--disable-write-exception", \
+     "--thunder-lock", \
      "--stats", "0.0.0.0:9191", "--stats-http", \
      "--buffer-size", "32768", "--post-buffering", "8192"]
 
