@@ -119,7 +119,7 @@
           } else if (data['status'] == 'Revision Requested') {
             return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-info text-white">Revision Req.</span></a>';
           } else if (data['status'] == 'Draft') {
-            return '<span class="badge bg-secondary">Draft</span>';
+            return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-secondary">Draft</span></a>';
           } else {
             return '<span class="badge bg-secondary">' + (data['status'] || 'Not Submitted') + '</span>';
           }
