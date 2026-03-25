@@ -140,6 +140,11 @@
             'ordering': false,
         });
 
+        // Refresh data every 30 seconds to pick up status changes
+        setInterval(function () {
+            dt.ajax.reload(null, false);
+        }, 30000);
+
         // Live countdown – redraw the Time Remaining column every second
         setInterval(function () {
             dt.rows().every(function () {

@@ -36,6 +36,11 @@
         </div>
     </div>
 
+    <!-- Inject scores disclaimer -->
+    <div id="inject-scores-disclaimer" class="alert alert-info" style="display:none;">
+        <i class="bi bi-info-circle"></i> Inject scores are currently hidden. Scores shown do not include inject points.
+    </div>
+
     <!-- Service Status Matrix -->
     <h3 class="section-header">Service Status</h3>
     <div class="chart-card animate-in" style="padding:0; overflow:hidden; animation-delay:200ms;">
@@ -135,6 +140,12 @@
                         }
                     }
                 }
+            }
+
+            // Show/hide inject scores disclaimer
+            var disclaimer = document.getElementById('inject-scores-disclaimer');
+            if (disclaimer) {
+                disclaimer.style.display = json.inject_scores_hidden ? '' : 'none';
             }
 
             document.getElementById('overview-body').innerHTML = html;
