@@ -119,7 +119,7 @@
           } else if (data['status'] == 'Revision Requested') {
             return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-info text-white">Revision Req.</span></a>';
           } else if (data['status'] == 'Draft') {
-            return '<span class="badge bg-secondary">Draft</span>';
+            return '<a href="/admin/injects/' + data['id'] + '"><span class="badge bg-secondary">Draft</span></a>';
           } else {
             return '<span class="badge bg-secondary">' + (data['status'] || 'Not Submitted') + '</span>';
           }
@@ -127,33 +127,39 @@
       },
       {% endfor %}
       ],
-      "initComplete": function () {
-        // Compute summary stats from the loaded data
-        var tableData = dt.data();
-        var needsGrading = 0, graded = 0, revision = 0, notSubmitted = 0;
-        var teamNames = [{% for team in blue_teams %}"{{ team.name }}",{% endfor %}];
-        tableData.each(function (row) {
-          teamNames.forEach(function (team) {
-            var cell = row[team];
-            if (cell == null || cell['status'] == null) {
-              notSubmitted++;
-            } else if (cell['status'] == 'Submitted' || cell['status'] == 'Resubmitted') {
-              needsGrading++;
-            } else if (cell['status'] == 'Graded') {
-              graded++;
-            } else if (cell['status'] == 'Revision Requested') {
-              revision++;
-            } else {
-              notSubmitted++;
-            }
-          });
-        });
-        $('#stat-needs-grading').text(needsGrading);
-        $('#stat-graded').text(graded);
-        $('#stat-revision').text(revision);
-        $('#stat-not-submitted').text(notSubmitted);
-      }
+      "initComplete": function () { updateStats(); }
     });
+
+    function updateStats() {
+      var tableData = dt.data();
+      var needsGrading = 0, graded = 0, revision = 0, notSubmitted = 0;
+      var teamNames = [{% for team in blue_teams %}"{{ team.name }}",{% endfor %}];
+      tableData.each(function (row) {
+        teamNames.forEach(function (team) {
+          var cell = row[team];
+          if (cell == null || cell['status'] == null) {
+            notSubmitted++;
+          } else if (cell['status'] == 'Submitted' || cell['status'] == 'Resubmitted') {
+            needsGrading++;
+          } else if (cell['status'] == 'Graded') {
+            graded++;
+          } else if (cell['status'] == 'Revision Requested') {
+            revision++;
+          } else {
+            notSubmitted++;
+          }
+        });
+      });
+      $('#stat-needs-grading').text(needsGrading);
+      $('#stat-graded').text(graded);
+      $('#stat-revision').text(revision);
+      $('#stat-not-submitted').text(notSubmitted);
+    }
+
+    // Refresh data every 30 seconds
+    setInterval(function () {
+      dt.ajax.reload(function () { updateStats(); }, false);
+    }, 30000);
 
     // Live countdown – redraw the Time Left column every second
     setInterval(function () {
