@@ -17,7 +17,7 @@ authors = [
 
 dependencies = [
   "bcrypt==5.0.0",
-  "celery[redis]==5.6.2",
+  "celery[redis]==5.6.3",
   "configparser==7.2.0",
   "cryptography==46.0.5",
   "Flask==3.1.3",
