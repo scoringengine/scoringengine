@@ -29,7 +29,7 @@ dependencies = [
   "python-dateutil==2.9.0.post0",
   "pytz==2026.1.post1",
   "PyYAML==6.0.3",
-  "alembic==1.16.2",
+  "alembic==1.18.4",
   "Werkzeug==3.1.7",
   "uWSGI==2.0.31",
   "mammoth==1.12.0",
