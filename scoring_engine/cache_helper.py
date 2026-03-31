@@ -35,6 +35,11 @@ def update_all_cache(app_or_ctx=None):
     update_flags_data()
     update_stats()
 
+    # Notify SSE clients that new data is available
+    from scoring_engine.events import publish_event
+
+    publish_event("round_complete")
+
 
 def update_overview_data():
     from scoring_engine.web.views.api.overview import (
