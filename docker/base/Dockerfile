@@ -3,8 +3,8 @@
 ARG PYTHON_VERSION=3.14.3-slim-bookworm
 FROM python:${PYTHON_VERSION} AS builder
 
-RUN --mount=type=cache,id=apt-cache-builder,target=/var/cache/apt \
-    --mount=type=cache,id=apt-lists-builder,target=/var/lib/apt/lists \
+RUN --mount=type=cache,id=apt-cache-builder,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-lists-builder,target=/var/lib/apt/lists,sharing=locked \
     set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -31,8 +31,8 @@ print(' '.join(d['project']['dependencies']))")
 ARG PYTHON_VERSION=3.14.3-slim-bookworm
 FROM python:${PYTHON_VERSION}
 
-RUN --mount=type=cache,id=apt-cache-runtime,target=/var/cache/apt \
-    --mount=type=cache,id=apt-lists-runtime,target=/var/lib/apt/lists \
+RUN --mount=type=cache,id=apt-cache-runtime,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-lists-runtime,target=/var/lib/apt/lists,sharing=locked \
     set -eux; \
     useradd -m -u 1000 engine; \
     apt-get update; \
