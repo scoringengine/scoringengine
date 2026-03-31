@@ -251,6 +251,9 @@ class Engine(object):
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
                     raise LookupError("Unable to map service to check code for " + str(service.check_name))
+                if not service.environments:
+                    logger.warning("Skipping %s - %s: no environments configured", service.team.name, service.name)
+                    continue
                 logger.debug("Adding " + service.team.name + " - " + service.name + " check to queue")
                 dispatch_start = time.time()
                 environment = random.choice(service.environments)

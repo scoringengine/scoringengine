@@ -1,8 +1,8 @@
 """Lightweight SSE server using gevent.
 
 Runs alongside uWSGI in the web container on port 8001.
-Subscribes to Redis pub/sub and streams events to connected clients,
-filtering by each client's role and team.
+A single background greenlet subscribes to Redis pub/sub and broadcasts
+events to all connected SSE clients, filtered by each client's role/team.
 
 Usage:
     python -m scoring_engine.sse_server
@@ -20,6 +20,7 @@ from urllib.parse import parse_qs
 
 import gevent
 import redis
+from gevent.event import Event
 from gevent.pywsgi import WSGIServer
 
 from scoring_engine.config import config
@@ -27,6 +28,11 @@ from scoring_engine.events import CHANNEL
 
 logger = logging.getLogger("sse_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s")
+
+# Global list of connected clients. Each entry is a dict with:
+#   "role", "team_id", "queue" (gevent.queue.Queue)
+_clients = []
+_clients_lock = gevent.lock.RLock()
 
 
 def _get_redis():
@@ -41,7 +47,6 @@ def _validate_token(token):
     data = r.get(f"sse_token:{token}")
     if data is None:
         return None
-    # Extend TTL on successful lookup so long-lived connections stay valid
     r.expire(f"sse_token:{token}", 300)
     return json.loads(data)
 
@@ -52,7 +57,7 @@ def should_send_event(event, role, team_id):
     if vis == "public":
         return True
     if role == "white":
-        return True  # White team sees everything
+        return True
     if vis == "blue" and role == "blue" and event.get("team_id") == team_id:
         return True
     if vis == "red" and role == "red":
@@ -60,21 +65,48 @@ def should_send_event(event, role, team_id):
     return False
 
 
+def _redis_listener():
+    """Background greenlet: subscribe to Redis and broadcast to all clients."""
+    while True:
+        try:
+            r = _get_redis()
+            pubsub = r.pubsub()
+            pubsub.subscribe(CHANNEL)
+            logger.info("Redis listener subscribed to %s", CHANNEL)
+
+            for message in pubsub.listen():
+                if message["type"] != "message":
+                    continue
+                try:
+                    event = json.loads(message["data"])
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+                with _clients_lock:
+                    for client in _clients:
+                        if should_send_event(event, client["role"], client["team_id"]):
+                            try:
+                                client["queue"].put_nowait(event)
+                            except gevent.queue.Full:
+                                pass  # Drop events for slow clients
+
+        except Exception as e:
+            logger.warning("Redis listener error: %s, reconnecting in 1s", e)
+            gevent.sleep(1)
+
+
 def handle_sse(environ, start_response):
     """WSGI app that handles SSE connections."""
     path = environ.get("PATH_INFO", "")
 
-    # Health check
     if path == "/health":
         start_response("200 OK", [("Content-Type", "text/plain")])
         return [b"ok"]
 
-    # Only handle /api/events
     if path != "/api/events":
         start_response("404 Not Found", [("Content-Type", "text/plain")])
         return [b"Not found"]
 
-    # Parse token from query string
     qs = parse_qs(environ.get("QUERY_STRING", ""))
     token = qs.get("token", [None])[0]
     user_info = _validate_token(token)
@@ -95,62 +127,49 @@ def handle_sse(environ, start_response):
     ]
     start_response("200 OK", headers)
 
-    class SSEStream:
-        """Iterator that yields SSE events from Redis pub/sub."""
+    client = {
+        "role": role,
+        "team_id": team_id,
+        "queue": gevent.queue.Queue(maxsize=50),
+    }
 
-        def __init__(self):
-            self.pubsub = _get_redis().pubsub()
-            self.pubsub.subscribe(CHANNEL)
-            self.closed = False
+    with _clients_lock:
+        _clients.append(client)
 
-        def __iter__(self):
-            return self
-
-        def __next__(self):
-            if self.closed:
-                raise StopIteration
-
+    def event_stream():
+        try:
+            yield b":\n\n"  # Initial heartbeat
             last_heartbeat = time.time()
-            while not self.closed:
-                message = self.pubsub.get_message(timeout=1.0)
-                if message and message["type"] == "message":
-                    try:
-                        event = json.loads(message["data"])
-                        if should_send_event(event, role, team_id):
-                            return f"data: {json.dumps(event)}\n\n".encode()
-                    except (json.JSONDecodeError, KeyError):
-                        pass
 
-                # Heartbeat every 15s to keep connection alive
+            while True:
+                try:
+                    event = client["queue"].get(timeout=1.0)
+                    yield f"data: {json.dumps(event)}\n\n".encode()
+                except gevent.queue.Empty:
+                    pass
+
                 now = time.time()
                 if now - last_heartbeat >= 15:
+                    yield b":\n\n"
                     last_heartbeat = now
-                    return b":\n\n"
 
-            raise StopIteration
-
-        def close(self):
-            self.closed = True
+        except GeneratorExit:
+            pass
+        finally:
             logger.info("SSE client disconnected: role=%s team_id=%s", role, team_id)
-            try:
-                self.pubsub.unsubscribe()
-                self.pubsub.close()
-            except Exception:
-                pass
+            with _clients_lock:
+                if client in _clients:
+                    _clients.remove(client)
 
-    # Send initial heartbeat
-    stream = SSEStream()
-    return itertools_chain([b":\n\n"], stream)
-
-
-def itertools_chain(first, rest):
-    """Yield from first, then from rest."""
-    yield from first
-    yield from rest
+    return event_stream()
 
 
 def main():
     port = int(os.environ.get("SSE_PORT", 8001))
+
+    # Start Redis listener in background
+    gevent.spawn(_redis_listener)
+
     logger.info("Starting SSE server on port %d", port)
     server = WSGIServer(("0.0.0.0", port), handle_sse, log=logger)
     server.serve_forever()

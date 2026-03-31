@@ -110,9 +110,10 @@
 
         updateThemePickerUI();
 
-        // Initial badge check and poll every 30 seconds
+        // Initial badge check, then refresh via SSE (falls back to 30s polling)
         updateAnnouncementsBadge();
-        setInterval(updateAnnouncementsBadge, 30000);
+        ScoringEngineSSE.on('announcement', updateAnnouncementsBadge);
+        ScoringEngineSSE.on('round_complete', updateAnnouncementsBadge);
       });
     </script>
 
