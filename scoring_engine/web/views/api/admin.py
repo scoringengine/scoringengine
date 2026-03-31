@@ -1209,6 +1209,7 @@ def admin_toggle_inject_scores_visible():
         update_scoreboard_data()
         update_all_inject_data()
         update_overview_data()
+        publish_event("settings_changed", {"setting": "inject_scores_visible"})
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
@@ -1224,6 +1225,7 @@ def admin_toggle_engine():
         db.session.add(setting)
         db.session.commit()
         Setting.clear_cache("engine_paused")
+        publish_event("settings_changed", {"setting": "engine_paused"})
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
