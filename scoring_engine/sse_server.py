@@ -24,7 +24,7 @@ from gevent.event import Event
 from gevent.pywsgi import WSGIServer
 
 from scoring_engine.config import config
-from scoring_engine.events import CHANNEL
+from scoring_engine.events import CHANNEL, should_send_event
 
 logger = logging.getLogger("sse_server")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s")
@@ -49,20 +49,6 @@ def _validate_token(token):
         return None
     r.expire(f"sse_token:{token}", 300)
     return json.loads(data)
-
-
-def should_send_event(event, role, team_id):
-    """Determine if an event should be sent to a client based on visibility."""
-    vis = event.get("visibility", "public")
-    if vis == "public":
-        return True
-    if role == "white":
-        return True
-    if vis == "blue" and role == "blue" and event.get("team_id") == team_id:
-        return True
-    if vis == "red" and role == "red":
-        return True
-    return False
 
 
 def _redis_listener():

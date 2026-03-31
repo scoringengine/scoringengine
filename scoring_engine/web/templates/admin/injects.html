@@ -156,10 +156,10 @@
       $('#stat-not-submitted').text(notSubmitted);
     }
 
-    // Refresh data every 30 seconds
-    setInterval(function () {
+    // Refresh data on inject updates
+    ScoringEngineSSE.on('inject_update', function() {
       dt.ajax.reload(function () { updateStats(); }, false);
-    }, 30000);
+    });
 
     // Live countdown – redraw the Time Left column every second
     setInterval(function () {

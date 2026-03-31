@@ -16,6 +16,7 @@ from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
 from scoring_engine.models.user import User
 from scoring_engine.cache_helper import update_inject_comments, update_inject_data, update_inject_files
+from scoring_engine.events import publish_event
 from scoring_engine.notifications import notify_inject_comment, notify_inject_submitted
 
 from . import make_cache_key, mod
@@ -90,6 +91,8 @@ def api_injects_submit(inject_id):
 
     update_inject_data(inject_id, current_user.team.id)
     update_inject_comments(inject_id, current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="blue", team_id=current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="white")
     notify_inject_submitted(inject)
 
     return jsonify(data=[])
@@ -113,6 +116,8 @@ def api_injects_resubmit(inject_id):
 
     update_inject_data(inject_id, current_user.team.id)
     update_inject_comments(inject_id, current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="blue", team_id=current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="white")
     notify_inject_submitted(inject)
 
     return jsonify(data=[])
@@ -318,6 +323,8 @@ def api_inject_add_comment(inject_id):
 
     update_inject_comments(inject_id, current_user.team.id)
     update_inject_data(inject_id, current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="blue", team_id=current_user.team.id)
+    publish_event("inject_update", {"inject_id": int(inject_id)}, visibility="white")
     notify_inject_comment(inject, current_user)
 
     return jsonify({"status": "Comment added"}), 200

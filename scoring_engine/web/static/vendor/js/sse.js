@@ -4,10 +4,6 @@
  * Usage:
  *   ScoringEngineSSE.on('round_complete', function(data) { refreshScoreboard(); });
  *   ScoringEngineSSE.connect();
- *
- * The client fetches a short-lived token from /api/events/token, then opens
- * an EventSource to /api/events?token=xxx. If the connection fails after
- * MAX_RETRIES, it falls back to firing all registered handlers every 30s.
  */
 var ScoringEngineSSE = (function () {
   'use strict';
@@ -16,9 +12,10 @@ var ScoringEngineSSE = (function () {
   var _handlers = {};
   var _fallbackInterval = null;
   var _connected = false;
-  var _retryCount = 0;
-  var MAX_RETRIES = 5;
+  var _everConnected = false;
+  var _errorCount = 0;
   var POLL_INTERVAL = 30000;
+  var MAX_ERRORS_BEFORE_FALLBACK = 10;
 
   function connect() {
     $.getJSON('/api/events/token')
@@ -26,7 +23,6 @@ var ScoringEngineSSE = (function () {
         _openStream(resp.token);
       })
       .fail(function () {
-        // Token endpoint unavailable — fall back to polling
         _startPolling();
       });
   }
@@ -35,11 +31,13 @@ var ScoringEngineSSE = (function () {
     if (_source) {
       _source.close();
     }
+
     _source = new EventSource('/api/events?token=' + encodeURIComponent(token));
 
     _source.onopen = function () {
       _connected = true;
-      _retryCount = 0;
+      _everConnected = true;
+      _errorCount = 0;
       _stopPolling();
     };
 
@@ -57,17 +55,22 @@ var ScoringEngineSSE = (function () {
 
     _source.onerror = function () {
       _connected = false;
-      _source.close();
-      _source = null;
-      _retryCount++;
+      _errorCount++;
 
-      if (_retryCount <= MAX_RETRIES) {
-        // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-        var delay = Math.pow(2, _retryCount - 1) * 1000;
-        setTimeout(connect, delay);
-      } else {
+      // EventSource auto-reconnects natively. Only intervene if it's
+      // consistently failing (never connected, or too many errors in a row).
+      if (!_everConnected && _errorCount >= 3) {
+        _source.close();
+        _source = null;
         _startPolling();
+      } else if (_errorCount >= MAX_ERRORS_BEFORE_FALLBACK) {
+        _source.close();
+        _source = null;
+        // Re-fetch token and reconnect (token may have expired)
+        setTimeout(connect, 5000);
+        _errorCount = 0;
       }
+      // Otherwise: let the browser's native EventSource retry handle it
     };
   }
 

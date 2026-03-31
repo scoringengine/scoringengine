@@ -12,6 +12,30 @@ from scoring_engine.config import config
 
 CHANNEL = "se:events"
 
+
+def should_send_event(event, role, team_id):
+    """Determine if an event should be sent to a client based on visibility.
+
+    Parameters
+    ----------
+    event : dict
+        Event with "visibility" and optionally "team_id" keys.
+    role : str
+        Client role: "anonymous", "blue", "red", or "white".
+    team_id : int or None
+        Client's team ID (for blue team filtering).
+    """
+    vis = event.get("visibility", "public")
+    if vis == "public":
+        return True
+    if role == "white":
+        return True
+    if vis == "blue" and role == "blue" and event.get("team_id") == team_id:
+        return True
+    if vis == "red" and role == "red":
+        return True
+    return False
+
 _redis_client = None
 
 
