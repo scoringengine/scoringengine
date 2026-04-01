@@ -374,10 +374,10 @@
       }
     }
 
-    setInterval(function() {
+    ScoringEngineSSE.on('round_complete', function() {
       table.ajax.reload(expandRows, false);
       refreshServicesNavbar();
-    }, 30000);
+    });
   });
 </script>
 {% endblock %}

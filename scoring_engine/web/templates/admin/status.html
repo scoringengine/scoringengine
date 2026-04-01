@@ -46,9 +46,7 @@ Round Stats
 
   $(document).ready(function () {
     getCompetitionSummary();
-    setInterval(function () {
-      getCompetitionSummary()
-    }, 5000);
+    ScoringEngineSSE.on('round_complete', getCompetitionSummary);
   });
 </script>
 <h3 class="section-header">Engine Stats</h3>
@@ -87,9 +85,7 @@ Round Stats
 
   $(document).ready(function () {
     getEngineStats();
-    setInterval(function () {
-      getEngineStats()
-    }, 5000);
+    ScoringEngineSSE.on('round_complete', getEngineStats);
   });
 </script>
 <h3 class="section-header">Current Round Status</h3>

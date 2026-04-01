@@ -85,6 +85,10 @@ Priority: `SCORINGENGINE_*` env vars → `SCORINGENGINE_CONFIG_FILE` → `engine
 - `SCORINGENGINE_OVERWRITE_DB=true` — reset database
 - `SCORINGENGINE_EXAMPLE=true` — load example data
 
+## Dependencies
+
+All dependencies are pinned to exact versions in `pyproject.toml`. When adding a new dependency, always use the **latest stable release** — check with `pip index versions <package>`. Pin to exact version (e.g., `"gevent==25.9.1"`, not `"gevent>=25"`).
+
 ## Database Migrations (Alembic)
 
 Schema changes use Alembic for safe, versioned migrations.

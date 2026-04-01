@@ -103,9 +103,7 @@
 
             $(document).ready(function() {
                 refreshteamdata();
-                setInterval(function(){
-                    refreshteamdata()
-                }, 30000);
+                ScoringEngineSSE.on('round_complete', refreshteamdata);
 
                 // Disable datatables error reporting
                 $.fn.dataTable.ext.errMode = 'none';
@@ -185,9 +183,9 @@
                             },
                         ],
                     });
-                setInterval( function () {
+                ScoringEngineSSE.on('round_complete', function() {
                     table.ajax.reload();
-                }, 30000 );
+                });
             } );
     </script>
 </div>

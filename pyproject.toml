@@ -32,6 +32,7 @@ dependencies = [
   "alembic==1.18.4",
   "Werkzeug==3.1.7",
   "uWSGI==2.0.31",
+  "gevent==25.9.1",
   "mammoth==1.12.0",
   "odfpy==1.4.1",
 ]
@@ -59,6 +60,12 @@ replace = 'version = "{new_version}"'
 filename = "scoring_engine/version.py"
 search = 'BASE_VERSION = "{current_version}"'
 replace = 'BASE_VERSION = "{new_version}"'
+
+[tool.coverage.run]
+omit = [
+    # Requires gevent runtime — tested via integration tests, not unit tests
+    "scoring_engine/sse_server.py",
+]
 
 [tool.pytest.ini_options]
 filterwarnings = [

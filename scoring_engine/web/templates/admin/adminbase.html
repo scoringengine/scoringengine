@@ -104,9 +104,8 @@
 
   $(document).ready(function () {
     getEngineStatus();
-    setInterval(function () {
-      getEngineStatus()
-    }, 30000);
+    ScoringEngineSSE.on('settings_changed', getEngineStatus);
+    ScoringEngineSSE.on('round_complete', getEngineStatus);
   });
 </script>
 <script>

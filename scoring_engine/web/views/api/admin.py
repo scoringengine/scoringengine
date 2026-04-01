@@ -38,6 +38,7 @@ from scoring_engine.cache_helper import (
     update_services_navbar,
     update_team_stats,
 )
+from scoring_engine.events import publish_event
 from scoring_engine.celery_stats import CeleryStats
 from scoring_engine.config import config
 from scoring_engine.db import db
@@ -477,6 +478,8 @@ def admin_post_inject_reopen(inject_id):
         update_inject_data(inject_id)
         update_inject_comments(inject_id)
         update_scoreboard_data()
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="blue", team_id=inject.team_id)
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="white")
         return jsonify({"status": "Success"}), 200
     else:
         return {"status": "Unauthorized"}, 403
@@ -696,6 +699,8 @@ def admin_post_inject_grade(inject_id):
         update_inject_data(inject_id)
         update_inject_comments(inject_id)
         update_scoreboard_data()
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="blue", team_id=inject.team_id)
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="white")
         notify_inject_graded(inject)
         return jsonify({"status": "Success"}), 200
     else:
@@ -722,6 +727,8 @@ def admin_post_inject_request_revision(inject_id):
         db.session.commit()
         update_inject_data(inject_id)
         update_inject_comments(inject_id)
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="blue", team_id=inject.team_id)
+        publish_event("inject_update", {"inject_id": inject_id}, visibility="white")
         notify_revision_requested(inject)
         return jsonify({"status": "Success"}), 200
     else:
@@ -1202,6 +1209,7 @@ def admin_toggle_inject_scores_visible():
         update_scoreboard_data()
         update_all_inject_data()
         update_overview_data()
+        publish_event("settings_changed", {"setting": "inject_scores_visible"})
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403
@@ -1217,6 +1225,7 @@ def admin_toggle_engine():
         db.session.add(setting)
         db.session.commit()
         Setting.clear_cache("engine_paused")
+        publish_event("settings_changed", {"setting": "engine_paused"})
         return {"status": "Success"}
     else:
         return {"status": "Unauthorized"}, 403

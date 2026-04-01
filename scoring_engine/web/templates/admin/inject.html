@@ -143,13 +143,13 @@
 </div>
 <script>
   $(document).ready(function () {
-    // Load comments and update every 30 seconds
+    // Load comments and files, refresh on inject updates
     updateComments();
-    setInterval(updateComments, 30000);
-
-    // Load files and update every 30 seconds
     updateFiles();
-    setInterval(updateFiles, 30000);
+    ScoringEngineSSE.on('inject_update', function() {
+      updateComments();
+      updateFiles();
+    });
   });
 </script>
 <script>

@@ -170,11 +170,12 @@
         loadData();
     });
 
-    // Auto-refresh
+    // Realtime updates via SSE (falls back to 30s polling)
     refreshRound();
-    setInterval(function() {
+    ScoringEngineSSE.on('round_complete', function() {
         refreshRound();
         loadData();
-    }, 30000);
+    });
+    ScoringEngineSSE.on('settings_changed', refreshRound);
 </script>
 {% endblock %}

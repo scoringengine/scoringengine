@@ -23,6 +23,19 @@ def test_delete_overview_data_clears_overview_cache():
     assert mock_delete.call_args_list == expected_calls
 
 
+def test_update_all_cache_publishes_round_complete():
+    """update_all_cache should publish a round_complete SSE event after clearing caches."""
+    from flask_caching.backends import NullCache
+
+    with patch("scoring_engine.cache_helper.cache") as mock_cache, patch(
+        "scoring_engine.events.publish_event"
+    ) as mock_publish:
+        mock_cache.cache = NullCache()
+        cache_helper.update_all_cache()
+
+    mock_publish.assert_called_once_with("round_complete")
+
+
 skip_update_overview = not hasattr(cache_helper, "update_overview_data") or not hasattr(overview, "update_caches")
 
 

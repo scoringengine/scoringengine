@@ -269,9 +269,9 @@
                 console.error('Failed to load line chart data:', textStatus, errorThrown);
             });
 
-        // ---- Auto-refresh every 30s ----
+        // ---- Realtime updates via SSE (falls back to 30s polling) ----
         updateRoundCard();
-        setInterval(function () {
+        function refreshScoreboard() {
             updateRoundCard();
 
             $.get('/api/scoreboard/get_bar_data').done(function (data) {
@@ -292,7 +292,9 @@
                 });
                 teamLineChart.setOption({ series: updatedSeries });
             });
-        }, 30000);
+        }
+        ScoringEngineSSE.on('round_complete', refreshScoreboard);
+        ScoringEngineSSE.on('settings_changed', updateRoundCard);
 
         // ---- Theme change observer (watches both data-bs-theme and data-theme) ----
         var observer = new MutationObserver(function(mutations) {

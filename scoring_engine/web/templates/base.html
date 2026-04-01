@@ -18,6 +18,7 @@
   <script src="{{ url_for('static', filename='vendor/js/jquery.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/js/utils.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/js/sse.js') }}"></script>
   {% endblock %}
   <link href="{{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='vendor/css/bootstrap-icons.min.css') }}" rel="stylesheet">
@@ -109,9 +110,10 @@
 
         updateThemePickerUI();
 
-        // Initial badge check and poll every 30 seconds
+        // Initial badge check, then refresh via SSE (falls back to 30s polling)
         updateAnnouncementsBadge();
-        setInterval(updateAnnouncementsBadge, 30000);
+        ScoringEngineSSE.on('announcement', updateAnnouncementsBadge);
+        ScoringEngineSSE.on('round_complete', updateAnnouncementsBadge);
       });
     </script>
 
@@ -239,6 +241,7 @@
           <a href="https://github.com/scoringengine/scoringengine" class="text-muted text-decoration-none"><i class="bi bi-github"></i> GitHub</a>
         </small>
       </footer>
+  <script>ScoringEngineSSE.connect();</script>
   </body>
 
 </html>
