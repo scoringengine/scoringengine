@@ -268,7 +268,7 @@ def overview_get_data():
         data.append(service_ratios)
 
         checks = (
-            db.session.query(Service.name, Check.result)
+            db.session.query(Service.id, Service.name, Check.result)
             .join(Service)
             .join(Round)
             .filter(Round.number == last_round)
@@ -277,15 +277,25 @@ def overview_get_data():
         )
 
         service_dict = defaultdict(list)
+        service_ids_dict = defaultdict(list)
 
-        for service, status in checks:
-            service_dict[service].append(status)
+        for service_id, service_name, status in checks:
+            service_dict[service_name].append(status)
+            service_ids_dict[service_name].append(service_id)
+
+        # Include service IDs for white team admin links
+        is_admin = current_user.is_authenticated and current_user.is_white_team
+        service_ids = [] if is_admin else None
 
         # Loop through dictionary to create datatables formatted list
         for k, v in service_dict.items():
             data.append([k] + v)
+            if is_admin:
+                service_ids.append(service_ids_dict[k])
 
         result = {"data": data}
+        if service_ids is not None:
+            result["service_ids"] = service_ids
         inject_scores_visible = Setting.get_setting("inject_scores_visible")
         if inject_scores_visible and not inject_scores_visible.value:
             result["inject_scores_hidden"] = True

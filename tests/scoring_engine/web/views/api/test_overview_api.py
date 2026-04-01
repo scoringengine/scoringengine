@@ -374,3 +374,49 @@ class TestOverviewAPI:
         # With allow_negative=True and no passing checks, score could be negative
         score_val = int(rows[0][1])
         assert score_val <= 0
+
+    def test_get_data_white_team_includes_service_ids(self):
+        """White team gets service_ids in the overview response for admin links."""
+        svc1 = Service(name="SSH", check_name="SSHCheck", host="10.0.0.1", port=22, team=self.blue_team, points=100)
+        svc2 = Service(name="SSH", check_name="SSHCheck", host="10.0.0.2", port=22, team=self.blue_team2, points=100)
+        db.session.add_all([svc1, svc2])
+        db.session.commit()
+
+        self._create_round_with_checks(1, [svc1, svc2], [True, False])
+
+        self._login("whiteuser")
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+        assert "service_ids" in data
+        assert len(data["service_ids"]) > 0
+        # Each entry should be a list of service IDs matching the blue teams
+        assert svc1.id in data["service_ids"][0]
+        assert svc2.id in data["service_ids"][0]
+
+    def test_get_data_non_white_team_no_service_ids(self):
+        """Non-white team users should not get service_ids."""
+        svc1 = Service(name="SSH", check_name="SSHCheck", host="10.0.0.1", port=22, team=self.blue_team, points=100)
+        db.session.add(svc1)
+        db.session.commit()
+
+        self._create_round_with_checks(1, [svc1], [True])
+
+        self._login("blueuser")
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+        assert "service_ids" not in data
+
+    def test_get_data_anonymous_no_service_ids(self):
+        """Anonymous users should not get service_ids."""
+        svc1 = Service(name="SSH", check_name="SSHCheck", host="10.0.0.1", port=22, team=self.blue_team, points=100)
+        db.session.add(svc1)
+        db.session.commit()
+
+        self._create_round_with_checks(1, [svc1], [True])
+
+        resp = self.client.get("/api/overview/get_data")
+        assert resp.status_code == 200
+        data = resp.json
+        assert "service_ids" not in data

@@ -48,8 +48,10 @@
 
         <div class="sidebar-section">
           <div class="sidebar-section-title">Services</div>
+          <input type="text" id="service-search" class="form-control form-control-sm"
+                 placeholder="Filter services..." style="margin: 0.25rem 0.5rem; width: calc(100% - 1rem);">
           {% for team in blue_teams %}
-          <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#services_team{{team.id}}">
+          <a href="#" class="sidebar-link sidebar-team-link" data-bs-toggle="collapse" data-bs-target="#services_team{{team.id}}">
             <i class="bi bi-chevron-right"></i> {{team.name}}</a>
           <div id="services_team{{team.id}}"
             class="collapse {% if service and team.id == service.team.id %}show{% endif %}">
@@ -117,6 +119,45 @@
       type: 'POST',
       success: function (data) {
         getEngineStatus();
+      }
+    });
+  });
+
+  // Sidebar service search/filter
+  $('#service-search').on('input', function() {
+    var query = $(this).val().toLowerCase().trim();
+    if (!query) {
+      // Reset: show all teams/services, collapse all
+      $('.sidebar-team-link').show();
+      $('.sidebar-link.sub').show();
+      $('.sidebar-team-link').each(function() {
+        var target = $(this).data('bs-target');
+        $(target).removeClass('show');
+      });
+      return;
+    }
+    $('.sidebar-team-link').each(function() {
+      var $teamLink = $(this);
+      var teamName = $teamLink.text().trim().toLowerCase();
+      var target = $teamLink.data('bs-target');
+      var $collapse = $(target);
+      var $services = $collapse.find('.sidebar-link.sub');
+      var teamMatch = teamName.indexOf(query) !== -1;
+      var anyServiceMatch = false;
+
+      $services.each(function() {
+        var serviceName = $(this).text().trim().toLowerCase();
+        var match = teamMatch || serviceName.indexOf(query) !== -1;
+        $(this).toggle(match);
+        if (match) anyServiceMatch = true;
+      });
+
+      var showTeam = teamMatch || anyServiceMatch;
+      $teamLink.toggle(showTeam);
+      if (showTeam) {
+        $collapse.addClass('show');
+      } else {
+        $collapse.removeClass('show');
       }
     });
   });
