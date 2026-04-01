@@ -6,8 +6,8 @@ USER root
 
 # Install system dependencies in a single layer to reduce image size
 # This consolidates all apt-get operations to minimize layers
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt/lists \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     curl \
@@ -27,8 +27,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
 # Install Microsoft SQL Server tools and freerdp in single layer
 # freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
 # Some distributions ship only a generic "freerdp" package
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt/lists \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
     dpkg -i /tmp/packages-microsoft-prod.deb && \
     rm /tmp/packages-microsoft-prod.deb && \
