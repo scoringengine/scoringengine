@@ -222,7 +222,7 @@ CHECK_PARAMS = [
         "WinRMCheck",
         {"commands": "dir"},
         {"pwnbus": "pwnbuspass"},
-        P + "/winrm_check 127.0.0.1 pwnbus pwnbuspass dir",
+        P + "/winrm_check 127.0.0.1 1234 pwnbus pwnbuspass dir false",
         id="WinRMCheck",
     ),
     pytest.param(

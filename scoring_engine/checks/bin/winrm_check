@@ -1,53 +1,145 @@
 #!/usr/bin/env python
 
-# A scoring engine check that logs into winrm and runs a command
+# A scoring engine check that logs into WinRM and runs a command
 # The check will login each time and run ONE command
 # The idea of running separate sessions is to verify
-# the state of the machine was changed via winrm
+# the state of the machine was changed via WinRM
 # IE: Login, create a file, logout, login, verify file is still there, logout
 #
 # To install: pip install -I "pywinrm"
 
+import socket
 import sys
 
 import winrm
+from winrm.exceptions import InvalidCredentialsError, WinRMTransportError
 
-if len(sys.argv) != 5:
-    print("Usage: " + sys.argv[0] + " host username password commands")
+if len(sys.argv) < 6:
+    print("Usage: " + sys.argv[0] + " host port username password commands [show_command]")
     print("commands parameter supports multiple commands, use ';' as the delimeter")
+    print("show_command: optional, 'true' to include the command in output")
     sys.exit(1)
 
 host = sys.argv[1]
-username = sys.argv[2]
-password = sys.argv[3]
-commands = sys.argv[4].split(";")
+port = int(sys.argv[2])
+username = sys.argv[3]
+password = sys.argv[4]
+commands = sys.argv[5].split(";")
+show_command = len(sys.argv) > 6 and sys.argv[6].lower() == "true"
 
 
-def connect_and_execute(host, username, password, command):
+def print_step(step, status, detail=""):
+    """Print a structured step line for check output."""
+    icon = "[+]" if status == "ok" else "[-]"
+    line = f"{icon} {step}"
+    if detail:
+        line += f": {detail}"
+    print(line)
+
+
+def check_reachable(host, port):
+    """Test TCP connectivity to the host."""
     try:
-        s = winrm.Session(host, auth=(username, password), transport="ntlm", read_timeout_sec=15, operation_timeout_sec=10)
-        split = command.split(" ")
-        if len(split) == 1:
-            r = s.run_cmd(split[0], [])
-        else:
-            r = s.run_cmd(split[0], split[1:])
-        return_code = r.status_code
-        stdout_output = r.std_out.decode("utf-8")
-        stderr_output = r.std_err.decode("utf-8")
-        return return_code, "".join(stdout_output), "".join(stderr_output)
+        sock = socket.create_connection((host, port), timeout=10)
+        sock.close()
+        return True, None
+    except socket.timeout:
+        return False, "Connection timed out"
+    except ConnectionRefusedError:
+        return False, "Connection refused"
+    except OSError as e:
+        return False, str(e)
+
+
+def create_session(host, port, username, password):
+    """Create a WinRM session. Returns (session, error_msg)."""
+    try:
+        endpoint = f"http://{host}:{port}/wsman"
+        session = winrm.Session(
+            endpoint,
+            auth=(username, password),
+            transport="ntlm",
+            read_timeout_sec=15,
+            operation_timeout_sec=10,
+        )
+        return session, None
     except Exception as e:
-        print(e)
+        return None, str(e)
+
+
+def execute_command(session, command):
+    """Execute a command via WinRM and return (stdout, stderr, exit_code)."""
+    split = command.split(" ")
+    if len(split) == 1:
+        r = session.run_cmd(split[0], [])
+    else:
+        r = session.run_cmd(split[0], split[1:])
+    stdout_output = r.std_out.decode("utf-8")
+    stderr_output = r.std_err.decode("utf-8")
+    return stdout_output, stderr_output, r.status_code
+
+
+# Step 1: Check reachability
+reachable, err = check_reachable(host, port)
+if not reachable:
+    print_step("Reachable", "fail", f"{host}:{port} - {err}")
+    sys.exit(1)
+print_step("Reachable", "ok", f"{host}:{port}")
+
+# Step 2: Create session and authenticate
+session, err = create_session(host, port, username, password)
+if session is None:
+    print_step("Authentication", "fail", err)
+    sys.exit(1)
+
+# Verify authentication by running a lightweight command
+try:
+    session.run_cmd("hostname", [])
+except InvalidCredentialsError:
+    print_step("Authentication", "fail", "Invalid credentials")
+    sys.exit(1)
+except WinRMTransportError as e:
+    err_str = str(e)
+    if "401" in err_str:
+        print_step("Authentication", "fail", "Authentication failed (HTTP 401)")
+    else:
+        print_step("Authentication", "fail", f"Transport error: {err_str}")
+    sys.exit(1)
+except Exception as e:
+    print_step("Authentication", "fail", str(e))
+    sys.exit(1)
+print_step("Authentication", "ok", f"logged in as {username}")
+
+# Step 3: Execute commands
+last_stdout = ""
+for i, command in enumerate(commands, 1):
+    cmd_label = f"Command {i}/{len(commands)}"
+    if show_command:
+        cmd_label += f" [{command}]"
+
+    try:
+        stdout, stderr, exit_code = execute_command(session, command)
+    except Exception as e:
+        print_step(cmd_label, "fail", f"execution error: {e}")
         sys.exit(1)
 
-
-last_command_output = ""
-for command in commands:
-    rc, command_stdout, command_stderr = connect_and_execute(host, username, password, command)
-    if rc != 0:
-        print("ERROR: Command ran unsuccessfully: " + str(command))
-        print(command_stderr)
+    if exit_code != 0:
+        print_step(cmd_label, "fail", f"exit code {exit_code}")
+        if stderr.strip():
+            print(f"    stderr: {stderr.strip()}")
+        if stdout.strip():
+            print(f"    stdout: {stdout.strip()}")
         sys.exit(1)
-    last_command_output = command_stdout.rstrip()
 
+    if stderr.strip():
+        print_step(cmd_label, "fail", "stderr output received")
+        print(f"    stderr: {stderr.strip()}")
+        sys.exit(1)
+
+    print_step(cmd_label, "ok", f"exit code {exit_code}, output length {len(stdout)}")
+    last_stdout = stdout.rstrip()
+
+# Final output
 print("SUCCESS")
-print(last_command_output)
+if last_stdout:
+    print(last_stdout)
