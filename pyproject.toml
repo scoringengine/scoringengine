@@ -32,7 +32,7 @@ dependencies = [
   "alembic==1.18.4",
   "Werkzeug==3.1.7",
   "uWSGI==2.0.31",
-  "gevent==24.11.1",
+  "gevent==25.9.1",
   "mammoth==1.12.0",
   "odfpy==1.4.1",
 ]
