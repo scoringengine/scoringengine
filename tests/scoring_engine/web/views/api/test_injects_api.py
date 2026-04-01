@@ -734,6 +734,76 @@ class TestInjectsAPI:
         assert resp.status_code == 200
         mock_update.assert_called_once_with(str(inject.id))
 
+    # SSE Event Tests
+    def test_inject_submit_publishes_sse_event(self):
+        """Test that submitting an inject publishes SSE events for blue team and white team."""
+        template = self._make_template(title="SSE Test")
+        inject = Inject(team=self.blue_team1, template=template)
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("blueuser1")
+
+        with patch("scoring_engine.web.views.api.injects.publish_event") as mock_publish:
+            resp = self.client.post(f"/api/inject/{inject.id}/submit")
+
+        assert resp.status_code == 200
+        assert mock_publish.call_count == 2
+        # Blue team event
+        mock_publish.assert_any_call(
+            "inject_update", {"inject_id": inject.id}, visibility="blue", team_id=self.blue_team1.id
+        )
+        # White team event
+        mock_publish.assert_any_call("inject_update", {"inject_id": inject.id}, visibility="white")
+
+    def test_inject_comment_publishes_sse_event(self):
+        """Test that adding a comment publishes SSE events."""
+        template = self._make_template(title="Comment SSE Test")
+        inject = Inject(team=self.blue_team1, template=template)
+        inject.status = "Submitted"
+        db.session.add_all([template, inject])
+        db.session.commit()
+
+        self.login("blueuser1")
+
+        with patch("scoring_engine.web.views.api.injects.publish_event") as mock_publish:
+            resp = self.client.post(
+                f"/api/inject/{inject.id}/comment", json={"comment": "Test comment"}
+            )
+
+        assert resp.status_code == 200
+        assert mock_publish.call_count == 2
+        mock_publish.assert_any_call(
+            "inject_update", {"inject_id": inject.id}, visibility="blue", team_id=self.blue_team1.id
+        )
+
+    def test_inject_grade_publishes_sse_event(self):
+        """Test that grading an inject publishes SSE events."""
+        template = self._make_template(title="Grade SSE Test")
+        db.session.add(template)
+        db.session.flush()
+        ri = RubricItem(title="Quality", points=100, template=template)
+        inject = Inject(team=self.blue_team1, template=template)
+        inject.status = "Submitted"
+        db.session.add_all([ri, inject])
+        db.session.commit()
+
+        self.login("whiteuser")
+
+        with patch("scoring_engine.web.views.api.admin.publish_event") as mock_publish:
+            resp = self.client.post(
+                f"/api/admin/inject/{inject.id}/grade", json={"rubric_scores": [{"rubric_item_id": ri.id, "score": 80}]}
+            )
+
+        assert resp.status_code == 200
+        assert mock_publish.call_count == 2
+        mock_publish.assert_any_call(
+            "inject_update", {"inject_id": str(inject.id)}, visibility="blue", team_id=inject.team_id
+        )
+        mock_publish.assert_any_call(
+            "inject_update", {"inject_id": str(inject.id)}, visibility="white"
+        )
+
     # File Preview Tests
     def test_preview_requires_auth(self):
         """Test that file preview requires authentication"""
