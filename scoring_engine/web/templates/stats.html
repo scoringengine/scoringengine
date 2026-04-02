@@ -8,6 +8,34 @@
 {% endblock %}
 {% block content %}
 <div class="page-wrap">
+    {% if current_user.is_white_team %}
+    <!-- Scoring Overview (White Team Only) -->
+    <h3 class="section-header">Service Scoring Overview</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
+        <button class="btn btn-sm btn-outline-secondary mb-2" onclick="copyTable('service-scoring')"><i class="bi bi-clipboard"></i> Copy</button>
+        <table id="service-scoring" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead><tr><th>Team</th><th>Raw Service Score</th><th>Ordinal Rank</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <h3 class="section-header">Inject Scoring Overview</h3>
+    <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
+        <button class="btn btn-sm btn-outline-secondary mb-2" onclick="copyTable('inject-scoring')"><i class="bi bi-clipboard"></i> Copy</button>
+        <table id="inject-scoring" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead><tr>
+                <th>Team</th>
+                <th>Business</th><th>Rank</th>
+                <th>Technical</th><th>Rank</th>
+                <th>Incident Response</th><th>Rank</th>
+                <th>Business+Technical</th><th>Rank</th>
+                <th>Total Inject</th><th>Rank</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    {% endif %}
+
     <h3 class="section-header">All-Time Service Statistics</h3>
     <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
         <table id="service-summary" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
@@ -55,6 +83,54 @@
             return hours + 'h ' + mins + 'm ' + secs + 's';
         }
     }
+
+    function copyTable(tableId) {
+        var table = document.getElementById(tableId);
+        var text = '';
+        for (var i = 0; i < table.rows.length; i++) {
+            var row = [];
+            for (var j = 0; j < table.rows[i].cells.length; j++) {
+                row.push(table.rows[i].cells[j].textContent.trim());
+            }
+            text += row.join('\t') + '\n';
+        }
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = table.parentElement.querySelector('button');
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            setTimeout(function() { btn.innerHTML = orig; }, 2000);
+        });
+    }
+
+    {% if current_user.is_white_team %}
+    // Load scoring overview
+    $.getJSON('/api/stats/scoring_overview').done(function(data) {
+        // Service scoring table
+        var svcRows = [];
+        $.each(data.service_table, function(i, row) {
+            svcRows.push([row.team, row.score.toLocaleString(), row.rank]);
+        });
+        $('#service-scoring').DataTable({
+            data: svcRows, paging: false, searching: false, order: [[2, 'asc']]
+        });
+
+        // Inject scoring table
+        var injRows = [];
+        $.each(data.inject_table, function(i, row) {
+            injRows.push([
+                row.team,
+                row.score_Business || 0, row.rank_Business || '-',
+                row.score_Technical || 0, row.rank_Technical || '-',
+                row['score_Incident Response'] || 0, row['rank_Incident Response'] || '-',
+                row.score_bt || 0, row.rank_bt || '-',
+                row.score_total || 0, row.rank_total || '-'
+            ]);
+        });
+        $('#inject-scoring').DataTable({
+            data: injRows, paging: false, searching: false, order: [[10, 'desc']]
+        });
+    });
+    {% endif %}
 
     $.ajax({
         url: '/api/stats',
