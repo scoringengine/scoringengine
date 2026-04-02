@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import case, func
 from sqlalchemy.sql.expression import and_, or_
 
-from scoring_engine.cache import cache
+from scoring_engine.cache import agent_cache, cache
 from scoring_engine.db import db
 from scoring_engine.models.flag import Flag, Perm, Platform, Solve
 from scoring_engine.models.service import Service
@@ -94,7 +94,26 @@ def api_flags_solves():
         .all()
     )
 
+    # Determine offline threshold: 2x agent checkin interval
+    checkin_setting = Setting.get_setting("agent_checkin_interval_sec")
+    checkin_interval = int(checkin_setting.value) if checkin_setting else 60
+    offline_threshold = checkin_interval * 2
+    now_ts = int(datetime.now(timezone.utc).timestamp())
+
+    # Collect all unique hosts and build checkin timestamp map
+    host_set = set()
+    for item in all_hosts:
+        host_set.add(item.host)
+
+    # Batch query agent_cache for all hosts
+    host_checkin = {}
+    for host in host_set:
+        cached = agent_cache.get(host)
+        if cached and isinstance(cached, dict) and "timestamp" in cached:
+            host_checkin[host] = cached["timestamp"]
+
     data = {}
+    host_map = {}  # (team_name, service_name) -> host
     rows = []
     columns = ["Team"]
 
@@ -103,13 +122,26 @@ def api_flags_solves():
             columns.append(item.service_name)
         if not data.get(item.team_name):
             data[item.team_name] = {}
+            host_map[item.team_name] = {}
         if not data[item.team_name].get(item.service_name):
-            data[item.team_name][item.service_name] = [0, 0]
+            # [user_solve, root_solve, offline]
+            data[item.team_name][item.service_name] = [0, 0, 0]
+            host_map[item.team_name][item.service_name] = item.host
         if item.solve_id:
             if item.flag_perm.value == "user":
                 data[item.team_name][item.service_name][0] = 1
             else:
                 data[item.team_name][item.service_name][1] = 1
+
+    # Mark offline hosts (only when no solve — solves take precedence)
+    for team_name, services in data.items():
+        for svc_name, solve_data in services.items():
+            if solve_data[0] == 0 and solve_data[1] == 0:
+                host = host_map.get(team_name, {}).get(svc_name)
+                if host:
+                    last_ts = host_checkin.get(host)
+                    if last_ts is None or (now_ts - last_ts) > offline_threshold:
+                        solve_data[2] = 1
 
     for key, val in data.items():
         new_row = [key]
