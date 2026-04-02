@@ -26,10 +26,13 @@ from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.models.account import Account
 from scoring_engine.models.check import Check
+from scoring_engine.models.inject import Inject, Template
 from scoring_engine.models.round import Round
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.models.team import Team
+from scoring_engine.sla import get_sla_config, apply_dynamic_scoring_to_round, calculate_team_total_penalties
+from scoring_engine.web.views.api.overview import calculate_ranks
 
 from . import make_cache_key, mod
 
@@ -149,3 +152,122 @@ def api_stats():
         return jsonify(_build_response(rows))
 
     return {"status": "Unauthorized"}, 403
+
+
+@mod.route("/api/stats/scoring_overview")
+@login_required
+@cache.cached(make_cache_key=make_cache_key)
+def api_stats_scoring_overview():
+    """Scoring overview tables with ordinal rankings. White team only."""
+    if not current_user.is_white_team:
+        return jsonify({"status": "Unauthorized"}), 403
+
+    blue_teams = db.session.query(Team).filter(Team.color == "Blue").order_by(Team.id).all()
+    blue_team_ids = [t.id for t in blue_teams]
+    blue_teams_dict = {t.id: t for t in blue_teams}
+
+    sla_config = get_sla_config()
+
+    # --- Service Scores ---
+    if sla_config.dynamic_enabled:
+        from collections import defaultdict
+
+        round_scores = (
+            db.session.query(Service.team_id, Check.round_id, func.sum(Service.points).label("round_score"))
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .group_by(Service.team_id, Check.round_id)
+            .all()
+        )
+        rounds_map = {r.id: r.number for r in db.session.query(Round.id, Round.number).all()}
+        team_scores = defaultdict(int)
+        for team_id, round_id, round_score in round_scores:
+            round_number = rounds_map.get(round_id, 0)
+            team_scores[team_id] += apply_dynamic_scoring_to_round(round_number, round_score, sla_config)
+        team_scores = dict(team_scores)
+    else:
+        from sqlalchemy import desc
+
+        team_scores = dict(
+            db.session.query(Service.team_id, func.sum(Service.points).label("score"))
+            .join(Check)
+            .filter(Check.result.is_(True))
+            .group_by(Service.team_id)
+            .all()
+        )
+
+    # Apply SLA penalties
+    adjusted_scores = {}
+    for tid in blue_team_ids:
+        base = team_scores.get(tid, 0)
+        if sla_config.sla_enabled:
+            penalty = calculate_team_total_penalties(blue_teams_dict[tid], sla_config)
+            adjusted_scores[tid] = max(0, base - penalty) if not sla_config.allow_negative else base - penalty
+        else:
+            adjusted_scores[tid] = base
+
+    service_ranks = calculate_ranks(adjusted_scores)
+
+    service_table = []
+    for t in blue_teams:
+        service_table.append({
+            "team": t.name,
+            "score": adjusted_scores.get(t.id, 0),
+            "rank": service_ranks.get(t.id, 0),
+        })
+
+    # --- Inject Scores by Category ---
+    from scoring_engine.models.inject import InjectRubricScore
+
+    inject_rows = (
+        db.session.query(
+            Inject.team_id,
+            Template.category,
+            func.coalesce(func.sum(InjectRubricScore.score), 0).label("total_score"),
+        )
+        .join(Template, Inject.template_id == Template.id)
+        .outerjoin(InjectRubricScore, InjectRubricScore.inject_id == Inject.id)
+        .filter(Inject.team_id.in_(blue_team_ids))
+        .group_by(Inject.team_id, Template.category)
+        .all()
+    )
+
+    # Build per-team category scores
+    from collections import defaultdict
+
+    cat_scores = defaultdict(lambda: defaultdict(int))
+    for team_id, category, score in inject_rows:
+        cat_scores[team_id][category or "Uncategorized"] = int(score)
+
+    categories = ["Business", "Technical", "Incident Response"]
+
+    # Calculate ranks per category
+    cat_rank_dicts = {}
+    for cat in categories:
+        cat_rank_dicts[cat] = calculate_ranks({tid: cat_scores[tid].get(cat, 0) for tid in blue_team_ids})
+
+    # Business + Technical summary
+    bt_scores = {tid: cat_scores[tid].get("Business", 0) + cat_scores[tid].get("Technical", 0) for tid in blue_team_ids}
+    bt_ranks = calculate_ranks(bt_scores)
+
+    # Total inject scores
+    total_inject = {tid: sum(cat_scores[tid].values()) for tid in blue_team_ids}
+    total_inject_ranks = calculate_ranks(total_inject)
+
+    inject_table = []
+    for t in blue_teams:
+        row = {"team": t.name}
+        for cat in categories:
+            row[f"score_{cat}"] = cat_scores[t.id].get(cat, 0)
+            row[f"rank_{cat}"] = cat_rank_dicts[cat].get(t.id, 0)
+        row["score_bt"] = bt_scores.get(t.id, 0)
+        row["rank_bt"] = bt_ranks.get(t.id, 0)
+        row["score_total"] = total_inject.get(t.id, 0)
+        row["rank_total"] = total_inject_ranks.get(t.id, 0)
+        inject_table.append(row)
+
+    return jsonify({
+        "service_table": service_table,
+        "inject_table": inject_table,
+        "categories": categories,
+    })
