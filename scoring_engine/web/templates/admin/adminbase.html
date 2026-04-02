@@ -59,7 +59,7 @@
             {% for service in team.services %}
             <a href="/admin/service/{{service.id}}"
               class="sidebar-link sub {% if service and request.path == '/admin/service/{0}'.format(service.id) %}active{% endif %}">
-              <i class="bi bi-chevron-right"></i> {{service.name}}</a>
+              <i class="bi bi-dash"></i> {{service.name}}</a>
             {% endfor %}
           </div>
           {% endfor %}
