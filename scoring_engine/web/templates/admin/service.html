@@ -529,6 +529,42 @@ $(document).ready(function() {
         $('#' + id + ' td.details-control').trigger('click');
       });
     });
+
+    // Deep-link: scroll to and expand a specific check via URL hash (#check-<id>)
+    function handleCheckHash() {
+      var hash = window.location.hash;
+      var match = hash.match(/^#check-(\d+)$/);
+      if (!match) return;
+      var checkId = parseInt(match[1]);
+
+      // Find the row with this check ID in the DataTable
+      dt.rows().every(function() {
+        var rowData = this.data();
+        if (rowData && rowData.id === checkId) {
+          // Navigate to the page containing this row
+          var pageInfo = dt.page.info();
+          var rowIndex = this.index();
+          var allIndexes = dt.rows({ order: 'applied' }).indexes().toArray();
+          var sortedPosition = allIndexes.indexOf(rowIndex);
+          var targetPage = Math.floor(sortedPosition / pageInfo.length);
+          if (targetPage !== pageInfo.page) {
+            dt.page(targetPage).draw(false);
+          }
+          // Expand and scroll to the row
+          var $tr = $(this.node());
+          $tr.find('td.details-control').trigger('click');
+          $tr.addClass('table-warning');
+          setTimeout(function() {
+            $tr[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
+      });
+    }
+
+    // Run after initial data load
+    dt.on('init', function() {
+      handleCheckHash();
+    });
   });
 </script>
 {% endblock %}

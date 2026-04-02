@@ -4,6 +4,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from scoring_engine.db import db
+from scoring_engine.models.check import Check
 from scoring_engine.models.inject import Inject
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
@@ -97,6 +98,18 @@ def inject_inject(inject_id):
 def template_submissions(template_id):
     if current_user.is_white_team:
         return render_template("admin/template_submissions.html", template_id=template_id)
+    else:
+        return redirect(url_for("auth.unauthorized"))
+
+
+@mod.route("/admin/check/<int:check_id>")
+@login_required
+def check_redirect(check_id):
+    if current_user.is_white_team:
+        check = db.session.get(Check, check_id)
+        if check is None:
+            return redirect(url_for("admin.status"))
+        return redirect(url_for("admin.service", id=check.service_id) + f"#check-{check_id}")
     else:
         return redirect(url_for("auth.unauthorized"))
 
