@@ -495,6 +495,7 @@ def admin_get_inject_templates_id(template_id):
             title=template.title,
             scenario=template.scenario,
             deliverable=template.deliverable,
+            category=template.category,
             max_score=template.max_score,
             start_time=_ensure_utc_aware(template.start_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
             end_time=_ensure_utc_aware(template.end_time).astimezone(pytz.timezone(config.timezone)).isoformat(),
@@ -527,6 +528,8 @@ def admin_put_inject_templates_id(template_id):
                 template.start_time = parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
             if data.get("end_time"):
                 template.end_time = parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
+            if "category" in data:
+                template.category = data["category"] or None
             # TODO - Fix this to not be string values from javascript select
             if data.get("status") == "Enabled":
                 template.enabled = True
@@ -627,6 +630,7 @@ def admin_get_inject_templates():
                 dict(
                     id=template.id,
                     title=template.title,
+                    category=template.category,
                     scenario=template.scenario,
                     deliverable=template.deliverable,
                     max_score=template.max_score,
@@ -781,6 +785,7 @@ def admin_post_inject_templates():
                 deliverable=data["deliverable"],
                 start_time=parse(data["start_time"]).astimezone(pytz.utc).replace(tzinfo=None),
                 end_time=parse(data["end_time"]).astimezone(pytz.utc).replace(tzinfo=None),
+                category=data.get("category"),
             )
             db.session.add(template)
             db.session.flush()
@@ -892,6 +897,8 @@ def admin_import_inject_templates():
                             t.start_time = parse(d["start_time"]).astimezone(pytz.utc).replace(tzinfo=None)
                         if d.get("end_time"):
                             t.end_time = parse(d["end_time"]).astimezone(pytz.utc).replace(tzinfo=None)
+                        if "category" in d:
+                            t.category = d["category"] or None
                         if d.get("enabled"):
                             t.enabled = True
                         else:

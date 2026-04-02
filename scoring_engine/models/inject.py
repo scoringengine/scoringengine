@@ -19,12 +19,16 @@ def _ensure_utc_aware(dt):
 
 
 
+INJECT_CATEGORIES = ["Business", "Technical", "Incident Response"]
+
+
 class Template(Base):
     __tablename__ = "template"
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(255), nullable=False)
     scenario = Column(UnicodeText, nullable=False)
     deliverable = Column(UnicodeText, nullable=False)
+    category = Column(String(50), nullable=True)
     start_time = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     end_time = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     enabled = Column(Boolean, nullable=False, default=True)
@@ -35,13 +39,14 @@ class Template(Base):
         "RubricItem", back_populates="template", cascade="all, delete", lazy="joined", order_by="RubricItem.order"
     )
 
-    def __init__(self, title, scenario, deliverable, start_time, end_time, enabled=True):
+    def __init__(self, title, scenario, deliverable, start_time, end_time, enabled=True, category=None):
         self.title = title
         self.scenario = scenario
         self.deliverable = deliverable
         self.start_time = start_time
         self.end_time = end_time
         self.enabled = enabled
+        self.category = category
 
     @property
     def max_score(self):
