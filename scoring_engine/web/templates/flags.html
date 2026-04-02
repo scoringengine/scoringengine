@@ -27,7 +27,7 @@
     </div>
 
     <h3 class="section-header">Capture Status for Active Flags</h3>
-    <p class="text-muted"><i class='bi bi-dash-lg' style='color: gray'></i> means no capture; <i class='bi bi-person-fill' style='color: #4da6ff'></i> means user level capture; and <i class='bi bi-fire' style='color: red'></i> means root level capture</p>
+    <p class="text-muted"><i class='bi bi-dash-lg' style='color: gray'></i> no capture; <i class='bi bi-person-fill' style='color: #4da6ff'></i> user capture; <i class='bi bi-fire' style='color: red'></i> root capture; <i class='bi bi-x-lg' style='color: black'></i> host offline</p>
     <div class="chart-card" style="padding:1rem 1.25rem; overflow:hidden;">
         <table id="solves" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
@@ -87,6 +87,8 @@ $(document).ready(function() {
 			        return "<i class='bi bi-fire' style='color: red'></i>";
 			    } else if(data[0] == 1) {
 			        return "<i class='bi bi-person-fill' style='color: #4da6ff'></i>";
+			    } else if(data[2] == 1) {
+			        return "<i class='bi bi-x-lg' style='color: black'></i>";
 		            } else {
 			        return "<i class='bi bi-dash-lg' style='color: gray'></i>";
 			    }
