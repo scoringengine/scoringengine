@@ -95,18 +95,26 @@
     }
 
     function copyTable(tableId) {
-        var table = document.getElementById(tableId);
+        var dt = $.fn.dataTable.tables({api: true}).table('#' + tableId);
         var text = '';
-        for (var i = 0; i < table.rows.length; i++) {
-            var row = [];
-            for (var j = 0; j < table.rows[i].cells.length; j++) {
-                row.push(table.rows[i].cells[j].textContent.trim());
+        // Header
+        var headers = [];
+        $('#' + tableId + ' thead th').each(function() { headers.push($(this).text().trim()); });
+        text += headers.join('\t') + '\n';
+        // All rows (not just visible page) — strip HTML tags
+        dt.rows({search: 'applied'}).every(function() {
+            var row = this.data();
+            var cells = [];
+            for (var i = 0; i < row.length; i++) {
+                var val = String(row[i]);
+                // Strip HTML tags for clean clipboard output
+                val = val.replace(/<[^>]*>/g, '').trim();
+                cells.push(val);
             }
-            text += row.join('\t') + '\n';
-        }
+            text += cells.join('\t') + '\n';
+        });
         navigator.clipboard.writeText(text).then(function() {
-            // Find the copy button associated with this table
-            var card = table.closest('.chart-card');
+            var card = document.getElementById(tableId).closest('.chart-card');
             var btn = card ? card.previousElementSibling.querySelector('button') : null;
             if (btn) {
                 var orig = btn.innerHTML;
