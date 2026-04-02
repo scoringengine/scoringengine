@@ -50,6 +50,7 @@
           <div class="sidebar-section-title">Services</div>
           <input type="text" id="service-search" class="form-control form-control-sm"
                  placeholder="Filter services..." style="margin: 0.25rem 0.5rem; width: calc(100% - 1rem);">
+          <div id="service-list" style="max-height: 60vh; overflow-y: auto;">
           {% for team in blue_teams %}
           <a href="#" class="sidebar-link sidebar-team-link" data-bs-toggle="collapse" data-bs-target="#services_team{{team.id}}">
             <i class="bi bi-chevron-right"></i> {{team.name}}</a>
@@ -62,6 +63,7 @@
             {% endfor %}
           </div>
           {% endfor %}
+          </div>
         </div>
       </nav>
     </div>
