@@ -243,13 +243,15 @@ with app.app_context():
         # Simulate Injects
         num_injects = randint(5, 15)
         logger.info("Simulating " + str(num_injects) + " Injects")
-        for _ in range(num_injects):
+        inject_categories = ["Business", "Technical", "Incident Response"]
+        for i in range(num_injects):
             template = Template(
                 title="Journey to Mordor",
                 scenario="You have the ring, take it to be destroyed!",
                 deliverable="Word document in at least 3 volumes with journalistic evidence of each step of your journey and the destruction of the ring.",
                 start_time=datetime.now() - timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
                 end_time=datetime.now() + timedelta(hours=randint(0, 24), minutes=randint(0, 60)),
+                category=inject_categories[i % len(inject_categories)],
             )
             db.session.add(template)
             db.session.flush()

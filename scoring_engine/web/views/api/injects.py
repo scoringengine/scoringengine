@@ -63,6 +63,7 @@ def api_injects():
                 id=inject.id,
                 template_id=inject.template.id,
                 title=inject.template.title,
+                category=inject.template.category,
                 score=inject.score if scores_visible else None,
                 max_score=inject.template.max_score,
                 status=inject.status,
@@ -205,6 +206,7 @@ def api_inject(inject_id):
     scores_visible = current_user.is_white_team or Setting.get_setting("inject_scores_visible").value
     data["scores_visible"] = scores_visible
     data["title"] = inject.template.title
+    data["category"] = inject.template.category
     data["scenario"] = inject.template.scenario
     data["deliverable"] = inject.template.deliverable
     data["start_time"] = inject.template.start_time.isoformat() if inject.template.start_time else None

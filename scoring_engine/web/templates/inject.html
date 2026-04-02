@@ -147,6 +147,9 @@
         } else if (r.status == 'Draft') {
           headerHtml += '<span class="badge bg-warning text-dark">' + r.status + '</span>';
         }
+        if (r.category) {
+          headerHtml += ' <span class="badge bg-secondary">' + r.category + '</span>';
+        }
         headerHtml += '</div>';
         if (r.status == 'Draft' && !r.expired) {
           headerHtml += '<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#submitInjectConfirmation">Submit Inject</button>';
