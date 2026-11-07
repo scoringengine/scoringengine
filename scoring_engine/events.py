@@ -7,6 +7,8 @@ The SSE server subscribes and streams matching events to connected clients.
 import json
 
 import redis
+from redis.backoff import NoBackoff
+from redis.retry import Retry
 
 from scoring_engine.config import config
 
@@ -36,6 +38,7 @@ def should_send_event(event, role, team_id):
         return True
     return False
 
+
 _redis_client = None
 
 
@@ -46,6 +49,13 @@ def _get_redis():
             host=config.redis_host,
             port=config.redis_port,
             password=config.redis_password,
+            # Publishing is best-effort and runs inline in the engine loop and
+            # web requests. Fail fast when Redis is unavailable instead of
+            # using redis-py's default retry-with-backoff, which can stall each
+            # round by seconds.
+            retry=Retry(NoBackoff(), 0),
+            socket_connect_timeout=2,
+            socket_timeout=2,
         )
     return _redis_client
 
