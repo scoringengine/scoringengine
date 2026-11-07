@@ -128,9 +128,7 @@ Install dependencies for OpenVPN check
   apt-get install -y openvpn iproute2 sudo
   cp /home/engine/scoring_engine/src/docker/worker/sudoers /etc/sudoers
 
-Install dependencies for Telnet check
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-::
-
-  source /home/engine/scoring_engine/env/bin/activate && pip install -I "telnetlib3==1.0.1"
+Telnet check
+^^^^^^^^^^^^
+No extra dependencies (uses the Python standard library).
 
