@@ -11,5 +11,4 @@ pip install -I \
   "paramiko==3.5.0" \
   "pywinrm>=0.5.0,<0.6" \
   "requests>=2.32.3,<2.33" \
-  "pysmb>=1.2,<1.3" \
-  "telnetlib3==1.0.1"
+  "pysmb>=1.2,<1.3"
