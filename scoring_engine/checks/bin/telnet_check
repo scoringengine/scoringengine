@@ -1,47 +1,172 @@
 #!/usr/bin/env python
 
-# A scoring engine check that logs into telnet and runs a command
+# A scoring engine check that logs into telnet and runs commands.
+# Each command runs in its own telnet session (login, command, exit).
 #
-# To install: pip install -I "telnetlib3==1.0.1"
+# Uses only the standard library: telnetlib was removed in Python 3.13, so this
+# implements the small part of the protocol a login check needs -- it refuses
+# every option the server offers and strips negotiation from the output.
 
+import re
+import socket
 import sys
-import telnetlib
+import time
 
 if len(sys.argv) != 7:
-    print("Usage: " + sys.argv[0] + " host port username password commands")
+    print("Usage: " + sys.argv[0] + " host port timeout username password commands")
     print("commands parameter supports multiple commands, use ';' as the delimeter")
     sys.exit(1)
 
 host = sys.argv[1]
-port = sys.argv[2]
-timeout = sys.argv[3]
+port = int(sys.argv[2])
+timeout = float(sys.argv[3])
 username = sys.argv[4]
 password = sys.argv[5]
 commands = sys.argv[6].split(";")
 
+IAC, DONT, DO, WONT, WILL, SB, SE = 255, 254, 253, 252, 251, 250, 240
 
-def connect_and_execute(host, port, timeout, username, password, command):
+LOGIN_PROMPT = re.compile(rb"(login|username)\s*:\s*$", re.I)
+PASSWORD_PROMPT = re.compile(rb"password\s*:\s*$", re.I)
+LOGIN_FAILED = re.compile(rb"login incorrect|authentication failed|access denied", re.I)
+SHELL_PROMPT = re.compile(rb"[$#>%]\s*$")
+
+
+class TelnetError(Exception):
+    pass
+
+
+class TelnetSession(object):
+    def __init__(self, host, port, timeout):
+        self.timeout = timeout
+        self.sock = socket.create_connection((host, port), timeout=timeout)
+        self.buffer = b""
+
+    def _filter(self, data):
+        """Strip telnet negotiation from data, refusing every option offered."""
+        out = bytearray()
+        i = 0
+        while i < len(data):
+            byte = data[i]
+            if byte != IAC:
+                out.append(byte)
+                i += 1
+                continue
+            if i + 1 >= len(data):
+                break
+            cmd = data[i + 1]
+            if cmd in (DO, DONT, WILL, WONT):
+                if i + 2 >= len(data):
+                    break
+                opt = data[i + 2]
+                if cmd == DO:
+                    self.sock.sendall(bytes([IAC, WONT, opt]))
+                elif cmd == WILL:
+                    self.sock.sendall(bytes([IAC, DONT, opt]))
+                i += 3
+            elif cmd == SB:
+                end = data.find(bytes([IAC, SE]), i)
+                i = len(data) if end == -1 else end + 2
+            elif cmd == IAC:
+                out.append(IAC)
+                i += 2
+            else:
+                i += 2
+        return bytes(out)
+
+    def _recv(self):
+        try:
+            data = self.sock.recv(4096)
+        except socket.timeout:
+            return None
+        except ConnectionResetError:
+            raise EOFError
+        if not data:
+            raise EOFError
+        return self._filter(data)
+
+    def read_until(self, pattern, what):
+        deadline = time.time() + self.timeout
+        while time.time() < deadline:
+            if pattern.search(self.buffer):
+                self.buffer = b""
+                return
+            if LOGIN_FAILED.search(self.buffer):
+                raise TelnetError("Authentication failed")
+            try:
+                chunk = self._recv()
+            except EOFError:
+                raise TelnetError("Connection closed while waiting for {0}".format(what))
+            if chunk:
+                self.buffer += chunk
+        raise TelnetError("Timed out waiting for {0}".format(what))
+
+    def wait_for_shell(self):
+        """After login, wait for a shell prompt (or a login failure).
+
+        Unusual prompts that don't match are tolerated: after the timeout we
+        carry on and let matching_content judge the command output.
+        """
+        deadline = time.time() + self.timeout
+        while time.time() < deadline:
+            if LOGIN_FAILED.search(self.buffer):
+                raise TelnetError("Authentication failed")
+            if SHELL_PROMPT.search(self.buffer):
+                self.buffer = b""
+                return
+            try:
+                chunk = self._recv()
+            except EOFError:
+                raise TelnetError("Connection closed after login")
+            if chunk:
+                self.buffer += chunk
+        self.buffer = b""
+
+    def read_all(self):
+        deadline = time.time() + self.timeout
+        while time.time() < deadline:
+            try:
+                chunk = self._recv()
+            except EOFError:
+                break
+            if chunk:
+                self.buffer += chunk
+        output, self.buffer = self.buffer, b""
+        return output
+
+    def write(self, text):
+        self.sock.sendall(text.encode("utf-8") + b"\r\n")
+
+    def close(self):
+        self.sock.close()
+
+
+def connect_and_execute(command):
+    session = TelnetSession(host, port, timeout)
     try:
-        tn = telnetlib.Telnet(host=host, port=port, timeout=5)
-        tn.read_until(b"login: ", timeout=10)
-        tn.write(username.encode("ascii") + b"\n")
+        session.read_until(LOGIN_PROMPT, "login prompt")
+        session.write(username)
         if password:
-            tn.read_until(b"Password: ", timeout=10)
-            tn.write(password.encode("ascii") + b"\n")
-
-        tn.write(b"{0}\n".format(command))
-        tn.write(b"exit\n")
-
-        return tn.read_all().decode("ascii")
-    except Exception as e:
-        print(e)
-        sys.exit(1)
+            session.read_until(PASSWORD_PROMPT, "password prompt")
+            session.write(password)
+        session.wait_for_shell()
+        session.write(command)
+        session.write("exit")
+        output = session.read_all()
+        if LOGIN_FAILED.search(output):
+            raise TelnetError("Authentication failed")
+        return output.decode("utf-8", errors="replace")
+    finally:
+        session.close()
 
 
 last_command_output = ""
 for command in commands:
-    command_stdout = connect_and_execute(host, port, timeout, username, password, command)
-    last_command_output = command_stdout.rstrip()
+    try:
+        last_command_output = connect_and_execute(command).rstrip()
+    except (OSError, TelnetError) as e:
+        print("Failed: {0}".format(e))
+        sys.exit(1)
 
 print("SUCCESS")
 print(last_command_output)

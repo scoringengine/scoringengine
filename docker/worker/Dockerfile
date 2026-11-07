@@ -54,8 +54,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     "requests>=2.32.3,<2.33" \
     # SMB checks
     "pysmb>=1.2,<1.3" \
-    # Telnet checks
-    "telnetlib3==1.0.1" \
     # Playwright-based advanced web checks
     "pytest-playwright>=0.7.0,<0.8"
 
