@@ -101,7 +101,13 @@ try:
         if show_command:
             cmd_label += f" [{command}]"
 
-        stdout, stderr, exit_code = execute_command(client, command)
+        try:
+            stdout, stderr, exit_code = execute_command(client, command)
+        except Exception as e:
+            # e.g. "ChannelException: Administratively prohibited" when the
+            # server's MaxSessions is exhausted, or a command timeout
+            print_step(cmd_label, "fail", f"could not run command: {type(e).__name__}: {e}")
+            sys.exit(1)
 
         if exit_code != 0:
             print_step(cmd_label, "fail", f"exit code {exit_code}")

@@ -18,6 +18,12 @@ def check_smb(host, port, share_name, file_name, username, password, remote_name
         conn.connect(host, int(port), timeout=15)
         shares = conn.listShares()
 
+        share_names = [s.name.strip() for s in shares]
+        if share_name not in share_names:
+            print("Share '{}' not found. Available shares: {}".format(share_name, ", ".join(share_names)))
+            print("Failed check")
+            return
+
         for share in shares:
             if share.name.strip() == share_name:
                 with tempfile.NamedTemporaryFile() as temp_file:
@@ -28,6 +34,7 @@ def check_smb(host, port, share_name, file_name, username, password, remote_name
                     if hash_obj.hexdigest() == hash_to_test:
                         print("SUCCESS")
                         return
+                    print("File '{}' content does not match the expected hash".format(file_name))
     except Exception as e:
         print(str(e))
     print("Failed check")
