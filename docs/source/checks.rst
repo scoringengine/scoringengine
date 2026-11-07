@@ -18,6 +18,7 @@ Implemented Checks
 .. include:: checks/smb.rst
 .. include:: checks/smtp.rst
 .. include:: checks/ssh.rst
+.. include:: checks/tcp.rst
 .. include:: checks/telnet.rst
 .. include:: checks/vnc.rst
 .. include:: checks/webapp.rst

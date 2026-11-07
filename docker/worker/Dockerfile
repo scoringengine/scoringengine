@@ -18,6 +18,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     iputils-ping \
     ldap-utils \
     medusa \
+    netcat-openbsd \
     nfs-common \
     openvpn \
     postgresql-client \
