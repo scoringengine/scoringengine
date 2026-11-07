@@ -4,6 +4,8 @@ Requests a certificate from an AD CS Enterprise CA through Web Enrollment (``/ce
 
 `Uses Accounts` (usernames must be ``user@domain``). The service host is used as the target and DC address, so the CA must run on a domain controller.
 
+**Optional:** certipy is not in the default worker image. Set ``INSTALL_CERTIPY=true`` in ``.env`` and rebuild the worker (``docker compose build worker``) before using this check. For airgapped deployments, set it before running ``bin/create-airgapped-package.sh``.
+
 Custom Properties:
 
 .. list-table::
