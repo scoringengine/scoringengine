@@ -191,6 +191,13 @@ CHECK_PARAMS = [
         id="SSHCheck",
     ),
     pytest.param(
+        "TCPCheck",
+        {"timeout": 5},
+        {},
+        "timeout 5 nc -zv 127.0.0.1 1234",
+        id="TCPCheck",
+    ),
+    pytest.param(
         "TelnetCheck",
         {"timeout": 15, "commands": "ls -l;id"},
         {"pwnbus": "pwnbuspass"},
