@@ -1,4 +1,4 @@
-import os
+import importlib
 import re
 import sys
 
@@ -22,24 +22,24 @@ class MockConfigFalseDebug:
 class TestVersion:
 
     @pytest.fixture(autouse=True)
-    def setup(self, db_session):
-        if "SCORINGENGINE_VERSION" in os.environ:
-            del os.environ["SCORINGENGINE_VERSION"]
+    def setup(self, db_session, monkeypatch):
+        # monkeypatch restores everything below after each test, so the mocked
+        # ConfigLoader/config and the re-imported version module can't leak
+        # into later tests in the same worker.
+        self.monkeypatch = monkeypatch
+        monkeypatch.delenv("SCORINGENGINE_VERSION", raising=False)
+        for module in ("scoring_engine.config", "scoring_engine.version"):
+            if module in sys.modules:
+                monkeypatch.setitem(sys.modules, module, sys.modules[module])
         self.toggle_debug(False)
 
     def toggle_debug(self, result):
-        import importlib
+        cl_mod = importlib.import_module("scoring_engine.config_loader")
 
-        import scoring_engine.config_loader as cl_mod
-
-        if result:
-            cl_mod.ConfigLoader = MockConfigTrueDebug
-        else:
-            cl_mod.ConfigLoader = MockConfigFalseDebug
+        self.monkeypatch.setattr(cl_mod, "ConfigLoader", MockConfigTrueDebug if result else MockConfigFalseDebug)
 
         # Force scoring_engine.config to re-evaluate with the patched loader
-        if "scoring_engine.config" in sys.modules:
-            del sys.modules["scoring_engine.config"]
+        sys.modules.pop("scoring_engine.config", None)
         from scoring_engine.config import config
 
         assert getattr(config, "debug", None) is not None
@@ -50,7 +50,7 @@ class TestVersion:
 
     def test_environment_var_commit_version(self):
         # When SCORINGENGINE_VERSION is a commit hash, it shows as version+commit
-        os.environ["SCORINGENGINE_VERSION"] = "abc1234"
+        self.monkeypatch.setenv("SCORINGENGINE_VERSION", "abc1234")
         if "scoring_engine.version" in sys.modules:
             del sys.modules["scoring_engine.version"]
         from scoring_engine.version import BASE_VERSION, version, version_info
@@ -61,7 +61,7 @@ class TestVersion:
 
     def test_environment_var_tag_version(self):
         # When SCORINGENGINE_VERSION is a version tag, it's treated as a release
-        os.environ["SCORINGENGINE_VERSION"] = "v1.2.0"
+        self.monkeypatch.setenv("SCORINGENGINE_VERSION", "v1.2.0")
         if "scoring_engine.version" in sys.modules:
             del sys.modules["scoring_engine.version"]
         from scoring_engine.version import BASE_VERSION, version, version_info
@@ -82,7 +82,7 @@ class TestVersion:
 
     def test_debug_env_version(self):
         self.toggle_debug(True)
-        os.environ["SCORINGENGINE_VERSION"] = "abcdefg"
+        self.monkeypatch.setenv("SCORINGENGINE_VERSION", "abcdefg")
         if "scoring_engine.version" in sys.modules:
             del sys.modules["scoring_engine.version"]
         from scoring_engine.version import BASE_VERSION, version, version_info
