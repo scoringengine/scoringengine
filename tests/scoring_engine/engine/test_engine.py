@@ -7,36 +7,8 @@ from celery import states
 from celery.backends.redis import RedisBackend
 
 from scoring_engine.celery_app import celery_app
-from scoring_engine.checks.agent import AgentCheck
-from scoring_engine.checks.dns import DNSCheck
-from scoring_engine.checks.elasticsearch import ElasticsearchCheck
-from scoring_engine.checks.ftp import FTPCheck
-from scoring_engine.checks.http import HTTPCheck
-from scoring_engine.checks.https import HTTPSCheck
-from scoring_engine.checks.icmp import ICMPCheck
-from scoring_engine.checks.imap import IMAPCheck
-from scoring_engine.checks.imaps import IMAPSCheck
-from scoring_engine.checks.ldap import LDAPCheck
-from scoring_engine.checks.mssql import MSSQLCheck
-from scoring_engine.checks.mysql import MYSQLCheck
-from scoring_engine.checks.nfs import NFSCheck
-from scoring_engine.checks.openvpn import OpenVPNCheck
-from scoring_engine.checks.pop3 import POP3Check
-from scoring_engine.checks.pop3s import POP3SCheck
-from scoring_engine.checks.postgresql import POSTGRESQLCheck
-from scoring_engine.checks.rdp import RDPCheck
-from scoring_engine.checks.smb import SMBCheck
-from scoring_engine.checks.smtp import SMTPCheck
-from scoring_engine.checks.smtps import SMTPSCheck
-from scoring_engine.checks.ssh import SSHCheck
-from scoring_engine.checks.telnet import TelnetCheck
-from scoring_engine.checks.vnc import VNCCheck
-from scoring_engine.checks.webapp_nginxdefaultpage import WebappNginxdefaultpageCheck
-from scoring_engine.checks.webapp_scoringengine import WebappScoringengineCheck
-from scoring_engine.checks.winrm import WinRMCheck
-from scoring_engine.checks.wordpress import WordpressCheck
 from scoring_engine.db import db
-from scoring_engine.engine.basic_check import CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
+from scoring_engine.engine.basic_check import BasicCheck, CHECK_SUCCESS_TEXT, CHECK_TIMED_OUT_TEXT
 from scoring_engine.engine.engine import Engine, _utcnow
 from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
@@ -60,40 +32,19 @@ class TestEngine:
         db.session.commit()
 
     def test_init(self):
+        """Engine auto-discovers every check class in scoring_engine/checks.
+
+        Per-check requirements (command test, docs, ...) are enforced in
+        tests/scoring_engine/checks/test_check_contract.py, so adding a check
+        doesn't require editing a list here.
+        """
         engine = Engine()
-        expected_checks = [
-            AgentCheck,
-            ICMPCheck,
-            SSHCheck,
-            DNSCheck,
-            FTPCheck,
-            HTTPCheck,
-            HTTPSCheck,
-            MYSQLCheck,
-            MSSQLCheck,
-            POSTGRESQLCheck,
-            POP3Check,
-            POP3SCheck,
-            IMAPCheck,
-            IMAPSCheck,
-            SMTPCheck,
-            SMTPSCheck,
-            VNCCheck,
-            ElasticsearchCheck,
-            LDAPCheck,
-            SMBCheck,
-            RDPCheck,
-            WordpressCheck,
-            NFSCheck,
-            OpenVPNCheck,
-            WebappScoringengineCheck,
-            WebappNginxdefaultpageCheck,
-            TelnetCheck,
-            WinRMCheck,
-        ]
-        assert {cls.__name__ for cls in engine.checks} == {
-            cls.__name__ for cls in expected_checks
-        }, "Mismatch in check names"
+        names = [cls.__name__ for cls in engine.checks]
+        assert len(names) == len(set(names)), "Duplicate check class names"
+        assert all(issubclass(cls, BasicCheck) for cls in engine.checks)
+        # Guard against discovery silently breaking (e.g. a bad checks_location)
+        assert len(names) >= 28
+        assert "SSHCheck" in names
 
     def test_total_rounds_init(self):
         engine = Engine(total_rounds=100)
@@ -130,10 +81,9 @@ class TestEngine:
 
     def test_check_name_to_obj_positive(self):
         engine = Engine()
-        check_obj = engine.check_name_to_obj("ICMP IPv4 Check")
-        from scoring_engine.checks.icmp import ICMPCheck
-
-        check_obj == ICMPCheck
+        check_obj = engine.check_name_to_obj("ICMPCheck")
+        # Compare by name: the engine imports check modules under its own module names
+        assert check_obj.__name__ == "ICMPCheck"
 
     def test_check_name_to_obj_negative(self):
         engine = Engine()
