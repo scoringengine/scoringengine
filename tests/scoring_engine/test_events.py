@@ -70,3 +70,28 @@ class TestShouldSendEvent:
         event = {"type": "test", "visibility": "unknown", "team_id": None}
         assert not should_send_event(event, "blue", 5)
         assert should_send_event(event, "white", 1)
+
+
+class TestRedisClientFailsFast:
+    def test_publish_returns_quickly_when_redis_unreachable(self, monkeypatch):
+        """redis-py >= 7 retries with backoff by default; publishing must not stall the engine."""
+        import socket
+        import time
+
+        import scoring_engine.events as events
+
+        # Grab a free port with nothing listening on it
+        sock = socket.socket()
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+
+        monkeypatch.setattr(events, "_redis_client", None)
+        monkeypatch.setattr(events.config, "redis_host", "127.0.0.1")
+        monkeypatch.setattr(events.config, "redis_port", port)
+
+        start = time.monotonic()
+        for _ in range(5):
+            publish_event("round_complete", {"round": 1})
+        assert time.monotonic() - start < 1.0
+        monkeypatch.setattr(events, "_redis_client", None)
