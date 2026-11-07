@@ -23,6 +23,16 @@ P = CHECKS_BIN_PATH
 # (check_name, properties, accounts, expected_cmd)
 CHECK_PARAMS = [
     pytest.param(
+        "ADCSWebEnrollCheck",
+        {"ca": "corp-DC01-CA", "template": "User"},
+        {"jdoe@corp.local": "pass word"},
+        'd=$(mktemp -d) && cd "$d" && '
+        "certipy req -u jdoe@corp.local -p 'pass word' -target 127.0.0.1 -target-ip 127.0.0.1 "
+        "-dc-ip 127.0.0.1 -ca corp-DC01-CA -template User -web -http-scheme http -no-channel-binding 2>&1; "
+        'cd / && rm -rf "$d"',
+        id="ADCSWebEnrollCheck",
+    ),
+    pytest.param(
         "AgentCheck",
         {},
         {},

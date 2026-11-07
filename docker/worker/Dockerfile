@@ -59,6 +59,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN playwright install-deps
 
+# AD CS Web Enrollment checks. certipy gets its own venv so its dependency
+# pins (impacket, cryptography, ...) can't conflict with the engine's.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m venv /opt/certipy && \
+    /opt/certipy/bin/pip install "certipy-ad==5.1.0" && \
+    ln -s /opt/certipy/bin/certipy /usr/local/bin/certipy
+
 COPY bin/worker /app/bin/worker
 COPY docker/worker/sudoers /etc/sudoers
 
