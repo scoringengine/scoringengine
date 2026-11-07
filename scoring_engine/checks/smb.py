@@ -14,7 +14,7 @@ class SMBCheck(BasicCheck):
             self.host,
             self.port,
             account.username,
-            account.password,
+            self.secret(account.password),
             properties["remote_name"],
             properties["share"],
             properties["file"],

@@ -7,4 +7,4 @@ class OpenVPNCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        return (self.host, self.port, account.username, account.password, properties["ca"])
+        return (self.host, self.port, account.username, self.secret(account.password), properties["ca"])

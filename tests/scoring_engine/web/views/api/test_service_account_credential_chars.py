@@ -18,7 +18,6 @@ the one that would actually catch a regression in scoring behaviour, because it
 follows the credential all the way into the command string the worker runs.
 """
 
-import shlex
 
 import pytest
 
@@ -152,21 +151,29 @@ class TestCredentialReachesCommandVerbatim:
 
     @pytest.mark.parametrize("password", ["P@ss&word", "dollar$var", "back`tick`", "two words", "semi;colon"])
     def test_password_reaches_command_verbatim(self, password):
-        """A credential with shell metacharacters must arrive intact and quoted.
+        """A credential with shell metacharacters must arrive intact as one argv entry.
 
-        BasicCheck.command() shlex.quote()s each argument, so the password
-        appears in the command string in quoted form -- shlex.split() must
-        recover the original bytes exactly.
+        The password is passed via an environment variable (basic_check.Secret),
+        so the command string only holds a reference. Run the command through a
+        real shell, with the check binary swapped for printf, and confirm the
+        argument the program receives is byte-for-byte the original password.
         """
+        import os
+        import subprocess
+
         from scoring_engine.checks.ssh import SSHCheck
+        from scoring_engine.engine.basic_check import CHECKS_BIN_PATH
 
         account = Account(username="admin", password=password, service=self.service)
         db.session.add(account)
         db.session.commit()
 
-        command = SSHCheck(self.environment).command()
-        recovered = shlex.split(command)
-
-        assert password in recovered, f"{password!r} did not survive into argv: {recovered!r}"
-        # And nothing leaked as an unquoted metacharacter that a shell would act on.
-        assert f"/p:{password}" not in command
+        check = SSHCheck(self.environment)
+        command = check.command()
+        assert password not in command
+        printf_cmd = command.replace(CHECKS_BIN_PATH + "/ssh_check", "printf '%s\\n'")
+        out = subprocess.run(
+            printf_cmd, shell=True, capture_output=True, text=True, env=dict(os.environ, **check.command_env)
+        ).stdout
+        # argv: host port username password commands show_command
+        assert out.split("\n")[3] == password

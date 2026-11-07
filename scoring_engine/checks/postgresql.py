@@ -7,4 +7,4 @@ class POSTGRESQLCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        return (account.password, self.host, self.port, account.username, properties["command"], properties["database"])
+        return (self.secret(account.password), self.host, self.port, account.username, properties["command"], properties["database"])

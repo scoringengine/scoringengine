@@ -7,4 +7,4 @@ class LDAPCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        return (self.host, self.port, account.username, properties["domain_base"], account.password)
+        return (self.host, self.port, account.username, properties["domain_base"], self.secret(account.password))

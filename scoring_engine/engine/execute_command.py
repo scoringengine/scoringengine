@@ -42,9 +42,17 @@ def execute_command(job):
 
     # Popen (rather than subprocess.run) so we hold the pid and can kill the whole
     # process group on timeout -- see _kill_process_group.
+    # Check credentials arrive as env vars (see basic_check.Secret) so they never
+    # appear in the command string that gets logged and stored.
+    env = None
+    if job.get("env"):
+        env = dict(os.environ)
+        env.update(job["env"])
+
     proc = subprocess.Popen(
         job["command"],
         shell=True,
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         start_new_session=True,
@@ -87,4 +95,6 @@ def execute_command(job):
     # serialization overhead on every AsyncResult.state/.result call.
     MAX_OUTPUT = 5000
     job["output"] = output[:MAX_OUTPUT]
+    # Don't echo credentials back into the result backend.
+    job.pop("env", None)
     return job

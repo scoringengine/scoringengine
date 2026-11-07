@@ -1586,7 +1586,7 @@ def admin_check_dry_run():
     # Dispatch to a Celery worker via the service's worker queue
     import time
 
-    job = {"command": command}
+    job = {"command": command, "env": check_obj.command_env}
     start_time = time.time()
     try:
         result = execute_command.apply_async(args=[job], queue=service.worker_queue)

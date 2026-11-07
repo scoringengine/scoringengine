@@ -27,11 +27,13 @@ Let's take a look at what the SSH check file looks like (scoring_engine/checks/s
               self.host,
               self.port,
               account.username,
-              account.password,
+              self.secret(account.password),
               properties['commands']
           )
 
 .. note:: The main point of each check source code, is to generate a command string. The format of this string is defined in the CMD variable. The plugin executes the command_format function, which outputs a list of the parameters to fill in the formatted CMD variable.
+
+.. important:: Always wrap credentials in ``self.secret(...)``. The command string then contains only a reference such as ``"${SE_SECRET_0}"``, and the worker supplies the real value in the process environment. This keeps passwords out of the stored check command, the web UI/API and the worker logs, and handles any special characters. Don't put the reference inside single quotes in ``CMD``, or the shell won't expand it.
 
 
 - **Line 1** - This is the Class name of the check, and will need to be something you reference in bin/competition.yaml

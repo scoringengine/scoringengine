@@ -9,7 +9,7 @@ class SMTPCheck(BasicCheck):
         account = self.get_random_account()
         return (
             account.username,
-            account.password,
+            self.secret(account.password),
             account.username,
             properties["touser"],
             properties["subject"],

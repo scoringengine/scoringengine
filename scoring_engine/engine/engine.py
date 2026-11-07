@@ -536,7 +536,7 @@ class Engine(object):
                 environment = random.choice(service.environments)
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
-                job = Job(environment_id=environment.id, command=command_str)
+                job = Job(environment_id=environment.id, command=command_str, env=check_obj.command_env)
                 countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
                 task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
                 dispatch_elapsed = time.time() - dispatch_start
