@@ -29,4 +29,4 @@ class ADCSWebEnrollCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        return (account.username, account.password, self.host, properties["ca"], properties["template"])
+        return (account.username, self.secret(account.password), self.host, properties["ca"], properties["template"])

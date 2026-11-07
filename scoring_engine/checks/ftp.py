@@ -11,7 +11,7 @@ class FTPCheck(BasicCheck):
             self.host,
             self.port,
             account.username,
-            account.password,
+            self.secret(account.password),
             properties["remotefilepath"],
             properties["filecontents"],
         )

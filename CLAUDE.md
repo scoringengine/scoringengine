@@ -71,11 +71,15 @@ Create `scoring_engine/checks/myservice.py` (auto-discovered):
 from scoring_engine.engine.basic_check import BasicCheck
 
 class MyServiceCheck(BasicCheck):
-    required_properties = ['username', 'password']
-    CMD_TIMEOUT = 30
+    required_properties = []
+
+    CMD = "myservice-cli --host {0} --user {1} --password {2}"
 
     def command_format(self, properties):
-        return f'myservice-cli --host {self.host} --user {properties["username"]}'
+        account = self.get_random_account()
+        # Credentials MUST go through self.secret(): passed via env var, never in
+        # the stored/logged command string. Other args are shlex-quoted.
+        return (self.host, account.username, self.secret(account.password))
 ```
 
 Then (enforced by `tests/scoring_engine/checks/test_check_contract.py`, which names the missing piece):

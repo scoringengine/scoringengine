@@ -7,4 +7,4 @@ class TelnetCheck(BasicCheck):
 
     def command_format(self, properties):
         account = self.get_random_account()
-        return (self.host, self.port, properties["timeout"], account.username, account.password, properties["commands"])
+        return (self.host, self.port, properties["timeout"], account.username, self.secret(account.password), properties["commands"])

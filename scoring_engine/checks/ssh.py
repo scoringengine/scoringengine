@@ -8,4 +8,4 @@ class SSHCheck(BasicCheck):
     def command_format(self, properties):
         account = self.get_random_account()
         show_command = properties.get("show_command", "false")
-        return (self.host, self.port, account.username, account.password, properties["commands"], show_command)
+        return (self.host, self.port, account.username, self.secret(account.password), properties["commands"], show_command)

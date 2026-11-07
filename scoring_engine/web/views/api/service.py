@@ -31,9 +31,10 @@ def is_valid_user_input(string, only_hostname, only_number):
         # so that real-world passwords (which routinely contain $ & ! " ' < > etc.)
         # can be entered here.  Two things make this safe rather than reckless:
         #
-        #   1. BasicCheck.command() shlex.quote()s every argument before it is
-        #      interpolated into the command string the worker runs, so nothing
-        #      here reaches a shell unquoted.
+        #   1. Passwords never enter the command string: checks pass them via an
+        #      environment variable (basic_check.Secret), and every other argument
+        #      is shlex.quote()d by BasicCheck.command(), so nothing here reaches
+        #      a shell unquoted.
         #   2. Accounts provisioned from competition.yaml (competition.py) are
         #      never validated at all, so arbitrary credentials already flow
         #      through the check pipeline today.  Rejecting them only in the web

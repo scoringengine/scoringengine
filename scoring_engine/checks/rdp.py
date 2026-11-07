@@ -9,7 +9,7 @@ class RDPCheck(BasicCheck):
         account = self.get_random_account()
         return (
             account.username,
-            account.password,
+            self.secret(account.password),
             self.host,
             self.port,
         )
