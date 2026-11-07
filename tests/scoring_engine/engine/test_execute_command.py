@@ -104,3 +104,15 @@ class TestProcessGroupCleanup:
         assert "GC:" in task["output"]
         grandchild_pid = int(task["output"].split("GC:")[1].split()[0])
         assert _wait_dead(grandchild_pid), "grandchild survived the check timeout"
+
+
+class TestCredentialsNotLogged:
+    def test_command_with_password_is_not_logged(self):
+        job = Job(environment_id=7, command="echo -p 'Sup3rS3cret!'")
+        with mock.patch.object(ec, "logger") as mock_logger:
+            mock_logger.propagate = False
+            result = execute_command(job)
+        assert "Sup3rS3cret!" in result["output"]
+        logged = " ".join(str(c) for c in mock_logger.mock_calls)
+        assert "Sup3rS3cret!" not in logged
+        mock_logger.info.assert_any_call("Running check for environment %s", 7)
