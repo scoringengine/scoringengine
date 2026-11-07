@@ -17,7 +17,8 @@ Usage:
     bin/install --non-interactive     # no prompts; generate secrets, accept defaults
     bin/install --force               # overwrite an existing .env
     bin/install --mysql-password ...  # supply a value instead of generating it
-    bin/install --packs db,browser    # slim core worker + only these check packs
+    bin/install --packs db,browser    # core worker + only these check packs
+    bin/install --packs all           # one worker with every check pack
 """
 
 import argparse
@@ -45,9 +46,9 @@ OPTIONAL_PACKS = ("db", "rdp", "browser")
 
 
 def parse_pack_choice(value):
-    """'all'/'' -> None (single full worker); 'db, browser' -> ['db', 'browser'];
-    'core'/'none' -> [] (core worker only). Raises ValueError on unknown packs."""
-    value = (value or "all").strip().lower()
+    """'all' -> None (single full worker); 'db, browser' -> ['db', 'browser'];
+    ''/'core'/'none' -> [] (core worker only). Raises ValueError on unknown packs."""
+    value = (value or "core").strip().lower()
     if value == "all":
         return None
     if value in ("core", "none"):
@@ -89,10 +90,12 @@ def build_env(values):
         f"SCORINGENGINE_SECRET_KEY={values['SCORINGENGINE_SECRET_KEY']}",
         "",
     ]
-    packs = values.get("WORKER_PACKS")
-    if packs is not None:
+    packs = values.get("WORKER_PACKS", [])
+    if packs is None:
+        lines += ["# Worker tool packs: one worker with every pack.", "WORKER_TARGET=full", "COMPOSE_PROFILES=", ""]
+    else:
         lines += [
-            "# Worker tool packs: slim core worker plus one worker per enabled pack.",
+            "# Worker tool packs: core worker plus one worker per enabled pack (db, rdp, browser).",
             "WORKER_TARGET=core",
             f"COMPOSE_PROFILES={','.join(packs)}",
             "",
@@ -120,11 +123,11 @@ def collect(args, interactive, prompt=input):
         app_pw = prompt("MySQL app password [generated]: ").strip() or app_pw
         secret = prompt("Flask secret key [generated]: ").strip() or secret
 
-    pack_choice = getattr(args, "packs", None) or "all"
+    pack_choice = getattr(args, "packs", None) or "core"
     if interactive:
         while True:
             answer = prompt(
-                f"Check packs: 'all', or any of {', '.join(OPTIONAL_PACKS)} (core always included) [{pack_choice}]: "
+                f"Extra check packs beyond core: any of {', '.join(OPTIONAL_PACKS)}, 'all', or 'core' [{pack_choice}]: "
             ).strip()
             try:
                 values["WORKER_PACKS"] = parse_pack_choice(answer or pack_choice)
@@ -149,8 +152,8 @@ def main(argv=None):
     parser.add_argument("--secret-key", help="Use this instead of a generated one.")
     parser.add_argument(
         "--packs",
-        help="Worker check packs: 'all' (default, one full worker) or a list like 'db,browser' "
-        "(slim core worker plus those packs; 'core' for core only).",
+        help="Worker check packs: 'core' (default), a list like 'db,browser' (core worker plus those "
+        "packs), or 'all' (one worker with every pack).",
     )
     parser.add_argument("--env-path", default=ENV_PATH, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)

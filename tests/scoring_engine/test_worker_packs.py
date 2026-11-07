@@ -10,6 +10,7 @@ from scoring_engine.celery_stats import CeleryStats
 from scoring_engine.config import config
 from scoring_engine.db import db
 from scoring_engine.engine.engine import Engine
+from scoring_engine.models.check import Check
 from scoring_engine.models.environment import Environment
 from scoring_engine.models.property import Property
 from scoring_engine.models.service import Service
@@ -134,8 +135,83 @@ class TestImagesMatchPacks:
     def test_compose_has_an_opt_in_worker_per_pack(self):
         with open(os.path.join(REPO, "docker-compose.yml")) as f:
             services = yaml.safe_load(f)["services"]
-        assert services["worker"]["build"]["target"] == "${WORKER_TARGET:-full}"
+        assert services["worker"]["build"]["target"] == "${WORKER_TARGET:-core}"
+        assert services["worker"]["image"] == "scoringengine/worker-${WORKER_TARGET:-core}"
         for pack in ("db", "rdp", "browser"):
             svc = services["worker-{0}".format(pack)]
             assert svc["build"]["target"] == pack
             assert svc["profiles"] == [pack]
+
+
+def _mock_round_result(mock_execute_command, env):
+    result = MagicMock(id="t1", state="SUCCESS")
+    result.result = {"environment_id": env.id, "errored_out": False, "output": "*", "command": "x"}
+    mock_execute_command.apply_async.return_value = result
+    mock_execute_command.AsyncResult.return_value = result
+
+
+class TestUncoveredPackChecksFailFast:
+    def _browser_service(self):
+        return _service("WebappNginxdefaultpageCheck", {"scheme": "http", "basepath": "/"})
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_check_fails_without_dispatch_when_no_worker_has_pack(self, mock_execute_command):
+        service, env = self._browser_service()
+        mock_execute_command.app.control.inspect.return_value.active_queues.return_value = {
+            "core@w1": [{"name": "main"}]
+        }
+
+        Engine(total_rounds=1).run()
+
+        mock_execute_command.apply_async.assert_not_called()
+        check = db.session.query(Check).filter_by(service_id=service.id).one()
+        assert check.result is False
+        assert check.reason == "No worker available for check pack 'browser' (queue main.browser)"
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_dispatched_when_a_worker_has_pack(self, mock_execute_command):
+        _, env = self._browser_service()
+        mock_execute_command.app.control.inspect.return_value.active_queues.return_value = {
+            "browser@w2": [{"name": "main"}, {"name": "main.browser"}]
+        }
+        _mock_round_result(mock_execute_command, env)
+
+        Engine(total_rounds=1).run()
+
+        assert mock_execute_command.apply_async.call_args.kwargs["queue"] == "main.browser"
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_no_worker_reply_falls_back_to_dispatching(self, mock_execute_command):
+        _, env = self._browser_service()
+        mock_execute_command.app.control.inspect.return_value.active_queues.return_value = None
+        _mock_round_result(mock_execute_command, env)
+
+        Engine(total_rounds=1).run()
+
+        mock_execute_command.apply_async.assert_called_once()
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_recently_seen_queue_still_counts_as_covered(self, mock_execute_command):
+        _, env = self._browser_service()
+        inspect = mock_execute_command.app.control.inspect.return_value
+        _mock_round_result(mock_execute_command, env)
+        engine = Engine(total_rounds=2)
+        engine.sleep = lambda seconds: None  # skip the inter-round delay
+        # Round 1 sees the browser worker; round 2's broadcast misses it (slow reply)
+        inspect.active_queues.side_effect = [
+            {"browser@w2": [{"name": "main.browser"}]},
+            {"core@w1": [{"name": "main"}]},
+        ]
+
+        engine.run()
+
+        assert mock_execute_command.apply_async.call_count == 2
+
+    @patch("scoring_engine.engine.engine.execute_command")
+    def test_core_only_competition_never_queries_workers(self, mock_execute_command):
+        _, env = _service("ICMPCheck")
+        _mock_round_result(mock_execute_command, env)
+
+        Engine(total_rounds=1).run()
+
+        mock_execute_command.app.control.inspect.assert_not_called()

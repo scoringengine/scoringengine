@@ -96,7 +96,9 @@ jobs:
           - { image: engine, name: engine }
           - { image: web, name: web }
           # Worker tool packs (docker/worker/Dockerfile targets)
+          # "worker" is kept as an alias of worker-full for existing installs
           - { image: worker, name: worker, target: full }
+          - { image: worker, name: worker-full, target: full }
           - { image: worker, name: worker-core, target: core }
           - { image: worker, name: worker-db, target: db }
           - { image: worker, name: worker-rdp, target: rdp }

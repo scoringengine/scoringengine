@@ -117,16 +117,16 @@ services:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
       - SCORINGENGINE_SECRET_KEY
-  # Worker tool packs (see scoring_engine/worker_packs.py). By default one
-  # "full" worker runs every check. For smaller images, set WORKER_TARGET=core
-  # in .env and enable only the packs your competition needs, e.g.
-  # COMPOSE_PROFILES=db,browser -- each profile starts a worker for that pack.
+  # Worker tool packs (see scoring_engine/worker_packs.py). The default worker
+  # is the slim "core" image. Enable the packs your competition needs with
+  # COMPOSE_PROFILES=db,rdp,browser (each starts a worker for that pack), or
+  # set WORKER_TARGET=full for a single worker with every pack.
   worker: &worker
-    image: scoringengine/worker${WORKER_TARGET:+-${WORKER_TARGET}}
+    image: scoringengine/worker-${WORKER_TARGET:-core}
     build:
       context: .
       dockerfile: ./docker/worker/Dockerfile
-      target: ${WORKER_TARGET:-full}
+      target: ${WORKER_TARGET:-core}
       args:
         BASE_IMAGE: scoringengine/base
         INSTALL_CERTIPY: ${INSTALL_CERTIPY:-false}

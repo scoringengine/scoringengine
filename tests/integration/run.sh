@@ -1,6 +1,9 @@
 # Exit script if any commands fail
 set -e
 
+# The testbed exercises every check type, so run the worker with every pack.
+export WORKER_TARGET=full
+
 wait_for_container()
 {
   CONTAINER_NAME=$1

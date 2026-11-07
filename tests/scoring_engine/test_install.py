@@ -121,11 +121,19 @@ class TestInstaller:
 
 
 class TestInstallerPacks:
-    def test_default_is_single_full_worker(self, tmp_path):
+    def test_default_is_core_worker_only(self, tmp_path):
         target = tmp_path / ".env"
         assert install.main(["--non-interactive", "--env-path", str(target)]) == 0
         env = _parse_env(target.read_text())
-        assert "WORKER_TARGET" not in env and "COMPOSE_PROFILES" not in env
+        assert env["WORKER_TARGET"] == "core"
+        assert env["COMPOSE_PROFILES"] == ""
+
+    def test_all_selects_single_full_worker(self, tmp_path):
+        target = tmp_path / ".env"
+        assert install.main(["--non-interactive", "--env-path", str(target), "--packs", "all"]) == 0
+        env = _parse_env(target.read_text())
+        assert env["WORKER_TARGET"] == "full"
+        assert env["COMPOSE_PROFILES"] == ""
 
     def test_packs_select_core_worker_and_profiles(self, tmp_path):
         target = tmp_path / ".env"
