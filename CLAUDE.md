@@ -78,6 +78,10 @@ class MyServiceCheck(BasicCheck):
         return f'myservice-cli --host {self.host} --user {properties["username"]}'
 ```
 
+Then (enforced by `tests/scoring_engine/checks/test_check_contract.py`, which names the missing piece):
+- Add a `pytest.param(..., id="MyServiceCheck")` to `CHECK_PARAMS` in `tests/scoring_engine/checks/test_all_checks.py`
+- Add `docs/source/checks/myservice.rst` and include it in `docs/source/checks.rst`
+
 ## Config
 
 Priority: `SCORINGENGINE_*` env vars → `SCORINGENGINE_CONFIG_FILE` → `engine.conf.inc` → defaults
