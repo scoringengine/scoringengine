@@ -19,7 +19,7 @@ class TestADCSWebEnrollOptional:
         # PATH without certipy (only the empty tmp dir plus basic system tools)
         env = {"PATH": f"{tmp_path}:/usr/bin:/bin"}
         out = subprocess.run(["sh", "-c", cmd], capture_output=True, text=True, env=env, timeout=10).stdout
-        assert "certipy is not installed in the worker image; rebuild it with INSTALL_CERTIPY=true" in out
+        assert "certipy is not installed in the worker image; enable the adcs worker pack" in out
         assert "Got certificate" not in out
 
     def test_runs_certipy_when_installed(self, tmp_path):
@@ -34,9 +34,12 @@ class TestADCSWebEnrollOptional:
         # temp dir for requested certs/keys is cleaned up
         assert sorted(p.name for p in tmp_path.iterdir()) == ["certipy"]
 
-    def test_certipy_not_installed_by_default(self):
+    def test_certipy_is_an_opt_in_worker_pack(self):
+        assert ADCSWebEnrollCheck.REQUIRES_PACK == "adcs"
         with open(os.path.join(REPO, "docker-compose.yml")) as f:
-            compose = yaml.safe_load(f)
-        assert compose["services"]["worker"]["build"]["args"]["INSTALL_CERTIPY"] == "${INSTALL_CERTIPY:-false}"
+            services = yaml.safe_load(f)["services"]
+        assert services["worker-adcs"]["profiles"] == ["adcs"]
         with open(os.path.join(REPO, "docker", "worker", "Dockerfile")) as f:
-            assert "ARG INSTALL_CERTIPY=false" in f.read()
+            dockerfile = f.read()
+        core_stage = dockerfile.split("AS core-deps\n", 1)[1].split("\nFROM ", 1)[0]
+        assert "adcs.sh" not in core_stage

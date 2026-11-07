@@ -103,6 +103,7 @@ jobs:
           - { image: worker, name: worker-db, target: db }
           - { image: worker, name: worker-rdp, target: rdp }
           - { image: worker, name: worker-browser, target: browser }
+          - { image: worker, name: worker-adcs, target: adcs }
     steps:
       - uses: actions/checkout@v4
 

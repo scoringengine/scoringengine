@@ -15,7 +15,7 @@ installs every pack, so the default single-worker setup keeps working.
 from scoring_engine.config import config
 
 DEFAULT_PACK = "core"
-PACKS = ("core", "db", "rdp", "browser")
+PACKS = ("core", "db", "rdp", "browser", "adcs")
 
 
 def check_pack(check_class):

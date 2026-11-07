@@ -42,7 +42,7 @@ IMAGE_DEFAULTS = {
 # Optional worker tool packs (docker/worker/Dockerfile targets). "core" is always
 # included. Mirrors scoring_engine.worker_packs.PACKS -- this script stays
 # stdlib-only so it runs before anything is installed.
-OPTIONAL_PACKS = ("db", "rdp", "browser")
+OPTIONAL_PACKS = ("db", "rdp", "browser", "adcs")
 
 
 def parse_pack_choice(value):

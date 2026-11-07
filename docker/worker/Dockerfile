@@ -6,6 +6,7 @@
 #   db       - core + MySQL/PostgreSQL/MSSQL clients
 #   rdp      - core + FreeRDP/Xvfb
 #   browser  - core + Playwright/Chromium
+#   adcs     - core + certipy (AD CS Web Enrollment)
 #   full     - every pack (default target, same as the old single image)
 # Each image sets SCORINGENGINE_WORKER_PACKS so the worker subscribes to the
 # matching queues ("main" for core, "main.<pack>" for the rest).
@@ -42,12 +43,17 @@ USER engine
 RUN playwright install chromium
 USER root
 
+FROM core-deps AS adcs-deps
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/adcs.sh
+
 FROM core-deps AS full-deps
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=docker/worker/packs,target=/packs \
-    /packs/db.sh && /packs/rdp.sh && /packs/browser.sh
+    /packs/db.sh && /packs/rdp.sh && /packs/browser.sh && /packs/adcs.sh
 USER engine
 RUN playwright install chromium
 USER root
@@ -88,11 +94,19 @@ COPY scoring_engine /app/scoring_engine
 ENV SCORINGENGINE_WORKER_PACKS=core,browser
 CMD ["/app/bin/worker"]
 
+FROM adcs-deps AS adcs
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,adcs
+CMD ["/app/bin/worker"]
+
 # Default target (last stage): every pack, equivalent to the old single image.
 FROM full-deps AS full
 COPY bin/worker /app/bin/worker
 COPY docker/worker/sudoers /etc/sudoers
 USER engine
 COPY scoring_engine /app/scoring_engine
-ENV SCORINGENGINE_WORKER_PACKS=core,db,rdp,browser
+ENV SCORINGENGINE_WORKER_PACKS=core,db,rdp,browser,adcs
 CMD ["sh", "-c", "rm -f /tmp/.X1-lock /tmp/.X11-unix/X1; Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]

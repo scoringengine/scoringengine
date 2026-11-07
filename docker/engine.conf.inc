@@ -54,10 +54,10 @@ worker_num_concurrent_tasks = -1
 # running certain work but not others
 worker_queue = main
 
-# Tool packs installed on this worker: core, db, rdp, browser. The worker
+# Tool packs installed on this worker: core, db, rdp, browser, adcs. The worker
 # consumes "<worker_queue>" for core and "<worker_queue>.<pack>" for the rest.
 # Docker worker images set this automatically (SCORINGENGINE_WORKER_PACKS).
-worker_packs = core,db,rdp,browser
+worker_packs = core,db,rdp,browser,adcs
 
 # Set to null to disable caching
 cache_type = redis

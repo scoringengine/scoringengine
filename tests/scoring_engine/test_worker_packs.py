@@ -56,7 +56,9 @@ class TestPackRouting:
         assert packs["WebappNginxdefaultpageCheck"] == "browser"
         assert packs["RDPCheck"] == "rdp"
         assert {packs["MYSQLCheck"], packs["POSTGRESQLCheck"], packs["MSSQLCheck"]} == {"db"}
+        assert packs["ADCSWebEnrollCheck"] == "adcs"
         assert packs["SSHCheck"] == "core"
+        assert packs["TCPCheck"] == "core"
 
 
 def _service(check_name, props=None, worker_queue="main"):
@@ -121,7 +123,8 @@ class TestImagesMatchPacks:
             "db": "core,db",
             "rdp": "core,rdp",
             "browser": "core,browser",
-            "full": "core,db,rdp,browser",
+            "adcs": "core,adcs",
+            "full": "core,db,rdp,browser,adcs",
         }
         for target, packs in expected.items():
             stage = dockerfile.split("AS {0}\n".format(target), 1)[1].split("\nFROM ", 1)[0]
@@ -137,7 +140,7 @@ class TestImagesMatchPacks:
             services = yaml.safe_load(f)["services"]
         assert services["worker"]["build"]["target"] == "${WORKER_TARGET:-core}"
         assert services["worker"]["image"] == "scoringengine/worker-${WORKER_TARGET:-core}"
-        for pack in ("db", "rdp", "browser"):
+        for pack in ("db", "rdp", "browser", "adcs"):
             svc = services["worker-{0}".format(pack)]
             assert svc["build"]["target"] == pack
             assert svc["profiles"] == [pack]

@@ -36,6 +36,7 @@ Pack     Checks                             Adds
 db       MySQL, PostgreSQL, MSSQL           ~170 MB
 rdp      RDP                                ~280 MB
 browser  Webapp* (Playwright/Chromium)      ~1.1 GB
+adcs     ADCSWebEnroll (certipy)            ~100 MB
 ======== ================================== ==============
 
 Enable packs in ``.env`` (``bin/install --packs db,browser`` writes this for you). Each pack starts its own worker alongside the core worker::
@@ -48,7 +49,7 @@ Or run a single worker with every pack::
 
 If a service needs a pack that no worker provides, its check fails immediately with ``No worker available for check pack '<pack>'``. The admin **Queues** page then shows the pack's queue (e.g. ``main.browser``) with no workers.
 
-.. note:: **Upgrading:** earlier versions shipped one worker with every tool. If your competition uses RDP, database or Webapp checks, set ``COMPOSE_PROFILES`` or ``WORKER_TARGET=full`` before upgrading. For airgapped packages, set them before running ``bin/create-airgapped-package.sh`` so the right worker images are included.
+.. note:: **Upgrading:** earlier versions shipped one worker with every tool. If your competition uses RDP, database, Webapp or ADCS checks, set ``COMPOSE_PROFILES`` or ``WORKER_TARGET=full`` before upgrading. For airgapped packages, set them before running ``bin/create-airgapped-package.sh`` so the right worker images are included.
 
 Production Environment
 ----------------------

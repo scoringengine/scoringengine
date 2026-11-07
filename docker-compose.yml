@@ -129,7 +129,6 @@ services:
       target: ${WORKER_TARGET:-core}
       args:
         BASE_IMAGE: scoringengine/base
-        INSTALL_CERTIPY: ${INSTALL_CERTIPY:-false}
       cache_from:
         - scoringengine/worker
         - worker:latest
@@ -180,6 +179,16 @@ services:
       args:
         BASE_IMAGE: scoringengine/base
     profiles: [browser]
+  worker-adcs:
+    <<: *worker
+    image: scoringengine/worker-adcs
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: adcs
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [adcs]
   web:
     image: scoringengine/web
     build:
