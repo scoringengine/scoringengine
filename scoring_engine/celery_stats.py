@@ -4,6 +4,7 @@ from scoring_engine.celery_app import celery_app
 from scoring_engine.db import db
 from scoring_engine.models.service import Service
 from scoring_engine.models.team import Team
+from scoring_engine.worker_packs import queue_for_service
 
 
 class CeleryStats:
@@ -15,23 +16,23 @@ class CeleryStats:
 
         all_services = db.session.query(Service).options(joinedload(Service.team)).all()
         for service in all_services:
-            if service.worker_queue not in queues_facts:
-                queues_facts[service.worker_queue] = {
-                    "name": service.worker_queue,
+            # Group by the queue checks are actually sent to, which includes the
+            # tool pack (e.g. "main.browser"). A pack queue with no workers means
+            # those checks will never run.
+            queue = queue_for_service(service)
+            if queue not in queues_facts:
+                queues_facts[queue] = {
+                    "name": queue,
                     "workers": [],
                     "services_running": {},
                 }
-            if service.team.name not in queues_facts[service.worker_queue]["services_running"]:
-                queues_facts[service.worker_queue]["services_running"][service.team.name] = []
-            queues_facts[service.worker_queue]["services_running"][service.team.name].append(service.name)
+            queues_facts[queue]["services_running"].setdefault(service.team.name, []).append(service.name)
 
         for queue_name, queue_facts in queues_facts.items():
             # If all of the services are listed for this specific worker, let's just alias it as 'All'
-            queue_services_total_running = 0
-            for team_name, team_services in queues_facts[service.worker_queue]["services_running"].items():
-                queue_services_total_running += len(team_services)
+            queue_services_total_running = sum(len(svcs) for svcs in queue_facts["services_running"].values())
             if queue_services_total_running == len(all_services):
-                queues_facts[service.worker_queue]["services_running"] = "All"
+                queue_facts["services_running"] = "All"
             else:
                 blue_teams = Team.get_all_blue_teams()
                 for blue_team in blue_teams:
@@ -39,11 +40,11 @@ class CeleryStats:
                         queue_facts["services_running"][blue_team.name]
                     ):
                         # Summarize it for each team if the worker runs all services
-                        queues_facts[service.worker_queue]["services_running"][blue_team.name] = "ALL"
+                        queue_facts["services_running"][blue_team.name] = "ALL"
 
+        # Get which workers are assigned to which queues
+        active_queues = celery_app.control.inspect().active_queues()
         for queue_name, queue_facts in queues_facts.items():
-            # Get which workers are assigned to which queues
-            active_queues = celery_app.control.inspect().active_queues()
             # If we don't have any queues, we also have no workers
             if active_queues is not None:
                 for worker_name, queues in active_queues.items():
@@ -93,7 +94,7 @@ class CeleryStats:
             facts["services_running"] = []
             services_running = {}
             for service in all_services:
-                if service.worker_queue in facts["worker_queues"]:
+                if queue_for_service(service) in facts["worker_queues"]:
                     if service.team.name not in services_running:
                         services_running[service.team.name] = []
                     services_running[service.team.name].append(service.name)

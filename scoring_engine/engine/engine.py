@@ -32,6 +32,7 @@ from scoring_engine.models.property import Property
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.schedule import engine_should_run
+from scoring_engine.worker_packs import service_queue
 
 
 def _utcnow():
@@ -538,7 +539,7 @@ class Engine(object):
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str, env=check_obj.command_env)
                 countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
+                task = execute_command.apply_async(args=[job], queue=service_queue(service, check_class), countdown=countdown)
                 dispatch_elapsed = time.time() - dispatch_start
                 if dispatch_elapsed > 1.0:
                     logger.warning(

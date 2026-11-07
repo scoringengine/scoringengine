@@ -91,7 +91,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [bootstrap, engine, web, worker]
+        include:
+          - { image: bootstrap, name: bootstrap }
+          - { image: engine, name: engine }
+          - { image: web, name: web }
+          # Worker tool packs (docker/worker/Dockerfile targets)
+          - { image: worker, name: worker, target: full }
+          - { image: worker, name: worker-core, target: core }
+          - { image: worker, name: worker-db, target: db }
+          - { image: worker, name: worker-rdp, target: rdp }
+          - { image: worker, name: worker-browser, target: browser }
     steps:
       - uses: actions/checkout@v4
 
@@ -114,8 +123,8 @@ jobs:
         id: meta
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/${{ matrix.image }}
-            scoringengine/${{ matrix.image }}
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/${{ matrix.name }}
+            scoringengine/${{ matrix.name }}
           tags: |
             type=raw,value=develop,enable={{is_default_branch}}
             type=raw,value=latest,enable=${{ github.event_name == 'release' || inputs.publish_latest == true }}
@@ -126,11 +135,12 @@ jobs:
         with:
           context: .
           file: ./docker/${{ matrix.image }}/Dockerfile
+          target: ${{ matrix.target }}
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
             BASE_IMAGE=${{ env.REGISTRY }}/${{ needs.setup.outputs.image-prefix }}/base@${{ needs.build-base.outputs.base-digest }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,scope=${{ matrix.image }},mode=max
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max

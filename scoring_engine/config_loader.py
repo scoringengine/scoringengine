@@ -159,6 +159,13 @@ class ConfigLoader(object):
             self.parser["OPTIONS"]["worker_queue"],
         )
 
+        # Tool packs installed on this worker (see scoring_engine/worker_packs.py).
+        # Docker images set SCORINGENGINE_WORKER_PACKS per build target.
+        self.worker_packs = self.parse_sources(
+            "worker_packs",
+            self.parser["OPTIONS"].get("worker_packs", "core,db,rdp,browser"),
+        )
+
         self.timezone = self.parse_sources("timezone", self.parser["OPTIONS"]["timezone"])
 
         self.upload_folder = self.parse_sources("upload_folder", self.parser["OPTIONS"]["upload_folder"])

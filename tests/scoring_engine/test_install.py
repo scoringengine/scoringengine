@@ -111,10 +111,48 @@ class TestInstaller:
 
     def test_interactive_answers_override_generated_defaults(self):
         # Four blank answers accept the version defaults, then explicit secrets.
-        answers = iter(["", "", "", "", "my-root", "my-app", "my-secret"])
+        answers = iter(["", "", "", "", "my-root", "my-app", "my-secret", ""])
         args = SimpleNamespace(mysql_root_password=None, mysql_password=None, secret_key=None)
         values = install.collect(args, interactive=True, prompt=lambda _p: next(answers))
         assert values["MYSQL_ROOT_PASSWORD"] == "my-root"
         assert values["MYSQL_PASSWORD"] == "my-app"
         assert values["SCORINGENGINE_SECRET_KEY"] == "my-secret"
         assert values["REDIS_VERSION"] == install.IMAGE_DEFAULTS["REDIS_VERSION"]
+
+
+class TestInstallerPacks:
+    def test_default_is_single_full_worker(self, tmp_path):
+        target = tmp_path / ".env"
+        assert install.main(["--non-interactive", "--env-path", str(target)]) == 0
+        env = _parse_env(target.read_text())
+        assert "WORKER_TARGET" not in env and "COMPOSE_PROFILES" not in env
+
+    def test_packs_select_core_worker_and_profiles(self, tmp_path):
+        target = tmp_path / ".env"
+        assert install.main(["--non-interactive", "--env-path", str(target), "--packs", "browser, db"]) == 0
+        env = _parse_env(target.read_text())
+        assert env["WORKER_TARGET"] == "core"
+        assert env["COMPOSE_PROFILES"] == "db,browser"
+
+    def test_core_only(self, tmp_path):
+        target = tmp_path / ".env"
+        assert install.main(["--non-interactive", "--env-path", str(target), "--packs", "core"]) == 0
+        env = _parse_env(target.read_text())
+        assert env["WORKER_TARGET"] == "core"
+        assert env["COMPOSE_PROFILES"] == ""
+
+    def test_unknown_pack_is_rejected(self, tmp_path):
+        target = tmp_path / ".env"
+        assert install.main(["--non-interactive", "--env-path", str(target), "--packs", "gpu"]) == 2
+        assert not target.exists()
+
+    def test_interactive_reprompts_on_bad_pack(self):
+        answers = iter(["", "", "", "", "", "", "", "gpu", "rdp"])
+        args = SimpleNamespace(mysql_root_password=None, mysql_password=None, secret_key=None, packs=None)
+        values = install.collect(args, interactive=True, prompt=lambda _p: next(answers))
+        assert values["WORKER_PACKS"] == ["rdp"]
+
+    def test_optional_packs_match_worker_packs(self):
+        from scoring_engine.worker_packs import DEFAULT_PACK, PACKS
+
+        assert set(install.OPTIONAL_PACKS) == set(PACKS) - {DEFAULT_PACK}

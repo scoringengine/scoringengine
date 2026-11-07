@@ -17,6 +17,7 @@ Usage:
     bin/install --non-interactive     # no prompts; generate secrets, accept defaults
     bin/install --force               # overwrite an existing .env
     bin/install --mysql-password ...  # supply a value instead of generating it
+    bin/install --packs db,browser    # slim core worker + only these check packs
 """
 
 import argparse
@@ -35,6 +36,27 @@ IMAGE_DEFAULTS = {
     "MARIADB_VERSION": "10",
     "NGINX_VERSION": "1.27.3-alpine3.20-slim",
 }
+
+
+# Optional worker tool packs (docker/worker/Dockerfile targets). "core" is always
+# included. Mirrors scoring_engine.worker_packs.PACKS -- this script stays
+# stdlib-only so it runs before anything is installed.
+OPTIONAL_PACKS = ("db", "rdp", "browser")
+
+
+def parse_pack_choice(value):
+    """'all'/'' -> None (single full worker); 'db, browser' -> ['db', 'browser'];
+    'core'/'none' -> [] (core worker only). Raises ValueError on unknown packs."""
+    value = (value or "all").strip().lower()
+    if value == "all":
+        return None
+    if value in ("core", "none"):
+        return []
+    packs = [p.strip() for p in value.split(",") if p.strip() and p.strip() != "core"]
+    unknown = [p for p in packs if p not in OPTIONAL_PACKS]
+    if unknown:
+        raise ValueError(f"Unknown pack(s): {', '.join(unknown)}. Choose from: {', '.join(OPTIONAL_PACKS)}")
+    return sorted(set(packs), key=OPTIONAL_PACKS.index)
 
 
 def gen_password():
@@ -67,6 +89,14 @@ def build_env(values):
         f"SCORINGENGINE_SECRET_KEY={values['SCORINGENGINE_SECRET_KEY']}",
         "",
     ]
+    packs = values.get("WORKER_PACKS")
+    if packs is not None:
+        lines += [
+            "# Worker tool packs: slim core worker plus one worker per enabled pack.",
+            "WORKER_TARGET=core",
+            f"COMPOSE_PROFILES={','.join(packs)}",
+            "",
+        ]
     return "\n".join(lines)
 
 
@@ -90,6 +120,20 @@ def collect(args, interactive, prompt=input):
         app_pw = prompt("MySQL app password [generated]: ").strip() or app_pw
         secret = prompt("Flask secret key [generated]: ").strip() or secret
 
+    pack_choice = getattr(args, "packs", None) or "all"
+    if interactive:
+        while True:
+            answer = prompt(
+                f"Check packs: 'all', or any of {', '.join(OPTIONAL_PACKS)} (core always included) [{pack_choice}]: "
+            ).strip()
+            try:
+                values["WORKER_PACKS"] = parse_pack_choice(answer or pack_choice)
+                break
+            except ValueError as e:
+                print(e)
+    else:
+        values["WORKER_PACKS"] = parse_pack_choice(pack_choice)
+
     values["MYSQL_ROOT_PASSWORD"] = root_pw
     values["MYSQL_PASSWORD"] = app_pw
     values["SCORINGENGINE_SECRET_KEY"] = secret
@@ -103,6 +147,11 @@ def main(argv=None):
     parser.add_argument("--mysql-root-password", help="Use this instead of a generated one.")
     parser.add_argument("--mysql-password", help="Use this instead of a generated one.")
     parser.add_argument("--secret-key", help="Use this instead of a generated one.")
+    parser.add_argument(
+        "--packs",
+        help="Worker check packs: 'all' (default, one full worker) or a list like 'db,browser' "
+        "(slim core worker plus those packs; 'core' for core only).",
+    )
     parser.add_argument("--env-path", default=ENV_PATH, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
 
@@ -111,7 +160,11 @@ def main(argv=None):
         return 1
 
     interactive = not args.non_interactive and sys.stdin.isatty()
-    values = collect(args, interactive)
+    try:
+        values = collect(args, interactive)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 2
 
     with open(args.env_path, "w") as fh:
         fh.write(build_env(values))

@@ -2,6 +2,7 @@ from scoring_engine.engine.basic_check import CHECKS_BIN_PATH, BasicCheck
 
 
 class WebappNginxdefaultpageCheck(BasicCheck):
+    REQUIRES_PACK = "browser"
     required_properties = ["scheme", "basepath"]
     CMD = (
         "pytest --tb=line -s -q -rA --scheme={0} --hostip={1} --hostport={2} --basepath={3} "

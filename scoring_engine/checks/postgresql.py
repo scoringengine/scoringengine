@@ -2,6 +2,7 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class POSTGRESQLCheck(BasicCheck):
+    REQUIRES_PACK = "db"
     required_properties = ["database", "command"]
     CMD = "PGPASSWORD={0} psql -h {1} -p {2} -U {3} -c {4} {5}"
 

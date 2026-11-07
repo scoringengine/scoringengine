@@ -117,11 +117,16 @@ services:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
       - SCORINGENGINE_SECRET_KEY
-  worker:
-    image: scoringengine/worker
+  # Worker tool packs (see scoring_engine/worker_packs.py). By default one
+  # "full" worker runs every check. For smaller images, set WORKER_TARGET=core
+  # in .env and enable only the packs your competition needs, e.g.
+  # COMPOSE_PROFILES=db,browser -- each profile starts a worker for that pack.
+  worker: &worker
+    image: scoringengine/worker${WORKER_TARGET:+-${WORKER_TARGET}}
     build:
       context: .
       dockerfile: ./docker/worker/Dockerfile
+      target: ${WORKER_TARGET:-full}
       args:
         BASE_IMAGE: scoringengine/base
         INSTALL_CERTIPY: ${INSTALL_CERTIPY:-false}
@@ -145,6 +150,36 @@ services:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
     privileged: true
+  worker-db:
+    <<: *worker
+    image: scoringengine/worker-db
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: db
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [db]
+  worker-rdp:
+    <<: *worker
+    image: scoringengine/worker-rdp
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: rdp
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [rdp]
+  worker-browser:
+    <<: *worker
+    image: scoringengine/worker-browser
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: browser
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [browser]
   web:
     image: scoringengine/web
     build:
