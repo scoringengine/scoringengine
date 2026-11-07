@@ -29,7 +29,7 @@ CHECK_PARAMS = [
         "if ! command -v certipy >/dev/null 2>&1; then "
         'echo "certipy is not installed in the worker image; rebuild it with INSTALL_CERTIPY=true"; '
         'else d=$(mktemp -d) && cd "$d" && '
-        "certipy req -u jdoe@corp.local -p 'pass word' -target 127.0.0.1 -target-ip 127.0.0.1 "
+        "certipy req -u jdoe@corp.local -p \"${SE_SECRET_0}\" -target 127.0.0.1 -target-ip 127.0.0.1 "
         "-dc-ip 127.0.0.1 -ca corp-DC01-CA -template User -web -http-scheme http -no-channel-binding 2>&1; "
         'cd / && rm -rf "$d"; fi',
         id="ADCSWebEnrollCheck",
