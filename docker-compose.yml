@@ -124,6 +124,7 @@ services:
       dockerfile: ./docker/worker/Dockerfile
       args:
         BASE_IMAGE: scoringengine/base
+        INSTALL_CERTIPY: ${INSTALL_CERTIPY:-false}
       cache_from:
         - scoringengine/worker
         - worker:latest

@@ -1,6 +1,7 @@
 Implemented Checks
 *********************
 
+.. include:: checks/adcs.rst
 .. include:: checks/agent.rst
 .. include:: checks/dns.rst
 .. include:: checks/elasticsearch.rst
