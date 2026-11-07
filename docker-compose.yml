@@ -213,3 +213,11 @@ volumes:
 
 networks:
   default:
+    driver_opts:
+      # Containers default to MTU 1500 regardless of the host's uplink. When
+      # scored hosts sit behind a lower-MTU path (OpenStack/VXLAN, GRE, IPsec)
+      # and their firewalls drop ICMP "fragmentation needed", large replies
+      # are silently lost: TCP connects, then TLS/HTTP checks hang until
+      # timeout while small-packet services (SSH) keep passing. Set
+      # DOCKER_NETWORK_MTU in .env (e.g. 1400) to match the path MTU.
+      com.docker.network.driver.mtu: ${DOCKER_NETWORK_MTU:-1500}
