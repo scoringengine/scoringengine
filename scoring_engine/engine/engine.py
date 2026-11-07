@@ -32,6 +32,7 @@ from scoring_engine.models.property import Property
 from scoring_engine.models.service import Service
 from scoring_engine.models.setting import Setting
 from scoring_engine.schedule import engine_should_run
+from scoring_engine.worker_packs import DEFAULT_PACK, check_pack, service_queue
 
 
 def _utcnow():
@@ -59,6 +60,11 @@ class Engine(object):
     # Lower bound for the hard ceiling on how long we wait for a round's tasks
     # to finish.  The effective ceiling is max(target_round_time * 3, this).
     ROUND_WAIT_FLOOR = 300
+    # Worker tool-pack coverage (see scoring_engine/worker_packs.py). A pack
+    # queue counts as covered if a worker reported it within QUEUE_SEEN_TTL, so
+    # one slow broadcast reply doesn't fail a pack's checks.
+    QUEUE_INSPECT_TIMEOUT = 1.0
+    QUEUE_SEEN_TTL = 300
 
     # How many times we try to remove a partially written round before giving up
     # (and how long we wait between attempts, multiplied by the attempt number).
@@ -76,6 +82,7 @@ class Engine(object):
     def __init__(self, total_rounds=0):
         self.checks = []
         self.total_rounds = total_rounds
+        self._queue_last_seen = {}
 
         self.config = config
         self.checks_location = self.config.checks_location
@@ -170,6 +177,28 @@ class Engine(object):
                 found_checks.append(arg)
 
         return found_checks
+
+    def _covered_queues(self):
+        """Queues some live worker consumes, or None if that can't be determined.
+
+        Only used for tool-pack queues: if no worker serves e.g. "main.browser",
+        those checks would sit in Redis until the round's hard timeout, stalling
+        every round. Returns None (dispatch everything, as before) when no worker
+        answers at all or the broadcast fails.
+        """
+        try:
+            active = execute_command.app.control.inspect(timeout=self.QUEUE_INSPECT_TIMEOUT).active_queues()
+        except Exception as e:
+            logger.warning("Could not query worker queues: %s", e)
+            active = None
+        now = time.time()
+        if isinstance(active, dict) and active:
+            for queues in active.values():
+                for queue in queues or []:
+                    self._queue_last_seen[queue["name"]] = now
+        if not self._queue_last_seen:
+            return None
+        return {name for name, seen in self._queue_last_seen.items() if now - seen < self.QUEUE_SEEN_TTL}
 
     def check_name_to_obj(self, check_name):
         if not hasattr(self, "_check_map"):
@@ -524,6 +553,15 @@ class Engine(object):
             jitter_max = self.config.task_jitter_max_delay
             task_ids = {}
             task_env_map = {}  # task_id -> environment_id for timeout fallback
+            # Checks not dispatched because no worker has their tool pack:
+            # (environment_id, reason, command), recorded as failed below.
+            undispatched = []
+            needs_pack_queue = any(
+                check_pack(self.check_name_to_obj(s.check_name)) != DEFAULT_PACK
+                for s in services
+                if self.check_name_to_obj(s.check_name) is not None
+            )
+            covered_queues = self._covered_queues() if needs_pack_queue else None
             for service in services:
                 check_class = self.check_name_to_obj(service.check_name)
                 if check_class is None:
@@ -537,8 +575,18 @@ class Engine(object):
                 check_obj = check_class(environment)
                 command_str = check_obj.command()
                 job = Job(environment_id=environment.id, command=command_str, env=check_obj.command_env)
+                queue = service_queue(service, check_class)
+                pack = check_pack(check_class)
+                if pack != DEFAULT_PACK and covered_queues is not None and queue not in covered_queues:
+                    logger.warning(
+                        "No worker serves queue %s; failing %s - %s (enable the '%s' worker pack)",
+                        queue, service.team.name, service.name, pack,
+                    )
+                    reason = "No worker available for check pack '{0}' (queue {1})".format(pack, queue)
+                    undispatched.append((environment.id, reason, command_str))
+                    continue
                 countdown = random.uniform(0, jitter_max) if jitter_max > 0 else 0
-                task = execute_command.apply_async(args=[job], queue=service.worker_queue, countdown=countdown)
+                task = execute_command.apply_async(args=[job], queue=queue, countdown=countdown)
                 dispatch_elapsed = time.time() - dispatch_start
                 if dispatch_elapsed > 1.0:
                     logger.warning(
@@ -610,7 +658,7 @@ class Engine(object):
                 round_id = round_obj.id
 
                 # Pre-fetch all environments needed for result processing in one query
-                all_env_ids = list(set(task_env_map.values()))
+                all_env_ids = list(set(task_env_map.values()) | {env_id for env_id, _, _ in undispatched})
                 env_query = (
                     self.db.session.query(Environment)
                     .options(selectinload(Environment.service))
@@ -745,7 +793,17 @@ class Engine(object):
                             command=command,
                         )
                         self.db.session.add(check)
-                logger.info("Processed %d check results, committing to database", total_tasks)
+
+                for env_id, reason, command in undispatched:
+                    environment = env_cache[env_id]
+                    teams.setdefault(environment.service.team.name, {"Success": [], "Failed": []})
+                    teams[environment.service.team.name]["Failed"].append(environment.service.name)
+                    sid = environment.service.id
+                    round_fail_counts[sid] = round_fail_counts.get(sid, 0) + 1
+                    check = Check(service=environment.service, round=round_obj)
+                    check.finished(result=False, reason=reason, output=reason, command=command)
+                    self.db.session.add(check)
+                logger.info("Processed %d check results, committing to database", total_tasks + len(undispatched))
                 round_end_time = _utcnow()
                 round_obj.round_end = round_end_time
 

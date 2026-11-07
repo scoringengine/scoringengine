@@ -19,13 +19,13 @@ run:
 run-tests:
 	pytest -v -n auto --cov=scoring_engine --cov-report=term-missing tests/
 run-testbed:
-	SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
+	WORKER_TARGET=full SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -p $(PROJECT_NAME) up -d
 run-integration:
-	SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) up -d
+	WORKER_TARGET=full SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) up -d
 run-integration-tests:
 	SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -f $(TESTBED_DOCKER) -f $(INTEGRATION_DOCKER) -p $(PROJECT_NAME) run tester bash -c "py.test --integration tests"
 run-demo:
-	SCORINGENGINE_EXAMPLE=true SCORINGENGINE_OVERWRITE_DB=true SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
+	WORKER_TARGET=full SCORINGENGINE_EXAMPLE=true SCORINGENGINE_OVERWRITE_DB=true SCORINGENGINE_VERSION=$(GIT_HASH) docker compose -f $(MAIN_DOCKER) -p $(PROJECT_NAME) up -d
 
 
 ## Build Commands

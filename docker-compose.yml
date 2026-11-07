@@ -117,14 +117,18 @@ services:
       - SCORINGENGINE_EXAMPLE
       - SCORINGENGINE_VERSION
       - SCORINGENGINE_SECRET_KEY
-  worker:
-    image: scoringengine/worker
+  # Worker tool packs (see scoring_engine/worker_packs.py). The default worker
+  # is the slim "core" image. Enable the packs your competition needs with
+  # COMPOSE_PROFILES=db,rdp,browser (each starts a worker for that pack), or
+  # set WORKER_TARGET=full for a single worker with every pack.
+  worker: &worker
+    image: scoringengine/worker-${WORKER_TARGET:-core}
     build:
       context: .
       dockerfile: ./docker/worker/Dockerfile
+      target: ${WORKER_TARGET:-core}
       args:
         BASE_IMAGE: scoringengine/base
-        INSTALL_CERTIPY: ${INSTALL_CERTIPY:-false}
       cache_from:
         - scoringengine/worker
         - worker:latest
@@ -145,6 +149,46 @@ services:
       - SCORINGENGINE_VERSION
       - DISPLAY=:1
     privileged: true
+  worker-db:
+    <<: *worker
+    image: scoringengine/worker-db
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: db
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [db]
+  worker-rdp:
+    <<: *worker
+    image: scoringengine/worker-rdp
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: rdp
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [rdp]
+  worker-browser:
+    <<: *worker
+    image: scoringengine/worker-browser
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: browser
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [browser]
+  worker-adcs:
+    <<: *worker
+    image: scoringengine/worker-adcs
+    build:
+      context: .
+      dockerfile: ./docker/worker/Dockerfile
+      target: adcs
+      args:
+        BASE_IMAGE: scoringengine/base
+    profiles: [adcs]
   web:
     image: scoringengine/web
     build:

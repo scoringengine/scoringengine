@@ -117,8 +117,12 @@ docker save scoringengine/bootstrap -o "${IMAGES_DIR}/scoringengine-bootstrap.ta
 echo "  - Exporting scoringengine/engine..."
 docker save scoringengine/engine -o "${IMAGES_DIR}/scoringengine-engine.tar"
 
-echo "  - Exporting scoringengine/worker..."
-docker save scoringengine/worker -o "${IMAGES_DIR}/scoringengine-worker.tar"
+# Worker images: the full worker and/or the tool-pack workers enabled via
+# WORKER_TARGET / COMPOSE_PROFILES (worker-core, worker-db, worker-rdp, ...).
+for worker_image in $(docker images --format '{{.Repository}}' | grep -E '^scoringengine/worker(-[a-z]+)?$' | sort -u); do
+    echo "  - Exporting ${worker_image}..."
+    docker save "${worker_image}" -o "${IMAGES_DIR}/${worker_image//\//-}.tar"
+done
 
 echo "  - Exporting scoringengine/web..."
 docker save scoringengine/web -o "${IMAGES_DIR}/scoringengine-web.tar"
@@ -170,7 +174,9 @@ echo "Loading Scoring Engine images..."
 docker load -i docker-images/scoringengine-base.tar
 docker load -i docker-images/scoringengine-bootstrap.tar
 docker load -i docker-images/scoringengine-engine.tar
-docker load -i docker-images/scoringengine-worker.tar
+for worker_tar in docker-images/scoringengine-worker*.tar; do
+    docker load -i "${worker_tar}"
+done
 docker load -i docker-images/scoringengine-web.tar
 
 echo ""

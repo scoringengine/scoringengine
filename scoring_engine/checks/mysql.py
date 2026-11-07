@@ -2,6 +2,7 @@ from scoring_engine.engine.basic_check import BasicCheck
 
 
 class MYSQLCheck(BasicCheck):
+    REQUIRES_PACK = "db"
     required_properties = ["database", "command"]
     CMD = "mysql --skip-ssl -h {0} -P {1} -u {2} -p{3} {4} -e {5}"
 

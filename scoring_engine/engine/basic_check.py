@@ -29,6 +29,9 @@ class Secret(object):
 
 
 class BasicCheck(object):
+    # Worker tool pack this check needs; see scoring_engine/worker_packs.py
+    REQUIRES_PACK = "core"
+
     def __init__(self, environment):
         self.environment = environment
         if not hasattr(self, "required_properties"):

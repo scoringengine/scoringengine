@@ -1,88 +1,112 @@
 # syntax=docker/dockerfile:1
+#
+# Worker images are split into tool packs (see scoring_engine/worker_packs.py).
+# Build targets:
+#   core     - shell tools + light Python libs; runs most checks
+#   db       - core + MySQL/PostgreSQL/MSSQL clients
+#   rdp      - core + FreeRDP/Xvfb
+#   browser  - core + Playwright/Chromium
+#   adcs     - core + certipy (AD CS Web Enrollment)
+#   full     - every pack (default target, same as the old single image)
+# Each image sets SCORINGENGINE_WORKER_PACKS so the worker subscribes to the
+# matching queues ("main" for core, "main.<pack>" for the rest).
 ARG BASE_IMAGE=ghcr.io/scoringengine/scoringengine/base:latest
-FROM ${BASE_IMAGE}
 
+# ---- dependency stages (no app code, so code changes don't bust these) ----
+FROM ${BASE_IMAGE} AS core-deps
+USER root
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/core.sh
+
+FROM core-deps AS db-deps
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/db.sh
+
+FROM core-deps AS rdp-deps
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/rdp.sh
+
+FROM core-deps AS browser-deps
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/browser.sh
+USER engine
+RUN playwright install chromium
 USER root
 
-# Install system dependencies in a single layer to reduce image size
-# This consolidates all apt-get operations to minimize layers
+FROM core-deps AS adcs-deps
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/adcs.sh
+
+FROM core-deps AS full-deps
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    apt-transport-https \
-    curl \
-    default-mysql-client \
-    dnsutils \
-    gpg \
-    iproute2 \
-    iputils-ping \
-    ldap-utils \
-    medusa \
-    netcat-openbsd \
-    nfs-common \
-    openvpn \
-    postgresql-client \
-    sudo \
-    xvfb
+    --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=docker/worker/packs,target=/packs \
+    /packs/db.sh && /packs/rdp.sh && /packs/browser.sh && /packs/adcs.sh
+USER engine
+RUN playwright install chromium
+USER root
 
-# Install Microsoft SQL Server tools and freerdp in single layer
-# freerdp2-x11 was renamed to freerdp3-x11 on newer distributions
-# Some distributions ship only a generic "freerdp" package
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    curl -o /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb && \
-    dpkg -i /tmp/packages-microsoft-prod.deb && \
-    rm /tmp/packages-microsoft-prod.deb && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
-      # Microsoft SQL Server checks
-      mssql-tools18 \
-      sqlcmd \
-      unixodbc-dev \
-    && (apt-get install -y --no-install-recommends freerdp2-x11 || \
-        apt-get install -y --no-install-recommends freerdp3-x11 || \
-        apt-get install -y --no-install-recommends freerdp)
-
-# Worker-specific Python packages + Playwright in a single pip layer
-# Note: update docker/engine/Dockerfile as well when changing playwright version
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -I \
-    # SSH checks
-    "paramiko==3.5.0" \
-    # WinRM checks
-    "pywinrm>=0.5.0,<0.6" \
-    # Elasticsearch checks
-    "requests>=2.32.3,<2.33" \
-    # SMB checks
-    "pysmb>=1.2,<1.3" \
-    # Playwright-based advanced web checks
-    "pytest-playwright>=0.7.0,<0.8"
-
-RUN playwright install-deps
-
-# Optional: AD CS Web Enrollment checks (ADCSWebEnrollCheck). Off by default
-# because certipy adds ~100MB; build with INSTALL_CERTIPY=true to enable.
-# certipy gets its own venv so its dependency pins (impacket, cryptography,
-# ...) can't conflict with the engine's.
-ARG INSTALL_CERTIPY=false
-RUN --mount=type=cache,target=/root/.cache/pip \
-    if [ "$INSTALL_CERTIPY" = "true" ]; then \
-      python -m venv /opt/certipy && \
-      /opt/certipy/bin/pip install "certipy-ad==5.1.0" && \
-      ln -s /opt/certipy/bin/certipy /usr/local/bin/certipy; \
-    fi
-
+# ---- final images: deps + app code ----
+FROM core-deps AS core
 COPY bin/worker /app/bin/worker
 COPY docker/worker/sudoers /etc/sudoers
-
 USER engine
-
 COPY scoring_engine /app/scoring_engine
-RUN playwright install chromium
+ENV SCORINGENGINE_WORKER_PACKS=core
+CMD ["/app/bin/worker"]
 
-# Xvfb is a virtual X server which tricks freerdp2
-# into thinking it has a screen. This is used for
-# RDP scorechecks.
+FROM db-deps AS db
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,db
+CMD ["/app/bin/worker"]
+
+FROM rdp-deps AS rdp
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,rdp
+# Xvfb is a virtual X server which tricks FreeRDP into thinking it has a screen.
 # Remove stale X lock files first: on a container restart (not recreate) they
 # survive in /tmp, Xvfb refuses to start, and RDP checks fail with no display.
+CMD ["sh", "-c", "rm -f /tmp/.X1-lock /tmp/.X11-unix/X1; Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]
+
+FROM browser-deps AS browser
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,browser
+CMD ["/app/bin/worker"]
+
+FROM adcs-deps AS adcs
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,adcs
+CMD ["/app/bin/worker"]
+
+# Default target (last stage): every pack, equivalent to the old single image.
+FROM full-deps AS full
+COPY bin/worker /app/bin/worker
+COPY docker/worker/sudoers /etc/sudoers
+USER engine
+COPY scoring_engine /app/scoring_engine
+ENV SCORINGENGINE_WORKER_PACKS=core,db,rdp,browser,adcs
 CMD ["sh", "-c", "rm -f /tmp/.X1-lock /tmp/.X11-unix/X1; Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]
