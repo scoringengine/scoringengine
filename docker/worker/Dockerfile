@@ -72,4 +72,6 @@ RUN playwright install chromium
 # Xvfb is a virtual X server which tricks freerdp2
 # into thinking it has a screen. This is used for
 # RDP scorechecks.
-CMD ["sh", "-c", "Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]
+# Remove stale X lock files first: on a container restart (not recreate) they
+# survive in /tmp, Xvfb refuses to start, and RDP checks fail with no display.
+CMD ["sh", "-c", "rm -f /tmp/.X1-lock /tmp/.X11-unix/X1; Xvfb :1 -screen 0 1024x768x16 & exec /app/bin/worker"]
