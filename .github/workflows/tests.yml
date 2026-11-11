@@ -45,8 +45,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The GitHub Actions build cache needs the containerd image store with
+      # the default docker driver. (A docker-container builder could export it
+      # too, but can't see locally built images, so images built FROM
+      # scoringengine/base would silently pull the published base instead.)
+      - name: Enable containerd image store
+        run: |
+          cfg=/etc/docker/daemon.json
+          [ -s "$cfg" ] || echo '{}' | sudo tee "$cfg" >/dev/null
+          jq '.features["containerd-snapshotter"] = true' "$cfg" | sudo tee "$cfg.new" >/dev/null
+          sudo mv "$cfg.new" "$cfg"
+          sudo systemctl restart docker
+          docker info -f '{{ .DriverStatus }}'
+
+      # Exposes the cache service URL and token that BuildKit's gha cache uses.
+      - uses: crazy-max/ghaction-github-runtime@v3
+
       - name: Run integration tests
         timeout-minutes: 25
+        env:
+          BUILD_CACHE: gha
+          # PRs read the cache from master; only master runs write to it, so
+          # PR builds don't fill the repo's 10 GB cache quota.
+          BUILD_CACHE_WRITE: ${{ github.event_name != 'pull_request' }}
         run: ./tests/integration/run.sh
 
       - name: Debug docker state (on failure)
