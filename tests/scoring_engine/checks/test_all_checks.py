@@ -220,8 +220,15 @@ CHECK_PARAMS = [
         "VNCCheck",
         {},
         {"BLANK": "passtest"},
-        "medusa -R 1 -h 127.0.0.1 -n 1234 -u '' '' -p \"${SE_SECRET_0}\" -M vnc",
+        "medusa -R 1 -h 127.0.0.1 -n 1234 -u ' ' -p \"${SE_SECRET_0}\" -M vnc",
         id="VNCCheck",
+    ),
+    pytest.param(
+        "VNCCheck",
+        {},
+        {"$(id)": "passtest"},
+        "medusa -R 1 -h 127.0.0.1 -n 1234 -u '$(id)' -p \"${SE_SECRET_0}\" -M vnc",
+        id="VNCCheck-username-injection",
     ),
     pytest.param(
         "WebappNginxdefaultpageCheck",
