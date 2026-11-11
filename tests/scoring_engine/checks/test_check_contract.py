@@ -12,6 +12,7 @@ import pytest
 
 from scoring_engine.engine.basic_check import BasicCheck
 from scoring_engine.engine.engine import Engine
+from scoring_engine.engine.http_post_check import HTTPPostCheck
 from tests.scoring_engine.checks.test_all_checks import CHECK_PARAMS
 
 REPO = os.path.join(os.path.dirname(__file__), "..", "..", "..")
@@ -85,3 +86,50 @@ def test_command_test_covers_every_required_property(check_class):
         pytest.skip("covered by test_check_has_command_test")
     properties = param.values[1]
     assert set(properties) == set(check_class.required_properties)
+
+
+def _quoted_placeholders(cmd):
+    """Return the ``{N}`` placeholders in ``cmd`` that sit inside shell quotes.
+
+    BasicCheck.command() shlex-quotes every argument. If the template also
+    wraps the placeholder in quotes, the two sets cancel out ('{2}' becomes
+    ''value''), so the value reaches the shell unquoted.
+    """
+    found = []
+    quote = None
+    i = 0
+    while i < len(cmd):
+        ch = cmd[i]
+        if ch == "\\" and quote != "'":
+            i += 2
+            continue
+        if quote is None and ch in "'\"":
+            quote = ch
+        elif ch == quote:
+            quote = None
+        elif quote is not None:
+            match = re.match(r"\{\d+\}", cmd[i:])
+            if match:
+                found.append(match.group())
+        i += 1
+    return found
+
+
+def test_quoted_placeholder_detection():
+    assert _quoted_placeholders("medusa -u '{2}' -p {3}") == ["{2}"]
+    assert _quoted_placeholders('curl --header "Host: {0}" {1}') == ["{0}"]
+    assert _quoted_placeholders("ldapsearch -b {3} '(objectclass=Domain)' cn") == []
+    assert _quoted_placeholders("medusa -u {2} -p {3}") == []
+
+
+@pytest.mark.parametrize("check_class", CHECKS, ids=CHECK_IDS)
+def test_cmd_does_not_quote_placeholders(check_class):
+    # HTTPPostCheck URL-encodes its args instead of shell-quoting them, so its
+    # templates must quote placeholders themselves.
+    if issubclass(check_class, HTTPPostCheck):
+        return
+    quoted = _quoted_placeholders(check_class.CMD)
+    assert not quoted, (
+        f"{check_class.__name__}.CMD wraps {quoted} in quotes. BasicCheck.command() already "
+        "shlex-quotes every argument, and the extra quotes cancel that out. Use a bare {N}."
+    )
