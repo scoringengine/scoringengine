@@ -52,7 +52,7 @@ docker container prune -f >/dev/null 2>&1 || true
 
 # Build and start the necessary containers
 echo "Building required container environment"
-make build build-integration
+./tests/integration/build.sh
 echo "Starting up required container environment"
 make run-integration
 

@@ -45,8 +45,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The GitHub Actions build cache needs the containerd image store with
+      # the default docker driver. (A docker-container builder could export it
+      # too, but can't see locally built images, so images built FROM
+      # scoringengine/base would silently pull the published base instead.)
+      - name: Enable containerd image store
+        run: |
+          cfg=/etc/docker/daemon.json
+          [ -s "$cfg" ] || echo '{}' | sudo tee "$cfg" >/dev/null
+          jq '.features["containerd-snapshotter"] = true' "$cfg" | sudo tee "$cfg.new" >/dev/null
+          sudo mv "$cfg.new" "$cfg"
+          sudo systemctl restart docker
+          docker info -f '{{ .DriverStatus }}'
+
+      # BuildKit's gha cache needs the cache service URL and token, which the
+      # runner only gives to actions, not to run steps. Export them.
+      - name: Expose cache service to BuildKit
+        uses: actions/github-script@v9
+        with:
+          script: |
+            for (const key of ["ACTIONS_RUNTIME_TOKEN", "ACTIONS_CACHE_URL", "ACTIONS_RESULTS_URL", "ACTIONS_CACHE_SERVICE_V2"]) {
+              if (process.env[key]) core.exportVariable(key, process.env[key]);
+            }
+
       - name: Run integration tests
         timeout-minutes: 25
+        env:
+          BUILD_CACHE: gha
+          # The nightly run builds from scratch so upstream drift (base images,
+          # unpinned apt packages) still breaks it, like Playwright 1.65 did.
+          # It still writes, so it refreshes the cache for everyone else.
+          BUILD_CACHE_READ: ${{ github.event_name != 'schedule' }}
+          # PRs read the cache from master; only master runs write to it, so
+          # PR builds don't fill the repo's 10 GB cache quota.
+          BUILD_CACHE_WRITE: ${{ github.event_name != 'pull_request' }}
         run: ./tests/integration/run.sh
 
       - name: Debug docker state (on failure)
