@@ -58,13 +58,24 @@ jobs:
           sudo systemctl restart docker
           docker info -f '{{ .DriverStatus }}'
 
-      # Exposes the cache service URL and token that BuildKit's gha cache uses.
-      - uses: crazy-max/ghaction-github-runtime@v3
+      # BuildKit's gha cache needs the cache service URL and token, which the
+      # runner only gives to actions, not to run steps. Export them.
+      - name: Expose cache service to BuildKit
+        uses: actions/github-script@v9
+        with:
+          script: |
+            for (const key of ["ACTIONS_RUNTIME_TOKEN", "ACTIONS_CACHE_URL", "ACTIONS_RESULTS_URL", "ACTIONS_CACHE_SERVICE_V2"]) {
+              if (process.env[key]) core.exportVariable(key, process.env[key]);
+            }
 
       - name: Run integration tests
         timeout-minutes: 25
         env:
           BUILD_CACHE: gha
+          # The nightly run builds from scratch so upstream drift (base images,
+          # unpinned apt packages) still breaks it, like Playwright 1.65 did.
+          # It still writes, so it refreshes the cache for everyone else.
+          BUILD_CACHE_READ: ${{ github.event_name != 'schedule' }}
           # PRs read the cache from master; only master runs write to it, so
           # PR builds don't fill the repo's 10 GB cache quota.
           BUILD_CACHE_WRITE: ${{ github.event_name != 'pull_request' }}

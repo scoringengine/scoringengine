@@ -2,9 +2,10 @@
 # Build every image the integration run needs.
 #
 # Locally this is just `make build build-integration`. In CI (BUILD_CACHE=gha)
-# each service's layers are also read from and, when BUILD_CACHE_WRITE=true,
-# written to the GitHub Actions cache. That keeps the testbed images' apt-get
-# steps (and their network) out of most runs, and makes runs faster.
+# each service's layers are read from the GitHub Actions cache (unless
+# BUILD_CACHE_READ=false) and written to it when BUILD_CACHE_WRITE=true. That
+# keeps the testbed images' apt-get steps (and their network) out of most runs,
+# and makes runs faster.
 #
 # Builds are retried: BuildKit keeps the layers that already succeeded, so a
 # retry only redoes the image that hit a transient network failure.
@@ -37,10 +38,10 @@ fi
 OVERRIDE=$(mktemp --suffix=.yml)
 trap 'rm -f "$OVERRIDE"' EXIT
 docker compose "${FILES[@]}" "${PROJECT[@]}" config --format json |
-  jq --arg write "${BUILD_CACHE_WRITE:-false}" '{
+  jq --arg read "${BUILD_CACHE_READ:-true}" --arg write "${BUILD_CACHE_WRITE:-false}" '{
     services: (.services | with_entries(select(.value.build)) | with_entries(.value = {
-      build: ({cache_from: ["type=gha,scope=\(.key)"]}
-        + if $write == "true" then {cache_to: ["type=gha,scope=\(.key),mode=max"]} else {} end)
+      build: ((if $read == "true" then {cache_from: ["type=gha,scope=\(.key)"]} else {} end)
+        + (if $write == "true" then {cache_to: ["type=gha,scope=\(.key),mode=max"]} else {} end))
     }))
   }' >"$OVERRIDE"
 echo "Build cache override:"
